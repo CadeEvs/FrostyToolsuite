@@ -3,7 +3,7 @@ The most advanced modding platform for games running on DICE's Frostbite game en
 
 ## Setup
 
-1. Download Git (this should hopefully be the right software) https://git-scm.com/download/win
+1. Download Git https://git-scm.com/download/win
 2. Create an empty folder, go inside it, right click an empty space and hit "Gt Bash Here". That should open up a command prompt
 3. Press green "Code" button. Click that and copy the text under "HTTPS"
 4. Type out ``git clone -b 1.0.6 <HTTPS code>`` in the command prompt and hit enter. This should clone the project files
