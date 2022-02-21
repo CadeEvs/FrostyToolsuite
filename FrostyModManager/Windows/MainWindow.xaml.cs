@@ -505,6 +505,15 @@ namespace FrostyModManager
             FrostyAppliedMod mod = appliedModsList.SelectedItem as FrostyAppliedMod;
 
             selectedPack.MoveModUp(mod);
+            if (Keyboard.IsKeyDown(Key.LeftShift)) {
+                selectedPack.MoveModUp(mod);
+                selectedPack.MoveModUp(mod);
+                selectedPack.MoveModUp(mod);
+                selectedPack.MoveModUp(mod);
+            }
+            if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl)) {
+                selectedPack.MoveModTop(mod);
+            }
             appliedModsList.Items.Refresh();
 
             updateAppliedModButtons();
@@ -515,6 +524,15 @@ namespace FrostyModManager
             FrostyAppliedMod mod = appliedModsList.SelectedItem as FrostyAppliedMod;
 
             selectedPack.MoveModDown(mod);
+            if (Keyboard.IsKeyDown(Key.LeftShift)) {
+                selectedPack.MoveModDown(mod);
+                selectedPack.MoveModDown(mod);
+                selectedPack.MoveModDown(mod);
+                selectedPack.MoveModDown(mod);
+            }
+            if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl)) {
+                selectedPack.MoveModBottom(mod);
+            }
             appliedModsList.Items.Refresh();
 
             updateAppliedModButtons();
