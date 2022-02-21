@@ -3,8 +3,6 @@ The most advanced modding platform for games running on DICE's Frostbite game en
 
 ## Setup
 
-* Recommended to use Visual Studio 2019
-
 1. Download Git (this should hopefully be the right software) https://git-scm.com/download/win
 2. Create an empty folder, go inside it, right click an empty space and hit "Gt Bash Here". That should open up a command prompt
 3. Press green "Code" button. Click that and copy the text under "HTTPS"
