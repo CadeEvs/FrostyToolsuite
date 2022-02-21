@@ -1,0 +1,299 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <Configurations>Developer - Debug;Release - Alpha;Release - Beta;Release - Final</Configurations>
+    <Platforms>x64</Platforms>
+    <ProjectGuid>{B72B292F-1309-4205-A3FC-3E4EA584CDE8}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>FrostyModManager</RootNamespace>
+    <AssemblyName>FrostyModManager</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>AppIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Final|x64' ">
+    <OutputPath>bin\Release\Final\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Developer - Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Developer\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;FROSTY_DEVELOPER</DefineConstants>
+    <DebugType>portable</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationManifest>Properties\app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release - Alpha|x64'">
+    <OutputPath>bin\Release\Alpha\</OutputPath>
+    <DefineConstants>TRACE;FROSTY_ALPHA</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Beta|x64' ">
+    <OutputPath>bin\Release\Beta\</OutputPath>
+    <DefineConstants>TRACE;FROSTY_BETA</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\FrostyEditor\ThirdParty\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <PackageReference Include="System.IO.Compression" Version="4.3.0" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Xml" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <Reference Include="System.Xaml">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="FrostyAppliedMod.cs" />
+    <Compile Include="Windows\KeyPromptWindow.xaml.cs">
+      <DependentUpon>KeyPromptWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\PrelaunchWindow2.xaml.cs">
+      <DependentUpon>PrelaunchWindow2.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\SplashWindow.xaml.cs">
+      <DependentUpon>SplashWindow.xaml</DependentUpon>
+    </Compile>
+    <Page Include="Windows\AboutWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\ConfigWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\KeyPromptWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\LaunchOptionsWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\AddProfileWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\InstallErrorsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\MainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="Windows\AboutWindow.xaml.cs">
+      <DependentUpon>AboutWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\ConfigWindow.xaml.cs">
+      <DependentUpon>ConfigWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\LaunchOptionsWindow.xaml.cs">
+      <DependentUpon>LaunchOptionsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="FileUnblocker.cs" />
+    <Compile Include="FrostyPack.cs" />
+    <Compile Include="Windows\AddProfileWindow.xaml.cs">
+      <DependentUpon>AddProfileWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Compression\IDecompressor.cs" />
+    <Compile Include="Compression\LZMA.cs" />
+    <Compile Include="Compression\UnRar.cs" />
+    <Compile Include="Compression\Zip.cs" />
+    <Compile Include="Config.cs" />
+    <Compile Include="Controls\FrostyModDescription.cs" />
+    <Compile Include="Windows\InstallErrorsWindow.xaml.cs">
+      <DependentUpon>InstallErrorsWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\MainWindow.xaml.cs">
+      <DependentUpon>MainWindow.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\PrelaunchWindow2.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\SplashWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\app.manifest" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FrostyControls\FrostyControls.csproj">
+      <Project>{51d3305b-48d0-4d4c-9d64-727185420eac}</Project>
+      <Name>FrostyControls</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrostyHash\FrostyHash.vcxproj">
+      <Project>{d1a29bf8-2e2e-47be-845f-a6dd66d175ba}</Project>
+      <Name>FrostyHash</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrostyModSupport\FrostyModSupport.csproj">
+      <Project>{e703b059-36f3-4ebf-8f86-32561bc47dcb}</Project>
+      <Name>FrostyModSupport</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrostyPlugin\FrostyCore.csproj">
+      <Project>{d86d23d9-db93-4d4e-b383-5022f759aba8}</Project>
+      <Name>FrostyCore</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\FrostySdk\FrostySdk.csproj">
+      <Project>{93fb4a0c-df89-4169-80b5-c4e2277ff7a0}</Project>
+      <Name>FrostySdk</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="AppIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\AddMod.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Minus.png" />
+    <Resource Include="Images\Plus.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Remove.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Down.png" />
+    <Resource Include="Images\Up.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\DefaultModIcon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\RemoveMod.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ChangeLog.txt" />
+    <Resource Include="Credits.txt" />
+    <Resource Include="Images\Frosty.png" />
+    <Resource Include="Images\ModImportError.png" />
+    <Resource Include="Images\ModImportWarning.png" />
+    <Resource Include="Images\ModifyAction.png" />
+    <Resource Include="Images\AddAction.png" />
+    <Resource Include="Images\Chunk.png" />
+    <Resource Include="Images\Ebx.png" />
+    <Resource Include="Images\Res.png" />
+    <Resource Include="Images\Cross.png" />
+    <Resource Include="Images\Tick.png" />
+    <Resource Include="BuildDate.txt" />
+    <Resource Include="Images\Legacy.png" />
+    <Resource Include="Images\Merge.png" />
+    <Resource Include="Images\PrimaryActionModify.png" />
+    <Resource Include="Images\PrimaryActionReplace.png" />
+    <Resource Include="Images\SecondaryActionAdd.png" />
+    <Resource Include="Images\PrimaryActionAdd.png" />
+    <Resource Include="Images\PrimaryActionMerge.png" />
+    <Content Include="ThirdParty\Newtonsoft.Json.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ThirdParty\LZMA.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ThirdParty\UnRAR.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+</Project>

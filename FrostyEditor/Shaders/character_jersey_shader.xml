@@ -1,0 +1,102 @@
+<shader profile="*">
+	<permutations>
+		<permutation name="FIFA19" skinned="true" bonesPerVertex="8">
+			<vertexshader>
+				<vertexlayout>
+					<layoutelement usage="Pos" format="Float3" stream="0"/>
+					<layoutelement usage="Binormal" format="Half4" stream="1"/>
+					<layoutelement usage="BoneIndices" format="UShort4" stream="2"/>
+					<layoutelement usage="BoneIndices2" format="UShort4" stream="3"/>
+					<layoutelement usage="BoneWeights" format="UByte4N" stream="4"/>
+					<layoutelement usage="BoneWeights2" format="UByte4N" stream="5"/>
+					<layoutelement usage="Normal" format="Half4" stream="6"/>
+					<layoutelement usage="Tangent" format="Half4" stream="7"/>
+					<layoutelement usage="TexCoord0" format="Half2" stream="8"/>
+					<layoutelement usage="Color0" format="UByte4N" stream="9"/>
+				</vertexlayout>
+			</vertexshader>
+			<pixelshader>
+				<parameters>
+					<!--<parameter name="useDirt" type="Bool"/>-->
+					<parameter name="debugCrestHotspot" type="Float4"/>
+					<parameter name="debugNumberBackHotspot" type="Float4"/>
+					<parameter name="debugNumberFrontHotspot" type="Float4"/>
+					<parameter name="debugJerseyNumberColorPrimary" type="Float4"/>
+					<parameter name="debugJerseyNumberColorSecondary" type="Float4"/>
+					<parameter name="debugJerseyNumberColorTertiary" type="Float4"/>
+				</parameters>
+				<textures>
+					<texture name="dirtMapArrayTexture" type="2darray"/>
+					<texture name="nameTexture" type="2d"/>
+					<texture name="normalArrayTexture" type="2darray"/>
+					<texture name="twistMaskTexture" type="2d"/>
+					<texture name="ambientTexture" type="2d"/>
+					<texture name="coefficientTexture" type="2d"/>
+					<texture name="colorTexture" type="2d"/>
+					<texture name="crestTexture" type="2d"/>
+					<texture name="numberUnitsTexture" type="2d"/>
+					<texture name="numberTensTexture" type="2d"/>
+					<texture name="dirtMaskTexture" type="2d"/>
+					<texture name="normalTexture" type="2d"/>
+					<texture name="debugKitColorTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/jersey_1415_0_0_color"/>
+					<texture name="debugKitNormalTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/jersey_1415_0_0_normal"/>
+					<texture name="debugKitCoeffTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/jersey_1415_0_0_coeff"/>
+					<texture name="debugCrestTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/crest_1415_0_0_color"/>
+				</textures>
+				<samplers>
+					<sampler />
+					<sampler addressU="Clamp" addressV="Clamp" addressW="Clamp" maxLod="0"/>
+				</samplers>
+			</pixelshader>
+		</permutation>
+		<permutation name="FIFA18" skinned="true" bonesPerVertex="8">
+			<vertexshader>
+				<vertexlayout>
+					<layoutelement usage="Pos" format="Float3" />
+					<layoutelement usage="Binormal" format="Half4" />
+					<layoutelement usage="BoneIndices" format="UShort4" />
+					<layoutelement usage="BoneIndices2" format="UShort4" />
+					<layoutelement usage="BoneWeights" format="UByte4N" />
+					<layoutelement usage="BoneWeights2" format="UByte4N" />
+					<layoutelement usage="Normal" format="Half4" />
+					<layoutelement usage="Tangent" format="Half4" />
+					<layoutelement usage="TexCoord0" format="Half2" />
+					<layoutelement usage="Color0" format="UByte4N" />
+				</vertexlayout>
+			</vertexshader>
+			<pixelshader>
+				<parameters>
+					<!--<parameter name="useDirt" type="Bool"/>-->
+					<parameter name="debugCrestHotspot" type="Float4"/>
+					<parameter name="debugNumberBackHotspot" type="Float4"/>
+					<parameter name="debugNumberFrontHotspot" type="Float4"/>
+					<parameter name="debugJerseyNumberColorPrimary" type="Float4"/>
+					<parameter name="debugJerseyNumberColorSecondary" type="Float4"/>
+					<parameter name="debugJerseyNumberColorTertiary" type="Float4"/>
+				</parameters>
+				<textures>
+					<texture name="dirtMapArrayTexture" type="2darray"/>
+					<texture name="nameTexture" type="2d"/>
+					<texture name="normalArrayTexture" type="2darray"/>
+					<texture name="twistMaskTexture" type="2d"/>
+					<texture name="ambientTexture" type="2d"/>
+					<texture name="coefficientTexture" type="2d"/>
+					<texture name="colorTexture" type="2d"/>
+					<texture name="crestTexture" type="2d"/>
+					<texture name="numberUnitsTexture" type="2d"/>
+					<texture name="numberTensTexture" type="2d"/>
+					<texture name="dirtMaskTexture" type="2d"/>
+					<texture name="normalTexture" type="2d"/>
+					<texture name="debugKitColorTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/jersey_1415_0_0_color"/>
+					<texture name="debugKitNormalTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/jersey_1415_0_0_normal"/>
+					<texture name="debugKitCoeffTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/jersey_1415_0_0_coeff"/>
+					<texture name="debugCrestTexture" type="2d" defaultValue="content/character/kit/kit_1000/australia_1415/home_0_0/crest_1415_0_0_color"/>
+				</textures>
+				<samplers>
+					<sampler />
+					<sampler addressU="Clamp" addressV="Clamp" addressW="Clamp" maxLod="0"/>
+				</samplers>
+			</pixelshader>
+		</permutation>
+	</permutations>
+</shader>

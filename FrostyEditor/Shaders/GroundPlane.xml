@@ -1,0 +1,26 @@
+<shader profile="*">
+  <permutations>
+    <permutation>
+      <vertexshader>
+        <vertexlayout>
+          <layoutelement usage="Pos" format="Float3"/>
+          <layoutelement usage="Normal" format="Float3"/>
+          <LayoutElement usage="TexCoord0" format="Float2"/>
+        </vertexlayout>
+      </vertexshader>
+      <pixelshader>
+        <parameters>
+          <parameter name="Color1" type="Float4" defaultValue="1,0,0,1"/>
+          <parameter name="Color2" type="Float4" defaultValue="0,1,0,1"/>
+          <parameter name="SMR" type="Float4" defaultValue="0.5,0,1,1"/>
+        </parameters>
+        <textures>
+          <texture name="BaseColor" type="2d" defaultValue="Resources/Textures/DefaultDiffuse.dds"/>
+        </textures>
+        <samplers>
+          <sampler />
+        </samplers>
+      </pixelshader>
+    </permutation>
+  </permutations>
+</shader>

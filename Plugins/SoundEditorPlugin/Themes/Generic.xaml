@@ -1,0 +1,142 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:SoundEditorPlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper"
+    xmlns:editors="clr-namespace:Frosty.Core.Controls.Editors;assembly=FrostyCore"
+    xmlns:conv="clr-namespace:Frosty.Core.Converters;assembly=FrostyCore">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- FrostySoundDataEditor -->
+    <Style TargetType="{x:Type local:FrostySoundDataEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:FrostySoundDataEditor}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="3*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ctrl:FrostyDockablePanel Grid.Column="0" Title="" TitleBarVisible="False">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="26"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Margin="1">
+                                    <DockPanel>
+                                        <Border Background="{StaticResource ControlBackground}" Margin="0">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                                <StackPanel.Resources>
+                                                    <conv:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+                                                </StackPanel.Resources>
+                                                <Button x:Name="PART_PlayButton" Width="22" Height="22" Margin="0" ToolTip="Play" IsEnabled="False">
+                                                    <Button.Content>
+                                                        <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Play.png"/>
+                                                    </Button.Content>
+                                                </Button>
+                                                <!--<Button x:Name="PART_PauseButton" Width="22" Height="22" Margin="0" ToolTip="Pause playing sound" Visibility="Collapsed">
+                                                    <Button.Content>
+                                                        <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Pause.png"/>
+                                                    </Button.Content>
+                                                </Button>-->
+                                                <Button x:Name="PART_StopButton" Width="22" Height="22" Margin="2,0,0,0" ToolTip="Stop" IsEnabled="False">
+                                                    <Button.Content>
+                                                        <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Stop.png"/>
+                                                    </Button.Content>
+                                                </Button>
+                                                <Slider Margin="8,0,0,0" x:Name="PART_VolumeSlider" VerticalAlignment="Center" Minimum="0" Maximum="100" LargeChange="20" SmallChange="2" IsSnapToTickEnabled="True" TickFrequency="1" Width="160"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DockPanel>
+                                </Border>
+
+                                <!--<ctrl:FrostyViewport Grid.Row="1" x:Name="PART_Renderer"/>-->
+
+                                <ListView x:Name="PART_TracksListBox" Grid.Row="1" ItemsSource="{Binding Path=TracksList, RelativeSource={RelativeSource AncestorType={x:Type local:FrostySoundDataEditor}}}">
+                                    <ListView.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem x:Name="PART_SoundExportMenuItem" Header="Export">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Export.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                            <MenuItem x:Name="PART_SoundImportMenuItem" Header="Import">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Import.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </ListView.ContextMenu>
+                                    <ListView.View>
+                                        <ctrl:FrostyAutoSizedGridView>
+                                            <ctrl:FrostyAutoSizedGridView.Columns>
+                                                <GridViewColumn Header="Details">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Grid Height="80">
+                                                                <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding Path=Name}" VerticalAlignment="Center" FontWeight="Bold"/>
+                                                                    <TextBlock Text="{Binding Path=Duration, StringFormat=N2}" VerticalAlignment="Center"/>
+                                                                    <TextBlock VerticalAlignment="Center">
+                                                                        <TextBlock.Text>
+                                                                            <Binding Path="SampleRate">
+                                                                                <Binding.StringFormat>{0} Hz</Binding.StringFormat>
+                                                                            </Binding>
+                                                                        </TextBlock.Text>
+                                                                    </TextBlock>
+                                                                    <TextBlock Text="{Binding Path=Codec}" VerticalAlignment="Center" Opacity="0.5"/>
+                                                                    <TextBlock Text="{Binding Path=Language}" VerticalAlignment="Center" Opacity="0.5"/>
+                                                                </StackPanel>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                                <GridViewColumn Header="WaveForm">
+                                                    <GridViewColumn.CellTemplate>
+                                                        <DataTemplate>
+                                                            <Grid>
+                                                                <Image Source="{Binding Path=WaveForm}" Width="800"/>
+                                                                <Canvas Width="800" Height="80">
+                                                                    <Line X1="{Binding Path=Progress}" X2="{Binding Path=Progress}" Y1="0" Y2="80" StrokeThickness="1" Stroke="White" RenderOptions.EdgeMode="Aliased" SnapsToDevicePixels="True"/>
+                                                                </Canvas>
+                                                            </Grid>
+                                                        </DataTemplate>
+                                                    </GridViewColumn.CellTemplate>
+                                                </GridViewColumn>
+                                            </ctrl:FrostyAutoSizedGridView.Columns>
+                                        </ctrl:FrostyAutoSizedGridView>
+                                    </ListView.View>
+                                </ListView>
+
+                            </Grid>
+                        </ctrl:FrostyDockablePanel>
+
+                        <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
+                        
+                        <ctrl:FrostyDockablePanel Grid.Column="1" Title="Properties" Icon="/FrostyEditor;component/Images/Properties.png">
+                            <core:FrostyPropertyGrid x:Name="PART_AssetPropertyGrid" Asset="{Binding Asset, RelativeSource={RelativeSource TemplatedParent}}" Modified="{Binding AssetModified, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"/>
+                        </ctrl:FrostyDockablePanel>
+
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- FrostySoundWaveEditor -->
+    <Style TargetType="{x:Type local:FrostySoundWaveEditor}" BasedOn="{StaticResource {x:Type local:FrostySoundDataEditor}}"/>
+    <Style TargetType="{x:Type local:FrostyNewWaveEditor}" BasedOn="{StaticResource {x:Type local:FrostySoundDataEditor}}"/>
+    <Style TargetType="{x:Type local:FrostyHarmonySampleBankEditor}" BasedOn="{StaticResource {x:Type local:FrostySoundDataEditor}}"/>
+    <Style TargetType="{x:Type local:FrostyOctaneSoundEditor}" BasedOn="{StaticResource {x:Type local:FrostySoundDataEditor}}"/>
+    <Style TargetType="{x:Type local:FrostyImpulseResponseEditor}" BasedOn="{StaticResource {x:Type local:FrostySoundDataEditor}}"/>
+
+</ResourceDictionary>

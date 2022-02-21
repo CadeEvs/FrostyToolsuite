@@ -1,0 +1,71 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:ReferencesPlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- Reference Tab Item -->
+    <Style TargetType="{x:Type local:ReferenceTabItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:ReferenceTabItem}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition/>
+                            <ColumnDefinition/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="26"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Backgrounds -->
+                        <Border  Grid.ColumnSpan="2" Grid.RowSpan="2" Background="{StaticResource ListBackground}" RenderOptions.EdgeMode="Aliased"/>
+                        <Border Grid.ColumnSpan="2" Background="{StaticResource ControlBackground}" RenderOptions.EdgeMode="Aliased"/>
+
+                        <!-- Titles -->
+                        <TextBlock x:Name="PART_RefExplorerToTextBlock" FontFamily="Global User Interface" Foreground="{StaticResource FontColor}" Text="" VerticalAlignment="Center" Margin="2 0 3 0" TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="PART_RefExplorerFromTextBlock" FontFamily="Global User Interface" Foreground="{StaticResource FontColor}" Text="" VerticalAlignment="Center" Margin="2 0 0 0" Grid.Column="1" TextTrimming="CharacterEllipsis"/>
+
+                        <!-- Lists -->
+                        <core:FrostyAssetListView x:Name="PART_RefExplorerToListView" Grid.Row="1" Margin="0 0 3 0">
+                            <core:FrostyAssetListView.AssetContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="PART_RefExplorerToOpenItem" Header="Open asset">
+                                        <MenuItem.Icon>
+                                            <Image Source="/FrostyEditor;component/Images/OpenAsset.png" Opacity="0.5"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="PART_RefExplorerToFindItem" Header="Find in data explorer"/>
+                                </ContextMenu>
+                            </core:FrostyAssetListView.AssetContextMenu>
+                        </core:FrostyAssetListView>
+                        <core:FrostyAssetListView x:Name="PART_RefExplorerFromListView" Grid.Column="1" Grid.Row="1">
+                            <core:FrostyAssetListView.AssetContextMenu>
+                                <ContextMenu>
+                                    <MenuItem x:Name="PART_RefExplorerFromOpenItem" Header="Open asset">
+                                        <MenuItem.Icon>
+                                            <Image Source="/FrostyEditor;component/Images/OpenAsset.png" Opacity="0.5"/>
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                    <MenuItem x:Name="PART_RefExplorerFromFindItem" Header="Find in data explorer"/>
+                                </ContextMenu>
+                            </core:FrostyAssetListView.AssetContextMenu>
+                        </core:FrostyAssetListView>
+
+                        <!-- Divider -->
+                        <GridSplitter VerticalAlignment="Stretch" Width="3" HorizontalAlignment="Right" Grid.RowSpan="2" Background="{StaticResource ControlBackground}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

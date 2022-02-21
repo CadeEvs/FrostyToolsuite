@@ -1,0 +1,108 @@
+﻿<ctrl:FrostyDockableWindow x:Class="FrostyEditor.Windows.PatchSummaryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        xmlns:local="clr-namespace:FrostyEditor"
+        xmlns:conv="clr-namespace:Frosty.Core.Converters;assembly=FrostyCore"
+        mc:Ignorable="d"
+        Title="Patch Summary" Height="527" Width="600"
+        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
+    <ctrl:FrostyDockableWindow.Resources>
+        <conv:StringToBitmapSourceConverter x:Key="StringToBitmapSourceConverter"/>
+        <Style TargetType="{x:Type ListBoxItem}">
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+    </ctrl:FrostyDockableWindow.Resources>
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="38"/>
+            <RowDefinition/>
+            <RowDefinition Height="38"/>
+        </Grid.RowDefinitions>
+
+        <Grid Background="{StaticResource ListBackground}">
+            <TextBlock Text="Game was recently updated. Here is a summary of the changes." DockPanel.Dock="Bottom" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="3" Foreground="{StaticResource FontColor}" FontSize="16" FontFamily="Global User Interface"/>
+        </Grid>
+        
+        <Grid Grid.Row="1" Margin="2">
+            <TabControl VerticalAlignment="Stretch" HorizontalAlignment="Stretch" SelectionChanged="TabControl_SelectionChanged">
+                <TabItem Header="Assets Added" IsSelected="True">
+                    <Border BorderBrush="#454545" BorderThickness="2" Background="{StaticResource WindowBackground}">
+                        <Grid>
+                            <ListBox x:Name="addedAssetsList">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Height="22">
+                                            <Image x:Name="imageRect"  Grid.Column="0" Width="16" Height="16" Source="{Binding Path=Type, Converter={StaticResource StringToBitmapSourceConverter}}"/>
+                                            <TextBlock Margin="6,0,0,0" Text="{Binding Path=DisplayName}" VerticalAlignment="Center" FontFamily="MS Reference Sans Serif" FontWeight="Normal"/>
+                                            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontFamily="MS Reference Sans Serif" FontWeight="Normal" Opacity="0.5">
+                                                <TextBlock.Text>
+                                                    <Binding Path="Name" StringFormat="({0})"/>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </TabItem>
+                <TabItem Header="Assets Modified">
+                    <Border BorderBrush="#454545" BorderThickness="2" Background="{StaticResource WindowBackground}">
+                        <Grid>
+                            <ListBox x:Name="modifiedAssetsList">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Height="22">
+                                            <Image x:Name="imageRect"  Grid.Column="0" Width="16" Height="16" Source="{Binding Path=Type, Converter={StaticResource StringToBitmapSourceConverter}}"/>
+                                            <TextBlock Margin="6,0,0,0" Text="{Binding Path=DisplayName}" VerticalAlignment="Center" FontFamily="MS Reference Sans Serif" FontWeight="Normal"/>
+                                            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontFamily="MS Reference Sans Serif" FontWeight="Normal" Opacity="0.5">
+                                                <TextBlock.Text>
+                                                    <Binding Path="Name" StringFormat="({0})"/>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </TabItem>
+                <TabItem Header="Assets Removed">
+                    <Border BorderBrush="#454545" BorderThickness="2" Background="{StaticResource WindowBackground}">
+                        <Grid>
+                            <ListBox x:Name="removedAssetsList">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <StackPanel Orientation="Horizontal" Height="22">
+                                            <Image x:Name="imageRect"  Grid.Column="0" Width="16" Height="16" Source="{Binding Path=Type, Converter={StaticResource StringToBitmapSourceConverter}}"/>
+                                            <TextBlock Margin="6,0,0,0" Text="{Binding Path=DisplayName}" VerticalAlignment="Center" FontFamily="MS Reference Sans Serif" FontWeight="Normal"/>
+                                            <TextBlock Margin="6,0,0,0" VerticalAlignment="Center" FontFamily="MS Reference Sans Serif" FontWeight="Normal" Opacity="0.5">
+                                                <TextBlock.Text>
+                                                    <Binding Path="Name" StringFormat="({0})"/>
+                                                </TextBlock.Text>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </Border>
+                </TabItem>
+            </TabControl>
+
+            <TextBlock x:Name="totalTextBlock" Foreground="{StaticResource FontColor}" HorizontalAlignment="Right" VerticalAlignment="Top" TextAlignment="Right" Margin="0 3 6 0"/>
+        </Grid>
+
+        <Border Grid.Row="2" Background="{StaticResource ListBackground}">
+            <Grid Margin="8">
+                <DockPanel LastChildFill="False">
+                    <Button x:Name="exportButton" Content="Export" DockPanel.Dock="Left" Width="75" Click="exportButton_Click"/>
+                    <Button x:Name="okayButton" Content="Ok" DockPanel.Dock="Right" Width="75" Click="okayButton_Click"/>
+                </DockPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ctrl:FrostyDockableWindow>

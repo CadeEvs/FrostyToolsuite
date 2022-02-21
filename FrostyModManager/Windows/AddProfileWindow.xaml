@@ -1,0 +1,31 @@
+﻿<ctrl:FrostyDockableWindow x:Class="FrostyModManager.AddProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FrostyModManager"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        mc:Ignorable="d"
+        Title="Add Profile" Height="115" Width="300"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+    <Grid Background="{StaticResource ListBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" Margin="4,7,4,4">
+            <TextBlock Grid.Column="0" Text="Profile Name:" Foreground="{StaticResource FontColor}" VerticalAlignment="Center" Height="16" Margin="2,1"/>
+            <TextBox Grid.Column="1" x:Name="profileNameTextBox" BorderThickness="1" VerticalContentAlignment="Center" Height="22"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" x:Name="cancelButton" Content="Cancel" Width="50" Height="22" HorizontalAlignment="Left" Click="cancelButton_Click"/>
+            <Button Grid.Column="1" x:Name="addButton" Content="Add" Width="50" Height="22" HorizontalAlignment="Right" Click="addButton_Click"/>
+        </Grid>
+    </Grid>
+</ctrl:FrostyDockableWindow>

@@ -1,0 +1,99 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:DelayLoadBundlePlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- DAIDelayLoadBundleEditor -->
+    <Style TargetType="{x:Type local:DAIDelayLoadBundleEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:DAIDelayLoadBundleEditor}">
+                    <ControlTemplate.Resources>
+                        <DataTemplate x:Key="lvNoSorting">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="{Binding }" Foreground="{StaticResource FontColor}" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </DataTemplate>
+                        <DataTemplate x:Key="lvAscendingSorting">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="{Binding }" Foreground="{StaticResource FontColor}" VerticalAlignment="Center"/>
+                                <Path StrokeThickness="1" Fill="{StaticResource FontColor}" Data="M 5,5 L 10,10 L 15,5 L 5,5" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                            </DockPanel>
+                        </DataTemplate>
+                        <DataTemplate x:Key="lvDescendingSorting">
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="{Binding }" Foreground="{StaticResource FontColor}" VerticalAlignment="Center"/>
+                                <Path StrokeThickness="1" Fill="{StaticResource FontColor}" Data="M 5,10 L 15,10 L 10,5 L 5,10" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ControlTemplate.Resources>
+                    <Grid Background="{StaticResource ControlBackground}">
+                        <Grid Margin="2">
+
+                            <Grid Margin="0" Background="{StaticResource WindowBackground}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="25"/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+
+                                <DockPanel LastChildFill="True">
+                                    <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" WatermarkText="Filter" BorderThickness="1" Height="24" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" Padding="4,0,0,0" Margin="1,0,1,0"/>
+                                </DockPanel>
+
+                                <ListView Grid.Row="1" x:Name="PART_ListView">
+                                    <ListView.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem x:Name="PART_CopyMenuItem" Header="Copy">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Copy.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </ListView.ContextMenu>
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn HeaderTemplate="{StaticResource lvAscendingSorting}">
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Hash" Content="Hash"/>
+                                                </GridViewColumn.Header>
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Height="22">
+                                                            <TextBlock Text="{Binding Hash}" VerticalAlignment="Center" FontFamily="Global User Interface"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                            <GridViewColumn>
+                                                <GridViewColumn.Header>
+                                                    <GridViewColumnHeader Tag="Name" Content="Bundle"/>
+                                                </GridViewColumn.Header>
+                                                <GridViewColumn.CellTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Height="22">
+                                                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" FontFamily="Global User Interface"/>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </GridViewColumn.CellTemplate>
+                                            </GridViewColumn>
+                                        </GridView>
+                                    </ListView.View>
+                                </ListView>
+                            </Grid>
+
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>

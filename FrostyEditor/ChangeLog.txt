@@ -1,0 +1,366 @@
+﻿v1.0.6 (Alpha 5)
+--------
+- Added pack zipping and loading
+- Config files are now stored in AppData
+- Fixed an issue where the Mod Manager wouldn't save removing packs
+- Fixed an issue where type overrides weren't appearing in non-categorized property grids
+- Fixed an issue where the Lua Editor wasn't open properly
+
+v1.0.6 (Alpha 4)
+--------
+- Separated "Loading Mods" and "Applying Handlers"
+- Added progress bar to "Applying Handlers"
+- Modified the modlist to use the mod name instead of the file name
+
+v1.0.6 (Alpha 3)
+--------
+- Added support for launching games on other platforms (EA Desktop, EpicGames, and Steam)
+- Added the ability for the Editor to apply exported mods located in "Mods/<selected_profile/"
+- Added options menu to the Mod Manager
+- Added a "Show only replacements" option to Mod Manager's Actions tab
+- Moved the Mod Manager's launch command arguments into options menu
+- Moved the Mod Manager ini configs to the new json system
+- Renamed the Mod Manager's "Profiles" to "Packs"
+- Fixed an issue where the Mod Manager would crash when applying a mod using a custom handler and another using a third party method.
+- Fixed an issue where the Mod Manager wasn't properly detecting if the applied mods list stayed the same between launches
+- Fixed an issue where an sdk couldn't be created for Battlefield V
+
+Plugin Support
+- Added "LaunchPlatformPlugin"
+- Added icon support for the Data Explorer Context Menu Item extension
+- Modified the CustomEditorExecution extension into ExecutionActions (Example within the TestPlugin project)
+
+v1.0.6 (Alpha 2)
+--------
+- Added TextureAsset duplication support (For some games)
+- Added "Copy Guid" button to PointerRef Property Grid items
+- Redesigned Mod Manager
+- Revamped Home Page
+- Revamped InitFs Explorer
+- Modified the PointerRefEditor objects list to prioritize objects with custom transient ids when sorting
+- Modified the location of the Editor and Explorer menu items (Moved from Tools to  View)
+- Modified the StructEditor's text to be a read-only Textbox instead of a TextBlock (Guids can now be selected again)
+- Modified SubWorldReferenceObjectData to use a PointerRef  (Bundle) instead of a string (BundleName) apart of TestPlugin
+- Modified the "Enter Key" window to specify the developers cannot provide the encryption key
+- Fixed an issue where the ModData cas files weren't getting deleted between launches
+- Fixed an issue where importing incorrect meshes through the MeshSetEditorPlugin would close the Editor instead of printing into the log
+- Fixed an issue where the PropertyGrid couldn't filter non-exportable guids
+- Fixed an issue where duplicated assets weren't getting assigned a new root instance guid
+- Fixed an issue where Plants Vs Zombies Garden Warfare 1 would crash on startup
+- Fixed an issue where assets couldn't be opened in the Legacy Explorer
+- Fixed an issue where the Mod Manager's version name was "1.0.5.10"
+- Fixed an issue where the Mod Manager's Prelaunch window is titled "Frosty Editor"
+- Fixed an issue where the Chunk/Res Explorer had an inconsistent style
+- Fixed an issue where the Bundle Editor had an inconsistent style
+- Fixed an issue where the Legacy Database Editor had an inconsistent style
+- Fixed an issue where the Sound Editor's toolbar had an inconsistent style
+- Fixed an issue where the Sound Editor's properties panel couldn't be scaled
+- Fixed an issue where the Editor had visual artifacts due to an incorrect render edge mode
+
+Plugin Support
+- Moved duplication functionality to DuplicationPlugin
+- Moved GetUnmodifiedEbx() into GetEbx() as a bool parameter, "getUnmodifiedData", and defaults to false.
+- Added Custom Asset Manager extension
+- Added Custom User Shader extension
+- Added Custom Type Field extension
+- Added Startup Action extension
+- Added GetEbxByPrimaryInstanceGuid()
+- Added "Modification Reason" and "Index" parameters to ItemModifiedEventArgs
+- Modified the PluginValidForProfile and PluginNotValidForProfile to now take in the Profile Version instead of the Profile Name
+- Modified numerous functions and members to be virtual within DeferredRenderScreen2 (Can now be overridden through plugins)
+
+v1.0.6 (Alpha 1)
+--------
+- Added plugin support
+- Moved all editors to plugin system
+- Added Sound Import functionality
+- Added Mesh Import functionality
+- Added Bundle Editor
+- Added cancel button to Mod Applying process
+- Added modding categories to Mod Export window
+- Added experimental NFS: Heat support
+- Added InitFS Viewer
+- Added Type Viewer
+- Added Scan for Games functionality to Prelaunch window
+- Added Refresh MeshVariations functionality
+- Added warnings for games containing EasyAntiCheat
+- Added BoxedValueRef editing functionality
+- Added a new Type Editor for Event/Property/Link Connections in the Property Grid
+- Moved to json format for Frosty Editor config
+- Revamped Localized String Editor
+- Revamped Sound Editor
+- Revamped layout for Prelaunch window
+- Redesigned theme
+
+Plugin Support
+- Added TypeEditor extension
+- Added Menu extension
+- Added Tab extension
+- Added option extension
+- Added Data Explorer Context Menu Item extension
+- Added Asset Definition extension
+- Added Localized String Database extension
+- Added ThirdPartyDll extension
+- Added Type Override extension
+- Added Custom Handler extension
+
+v1.0.5.9
+--------
+ - Added Battlefield: Hardline profile
+ - Fix for FIFA20 launching issues
+
+v1.0.5.8
+--------
+ - Added Plants vs Zombies: Battle for Neighbourville Read Only profile
+ - Added the ability to update a games profile SDK when the game is updated
+ - Export settings for meshes will now remember the last skeleton used
+ - Added the ability to select the render device the viewport will use (From options)
+ - Added the ability to merge ShaderBlockDepot changes from multiple mods
+ - Fixed issue with exporting BFV meshes with skeletons
+
+v1.0.5.7
+--------
+- Added FIFA20 full profile
+- Updated SDK for SWBF2
+- Updated SDK for BFV
+- Updated SDK for Anthem
+- Fixed crash when attempting to load meshes in BFV
+
+v1.0.5.6
+--------
+- Added filtering to the property grid. Can filter by property name or by an internal/external guid
+- Fixed an issue where newer format EBX were not rewriting correctly
+- Fixed an issue where the editor would crash when trying to display an invalid reference
+- Fixed some more reference assigning issues
+
+v1.0.5.5
+--------
+- Fix for legacy db changes causing game to crash in Madden20
+- Fix for crashing when attempting to edit network registry assets
+- Small fix for ShaderBlockDepot boolean edits
+- Fix for extra / detection in duplicate asset filename
+
+v1.0.5.4
+--------
+- Added Madden20 full profile
+- Added Plants vs Zombies Garden Warfare read only profile
+- Added the ability to add and remove new root level instances to an ebx (via the View Instances dialog)
+- Added the ability to rename and duplicate instances via same dialog
+- Added the ability to copy and paste objects and arrays
+- Added the ability to duplicate an asset (and change its type) comes with a long list of caveats
+- Modifying mesh materials and object variations in SWBF2 will now update the appropriate ShaderBlockDepot files
+- Added more inline classes to SWBF2 profile
+- Fixed crash that would result when you saved at the same time an autosave was being performed
+- Fixed an issue that would result in the pitch in FIFA19 appearing white (as well as potentially other bundle related issues)
+- Fixed a couple of type info generation related issues for Mass Effect
+- Fixed an issue where the PointerRef dropdown box would appear cut off, not allowing you to scroll all the way to the bottom
+- Fixed setting a shader to null in a mesh material would result in a crash
+
+v1.0.5.3
+--------
+- Fix to numerous assets not being able to be opened
+
+v1.0.5.1
+--------
+- Fixed importing mods made in a prior patch causing error/crash
+- Fixed saving project with kit previewer open crashing
+- Fixed crash when exporting skinned meshes from Anthem
+- Fixed sound continuing to play when using the close all documents command
+
+v1.0.5
+------
+- Added a reference viewer, allowing the user to see where an asset is referenced and what it references
+- Added a bundle reference viewer, allowing the user to see what bundles an asset is in (was previously a right click to log option)
+- Added read only profile for Anthem
+- Added read only profile for Battlefield V
+- Added read only profile for Need for Speed Rivals
+- Added an experimental kit previewer for Fifa
+- Added the ability to bookmark legacy items
+- Added a few legacy asset editors/viewers (DB, DDS, BIG, AST, etc.)
+- Added a shader compilation system for the renderer allowing the end user to author their own shaders to use in place of the built in shader
+- Added experimental resource explorer, allowing the exporting and importing of raw res and chunk files
+- Added experimental localized string viewer with the ability to export all strings and ids to a csv file (no editing)
+- Added experimental ebx export to xml (found under tools)
+- Added discord RPC functionality
+- Added mod category grouping to the mod manager
+- Added a linear transform editor that shows the position, rotation (as Yaw/Pitch/Roll) and scale
+- Added a patch summary window when a game has been updated showing which files have been added/modified/removed
+- Added profile selection window to mod manager
+- Added an options window for configuring some basic Frosty options
+- Added the ability to view texture and variation db locations for each variation of a mesh material
+- Added FIFA19 full profile (editing now enabled)
+- Added a new skeleton picker (allows filtering and folders)
+- Added a branch tree view for conversations in DAI, MEA and Anthem, allowing the user to access previously inaccessible items
+- Exporting a composite mesh will now export any embedded composite part transforms
+- Improved start times of the application and apply times for most games
+- Moved legacy viewer for Fifa/Madden to the same location as the data explorer with a menu item to switch between the two
+- Revamped the property grid, allowing for increased functionality
+- Revamped the mesh renderer, better rendering, and more responsive
+- Fixed the save on close prompt, will cancel the close request if the user clicks the x instead of Yes or No
+- Fixed affected files listing freezing up the UI when mods have thousands of edited files
+- Fixed a crash when exporting uncompressed volume textures as non DDS formats
+- Fixed FIFA19 meshes exporting incorrectly
+- Updated SDKs to the latest patch version
+
+v1.0.4.5
+--------
+- Added a Battlefield4 profile
+- Added the ability to import/export textures (2d/array/cube) to and from PNG/TGA/HDR and DDS
+- Fixed an issue with Windows 10 update 1809 unable to launch modded games
+- Updated various SDKs to latest patch version
+- And other nice things
+
+v1.0.4.4
+--------
+ - Added a read-only FIFA19 profile
+ - Added Cubemap/Volume and Texture array import support
+ - Fixed a crash when viewing specific SWBF2 models
+ - Mouse over effects on list/tree controls now more consistent
+ - Fixed an issue where PVZ2 changes would cause the game to crash
+
+v1.0.4.3
+--------
+ - Added Madden NFL 19 profile
+ - Added Plants vs Zombies 2 profile
+ - Added Battlefield1 profile
+ - Added a screen to show mod conflicts in the mod manager
+ - Fixed numerous frosty window issues and enabled DPI support
+ - Out of date mods will now show a warning on import and are flagged via a warn symbol
+ - Fixed crash with NFS16 and DAI when initially loading the data
+ - Potentially fixed corrupted textures in DAI when using daimods
+ - Fixed an issue where legacy file changes in Fifa/Madden were not being applied correctly on project load
+ - Fixed some 7z mod import issues
+
+v1.0.4.2
+--------
+ - Fixed the modding process for Star Wars: Battlefront II after the latest patch changed the layout
+ - Added taskbar progress to all tasks with a progress bar
+ - Fixed issue with new projects with no modifications were being autosaved
+ 
+v1.0.4.1
+--------
+ - Can now load other language databases via config using category Init and key Language (some examples include English,Russian,SimplifiedChinese,TraditionalChinese,etc.)
+ - If language database for specified language does not exist, editor will not crash
+ - Fixed issue with BC5 textures being improperly exported
+
+v1.0.4
+------
+ - Config selection at launch
+ - SVG Preview/Import/Export
+ - AtlasTexture Preview/Import/Export
+ - DelayLoadBundle explorer for DAI
+ - IES Preview
+ - NFS Payback support
+ - Dialog paths saved to INI
+ - New mod export window
+ - Mod settings saved to project, mod author can also be set in INI to be used as default using category ModSettings and key Author
+ - Various prompts to save project if unsaved
+ - Autosave with options settable in INI using category Autosave and keys MaxCount and Period
+ - Various UI tweaks
+ - Auto hash text entered into int/uint fields and convert from hex if starting with 0x
+ - Ebx writing speed improvements per change
+ - Using actual Frostbite BRDF's in mesh preview renderer
+ - Some classes now have descriptions
+ - Saving project will correctly update open tab headers
+ - Copy/Paste for property grid for all basic object types
+ - Insert and RemoveAll added to list context menu
+ - daimod files can be imported and configured via Frosty Mod Manager
+ - Variation database now only loads when opening a mesh for the first time (speeds up initial loading)
+ - Prompt appears when opening an asset, instead of freezing UI on large assets
+ - Data is accessible and editable while the game is running
+ - “Find in Data Explorer” will now clear the Search Filter
+ - You can now double click a class to create it in the Class Selection window
+ - Filter auto focused on class selection window open
+ - Improvements to texture import logic
+
+v1.0.3.1
+--------
+- Fixed texture replacement crashing in SWBF2
+- Added verification for symbolic link creation, error produced if any failed to create.
+- Added the ability to create new VisualUnlockSkin/Part assets and MeshAndVariationPair assets
+- Fixed issue with ini file getting corrupted causing a crash, now ini is recreated (user must reselect executable)
+
+v1.0.3final
+-----------
+- Added Star Wars: Battlefront 2 game profile
+- Added Wireframe render mode to mesh preview
+- Filtering in data explorer now ignores case
+- Fixed bug with Fifa18 meshes crashing on preview
+- Updated SDKs for various games
+- Set bcrypt.dll to compile without any VC dependencies (may or may not fix peoples issues)
+
+v1.0.3alpha4
+------------
+- Added bookmark folders
+- Added bookmark renaming
+- Added Fifa18 game profile
+- Added scrollable tab control for the main tab panel (instead of stacking)
+- Added custom splash screen banners for each supported game
+- Added new task dialog, provides more feedback during import/export activities
+- Added new view modes for mesh preview (Base/Specular color, Normals, MaterialAO, Smoothness, Metallic, Reflectance, Reflections and Ambient)
+- Changes to mesh materials are now reflected dynamically in render viewport (For tints/colors that have been implemented in the shader)
+- Rendering improvements across all games (except NFS). Preview should now reflect game rendering more closely.
+- Fixed numerous issues with composite mesh previews and mesh preview state
+- Fixed sound preview to disable export/play buttons on unsupported sounds, and correctly reports sound has been exported
+- Moved back to v1.0.2b bcrypt.dll until issues can be resolved properly
+
+v1.0.3alpha3
+------------
+- Fixed bcrypt.dll compilation issues
+- Fixed issue with DAI infinite load when a specific bundle was edited
+- Fixed issue with DAI and insufficient memory, attempting to load localized texts
+- Fixed crash with previewing and exporting meshes in SWBF and Fifa17
+
+v1.0.3alpha2
+------------
+- Fixed out of date SDK used in MEA
+- Disabled non working import button from sounds
+- Packaged fifaconfig workaround with editor
+
+v1.0.3alpha
+-----------
+- Fixed an issue with compressing certain files (Compression Failed error)
+- LZ4 compression now used to compress data for games that use it (MEC, SWBF)
+- Drastically reduced time and storage capacity it take to apply mods for all games
+- Implemented new texture formats for preview and export
+- Added Searching/Filtering of assets in the data explorer
+- Added the ability to save bookmarks
+- Added more advanced asset editing capabilities, including class instantiation, and removing elements from the middle of arrays
+- Added mesh 3d preview (import to come)
+- Added sound preview and export (import to come)
+- Added lua asset editing (with lua compilation if required)
+- Added support for DragonAge, NeedForSpeed, Fifa17
+- Added rudimentary legacy file editing support for Fifa17
+
+v1.0.2a
+-------
+ - Fixed certain assets showing a blank properties page
+
+v1.0.2
+------
+- Array and ref editing added to property grid
+- Localized string parser and index editor for property grid added
+- Double click now expands property grid entry
+- Tabbing through property grid values should be more consistent
+- Unreferenced ebx classes can now be selected in the property grid for editing
+
+v1.0.1b
+-------
+- Relaxed the checks for importing textures as it was flagging even correct 2d textures as not
+
+v1.0.1a
+-------
+- Hotfix to not try and open a superbundle if it does not exist, but the toc does.
+
+v1.0.1
+------
+- All ThirdParty DLLs are now unblocked automatically
+- Ascii FBX, OBJ, and DAE options added to exporting meshes
+- Previewing and exporting 2d array, cubemap, 3d textures now work correctly
+- Disabled importing of 2d array, cubemap and 3d textures for now (original implementation would import them incorrectly)
+- Can view individual slices of multi dimensional textures using the slices combobox
+- Added an exception window for all unhandled global exceptions
+
+v1.0.0 (Public Release)
+-----------------------
+- First release

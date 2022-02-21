@@ -1,0 +1,57 @@
+﻿<ctrl:FrostyDockableWindow x:Class="DuplicationPlugin.Windows.DuplicateAssetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DuplicationPlugin.Windows"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+        mc:Ignorable="d"
+        Title="Duplicate Asset" Height="500" Width="400" ResizeMode="NoResize" FrostyLoaded="FrostyDockableWindow_FrostyLoaded" WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="38"/>
+        </Grid.RowDefinitions>
+
+        <Grid x:Name="PageOne" Visibility="Visible" Background="{StaticResource ListBackground}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0">
+                <DockPanel Margin="5" LastChildFill="True">
+                    <Label Content="Name" FontFamily="Global User Interface" Width="50"/>
+                    <TextBox x:Name="assetNameTextBox" Padding="4" FontFamily="Global User Interface" BorderThickness="1" TextChanged="AssetNameTextBox_TextChanged"/>
+                </DockPanel>
+                <DockPanel Margin="5,0,5,5" LastChildFill="True">
+                    <Label Content="Type" FontFamily="Global User Interface" Width="50"/>
+                    <TextBox x:Name="assetTypeTextBox" Padding="4" FontFamily="Global User Interface" IsEnabled="False" BorderThickness="1" TextChanged="AssetNameTextBox_TextChanged"/>
+                </DockPanel>
+            </StackPanel>
+            <Border Margin="5,1,5,5" Grid.Row="1" BorderBrush="{StaticResource ControlBackground}" BorderThickness="0">
+                <core:FrostyDataExplorer x:Name="pathSelector" ToolbarVisible="False" AssetListVisible="False" InitialHeight="0"/>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="1">
+            <Grid Margin="8">
+                <Button x:Name="cancelButton" Content="Cancel" HorizontalAlignment="Left" Width="75" Click="CancelButton_Click"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="typeButton" Content="Change Type" Width="100" Margin="0,0,5,0" Click="typeButton_Click" />
+                    <Button x:Name="saveButton" Content="Save" Width="75" Click="SaveButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ctrl:FrostyDockableWindow>

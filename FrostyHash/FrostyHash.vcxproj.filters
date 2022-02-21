@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\CityHash">
+      <UniqueIdentifier>{0bc2db5a-557d-449d-9a75-f8d658083d77}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\CityHash">
+      <UniqueIdentifier>{343af1e5-f5e8-48cc-a510-d0b4b04c7671}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Murmur2">
+      <UniqueIdentifier>{116c22b2-46b6-47f8-b2bb-9855994fb560}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Murmur2">
+      <UniqueIdentifier>{41dbc23f-4076-4de8-bf2c-f177f596746a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FNV">
+      <UniqueIdentifier>{81ef76c4-bebf-4b89-88bc-0ce5844bfd6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FNV">
+      <UniqueIdentifier>{a5f5d9fe-efad-4ccb-90cf-9eb57a845cf9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FrostyHash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="city.h">
+      <Filter>Header Files\CityHash</Filter>
+    </ClInclude>
+    <ClInclude Include="MurmurHash2.h">
+      <Filter>Header Files\Murmur2</Filter>
+    </ClInclude>
+    <ClInclude Include="fnv.h">
+      <Filter>Header Files\FNV</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="FrostyHash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AssemblyInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="city.cc">
+      <Filter>Source Files\CityHash</Filter>
+    </ClCompile>
+    <ClCompile Include="MurmurHash2.c">
+      <Filter>Source Files\Murmur2</Filter>
+    </ClCompile>
+    <ClCompile Include="fnv.cpp">
+      <Filter>Source Files\FNV</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="app.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

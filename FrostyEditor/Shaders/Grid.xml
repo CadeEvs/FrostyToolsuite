@@ -1,0 +1,24 @@
+<shader profile="*">
+  <permutations>
+    <permutation>
+      <vertexshader>
+        <vertexlayout>
+          <layoutelement usage="Pos" format="Float3"/>
+          <layoutelement usage="Normal" format="Float3"/>
+          <LayoutElement usage="TexCoord0" format="Float2"/>
+        </vertexlayout>
+      </vertexshader>
+      <pixelshader>
+        <parameters>
+          <!-- None -->
+        </parameters>
+        <textures>
+          <texture name="gridTexture" type="2d" defaultValue="Resources/Textures/Grid.dds"/>
+        </textures>
+        <samplers>
+          <sampler />
+        </samplers>
+      </pixelshader>
+    </permutation>
+  </permutations>
+</shader>

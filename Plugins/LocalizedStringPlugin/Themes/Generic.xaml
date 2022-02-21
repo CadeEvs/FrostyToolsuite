@@ -1,0 +1,69 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:LocalizedStringPlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- FrostyLocalizedStringViewer -->
+    <Style TargetType="{x:Type local:FrostyLocalizedStringViewer}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:FrostyLocalizedStringViewer}">
+                    <Grid Background="{StaticResource ControlBackground}">
+                        <Grid Margin="2">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="26"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <Border Margin="1">
+                                <DockPanel>
+                                    <Border Background="{StaticResource ControlBackground}" CornerRadius="2">
+                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="0,0,6,0">
+                                            <Button x:Name="PART_ExportButton" ToolTip="Export to Text" Margin="6,0,0,0">
+                                                <Button.Content>
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="22"/>
+                                                            <ColumnDefinition Width="*"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Export.png"/>
+                                                        <TextBlock Grid.Column="1" Text="Export" Margin="0,0,4,0"/>
+                                                    </Grid>
+                                                </Button.Content>
+                                            </Button>
+                                        </StackPanel>
+                                    </Border>
+                                </DockPanel>
+                            </Border>
+
+                            <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="2"/>
+                                    <ColumnDefinition Width="0.5*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Grid Grid.Column="0">
+                                    <ListBox x:Name="PART_StringIdList" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+                                </Grid>
+                                <Border Grid.Column="1" Background="{StaticResource ControlBackground}"/>
+                                <Grid Grid.Column="2" Background="{StaticResource WindowBackground}">
+                                    <TextBox x:Name="PART_LocalizedString" TextWrapping="Wrap" Padding="4" Text="" IsReadOnly="True" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"/>
+                                </Grid>
+
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>

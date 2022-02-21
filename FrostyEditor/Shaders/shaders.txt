@@ -1,0 +1,4 @@
+Skybox,Skybox
+GroundPlane,GroundPlane
+Grid,Grid
+content/common/shaders/implementations/character_jersey_shader,character_jersey_shader

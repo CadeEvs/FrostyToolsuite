@@ -1,0 +1,94 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:LegacyDdsPlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <DrawingBrush x:Key="gridBackground" Viewport="0,0,64,64" ViewportUnits="Absolute" TileMode="Tile">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="#D4D4D4">
+                    <GeometryDrawing.Geometry>
+                        <RectangleGeometry Rect="0,0,1,1" />
+                    </GeometryDrawing.Geometry>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#9A9A9A" Geometry="M 0,0 L 0,0.5 0.5,0.5 0.5,0.5 0.5,0.5 0.5,0 Z" />
+                <GeometryDrawing Brush="#9A9A9A" Geometry="M 0.5,0.5 L 0.5,1 1,1 1,1 1,1 1,0.5 Z" />
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <!-- LegacyTextureEditor -->
+    <Style TargetType="{x:Type local:LegacyTextureEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:LegacyTextureEditor}">
+                    <Grid>
+                        <ctrl:FrostyDockablePanel Grid.Column="0" Title="" TitleBarVisible="False">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="26"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Border Margin="1">
+                                    <DockPanel>
+                                        <Border Background="{StaticResource ControlBackground}" CornerRadius="2" Margin="0,0,0,0">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                                <ToggleButton Content="R" Width="22" Margin="0,0,0,0" IsChecked="{Binding Path=RedChannelEnabled}" DataContext="{Binding Path=Screen, ElementName=PART_Renderer}" ToolTip="Show Red"/>
+                                                <ToggleButton Content="G" Width="22" Margin="2,0,0,0" IsChecked="{Binding Path=GreenChannelEnabled}" DataContext="{Binding Path=Screen, ElementName=PART_Renderer}" ToolTip="Show Green"/>
+                                                <ToggleButton Content="B" Width="22" Margin="2,0,0,0" IsChecked="{Binding Path=BlueChannelEnabled}" DataContext="{Binding Path=Screen, ElementName=PART_Renderer}" ToolTip="Show Blue"/>
+                                                <ToggleButton Content="A" Width="22" Margin="2,0,0,0" IsChecked="{Binding Path=AlphaChannelEnabled}" DataContext="{Binding Path=Screen, ElementName=PART_Renderer}" ToolTip="Show Alpha"/>
+
+                                                <ToggleButton Width="22" Margin="12,0,0,0" IsChecked="{Binding Path=GridVisible, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" ToolTip="Show checkerboard background">
+                                                    <ToggleButton.Content>
+                                                        <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Grid.png"/>
+                                                    </ToggleButton.Content>
+                                                </ToggleButton>
+                                                <ToggleButton x:Name="PART_SrgbButton" Content="γ" Width="22" Margin="2,0,0,0" Padding="0,-5,0,0" IsChecked="{Binding Path=SrgbEnabled}" DataContext="{Binding Path=Screen, ElementName=PART_Renderer}" ToolTip="Override display of linear data in gamma space"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{StaticResource ControlBackground}" CornerRadius="2" Margin="1,0,0,0">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                                <TextBlock Text="Mip:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{StaticResource FontColor}"/>
+                                                <ComboBox x:Name="PART_MipsComboBox" Height="22" Width="100" Padding="4,2,4,2"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border x:Name="PART_SliceToolBarItem" Background="{StaticResource ControlBackground}" CornerRadius="2" Margin="1,0,0,0">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                                <TextBlock Text="Slice:" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{StaticResource FontColor}"/>
+                                                <ComboBox x:Name="PART_SliceComboBox" Height="22" Width="100" Padding="4,2,4,2"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <Border Background="{StaticResource ControlBackground}" CornerRadius="2" Margin="1,0,0,0">
+                                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,0,0" HorizontalAlignment="Right">
+                                                <TextBlock x:Name="PART_TextureFormat" Grid.Row="1" Text="" VerticalAlignment="Center" Margin="0,0,6,0" Foreground="{StaticResource FontColor}"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </DockPanel>
+                                </Border>
+                                <Grid Grid.Row="1" x:Name="bkgnd" Background="{StaticResource gridBackground}">
+                                    <Viewbox>
+                                        <core:FrostyViewport x:Name="PART_Renderer"/>
+                                    </Viewbox>
+                                </Grid>
+                            </Grid>
+                        </ctrl:FrostyDockablePanel>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="GridVisible" Value="False">
+                            <Setter Property="Background" TargetName="bkgnd" Value="Black"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

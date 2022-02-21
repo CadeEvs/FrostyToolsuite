@@ -1,0 +1,110 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:BundleEditPlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    
+    <!-- BundleEditor -->
+    <Style TargetType="{x:Type local:BundleEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:BundleEditor}">
+                    <Grid Background="{StaticResource ControlBackground}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ctrl:FrostyDockablePanel TitleBarVisible="False">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="25"/>
+                                    <RowDefinition Height="24"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Grid Background="{StaticResource WindowBackground}">
+                                    <ComboBox x:Name="PART_BundleTypeComboBox" Height="22" Margin="1">
+                                        <ComboBoxItem Content="SubLevel Bundles"/>
+                                        <ComboBoxItem Content="Blueprint Bundles"/>
+                                        <ComboBoxItem Content="Shared Bundles"/>
+                                    </ComboBox>
+                                </Grid>
+                                
+                                <Grid Grid.Row="1" Background="{StaticResource WindowBackground}">
+                                    <ctrl:FrostyWatermarkTextBox x:Name="PART_BundleFilterTextBox" Margin="1,0,1,1" WatermarkText="Filter" BorderThickness="1"/>
+                                </Grid>
+                                
+                                <ListBox Grid.Row="2" x:Name="PART_BundlesListBox">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="MS Reference Sans Serif"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                            </Grid>
+                        </ctrl:FrostyDockablePanel>
+
+                        <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
+
+                        <ctrl:FrostyDockablePanel Grid.Column="1" TitleBarVisible="False">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="26"/>
+                                    <RowDefinition Height="22"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                
+                                <Border Background="{StaticResource ControlBackground}" Margin="1">
+                                    <StackPanel Orientation="Horizontal" Margin="6,0" DockPanel.Dock="Left">
+                                        <Button Content="Add to Bundle" Command="{Binding Path=AddToBundleCommand, RelativeSource={RelativeSource AncestorType={x:Type local:BundleEditor}}}"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <TextBox x:Name="PART_SuperBundleTextBox" Grid.Row="1" Margin="1,0,1,0" VerticalContentAlignment="Center" Height="22" BorderThickness="1" FontFamily="MS Reference Sans Serif" IsReadOnly="True"/>
+                                
+                                <core:FrostyDataExplorer x:Name="PART_DataExplorer" Grid.Row="2"/>
+                            </Grid>
+                        </ctrl:FrostyDockablePanel>
+                        
+
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type local:BundleTabItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:BundleTabItem}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="26"/>
+                            <RowDefinition/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Backgrounds -->
+                        <Border Grid.RowSpan="2" Background="{StaticResource ListBackground}" RenderOptions.EdgeMode="Aliased"/>
+                        <Border Background="{StaticResource ControlBackground}" RenderOptions.EdgeMode="Aliased"/>
+
+                        <!-- Titles -->
+                        <TextBlock x:Name="PART_BundlesSelected" FontFamily="Global User Interface" Foreground="{StaticResource FontColor}" Text="" VerticalAlignment="Center" Margin="2 0 3 0" TextTrimming="CharacterEllipsis"/>
+
+                        <!-- Lists -->
+                        <TextBox x:Name="PART_BundlesList" Grid.Row="1" FontFamily="Consolas" Margin="2" Padding="4" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="{StaticResource ListBackground}"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>

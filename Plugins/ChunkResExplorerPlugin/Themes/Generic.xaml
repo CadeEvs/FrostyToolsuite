@@ -1,0 +1,153 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:ChunkResEditorPlugin"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- FrostyChunkResEditor -->
+    <Style TargetType="{x:Type local:FrostyChunkResEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:FrostyChunkResEditor}">
+                    <ControlTemplate.Resources>
+                        <local:FrostyChunkExportCommand x:Key="FrostyChunkExportCommand"/>
+                        <local:FrostyChunkImportCommand x:Key="FrostyChunkImportCommand"/>
+                        <local:FrostyChunkRevertCommand x:Key="FrostyChunkRevertCommand"/>
+                        <local:FrostyChunkRightClickCommand x:Key="FrostyChunkRightClickCommand"/>
+                    </ControlTemplate.Resources>
+                    
+                    <Grid Background="{StaticResource ControlBackground}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ctrl:FrostyDockablePanel TitleBarVisible="False">
+                            <Grid Background="{StaticResource WindowBackground}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="26"/>
+                                    <RowDefinition/>
+                                </Grid.RowDefinitions>
+
+                                <TextBox Grid.Row="0" x:Name="PART_ChunkFilter" BorderThickness="1" Margin="1" VerticalContentAlignment="Center"/>
+
+                                <ListBox Grid.Row="1" x:Name="PART_ChunksListBox" Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:FrostyChunkResEditor}}}">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="{x:Type ListBoxItem}">
+                                            <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                                            <Setter Property="VerticalContentAlignment" Value="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                                            <Setter Property="Padding" Value="4,2,4,2"/>
+                                            <Setter Property="Height" Value="22" />
+                                            <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                                        <Border x:Name="Bd" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                                                            <Border.InputBindings>
+                                                                <MouseBinding Gesture="RightClick" Command="{StaticResource FrostyChunkRightClickCommand}">
+                                                                    <MouseBinding.CommandParameter>
+                                                                        <Binding Path="." RelativeSource="{RelativeSource AncestorType={x:Type ListBoxItem}}"/>
+                                                                    </MouseBinding.CommandParameter>
+                                                                </MouseBinding>
+                                                            </Border.InputBindings>
+                                                            <ContentPresenter SnapsToDevicePixels="True" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource SubItemHighlight}"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter Property="Background" TargetName="Bd" Value="{StaticResource SubItemPressed}"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                            <Setter Property="ContextMenu">
+                                                <Setter.Value>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Export" Command="{StaticResource FrostyChunkExportCommand}">
+                                                            <MenuItem.CommandParameter>
+                                                                <Binding Path="PlacementTarget.Tag" RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}"/>
+                                                            </MenuItem.CommandParameter>
+                                                            <MenuItem.Icon>
+                                                                <Image Source="/FrostyEditor;component/Images/Export.png" Opacity="0.5"/>
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
+                                                        <MenuItem Header="Import" Command="{StaticResource FrostyChunkImportCommand}">
+                                                            <MenuItem.CommandParameter>
+                                                                <Binding Path="PlacementTarget.Tag" RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}"/>
+                                                            </MenuItem.CommandParameter>
+                                                            <MenuItem.Icon>
+                                                                <Image Source="/FrostyEditor;component/Images/Import.png" Opacity="0.5"/>
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
+                                                        <MenuItem Header="Revert" Command="{StaticResource FrostyChunkRevertCommand}">
+                                                            <MenuItem.CommandParameter>
+                                                                <Binding Path="PlacementTarget.Tag" RelativeSource="{RelativeSource AncestorType={x:Type ContextMenu}}"/>
+                                                            </MenuItem.CommandParameter>
+                                                            <MenuItem.Icon>
+                                                                <Image Source="/FrostyEditor;component/Images/Revert.png" Opacity="0.5"/>
+                                                            </MenuItem.Icon>
+                                                        </MenuItem>
+                                                    </ContextMenu>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock x:Name="nameTextBlock" Text="{Binding Path=DisplayName}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="Consolas" />
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding Path=IsModified}" Value="True">
+                                                    <Setter Property="FontWeight" TargetName="nameTextBlock" Value="Bold"/>
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+
+                            </Grid>
+                        </ctrl:FrostyDockablePanel>
+
+                        <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
+
+                        <ctrl:FrostyDockablePanel Grid.Column="1" TitleBarVisible="False">
+                            <Grid Background="{StaticResource WindowBackground}">
+                                <core:FrostyDataExplorer x:Name="PART_ResExplorer">
+                                    <core:FrostyDataExplorer.AssetContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem x:Name="PART_ResExportMenuItem" Header="Export">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Export.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                            <MenuItem x:Name="PART_ResImportMenuItem" Header="Import">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Import.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                            <MenuItem x:Name="PART_RevertMenuItem" Header="Revert">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Revert.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </core:FrostyDataExplorer.AssetContextMenu>
+                                </core:FrostyDataExplorer>
+                            </Grid>
+                        </ctrl:FrostyDockablePanel>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>

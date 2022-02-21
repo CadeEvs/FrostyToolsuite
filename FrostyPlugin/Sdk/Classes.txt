@@ -1,0 +1,1109 @@
+BeginClass ExpressionPortData
+	BeginFields 4
+		BeginField NodeNameHash
+			Hidden=True
+		EndField
+		BeginField PortNameHash
+			Hidden=True
+		EndField
+		BeginField NodeName
+			Added=True
+			Transient=True
+			Type=CString
+			BeginAccessor
+				get 
+				{
+					if (_NodeName.IsNull())
+						_NodeName = Utils.GetString((int)_NodeNameHash);
+					return _NodeName; 
+				}
+				set 
+				{ 
+					_NodeName=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_NodeNameHash = uint.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_NodeNameHash=(uint)Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField PortName
+			Added=True
+			Transient=True
+			Type=CString
+			BeginAccessor
+				get 
+				{
+					if (_PortName.IsNull())
+						_PortName = Utils.GetString((int)_PortNameHash);
+					return _PortName; 
+				}
+				set 
+				{ 
+					_PortName=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_PortNameHash = uint.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_PortNameHash=(uint)Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass LinearTransform
+	BeginConstructor
+		_right.x = 1.0f;
+		_up.y = 1.0f;
+		_forward.z = 1.0f;
+		Rotation.x = float.MaxValue;
+		Translate.x = float.MaxValue;
+		Scale.x = float.MaxValue;
+	EndConstructor
+	BeginFunctions
+		public override string ToString()
+		{		
+			float x,y,z;
+			float T1 = (float)Math.Atan2(_forward.y, _forward.z);
+			float C2 = (float)Math.Sqrt(_right.x*_right.x + _up.x*_up.x);
+			float T2 = (float)Math.Atan2(-forward.x, C2);
+			float S1 = (float)Math.Sin(T1);
+			float C1 = (float)Math.Cos(T1);
+			float T3 = (float)Math.Atan2(S1*_right.z-C1*_right.y, C1*_up.y-S1*_up.z);
+			
+			x = -T1;
+			y = -T2;
+			z = -T3;
+			
+			x *= (180.0f / (float)Math.PI); // Roll
+			y *= (180.0f / (float)Math.PI); // Pitch
+			z *= (180.0f / (float)Math.PI); // Yaw
+			
+			float sx = (float)Math.Sqrt(_right.x*_right.x+_right.y*_right.y+_right.z*_right.z);
+			float sy = (float)Math.Sqrt(_up.x*_up.x+_up.y*_up.y+_up.z*_up.z);
+			float sz = (float)Math.Sqrt(_forward.x*_forward.x+_forward.y*_forward.y+_forward.z*_forward.z);
+			
+			return string.Format("({0:0.##}/{1:0.##}/{2:0.##}) ({3:0.##}/{4:0.##}/{5:0.##}) ({6:0.##}/{7:0.##}/{8:0.##})", x, y, z, sx,sy,sz, _trans.x, _trans.y, _trans.z);
+		}
+	EndFunctions
+	BeginFields 6
+		BeginField right
+			Hidden=True
+		EndField
+		BeginField up
+			Hidden=True
+		EndField
+		BeginField forward
+			Hidden=True
+		EndField
+		BeginField trans
+			Hidden=True
+		EndField
+		BeginField Translate
+			Added=True
+			Transient=True
+			Index=0
+			Type=Struct,Vec3
+		EndField
+		BeginField Rotation
+			Added=True
+			Transient=True
+			Index=1
+			Type=Struct,Vec3
+		EndField
+		BeginField Scale
+			Added=True
+			Transient=True
+			Index=2
+			Type=Struct,Vec3
+		EndField
+	EndFields
+EndClass
+BeginClass Vec3
+	BeginFunctions
+		public override string ToString()
+		{
+			return string.Format("{0:0.##}/{1:0.##}/{2:0.##}", _x, _y, _z);
+		}
+	EndFunctions
+EndClass
+BeginClass DataBusPeer
+	Abstract=True
+	BeginAttributes
+		[DynamicPropertyHandler("CreateInputProperties", "CreateOutputProperties")]
+		[DynamicEventHandler("CreateInputEvents", "CreateOutputEvents")]
+		[DynamicLinkHandler("CreateInputLinks", "CreateOutputLinks")]
+	EndAttributes
+	//BeginFields 1
+	//	BeginField FrostyInputProps
+	//		Transient=True
+	//		Added=True
+	//		Type=Array,None,CString
+	//	EndField
+	//	BeginField FrostyOutputProps
+	//		Transient=True
+	//		Added=True
+	//		Type=Array,None,CString
+	//	EndField
+	//	BeginField FrostyInputEvents
+	//		Transient=True
+	//		Added=True
+	//		Type=Array,None,CString
+	//	EndField
+	//	BeginField FrostyOutputEvents
+	//		Transient=True
+	//		Added=True
+	//		Type=Array,None,CString
+	//	EndField
+	//	BeginField FrostyInputLinks
+	//		Transient=True
+	//		Added=True
+	//		Type=Array,None,CString
+	//	EndField
+	//	BeginField FrostyOutputLinks
+	//		Transient=True
+	//		Added=True
+	//		Type=Array,None,CString
+	//	EndField
+	//EndFields
+EndClass
+BeginClass EventConnection
+	BeginFields 2
+		BeginField Source
+			Reference=True
+		EndField
+		BeginField Target
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass Asset
+	BeginFields 1
+		BeginField Name
+			ReadOnly=True
+			Category=Annotations
+		EndField
+	EndFields
+EndClass
+BeginClass LinkConnection
+	BeginFields 2
+		BeginField Source
+			Reference=True
+		EndField
+		BeginField Target
+			Reference=True
+		EndField
+		BeginField SourceFieldId
+			Hidden=True
+		EndField
+		BeginField TargetFieldId
+			Hidden=True
+		EndField
+		BeginField SourceField
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_SourceField.IsNull())
+						_SourceField = Utils.GetString(_SourceFieldId);
+					return _SourceField; 
+				}
+				set 
+				{ 
+					_SourceField=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_SourceFieldId = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_SourceFieldId=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField TargetField
+			Added=True
+			Transient=True
+			Type=CString
+			Index=3
+			BeginAccessor
+				get 
+				{
+					if (_TargetField.IsNull())
+						_TargetField = Utils.GetString(_TargetFieldId);
+					return _TargetField; 
+				}
+				set 
+				{ 
+					_TargetField=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_TargetFieldId = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_TargetFieldId=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass EventSpec
+	BeginFields 2
+		BeginField Id
+			Hidden=True
+		EndField
+		BeginField Name
+			Added=True
+			Transient=True
+			Type=CString
+			BeginAccessor
+				get 
+				{
+					if (_Name.IsNull())
+						_Name = Utils.GetString(_Id);
+					return _Name; 
+				}
+				set 
+				{ 
+					_Name=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_Id = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_Id=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass KitLimitationGroup
+	BeginFields 2
+		BeginField MaxCountProperty
+			Hidden=True
+		EndField
+		BeginField MaxCount
+			Added=True
+			Transient=True
+			Type=CString
+			Index=0
+			BeginAccessor
+				get 
+				{
+					if (_MaxCount.IsNull())
+						_MaxCount = Utils.GetString(_MaxCountProperty);
+					return _MaxCount; 
+				}
+				set 
+				{ 
+					_MaxCount=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_MaxCountProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_MaxCountProperty=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass KitLimitation
+	BeginFields 2
+		BeginField MaxCountProperty
+			Hidden=True
+		EndField
+		BeginField PriceProperty
+			Hidden=True
+		EndField
+		BeginField EnabledAtStageProperty
+			Hidden=True
+		EndField
+		BeginField MaxCount
+			Added=True
+			Transient=True
+			Type=CString
+			Index=1
+			BeginAccessor
+				get 
+				{
+					if (_MaxCount.IsNull())
+						_MaxCount = Utils.GetString(_MaxCountProperty);
+					return _MaxCount; 
+				}
+				set 
+				{ 
+					_MaxCount=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_MaxCountProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_MaxCountProperty=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField Price
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_Price.IsNull())
+						_Price = Utils.GetString(_PriceProperty);
+					return _Price; 
+				}
+				set 
+				{ 
+					_Price=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_PriceProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_PriceProperty=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField EnabledAtStage
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_EnabledAtStage.IsNull())
+						_EnabledAtStage = Utils.GetString(_EnabledAtStageProperty);
+					return _EnabledAtStage; 
+				}
+				set 
+				{ 
+					_EnabledAtStage=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_EnabledAtStageProperty = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_EnabledAtStageProperty=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass PropertyConnection
+	BeginFields 2
+		BeginField Source
+			Reference=True
+		EndField
+		BeginField Target
+			Reference=True
+		EndField
+		BeginField SourceFieldId
+			Hidden=True
+		EndField
+		BeginField TargetFieldId
+			Hidden=True
+		EndField
+		BeginField SourceField
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_SourceField.IsNull())
+						_SourceField = Utils.GetString(_SourceFieldId);
+					return _SourceField; 
+				}
+				set 
+				{ 
+					_SourceField=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_SourceFieldId = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_SourceFieldId=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+		BeginField TargetField
+			Added=True
+			Transient=True
+			Type=CString
+			Index=3
+			BeginAccessor
+				get 
+				{
+					if (_TargetField.IsNull())
+						_TargetField = Utils.GetString(_TargetFieldId);
+					return _TargetField; 
+				}
+				set 
+				{ 
+					_TargetField=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_TargetFieldId = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_TargetFieldId=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass MEJournalSystemCategory
+	BeginFields 1
+		BeginField ParentCategory
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass JournalSystem
+	BeginFields 1
+		BeginField Categories
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass JournalEntryBase
+	BeginFields 1
+		BeginField Category
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass StaticModelGroupMemberData
+	BeginFields 1
+		BeginField MemberType
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass NetworkRegistryAsset
+	BeginFields 1
+		BeginField Objects
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass MeshVariationDatabaseMaterial
+	BeginFields 4
+		BeginField Material
+			Reference=True
+		EndField
+		//BeginField SurfaceShaderGuid
+		//	Hidden=True
+		//EndField
+		//BeginField SurfaceShaderId
+		//	Hidden=True
+		//EndField
+	EndFields
+EndClass
+BeginClass MixerAsset
+	BeginFields 1
+		BeginField DefaultPreset
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass MixerPresetGroupData
+	BeginFields 1
+		BeginField Group
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass SoundPatchAsset
+	BeginFields 5
+		BeginField DefaultStartEvent
+			Reference=True
+		EndField
+		BeginField DefaultStopEvent
+			Reference=True
+		EndField
+		BeginField DefaultEnterScopeEvent
+			Reference=True
+		EndField
+		BeginField DefaultForceInitEvent
+			Reference=True
+		EndField
+		BeginField OutputNodes
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass ReceiveEntry
+	BeginFields 1
+		BeginField Source
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass OutputNodeData
+	BeginFields 1
+		BeginField MainSend
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass SoundGraphPluginConnection
+	BeginFields 1
+		BeginField Context
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass AudioGraphData
+	BeginFields 3
+		BeginField InputParameters
+			Reference=True
+		EndField
+		BeginField OutputParameters
+			Reference=True
+		EndField
+		BeginField InputEvents
+			Reference=True
+		EndField
+		BeginField OutputEvents
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass AudioGraphParameter
+	BeginFields 2
+		BeginField NameHash
+			Hidden=True
+		EndField
+		BeginField Name
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_Name.IsNull())
+						_Name = Utils.GetString((int)_NameHash);
+					return _Name; 
+				}
+				set 
+				{ 
+					_Name=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_NameHash = uint.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_NameHash=(uint)Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass VisualUnlockRootAsset
+	Inline=True
+EndClass
+BeginClass VisualUnlockPartAsset
+	Inline=True
+EndClass
+BeginClass VisualUnlockSkinAsset
+	Inline=True
+EndClass
+BeginClass VisualUnlockAsset
+	Abstract=True
+EndClass
+BeginClass ObjectBlueprint
+	Abstract=True
+EndClass
+BeginClass MeshAndVariationPair
+	Inline=True
+EndClass
+BeginClass DataContainerCollectionBlueprint
+	Inline=True
+EndClass
+BeginClass WSSoldierCustomizationKitList
+	Inline=True
+EndClass
+BeginClass WSDroidCustomizationKitList
+	Inline=True
+EndClass
+BeginClass WSVehicleCustomizationKitList
+	Inline=True
+EndClass
+BeginClass UIElementEntityData
+	Abstract=True
+	BeginFunctions
+	protected override CString GetId()
+	{
+		if (__id != "")
+			return __id;
+		if (_InstanceName != "")
+			return _InstanceName.Sanitize();
+		return base.GetId();
+	}
+	EndFunctions
+EndClass
+BeginClass GameSettingNode
+	BeginFunctions
+	protected override CString GetId()
+	{
+		if (__id != "")
+			return __id;
+		if (_SettingName != "")
+			return _SettingName.Sanitize();
+		return base.GetId();
+	}
+	EndFunctions
+EndClass
+BeginClass UIElementWidgetReferenceEntityData
+	BeginFunctions
+	protected override CString GetId()
+	{
+		if (__id != "")
+			return __id;
+		if (_InstanceName != "")
+			return _InstanceName.Sanitize();
+		return base.GetId();
+	}
+	EndFunctions
+EndClass
+BeginClass UIElementLayerEntityData
+	BeginFunctions
+	protected override CString GetId()
+	{
+		if (__id != "")
+			return __id;
+#if DV_20171117 || DV_20160927 || DV_20170929 || DV_20180914 || DV_20180807 || DV_20170321 || DV_20181207 || DV_20171110 || DV_20190729 || DV_20190905 || DV_20190911 || DV_20191101 || DV_20201001
+		if (_InternalLayerName != "")
+			return _InternalLayerName.Sanitize();
+#elif DV_20180628
+#else
+		if (_LayerName != "")
+			return _LayerName.Sanitize();
+#endif
+		return base.GetId();
+	}
+	EndFunctions
+EndClass
+BeginClass WSUIElementEntityData
+	Abstract=True
+EndClass
+BeginClass LocalizedStringEntityBaseData
+	Abstract=True
+EndClass
+BeginClass DataContainer
+	Abstract=True
+	BeginFields 1
+		//BeginField InstanceGuid
+		//	Added=True
+		//	ReadOnly=True
+		//	Transient=True
+		//	DisplayName=Guid
+		//	Type=CString
+		//	BeginAccessor
+		//		get { return __Guid.ToString(); }
+		//		set { }
+		//	EndAccessor
+		//EndField
+	EndFields
+EndClass
+BeginClass GameDataContainer
+	Abstract=True
+EndClass
+BeginClass EntityData
+	Abstract=True
+EndClass
+BeginClass GameObjectData
+	Abstract=True
+EndClass
+BeginClass PropertyInterpolatorEntityData
+	Abstract=True
+EndClass
+BeginClass ObjectReferenceObjectData
+	Description=Will create all instances under the referred Blueprint
+EndClass
+BeginClass ReferenceObjectData
+	Description=Will create all instances under the referred Blueprint
+EndClass
+BeginClass SpatialReferenceObjectData
+	Abstract=True
+EndClass
+BeginClass LevelData
+	Description=Levels contain everything required to create a game level like terrain, VisualEnvironments, game logic
+EndClass
+BeginClass MEJournalSystemCategoryContainer
+	BeginFields 1
+		BeginField Category
+			Reference=True
+		EndField
+	EndFields
+EndClass
+BeginClass BaseShapeData
+	Abstract=True
+EndClass
+BeginClass ComponentData
+	Abstract=True
+EndClass
+BeginClass ComponentEntityData
+	Abstract=True
+EndClass
+BeginClass CameraData
+	Abstract=True
+EndClass
+BeginClass ControllableEntityData
+	Abstract=True
+EndClass
+BeginClass CameraEntityBaseData
+	Abstract=True
+EndClass
+BeginClass CameraTrackBaseData
+	Abstract=True
+EndClass
+BeginClass ControllableHealthComponentData
+	Abstract=True
+EndClass
+BeginClass ControllablePhysicsComponentData
+	Abstract=True
+EndClass
+BeginClass CustomizeBaseEntityData
+	Abstract=True
+EndClass
+BeginClass DynamicGamePhysicsEntityData
+	Abstract=True
+EndClass
+BeginClass EntryComponentData
+	Abstract=True
+EndClass
+BeginClass EntityTrackBaseData
+	Abstract=True
+EndClass
+BeginClass EnlightenEntityData
+	Abstract=True
+EndClass
+BeginClass HealthComponentData
+	Abstract=True
+EndClass
+BeginClass GameComponentData
+	Abstract=True
+EndClass
+BeginClass GameComponentEntityData
+	Abstract=True
+EndClass
+BeginClass GameHealthComponentData
+	Abstract=True
+EndClass
+BeginClass GamePhysicsComponentData
+	Abstract=True
+EndClass
+BeginClass GamePhysicsEntityData
+	Abstract=True
+EndClass
+BeginClass SpatialEntityData
+	Abstract=True
+EndClass
+BeginClass AssertEntityData
+	Description=This node does nothing as the entity associated with this node has been removed.
+EndClass
+BeginClass DebugTextEntityData
+	Description=This node does nothing as the entity associated with this node has been removed.
+EndClass
+BeginClass DataField
+	BeginFields 2
+		BeginField Id
+			Hidden=True
+		EndField
+		BeginField Name
+			Added=True
+			Transient=True
+			Type=CString
+			Index=2
+			BeginAccessor
+				get 
+				{
+					if (_Name.IsNull())
+						_Name = Utils.GetString(_Id);
+					return _Name; 
+				}
+				set 
+				{ 
+					_Name=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_Id = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_Id=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass DynamicEvent
+	BeginFields 2
+		BeginField Id
+			Hidden=True
+		EndField
+		BeginField Name
+			Added=True
+			Transient=True
+			Type=CString
+			BeginAccessor
+				get 
+				{
+					if (_Name.IsNull())
+						_Name = Utils.GetString(_Id);
+					return _Name; 
+				}
+				set 
+				{ 
+					_Name=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_Id = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_Id=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass DynamicLink
+	BeginFields 2
+		BeginField Id
+			Hidden=True
+		EndField
+		BeginField Name
+			Added=True
+			Transient=True
+			Type=CString
+			BeginAccessor
+				get 
+				{
+					if (_Name.IsNull())
+						_Name = Utils.GetString(_Id);
+					return _Name; 
+				}
+				set 
+				{ 
+					_Name=value; 
+					
+					string strValue = value;
+					if (strValue.StartsWith("0x"))
+					{
+						strValue = strValue.Remove(0, 2);
+						_Id = int.Parse(strValue, System.Globalization.NumberStyles.HexNumber);
+						return;
+					}
+					_Id=Utils.HashString(strValue); 
+				}
+			EndAccessor
+		EndField
+	EndFields
+EndClass
+BeginClass SelectPropertyEntityData
+	Abstract=True
+EndClass
+BeginClass LargeParticleCloudEntityData
+	Realm=Client
+EndClass
+BeginClass ShaderParameterEntityData
+	Realm=Client
+EndClass
+BeginClass ActionEntityData
+	Realm=ClientAndServer
+EndClass
+BeginClass ActivableAreaEntityData
+	Realm=Server
+EndClass
+BeginClass ActorCustomizationComponentData
+	Realm=ClientAndServer
+EndClass
+BeginClass AdhocSpawnerLinkEntityData
+	Realm=Server
+EndClass
+BeginClass AdhocSpawnerLinkEntityHelperData
+	Realm=Server
+EndClass
+BeginClass AffectorApplyEntityData
+	Realm=Server
+EndClass
+BeginClass AffectorComponentData
+	Realm=ClientAndServer
+EndClass
+BeginClass AffectorStreamEntityData
+	Realm=ClientAndServer
+EndClass
+BeginClass AIAnchorToPointComponentData
+	Realm=ClientAndServer
+EndClass
+BeginClass AIAwarenessEntityData
+	Realm=Server
+EndClass
+BeginClass AIBucketSystemComponentData
+	Realm=Server
+EndClass
+BeginClass AIBuddyFollowEntityData
+	Realm=Server
+EndClass
+BeginClass AICancelOrderEntityData
+	Realm=Server
+EndClass
+BeginClass AICombatBehaviorEntityData
+	Realm=Server
+EndClass
+BeginClass AICombatGroupEntityData
+	Realm=Server
+EndClass
+BeginClass AIConcealmentVolumeEntityData
+	Realm=Server
+EndClass
+BeginClass AICoverQueryEntityData
+	Realm=Server
+EndClass
+BeginClass AICoverZonesOverrideEntityData
+	Realm=Server
+EndClass
+BeginClass PlanetIdDataEntityData
+	Alignment=4
+EndClass
+BeginClass FactionIdDataEntityData
+	Alignment=4
+EndClass
+BeginClass AIDebugProxyData
+	Realm=Server
+EndClass
+BeginClass AIDefendAreaEntityData
+	Realm=Server
+EndClass
+BeginClass AIEncounterManagerEntityData
+	Realm=Server
+EndClass
+BeginClass AIEntryComponentData
+	Realm=Server
+EndClass
+BeginClass AIFlankingCorridorEntityData
+	Realm=Server
+EndClass
+BeginClass AIFollowAreaEntityData
+	Realm=Server
+EndClass
+BeginClass AIFollowObjectEntityData
+	Realm=Server
+EndClass
+BeginClass AIFollowWaypointsOrderEntityData
+	Realm=Server
+EndClass
+BeginClass AIForbiddenAreaEntityData
+	Realm=Server
+EndClass
+BeginClass AIFriendlyAreaEntityData
+	Realm=Server
+EndClass
+BeginClass AIGetSuspiciousFactorEntityData
+	Realm=ClientAndServer
+EndClass
+BeginClass AIGotoPlaceOrderEntityData
+	Realm=Server
+EndClass
+BeginClass AIHearingParameterEntityData
+	Realm=Server
+EndClass
+BeginClass AIIdleBehaviorEntityData
+	Realm=Server
+EndClass
+BeginClass AIKillCounterEntityData
+	Realm=Server
+EndClass
+BeginClass AILocoComponentData
+	Realm=ClientAndServer
+EndClass
+BeginClass AimAssistNodeComponentData
+	Realm=Client
+EndClass
+BeginClass AimAssistNodeSnapPointComponentData
+	Realm=Client
+EndClass
+BeginClass AimEntityBaseData
+	Realm=ClientAndServer
+EndClass
+BeginClass AimEntityData
+	Realm=Client
+EndClass
+BeginClass AimingAngularSpeedConstraintDataProviderEntityData
+	Realm=Client
+EndClass
+BeginClass AimingComponentData
+	Realm=Server
+EndClass
+BeginClass AimingConstraintEntityData
+	Realm=Client
+EndClass
+BeginClass AimingScaleDataProviderEntityData
+	Realm=Client
+EndClass
+BeginClass AimingSimulationEntityData
+	Realm=Client
+EndClass
+BeginClass AINarrativeStateSetterEntityData
+	Realm=Server
+EndClass
+BeginClass AIObstacleControllerEntityData
+	Realm=Server
+EndClass 
+BeginClass PlayerAbilityCustomization
+	Inline=True
+EndClass

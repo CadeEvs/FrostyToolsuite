@@ -1,0 +1,322 @@
+﻿
+// --------------------------------------------------------------------------------
+// Template
+// --------------------------------------------------------------------------------
+
+// --------------------------------------------------------------------------------
+// Buffers
+// --------------------------------------------------------------------------------
+
+cbuffer viewConstants : register(b0)
+{
+    float4 time;
+	float4 screenSize;
+	float4x4 viewMatrix;
+	float4x4 projMatrix;
+	float4x4 viewProjMatrix;
+	float4x4 crViewProjMatrix;
+	float4x4 prevViewProjMatrix;
+	float4x4 crPrevViewProjMatrix;
+	float4x3 normalBasisTransforms[6];
+	float4 exposureMultipliers;
+	float3 cameraPos;
+};
+
+cbuffer functionConstants : register(b1)
+{
+    float4x4 worldMatrix;
+	float4 lightProbe[9];
+};
+
+#if SHADER_SKINNED==1
+Buffer<float4> bonePartMatrices : register(t0);
+#endif
+
+// --------------------------------------------------------------------------------
+// Textures / Samplers
+// --------------------------------------------------------------------------------
+
+TextureCube<float4> texture_normalBasisCubemapTexture : register(t0);
+SamplerState sampler0_s : register(s0);
+
+// --------------------------------------------------------------------------------
+// Pixel Shader Output
+// --------------------------------------------------------------------------------
+
+struct PixelShaderOutput
+{
+    float4 GBufferA : SV_Target0;
+    float4 GBufferB : SV_Target1;
+    float4 GBufferC : SV_Target2;
+	float4 GBufferD : SV_Target3;
+    float Depth : SV_Target4;
+};
+
+// --------------------------------------------------------------------------------
+// Common Functions
+// --------------------------------------------------------------------------------
+
+float2 PackNormals(float2 inNormals)
+{
+	return inNormals * 0.5f + 0.5f;
+}
+
+float2 UnpackNormals(float2 inNormals)
+{
+	return inNormals * 2 - 1;
+}
+
+float3 CalcWorldSpaceNormalsFromTangentSpace(float3 Normals, float3x3 TBN)
+{
+	return normalize(mul(TBN, normalize(Normals)));
+}
+
+float3 CalcWorldSpaceNormals(float3 Normals, float3 T, float4 B, float3 N)
+{
+	//B.xyz = normalize(cross( N, T ) * -B.w);
+	
+	Normals = normalize(Normals);
+	float3x3 TBN = float3x3(
+		normalize(T), 
+		normalize(B.xyz), 
+		normalize(N)
+		);
+	TBN = transpose(TBN);
+	return normalize(mul(TBN, Normals));
+}
+
+float3 DeriveNormalZ(float2 N)
+{
+	return float3(N.xy, sqrt(1-dot(N.xy, N.xy)));
+}
+
+float3 CalculateRadiosity(float4 SHLightProbe[9], float3 WorldNormal)
+{
+	float4 r0;
+	float3 r11;
+	
+	r0.xw = WorldNormal.zy * WorldNormal.zy;
+	r0.x = WorldNormal.x * WorldNormal.x + -r0.x;
+	r11.xyz = r0.www * SHLightProbe[4].xyz;
+	r11.xyz = float3(3,3,3) * r11.xyz;
+	SHLightProbe[8].xyz = SHLightProbe[8].xyz * r0.xxx + r11.xyz;
+	SHLightProbe[8].xyz = SHLightProbe[8].xyz + SHLightProbe[0].xyz;
+	SHLightProbe[4].xyz = SHLightProbe[8].xyz + -SHLightProbe[4].xyz;
+	SHLightProbe[5].xyz = SHLightProbe[5].xyz * WorldNormal.xxx;
+	SHLightProbe[6].xyz = SHLightProbe[6].xyz * WorldNormal.yyy;
+	SHLightProbe[6].xyz = SHLightProbe[6].xyz * WorldNormal.zzz;
+	SHLightProbe[5].xyz = SHLightProbe[5].xyz * WorldNormal.yyy + SHLightProbe[6].xyz;
+	SHLightProbe[7].xyz = SHLightProbe[7].xyz * WorldNormal.xxx;
+	SHLightProbe[7].xyz = SHLightProbe[7].xyz * WorldNormal.zzz + SHLightProbe[5].xyz;
+	SHLightProbe[4].xyz = SHLightProbe[7].xyz + SHLightProbe[4].xyz;
+	SHLightProbe[2].xyz = SHLightProbe[2].xyz * WorldNormal.yyy;
+	SHLightProbe[1].xyz = SHLightProbe[1].xyz * WorldNormal.xxx + SHLightProbe[2].xyz;
+	SHLightProbe[1].xyz = SHLightProbe[3].xyz * WorldNormal.zzz + SHLightProbe[1].xyz;
+	SHLightProbe[4].xyz = SHLightProbe[1].xyz + SHLightProbe[4].xyz;
+	
+	return max(float3(0,0,0), SHLightProbe[4].xyz);
+}
+
+float3 CalculateRadiosity(float3 WorldNormal)
+{
+	return CalculateRadiosity(lightProbe, WorldNormal);
+}
+
+struct GBuffer
+{
+	float3 BaseColor;
+	float3 WorldNormals;
+	float Reflectance;
+	float MaterialAO;
+	float Smoothness;
+	float Metallic;
+	float SpecularMult;
+	float3 Radiosity;
+	float3 Emissive;
+	
+	// only used with packedNormals
+	float2 PackedNormals;
+	
+	// only used with unpack
+	float3 SpecularColor;
+	float Roughness;
+	float LinearRoughness;
+	float Mask;
+};
+
+void PackGBufferValues(GBuffer values, inout float4 GBufferA, inout float4 GBufferB, inout float4 GBufferC, inout float4 GBufferD)
+{
+	// pack those normals
+	uint normalBasisId = (uint)(texture_normalBasisCubemapTexture.Sample(sampler0_s, values.WorldNormals).x * 255.5);
+	values.PackedNormals = mul(normalBasisTransforms[normalBasisId], values.WorldNormals).xy;
+	
+	GBufferA = float4(PackNormals(values.PackedNormals), values.Smoothness, 0);
+	GBufferB = float4(values.BaseColor, normalBasisId / 6.0f);
+	GBufferC = float4(0, values.Metallic, values.Reflectance, values.MaterialAO);
+	GBufferD = float4((values.Radiosity + values.Emissive) * exposureMultipliers.x, 1.0f);
+}
+
+GBuffer UnpackGBufferValues(float4 GA, float4 GB, float4 GC, float4 GD, float4x3 normalBasisTransforms[6])
+{
+	GBuffer values;
+	
+	values.BaseColor = GB.xyz;
+	values.PackedNormals = UnpackNormals(GA.xy);
+	values.Reflectance = GC.z;
+	values.MaterialAO = GC.w;
+	values.Smoothness = GA.z;
+	values.Metallic = GC.y;
+	//GBuffer.SpecularMult = GA.w;
+	values.Radiosity = GD.xyz;
+	
+	values.SpecularColor = (0.16f * pow(values.Reflectance, 2.0f)).rrr * (1-values.Metallic) + values.BaseColor * values.Metallic;;
+	values.Roughness = pow(1-values.Smoothness, 2);
+	values.LinearRoughness = 1-values.Smoothness;
+	
+	uint normalBasisId = (uint)(round(6 * GB.w));
+	float3 n = normalize(DeriveNormalZ(values.PackedNormals));
+	values.WorldNormals = mul(normalBasisTransforms[normalBasisId], n).xyz;
+	
+	return values;
+}
+
+#if SHADER_SKINNED==1
+float3x4 getBoneMatrix(int Index)
+{
+	float boneCount = bonePartMatrices[0].x;
+	if (Index & 0x8000)
+		Index = (Index & 0x7FFF) + boneCount;
+		
+	float4 A = bonePartMatrices[Index * 3 + 1];
+	float4 B = bonePartMatrices[Index * 3 + 2];
+	float4 C = bonePartMatrices[Index * 3 + 3];
+	
+	return float3x4(A, B, C);
+}
+
+void applyBoneMatrix(float3 value, int boneIndex, float boneWeight, inout float3 outValue)
+{
+	float3x4 boneMatrix = getBoneMatrix(boneIndex);
+	outValue += mul(boneMatrix, float4(value, 1.0f)).xyz * boneWeight;
+}
+
+void applyBoneRotation(float3 value, int boneIndex, float boneWeight, inout float3 outValue)
+{
+	float3x4 boneMatrix = getBoneMatrix(boneIndex);
+	outValue += mul((float3x3)boneMatrix, value).xyz * boneWeight;
+}
+
+float4 TransformPosition(VertexShaderInput Input, float3 Position)
+{
+	uint BoneIndices[SHADER_BONES_PER_VERTEX];
+	float BoneWeights[SHADER_BONES_PER_VERTEX];
+
+	BoneIndices[0] = Input.BoneIndices.x;
+	BoneIndices[1] = Input.BoneIndices.y;
+	BoneIndices[2] = Input.BoneIndices.z;
+	BoneIndices[3] = Input.BoneIndices.w;
+	BoneWeights[0] = Input.BoneWeights.x;
+	BoneWeights[1] = Input.BoneWeights.y;
+	BoneWeights[2] = Input.BoneWeights.z;
+	BoneWeights[3] = Input.BoneWeights.w;
+
+	#if SHADER_BONES_PER_VERTEX > 4
+	BoneIndices[4] = Input.BoneIndices2.x;
+	BoneIndices[5] = Input.BoneIndices2.y;
+	BoneIndices[6] = Input.BoneIndices2.z;
+	BoneIndices[7] = Input.BoneIndices2.w;
+	BoneWeights[4] = Input.BoneWeights2.x;
+	BoneWeights[5] = Input.BoneWeights2.y;
+	BoneWeights[6] = Input.BoneWeights2.z;
+	BoneWeights[7] = Input.BoneWeights2.w;
+	#endif
+
+	float3 skinnedPosition = float3(0,0,0);
+	for (int i = 0; i < SHADER_BONES_PER_VERTEX; i++)
+		applyBoneMatrix(Position, BoneIndices[i], BoneWeights[i], skinnedPosition);
+	
+	float3 worldPosition = mul(float4(skinnedPosition, 1.0f), worldMatrix).xyz - cameraPos;
+	return mul(float4(worldPosition, 1.0f), crViewProjMatrix);
+}
+float3 TransformTBN(VertexShaderInput Input, float3 Value)
+{
+	uint BoneIndices[SHADER_BONES_PER_VERTEX];
+	float BoneWeights[SHADER_BONES_PER_VERTEX];
+
+	BoneIndices[0] = Input.BoneIndices.x;
+	BoneIndices[1] = Input.BoneIndices.y;
+	BoneIndices[2] = Input.BoneIndices.z;
+	BoneIndices[3] = Input.BoneIndices.w;
+	BoneWeights[0] = Input.BoneWeights.x;
+	BoneWeights[1] = Input.BoneWeights.y;
+	BoneWeights[2] = Input.BoneWeights.z;
+	BoneWeights[3] = Input.BoneWeights.w;
+
+	#if SHADER_BONES_PER_VERTEX > 4
+	BoneIndices[4] = Input.BoneIndices2.x;
+	BoneIndices[5] = Input.BoneIndices2.y;
+	BoneIndices[6] = Input.BoneIndices2.z;
+	BoneIndices[7] = Input.BoneIndices2.w;
+	BoneWeights[4] = Input.BoneWeights2.x;
+	BoneWeights[5] = Input.BoneWeights2.y;
+	BoneWeights[6] = Input.BoneWeights2.z;
+	BoneWeights[7] = Input.BoneWeights2.w;
+	#endif
+
+	float3 skinnedValue = float3(0,0,0);
+	for (int i = 0; i < SHADER_BONES_PER_VERTEX; i++)
+		applyBoneRotation(Value, BoneIndices[i], BoneWeights[i], skinnedValue);
+	
+	return mul((float3x3)worldMatrix, normalize(skinnedValue));
+}
+
+#else
+float4 TransformPosition(VertexShaderInput Input, float3 Position)
+{
+	float3 worldPosition = mul(float4(Position, 1.0f), worldMatrix).xyz - cameraPos;
+	return mul(float4(worldPosition, 1.0f), crViewProjMatrix);
+}
+float3 TransformTBN(VertexShaderInput Input, float3 Value)
+{
+	return mul((float3x3)worldMatrix, normalize(Value));
+}
+#endif
+
+#define PixelShaderInput VertexShaderIntermediates
+
+// --------------------------------------------------------------------------------
+// Inserted Shader Code
+// --------------------------------------------------------------------------------
+
+<ShaderCode>
+
+// --------------------------------------------------------------------------------
+// Base Pass Vertex Shader
+// --------------------------------------------------------------------------------
+
+// VertexShaderInput is autogenerated
+VertexShaderIntermediates VSMain(VertexShaderInput Input)
+{
+	return GetVertexShaderIntermediates(Input);
+}
+
+// --------------------------------------------------------------------------------
+// Base Pass Pixel Shader
+// --------------------------------------------------------------------------------
+
+#if defined(RENDER_PATH)
+float4 PSMain(PixelShaderInput Input) : SV_Target
+{
+	return GetPixelShaderIntermediates(Input);
+}
+#else
+PixelShaderOutput PSMain(PixelShaderInput Input)
+{
+	PixelShaderOutput Output = (PixelShaderOutput)0;
+	
+	GBuffer values = GetPixelShaderIntermediates(Input);
+	PackGBufferValues(values, Output.GBufferA, Output.GBufferB, Output.GBufferC, Output.GBufferD);
+	
+	return Output;
+}
+#endif

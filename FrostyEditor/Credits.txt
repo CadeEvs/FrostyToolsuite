@@ -1,0 +1,43 @@
+﻿[Credits]
+
+Project: Json.NET
+Copyright (c) 2007 James Newton-King
+License (MIT): https://github.com/JamesNK/Newtonsoft.Json/blob/master/LICENSE.md
+
+Project: SharpDX
+Copyright (c) 2010-2014 SharpDX - Alexandre Mutel
+License (MIT): https://github.com/sharpdx/Toolkit/blob/master/License.txt
+
+Project: libfbx
+Copyright (c) 2014 Autodesk, Inc. All rights reserved.
+License: This software contains Autodesk® FBX® code developed by Autodesk, Inc. Copyright 2014 Autodesk, Inc. All rights, reserved. Such code is provided “as is” and Autodesk, Inc. disclaims any and all warranties, whether express or implied, including without limitation the implied warranties of merchantability, fitness for a particular purpose or non-infringement of third party rights. In no event shall Autodesk, Inc. be liable for any direct, indirect, incidental, special, exemplary, or consequential damages (including, but not limited to, procurement of substitute goods or services; loss of use, data, or profits; or business interruption) however caused and on any theory of liability, whether in contract, strict liability, or tort (including negligence or otherwise) arising in any way out of such code.
+
+Project: libzstd
+Copyright (c) 2016-present, Facebook, Inc. All rights reserved.
+License (BSD): https://github.com/facebook/zstd/blob/dev/LICENSE
+
+Project: Zlib
+Copyright (c) 1995-2017 Jean-loup Gailly and Mark Adler
+License: https://www.zlib.net/zlib_license.html
+
+Project: ealayer3
+Copyright (c) 2010, Ben Moench. All rights reserved
+License: https://bitbucket.org/Zenchreal/ealayer3/src/6bd060055708bc874b41501a7214adbbf077b64c/license.txt
+
+Project: libmpg123
+Copyright (c) 1995-2013 by Michael Hipp and others, free software under the terms of the LGPL v2.1
+License (LGPL): https://www.mpg123.de/cgi-bin/scm/mpg123/trunk/COPYING
+
+Project: Icons8
+Licence (Creative Commons): https://creativecommons.org/licenses/by-nd/3.0/
+Website: https://icons8.com
+
+[Acknowledgements]
+Special thanks to GalaxyMan2015: without his years of work and dedication, Frosty would not exist and Frostbite modding would very well still be in the dark ages. Thanks GMan!
+
+Special thanks to Mophead for allowing us to bundle his 3rd party plugins with the software:
+- Bundle Manager
+- Gameplay Merger
+- FsLocalization
+
+Special thanks to munchyfly for providing endless support to our users
