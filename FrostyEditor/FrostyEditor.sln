@@ -91,6 +91,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RootInstanceEntriesPlugin",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LaunchPlatformPlugin", "..\Plugins\LaunchPlatformPlugin\LaunchPlatformPlugin.csproj", "{7F280BF3-F794-4715-9D32-770D36454B8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyCmd", "..\FrostyCmd\FrostyCmd.csproj", "{500ACAB7-D948-4BCA-8208-20812D712DDB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Developer - Debug|x64 = Developer - Debug|x64
@@ -500,6 +502,16 @@ Global
 		{7F280BF3-F794-4715-9D32-770D36454B8C}.Release - Final|x64.Build.0 = Release - Final|x64
 		{7F280BF3-F794-4715-9D32-770D36454B8C}.Release|x64.ActiveCfg = Release - Alpha|x64
 		{7F280BF3-F794-4715-9D32-770D36454B8C}.Release|x64.Build.0 = Release - Alpha|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Developer - Debug|x64.ActiveCfg = Developer - Debug|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Developer - Debug|x64.Build.0 = Developer - Debug|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release - Alpha|x64.ActiveCfg = Release - Alpha|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release - Alpha|x64.Build.0 = Release - Alpha|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release - Beta|x64.ActiveCfg = Release - Beta|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release - Beta|x64.Build.0 = Release - Beta|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release - Final|x64.ActiveCfg = Release - Final|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release - Final|x64.Build.0 = Release - Final|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release|x64.ActiveCfg = Release - Final|x64
+		{500ACAB7-D948-4BCA-8208-20812D712DDB}.Release|x64.Build.0 = Release - Final|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
