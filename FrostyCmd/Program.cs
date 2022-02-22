@@ -166,8 +166,8 @@ namespace FrostyCmd
 
         static void Main(string[] args)
         {
-            if (args.Length < 2)
-                return;
+            //if (args.Length < 2)
+            //    return;
 
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
