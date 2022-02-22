@@ -181,7 +181,7 @@ namespace FrostySdk.Resources
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2)
                 Unknown3[0] = reader.ReadUInt();
             TextureGroup = reader.ReadSizedString(16);
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 Unknown3[0] = reader.ReadUInt();
             Data = am.GetChunk(am.GetChunkEntry(chunkId));
         }
@@ -227,7 +227,7 @@ namespace FrostySdk.Resources
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2)
                     writer.Write(Unknown3[0]);
                 writer.WriteFixedSizedString(TextureGroup, 16);
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                     writer.Write(Unknown3[0]);
 
                 return writer.ToByteArray();
