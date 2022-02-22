@@ -110,7 +110,7 @@ namespace Frosty.Core.Windows
             DiscordEnabled = Config.Get<bool>("DiscordRPCEnabled", false);
             ModSettingsAuthor = Config.Get<string>("ModAuthor", "");
 
-            AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", true);
+            AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", false);
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
 
 

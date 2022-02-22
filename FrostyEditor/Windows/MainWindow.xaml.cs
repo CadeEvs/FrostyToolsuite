@@ -54,7 +54,7 @@ namespace FrostyEditor
 
         public MainWindow()
         {
-            FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", true);
+            FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", false);
             //FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("Asset", "DisplayModuleInId", true);
             BookmarkItemDoubleClickCommand = new ItemDoubleClickCommand(BookmarkTreeView_MouseDoubleClick);
             Bookmarks.BookmarkDb.LoadDb();
