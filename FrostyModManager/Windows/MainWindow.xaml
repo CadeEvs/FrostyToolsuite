@@ -374,7 +374,13 @@
                                                                     </Grid.ColumnDefinitions>
                                                                     
                                                                     <Grid Grid.Column="0">
-                                                                        <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32"/>
+                                                                        <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32">
+                                                                            <Image.Resources>
+                                                                                <Style TargetType="Image">
+                                                                                    <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+                                                                                </Style>
+                                                                            </Image.Resources>
+                                                                        </Image>
                                                                         <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
                                                                     </Grid>
                                                                     <Grid Grid.Column="1" VerticalAlignment="Center">
@@ -628,15 +634,15 @@
                                             <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
                                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
                                                     <!-- Down Button -->
-                                                    <Button x:Name="downButton" Margin="4,0,0,0" IsEnabled="False" Click="downButton_Click" ToolTip="Move mod down in list">
+                                                    <Button x:Name="downButton" Margin="4,0,0,0" IsEnabled="False" Click="downButton_Click" ToolTip="Move mod down in list &#x0a;Shift click to move down 5 spaces &#x0a;Ctrl Shift click to move to bottom">
                                                         <Image Source="/FrostyModManager;component/Images/Down.png" Margin="0,0,2,0"/>
                                                     </Button>
                                                     <!-- Up Button -->
-                                                    <Button x:Name="upButton" IsEnabled="False" Click="upButton_Click" ToolTip="Move mod up in list">
+                                                    <Button x:Name="upButton" IsEnabled="False" Click="upButton_Click" ToolTip="Move mod up in list &#x0a;Shift click to move up 5 spaces &#x0a;Ctrl Shift click to move to top">
                                                         <Image Source="/FrostyModManager;component/Images/Up.png" Margin="0,0,2,0"/>
                                                     </Button>
                                                     <!-- Remove Button -->
-                                                    <Button x:Name="removeButton" Margin="4,0,0,0" IsEnabled="False" Click="removeButton_Click" ToolTip="Remove mod">
+                                                    <Button x:Name="removeButton" Margin="4,0,0,0" IsEnabled="False" Click="removeButton_Click" ToolTip="Remove mod from list">
                                                         <Image Source="/FrostyModManager;component/Images/Remove.png" Margin="0,0,2,0"/>
                                                     </Button>
                                                 </StackPanel>
@@ -657,7 +663,13 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <CheckBox x:Name="enabledCheckBox" Grid.Column="0" VerticalAlignment="Center" IsChecked="{Binding Path=IsEnabled}" Checked="enabledCheckBox_Checked" Unchecked="enabledCheckBox_Checked"/>
-                                                    <Image Grid.Column="1" Source="{Binding Path=Mod.ModDetails.Icon}" Margin="8,0,0,0" Width="16"/>
+                                                    <Image Grid.Column="1" Source="{Binding Path=Mod.ModDetails.Icon}" Margin="8,0,0,0" Width="16">
+                                                        <Image.Resources>
+                                                            <Style TargetType="Image">
+                                                                <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+                                                            </Style>
+                                                        </Image.Resources>
+                                                    </Image>
                                                     <TextBlock Grid.Column="2" Text="{Binding Path=Mod.ModDetails.Title}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                                 </Grid>
                                             </DataTemplate>
