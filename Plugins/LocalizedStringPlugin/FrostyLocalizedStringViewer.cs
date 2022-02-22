@@ -142,7 +142,7 @@ namespace LocalizedStringPlugin
             {
                 FrostyTaskWindow.Show("Exporting Localized Strings", "", (task) =>
                 {
-                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create), false, true))
+                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create)))
                     {
                         int index = 0;
                         foreach (uint stringId in stringIds)
