@@ -142,7 +142,7 @@ namespace LocalizedStringPlugin
             {
                 FrostyTaskWindow.Show("Exporting Localized Strings", "", (task) =>
                 {
-                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create), false, true))
+                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create)))
                     {
                         int index = 0;
                         foreach (uint stringId in stringIds)
@@ -151,6 +151,7 @@ namespace LocalizedStringPlugin
 
                             str = str.Replace("\r", "");
                             str = str.Replace("\n", " ");
+                            str = str.Replace("\"", "\"\"");
 
                             writer.WriteLine(stringId.ToString("X8") + ",\"" + str + "\"");
                             task.Update(progress: ((index++) / (double)stringIds.Count) * 100.0);
