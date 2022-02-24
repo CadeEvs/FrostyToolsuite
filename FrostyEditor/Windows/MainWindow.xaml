@@ -847,6 +847,14 @@
                                                                 <Setter Property="Background" TargetName="mainBorder" Value="#292929"/>
                                                                 <Setter Property="Foreground" Value="#80F8F8F8"/>
                                                             </MultiDataTrigger>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                                                    <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="false"/>
+                                                                    <Condition Binding="{Binding TabStripPlacement, RelativeSource={RelativeSource AncestorType={x:Type TabControl}}}" Value="Top"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" TargetName="mainBorder" Value="#333333"/>
+                                                            </MultiDataTrigger>
                                                         </ControlTemplate.Triggers>
                                                     </ControlTemplate>
                                                 </Setter.Value>
