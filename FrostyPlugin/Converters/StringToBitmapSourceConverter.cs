@@ -1,4 +1,4 @@
-﻿using FrostySdk;
+using FrostySdk;
 using System;
 using System.Globalization;
 using System.Windows.Data;
@@ -60,6 +60,9 @@ namespace Frosty.Core.Converters
                 return HavokSource;
 
             if (TypeLibrary.IsSubClassOf(str, "EmitterGraphBaseAsset") || TypeLibrary.IsSubClassOf(str, "EmitterBaseAsset"))
+                return EmitterSource;
+
+            if (TypeLibrary.IsSubClassOf(str, "ScalableEmitterDocument") || TypeLibrary.IsSubClassOf(str, "ScalableEmitterDocument"))
                 return EmitterSource;
 
             if (TypeLibrary.IsSubClassOf(str, "ZeroLatencyImpulseResponseAsset"))
