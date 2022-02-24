@@ -62,7 +62,7 @@ namespace Frosty.Core.Converters
             if (TypeLibrary.IsSubClassOf(str, "EmitterGraphBaseAsset") || TypeLibrary.IsSubClassOf(str, "EmitterBaseAsset"))
                 return EmitterSource;
 
-            if (TypeLibrary.IsSubClassOf(str, "ScalableEmitterDocument") || TypeLibrary.IsSubClassOf(str, "ScalableEmitterDocument"))
+            if (TypeLibrary.IsSubClassOf(str, "ScalableEmitterDocument"))
                 return EmitterSource;
 
             if (TypeLibrary.IsSubClassOf(str, "ZeroLatencyImpulseResponseAsset"))
