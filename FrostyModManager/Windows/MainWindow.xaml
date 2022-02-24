@@ -374,13 +374,7 @@
                                                                     </Grid.ColumnDefinitions>
                                                                     
                                                                     <Grid Grid.Column="0">
-                                                                        <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32">
-                                                                            <Image.Resources>
-                                                                                <Style TargetType="Image">
-                                                                                    <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
-                                                                                </Style>
-                                                                            </Image.Resources>
-                                                                        </Image>
+                                                                        <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32" RenderOptions.BitmapScalingMode="Fant"/>
                                                                         <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
                                                                     </Grid>
                                                                     <Grid Grid.Column="1" VerticalAlignment="Center">
@@ -663,13 +657,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <CheckBox x:Name="enabledCheckBox" Grid.Column="0" VerticalAlignment="Center" IsChecked="{Binding Path=IsEnabled}" Checked="enabledCheckBox_Checked" Unchecked="enabledCheckBox_Checked"/>
-                                                    <Image Grid.Column="1" Source="{Binding Path=Mod.ModDetails.Icon}" Margin="8,0,0,0" Width="16">
-                                                        <Image.Resources>
-                                                            <Style TargetType="Image">
-                                                                <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
-                                                            </Style>
-                                                        </Image.Resources>
-                                                    </Image>
+                                                    <Image Grid.Column="1" Source="{Binding Path=Mod.ModDetails.Icon}" Margin="8,0,0,0" Width="16" RenderOptions.BitmapScalingMode="Fant"/>
                                                     <TextBlock Grid.Column="2" Text="{Binding Path=Mod.ModDetails.Title}" Margin="8,0,0,0" VerticalAlignment="Center"/>
                                                 </Grid>
                                             </DataTemplate>
