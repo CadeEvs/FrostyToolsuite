@@ -59,10 +59,7 @@ namespace Frosty.Core.Converters
             if (TypeLibrary.IsSubClassOf(str, "HavokAsset") || TypeLibrary.IsSubClassOf(str, "PhysicsAsset"))
                 return HavokSource;
 
-            if (TypeLibrary.IsSubClassOf(str, "EmitterGraphBaseAsset") || TypeLibrary.IsSubClassOf(str, "EmitterBaseAsset"))
-                return EmitterSource;
-
-            if (TypeLibrary.IsSubClassOf(str, "ScalableEmitterDocument"))
+            if (TypeLibrary.IsSubClassOf(str, "EmitterGraphBaseAsset") || TypeLibrary.IsSubClassOf(str, "EmitterBaseAsset") || TypeLibrary.IsSubClassOf(str, "EmitterAsset")) 
                 return EmitterSource;
 
             if (TypeLibrary.IsSubClassOf(str, "ZeroLatencyImpulseResponseAsset"))
