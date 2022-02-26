@@ -3,7 +3,7 @@ using FrostySdk.IO;
 
 namespace FrostySdk.Deobfuscators
 {
-    public class PVZ2Deobfuscator : IDeobfuscator
+    public class PVZDeobfuscator : IDeobfuscator
     {
         private byte[] key;
         public long Initialize(NativeReader reader)
