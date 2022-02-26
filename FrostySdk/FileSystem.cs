@@ -259,9 +259,6 @@ namespace FrostySdk
 
         private void LoadInitfs(byte[] key, bool patched = true)
         {
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare) // Temp fix
-                return;
-
             string path = ResolvePath((patched ? "" : "native_data/") + "initfs_win32");
             if (path == "")
                 return;
