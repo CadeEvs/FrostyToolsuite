@@ -65,17 +65,13 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="FrostyHash">
-      <HintPath>..\..\FrostyToolSuite\FrostyEditor\bin\Developer\Debug\FrostyHash.dll</HintPath>
-    </Reference>
-    <Reference Include="FrostySdk">
-      <HintPath>..\..\FrostyToolSuite\FrostyEditor\bin\Developer\Debug\FrostySdk.dll</HintPath>
-    </Reference>
     <Reference Include="SharpDX">
-      <HintPath>..\..\FrostyToolSuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.dll</HintPath>
+      <HintPath>..\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SharpDX.Mathematics">
-      <HintPath>..\..\FrostyToolSuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.Mathematics.dll</HintPath>
+      <HintPath>..\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.Mathematics.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -97,6 +93,18 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FrostyHash\FrostyHash.vcxproj">
+      <Project>{d1a29bf8-2e2e-47be-845f-a6dd66d175ba}</Project>
+      <Name>FrostyHash</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\FrostySdk\FrostySdk.csproj">
+      <Project>{93fb4a0c-df89-4169-80b5-c4e2277ff7a0}</Project>
+      <Name>FrostySdk</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="Banners\SWBF.png">
