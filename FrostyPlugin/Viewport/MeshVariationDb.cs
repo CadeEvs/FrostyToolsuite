@@ -106,51 +106,120 @@ namespace Frosty.Core.Viewport
 
         public static void LoadVariations(FrostyTaskWindow task)
         {
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
+            bool RenderPerformanceLoadingEnabled = Config.Get<bool>("RenderPerformanceLoadingEnabled", true);
+
+            if (!RenderPerformanceLoadingEnabled)
+            {
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
              || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
-            {
-                IsLoaded = true;
-                return;
-            }
-
-            uint totalCount = App.AssetManager.GetEbxCount("MeshVariationDatabase");
-            uint index = 0;
-
-            entries.Clear();
-            task.Update("Loading variation databases");
-
-            foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
-            {
-                uint progress = (uint)((index / (float)totalCount) * 100);
-                task.Update(progress: progress);
-
-                EbxAsset asset = App.AssetManager.GetEbx(ebx);
                 {
-                    dynamic db = asset.RootObject;
-                    int j = 0;
+                    IsLoaded = true;
+                    return;
+                }
 
-                    foreach (dynamic v in db.Entries)
+                uint totalCount = App.AssetManager.GetEbxCount("MeshVariationDatabase");
+                uint index = 0;
+
+                entries.Clear();
+                task.Update("Loading variation databases");
+
+                foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
+                {
+                    uint progress = (uint)((index / (float)totalCount) * 100);
+                    task.Update(progress: progress);
+
+                    EbxAsset asset = App.AssetManager.GetEbx(ebx);
                     {
-                        try
-                        {
-                            Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
-                            if (!entries.ContainsKey(meshGuid))
-                                entries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
-                            entries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
-                        }
-                        catch (Exception ex)
-                        {
-                            System.Diagnostics.Debug.WriteLine(ex.ToString());
-                            System.Diagnostics.Debugger.Break();
-                        }
+                        dynamic db = asset.RootObject;
+                        int j = 0;
 
-                        j++;
+                        foreach (dynamic v in db.Entries)
+                        {
+                            try
+                            {
+                                Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
+                                if (!entries.ContainsKey(meshGuid))
+                                    entries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
+                                entries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                                System.Diagnostics.Debugger.Break();
+                            }
+
+                            j++;
+                        }
+                    }
+                    index++;
+                }
+
+                IsLoaded = true;
+            }
+            else
+            {
+                foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
+                {
+                    if (ebx.ContainsDependency(App.SelectedAsset.Guid))
+                    {
+                        EbxAsset asset = App.AssetManager.GetEbx(ebx);
+                        {
+                            dynamic db = asset.RootObject;
+                            int j = 0;
+
+                            foreach (dynamic v in db.Entries)
+                            {
+                                try
+                                {
+                                    Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
+                                    if (!entries.ContainsKey(meshGuid))
+                                        entries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
+                                    entries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
+                                }
+                                catch (Exception ex)
+                                {
+                                    System.Diagnostics.Debug.WriteLine(ex.ToString());
+                                    System.Diagnostics.Debugger.Break();
+                                }
+
+                                j++;
+                            }
+                        }
                     }
                 }
-                index++;
             }
+        }
+        public static void LoadVariations(EbxAssetEntry ebxEntry)
+        {
+            foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
+            {
+                if (ebx.ContainsDependency(ebxEntry.Guid))
+                {
+                    EbxAsset asset = App.AssetManager.GetEbx(ebx);
+                    {
+                        dynamic db = asset.RootObject;
+                        int j = 0;
 
-            IsLoaded = true;
+                        foreach (dynamic v in db.Entries)
+                        {
+                            try
+                            {
+                                Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
+                                if (!entries.ContainsKey(meshGuid))
+                                    entries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
+                                entries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
+                            }
+                            catch (Exception ex)
+                            {
+                                System.Diagnostics.Debug.WriteLine(ex.ToString());
+                                System.Diagnostics.Debugger.Break();
+                            }
+
+                            j++;
+                        }
+                    }
+                }
+            }
         }
 
         public static MeshVariationDbEntry GetVariations(Guid meshGuid)
