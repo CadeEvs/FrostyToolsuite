@@ -305,7 +305,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString("Plants vs Zombies™ Garden Warfare 2");
                 writer.Write((int)(int)ProfileVersion.PlantsVsZombiesGardenWarfare2);
                 writer.WriteObfuscatedString("pvz2");
-                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(typeof(PVZ2Deobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
                 writer.Write(CreateSources("Update\\Patch\\Data;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("PVZ2SDK");
