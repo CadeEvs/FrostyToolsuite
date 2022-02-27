@@ -79,7 +79,16 @@ namespace ReferencesPlugin
             refExplorerToFindItem.Click += contextMenuRefExplorerToFind_Click;
             refExplorerFromFindItem.Click += contextMenuRefExplorerFromFind_Click;
 
+            Loaded += ReferenceTabItem_Loaded;
+
             App.EditorWindow.DataExplorer.SelectionChanged += dataExplorer_SelectionChanged;
+        }
+
+        private void ReferenceTabItem_Loaded(object sender, RoutedEventArgs e)
+        {
+            EbxAssetEntry selectedEntry = App.SelectedAsset;
+
+            RefreshReferences(selectedEntry);
         }
 
         private void dataExplorer_SelectionChanged(object sender, RoutedEventArgs e)
