@@ -7,6 +7,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Frosty.Core.Controls;
+using Frosty.Core.Windows;
+using FrostySdk.Interfaces;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media; //
 
 namespace FsLocalizationPlugin
 {
@@ -44,6 +50,17 @@ namespace FsLocalizationPlugin
             if (!strings.ContainsKey(id))
                 strings.Add(id, str);
             strings[id] = str;
+        }
+        public void RemoveString(uint id)
+        {
+            if (strings.ContainsKey(id))
+            {
+                strings.Remove(id);
+            }
+            else
+            {
+                App.Logger.Log("String " + id.ToString("X") + " is not a modified string");
+            }
         }
 
         public string GetString(uint id)
@@ -94,6 +111,11 @@ namespace FsLocalizationPlugin
             return modified.GetString(id);
         }
 
+        public void RemoveString(uint id)
+        {
+            modified.RemoveString(id);
+        }
+
         public IEnumerable<uint> EnumerateStrings()
         {
             return modified.EnumerateStrings();
@@ -108,7 +130,8 @@ namespace FsLocalizationPlugin
 
         public void Initialize()
         {
-            string language = "LanguageFormat_" + Config.Get<string>("Language", "English");
+            string language = "LanguageFormat_" + Config.Get<string>("Language", "English", ConfigScope.Game);
+            App.Logger.Log(language);
             //string language = "LanguageFormat_" + Config.Get<string>("Init", "Language", "English");
 
             Guid binaryChunk = Guid.Empty;
@@ -136,8 +159,8 @@ namespace FsLocalizationPlugin
                         textEntry.AssetModified += (o, e) =>
                         {
                             loadedDatabase = App.AssetManager.GetEbxAs<FsLocalizationAsset>(textEntry);
-                        };
 
+                        };
                         binaryChunk = localizedText.BinaryChunk;
                         histogram = localizedText.HistogramChunk;
                         break;
@@ -163,6 +186,11 @@ namespace FsLocalizationPlugin
         {
             foreach (uint key in strings.Keys)
                 yield return key;
+            foreach (uint key in loadedDatabase.EnumerateStrings())
+                yield return key;
+        }
+        public IEnumerable<uint> EnumerateModifiedStrings()
+        {
             foreach (uint key in loadedDatabase.EnumerateStrings())
                 yield return key;
         }
@@ -198,6 +226,12 @@ namespace FsLocalizationPlugin
             return hash;
         }
 
+        public void RevertString(uint id)
+        {
+            loadedDatabase.RemoveString(id);
+            App.AssetManager.ModifyEbx(App.AssetManager.GetEbxEntry(loadedDatabase.FileGuid).Name, loadedDatabase);
+        }
+
         public void SetString(uint id, string value)
         {
             loadedDatabase.AddString(id, value);
@@ -207,6 +241,32 @@ namespace FsLocalizationPlugin
         public void SetString(string id, string value)
         {
             SetString(HashStringId(id.ToUpper()), value);
+        }
+
+        public void AddStringWindow()
+        {
+            AddStringWindow win = new AddStringWindow();
+            win.ShowDialog();
+            return;
+        }
+
+        public void BulkReplaceWindow()
+        {
+            ReplaceMultipleStringWindow win = new ReplaceMultipleStringWindow();
+            win.ShowDialog();
+            return;
+        }
+
+        public bool isStringEdited(uint id)
+        {
+            if (loadedDatabase.EnumerateStrings().Contains(id))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private uint HashStringId(string stringId)
