@@ -169,7 +169,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
                 writer.Write(CreateSources("Update\\Patch\\Data;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("NFS14SDK");
-                writer.Write(CreateBanner("NFS14"));
+                writer.Write(CreateBanner("nfs14"));
                 writer.WriteObfuscatedString("Shaders/Textures/defaultTextures/default_D");
                 writer.WriteObfuscatedString("Shaders/Textures/defaultTextures/default_N");
                 writer.WriteObfuscatedString("Shaders/Textures/defaultTextures/defaultBlack_D");
@@ -477,7 +477,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("NFS17SDK");
-                writer.Write(CreateBanner("NFS17"));
+                writer.Write(CreateBanner("nfs17"));
                 writer.WriteObfuscatedString("Characters/common/textures/debug/common_debug_texture_color");
                 writer.WriteObfuscatedString("Textures/Generic/defaultNormalMap_N");
                 writer.WriteObfuscatedString("Characters/common/textures/debug/common_debug_texture_coeff");
@@ -590,7 +590,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("MADDEN19SDK");
-                writer.Write(CreateBanner("MADDEN19"));
+                writer.Write(CreateBanner("madden19"));
                 writer.WriteObfuscatedString("Longshot/Common/Debug_Grey");
                 writer.WriteObfuscatedString("Longshot/Common/Debug_Normal");
                 writer.WriteObfuscatedString("Longshot/Common/Default_S");
@@ -618,7 +618,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("FifaAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("FIFA19SDK");
-                writer.Write(CreateBanner("FIFA19"));
+                writer.Write(CreateBanner("fifa19"));
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_color");
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_normal");
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
@@ -646,7 +646,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("BFVSDK");
-                writer.Write(CreateBanner("BFV"));
+                writer.Write(CreateBanner("bfV"));
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_N");
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_SRM");
@@ -710,7 +710,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("BFVSDK");
-                writer.Write(CreateBanner("BFV"));
+                writer.Write(CreateBanner("bfV"));
                 writer.WriteObfuscatedString("Systems/Textures/Debug_D");
                 writer.WriteObfuscatedString("Systems/Textures/Debug_N");
                 writer.WriteObfuscatedString("Systems/Textures/Debug_SRM");
@@ -746,7 +746,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("EdgeAssetLoader"));
                 writer.Write(CreateSources("Data;false"));
                 writer.WriteObfuscatedString("NFSEDGESDK");
-                writer.Write(CreateBanner("NFSEDGE"));
+                writer.Write(CreateBanner("nfsedge"));
                 writer.WriteObfuscatedString("Shaders/Textures/debugTextures/debugGrid_D");
                 writer.WriteObfuscatedString("Shaders/Textures/defaultTextures/default_N");
                 writer.WriteObfuscatedString("Shaders/Textures/debugTextures/debugGrid_D");
@@ -774,7 +774,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("AnthemAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Data;false"));
                 writer.WriteObfuscatedString("AnthemSDK");
-                writer.Write(CreateBanner("ANTHEM"));
+                writer.Write(CreateBanner("anthem"));
                 writer.WriteObfuscatedString("Shaders/Utils/NullTextures/Black_Null");
                 writer.WriteObfuscatedString("Shaders/Utils/NullTextures/Normal_Null");
                 writer.WriteObfuscatedString("Shaders/Utils/NullTextures/Black_Null");
@@ -802,7 +802,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("FifaAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("MADDEN20SDK");
-                writer.Write(CreateBanner("MADDEN20"));
+                writer.Write(CreateBanner("madden20"));
                 writer.WriteObfuscatedString("Longshot/Common/Debug_Grey");
                 writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_norm");
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
@@ -858,7 +858,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("FifaAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("FIFA20SDK");
-                writer.Write(CreateBanner("FIFA20"));
+                writer.Write(CreateBanner("fifa20"));
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_color");
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_normal");
                 writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
@@ -886,7 +886,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("PVZAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("NFSHEATSDK");
-                writer.Write(CreateBanner("NFSHEAT"));
+                writer.Write(CreateBanner("nfsheat"));
                 writer.WriteObfuscatedString("Shaders/GenericTextures/UT_default_D");
                 writer.WriteObfuscatedString("Shaders/GenericTextures/UT_default_N");
                 writer.WriteObfuscatedString("Shaders/GenericTextures/UT_defaultBlack_D");
