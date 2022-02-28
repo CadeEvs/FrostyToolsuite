@@ -886,7 +886,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("PVZAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("NFSHEATSDK");
-                writer.Write(CreateBanner("nfsheat"));
+                writer.Write(CreateBanner("NFSHEAT"));
                 writer.WriteObfuscatedString("Shaders/GenericTextures/UT_default_D");
                 writer.WriteObfuscatedString("Shaders/GenericTextures/UT_default_N");
                 writer.WriteObfuscatedString("Shaders/GenericTextures/UT_defaultBlack_D");
