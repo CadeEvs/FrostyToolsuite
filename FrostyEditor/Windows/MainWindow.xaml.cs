@@ -1370,9 +1370,5 @@ namespace FrostyEditor
         {
             RemoveAllTabs();
         }
-
-        private void FrostyTabItem_DragOver(object sender, DragEventArgs e) {
-
-        }
     }
 }
