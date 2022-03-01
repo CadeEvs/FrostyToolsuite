@@ -549,7 +549,6 @@ namespace MeshSetPlugin.Resources
                 case (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville:
                 case (int)ProfileVersion.NeedForSpeedHeat:
                 case (int)ProfileVersion.Fifa20:
-                case (int)ProfileVersion.StarWarsSquadrons:
                     count = 36;
                     break;
                 default:
