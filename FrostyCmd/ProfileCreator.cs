@@ -963,7 +963,7 @@ namespace FrostyCmd
 
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey,Read-Only EAC)
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, Read-Only, EAC)
                 ProfileFlags pf = new ProfileFlags(0, 4, 0, 1, 1);
                 pf.Write(writer);
 
