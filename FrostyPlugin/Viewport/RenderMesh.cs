@@ -1157,8 +1157,8 @@ namespace Frosty.Core.Viewport
         {
             ShaderPermutation perm = new ShaderPermutation(inParent);
 
-            perm.vertexShader = FrostyShaderDb.GetShaderWithSignature<VertexShader>(device, ((int)ProfilesLibrary.DataVersion).ToString(), out ShaderSignature signature);
-            perm.pixelShader = FrostyShaderDb.GetShader<PixelShader>(device, ((int)ProfilesLibrary.DataVersion).ToString());
+            perm.vertexShader = FrostyShaderDb.GetShaderWithSignature<VertexShader>(device, (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons ? (int)ProfileVersion.StarWarsBattlefrontII : (int)ProfilesLibrary.DataVersion).ToString(), out ShaderSignature signature);
+            perm.pixelShader = FrostyShaderDb.GetShader<PixelShader>(device, (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons ? (int)ProfileVersion.StarWarsBattlefrontII : (int)ProfilesLibrary.DataVersion).ToString());
             perm.inputLayout = new InputLayout(device, signature.Data, new InputElement[]
             {
                 new InputElement("POSITION", 0, SharpDX.DXGI.Format.R32G32B32_Float, 0),
