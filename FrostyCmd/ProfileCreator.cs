@@ -109,7 +109,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString("Battlefield™ 4");
                 writer.Write((int)(int)ProfileVersion.Battlefield4);
                 writer.WriteObfuscatedString("bf4");
-                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
                 writer.Write(CreateSources("Update\\Patch\\Data;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("BF4SDK");
@@ -165,7 +165,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString("Need for Speed™ Rivals");
                 writer.Write((int)(int)ProfileVersion.NeedForSpeedRivals);
                 writer.WriteObfuscatedString("nfs14");
-                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
                 writer.Write(CreateSources("Update\\Patch\\Data;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("NFS14SDK");
@@ -277,7 +277,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString("Plants vs Zombies™ Garden Warfare");
                 writer.Write((int)(int)ProfileVersion.PlantsVsZombiesGardenWarfare);
                 writer.WriteObfuscatedString("pvz1");
-                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(typeof(PVZDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
                 writer.Write(CreateSources("Update\\Patch\\Data;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("PVZ1SDK");
@@ -305,7 +305,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString("Plants vs Zombies™ Garden Warfare 2");
                 writer.Write((int)(int)ProfileVersion.PlantsVsZombiesGardenWarfare2);
                 writer.WriteObfuscatedString("pvz2");
-                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(typeof(PVZDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
                 writer.Write(CreateSources("Update\\Patch\\Data;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("PVZ2SDK");
@@ -742,7 +742,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString("Need for Speed™ ONLINE");
                 writer.Write((int)(int)ProfileVersion.NeedForSpeedEdge);
                 writer.WriteObfuscatedString("nfsedge");
-                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("EdgeAssetLoader"));
                 writer.Write(CreateSources("Data;false"));
                 writer.WriteObfuscatedString("NFSEDGESDK");

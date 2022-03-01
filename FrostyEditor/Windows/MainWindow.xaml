@@ -15,7 +15,7 @@
         FrostyLoaded="FrostyWindow_Loaded" WindowState="Maximized"
         Title="Frosty Editor"
         Closing="FrostyWindow_Closing">
-    
+
     <ctrl2:FrostyWindow.Resources>
         <conv:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
         <cmd:ExportModMenuItemCommand x:Key="exportModMenuItemCommand"/>
@@ -28,7 +28,7 @@
             <MenuItem Header="Find in explorer" Click="contextMenuBookmarkItemFind_Click"/>
         </ContextMenu>
     </ctrl2:FrostyWindow.Resources>
-    
+
     <Grid Background="{StaticResource ListBackground}">
         <Grid x:Name="mainGrid">
             <Grid.RowDefinitions>
@@ -43,7 +43,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
+
                 <Menu x:Name="menu" Height="22" Grid.Column="0" VerticalAlignment="Top">
                     <MenuItem Header="File" Height="22">
                         <MenuItem x:Name="newModMenuItem" Header="New" Height="22" InputGestureText="Ctrl+N" Click="newModMenuItem_Click">
@@ -331,6 +331,14 @@
                                                     </TextBlock>
                                                 </StackPanel>
                                                 <StackPanel Orientation="Horizontal" Margin="8,8,0,0">
+                                                    <TextBlock Text="Frosty Source Code:" Foreground="{StaticResource FontColor}" Margin="0,0,20,0"/>
+                                                    <TextBlock>
+                                                    <Hyperlink NavigateUri="https://github.com/CadeEvs/FrostyToolsuite" Foreground="{StaticResource FontColor}" RequestNavigate="hyperlink_RequestNavigate">
+                                                        https://github.com/CadeEvs/FrostyToolsuite
+                                                    </Hyperlink>
+                                                    </TextBlock>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="8,8,0,0">
                                                     <TextBlock Text="Intel® Texture Works Plugin for Photoshop:" Foreground="{StaticResource FontColor}" Margin="0,0,20,0"/>
                                                     <TextBlock>
                                                     <Hyperlink NavigateUri="https://software.intel.com/en-us/articles/intel-texture-works-plugin" Foreground="{StaticResource FontColor}" RequestNavigate="hyperlink_RequestNavigate">
@@ -572,7 +580,7 @@
                                     </Setter>
                                 </Style>
                             </ctrl2:FrostyTabControl.Style>
-                            
+
                             <ctrl2:FrostyTabItem x:Name="dataExplorerTabItem" Icon="/FrostyEditor;component/Images/Database.png" Header="Data Explorer" CloseButtonVisible="False">
                                 <Border BorderBrush="{StaticResource ControlBackground}" BorderThickness="0,2,0,0">
                                     <core:FrostyDataExplorer x:Name="dataExplorer" SelectedAssetDoubleClick="dataExplorer_SelectedAssetDoubleClick" SelectionChanged="dataExplorer_SelectionChanged" BookmarkContext="Asset Bookmarks">
@@ -659,7 +667,7 @@
 
                     <Border Grid.Row="1" Background="{StaticResource ControlBackground}" RenderOptions.EdgeMode="Aliased">
                         <Grid Margin="2" Background="{StaticResource ListBackground}">
-                            <Grid.RowDefinitions> 
+                            <Grid.RowDefinitions>
                                 <RowDefinition Height="33"/>
                                 <RowDefinition Height="3*"/>
                             </Grid.RowDefinitions>
@@ -846,6 +854,14 @@
                                                                 </MultiDataTrigger.Conditions>
                                                                 <Setter Property="Background" TargetName="mainBorder" Value="#292929"/>
                                                                 <Setter Property="Foreground" Value="#80F8F8F8"/>
+                                                            </MultiDataTrigger>
+                                                            <MultiDataTrigger>
+                                                                <MultiDataTrigger.Conditions>
+                                                                    <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="true"/>
+                                                                    <Condition Binding="{Binding IsSelected, RelativeSource={RelativeSource Self}}" Value="false"/>
+                                                                    <Condition Binding="{Binding TabStripPlacement, RelativeSource={RelativeSource AncestorType={x:Type TabControl}}}" Value="Top"/>
+                                                                </MultiDataTrigger.Conditions>
+                                                                <Setter Property="Background" TargetName="mainBorder" Value="#333333"/>
                                                             </MultiDataTrigger>
                                                         </ControlTemplate.Triggers>
                                                     </ControlTemplate>
@@ -1054,4 +1070,4 @@
             </Border>
         </Grid>
     </Grid>
-</ctrl2:FrostyWindow>
+</ctrl2:FrostyWindow>   
