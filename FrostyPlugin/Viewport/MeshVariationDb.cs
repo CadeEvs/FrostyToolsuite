@@ -106,7 +106,7 @@ namespace Frosty.Core.Viewport
 
         public static void LoadVariations(FrostyTaskWindow task)
         {
-            bool RenderPerformanceLoadingEnabled = Config.Get<bool>("RenderPerformanceLoadingEnabled", true);
+            bool RenderPerformanceLoadingEnabled = Config.Get<bool>("RenderPerformanceLoadingEnabled", false);
 
             if (!RenderPerformanceLoadingEnabled)
             {
