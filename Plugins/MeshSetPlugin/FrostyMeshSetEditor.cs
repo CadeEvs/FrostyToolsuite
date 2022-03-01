@@ -3267,9 +3267,9 @@ namespace MeshSetPlugin
                     if (meshData.MeshId != -1)
                         screen.RemoveMesh(meshData.MeshId);
                 }
-                else if (e.NewValue is List< PreviewMeshData> list)
+                else if (e.NewValue is int count)
                 {
-                    if (list.Count == 0)
+                    if (count == 0)
                         screen.ClearMeshes();
                 }
             }
@@ -3298,10 +3298,6 @@ namespace MeshSetPlugin
 
                         ulong resRid = ((dynamic)meshData.Asset.RootObject).MeshSetResource;
                         MeshSet previewMeshSet = App.AssetManager.GetResAs<MeshSet>(App.AssetManager.GetResEntry(resRid));
-
-                        if (Config.Get<bool>("RenderPerformanceLoadingEnabled", true) == true)
-                            MeshVariationDb.LoadVariations(ebxEntry);
-
                         Matrix transform = SharpDXUtils.FromLinearTransform(meshData.Transform);
 
                         // add to renderer
@@ -3440,7 +3436,7 @@ namespace MeshSetPlugin
                 {
                     FrostyTaskWindow.Show("Loading Variations", "", MeshVariationDb.LoadVariations);
                 }
-
+                MeshVariationDb.LoadModifiedVariations();
                 variations = LoadVariations();
                 variations.Sort((MeshSetVariationDetails a, MeshSetVariationDetails b) =>
                 {
