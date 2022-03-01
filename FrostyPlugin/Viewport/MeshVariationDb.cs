@@ -6,6 +6,7 @@ using FrostySdk.IO;
 using FrostySdk.Managers;
 using Frosty.Core.Windows;
 using System.IO;
+using System.Linq;
 
 namespace Frosty.Core.Viewport
 {
@@ -118,6 +119,9 @@ namespace Frosty.Core.Viewport
         public static Dictionary<Guid, MeshVariationDbEntry> Entries { get => entries; set { entries = value; } }
 
         private static Dictionary<Guid, MeshVariationDbEntry> entries = new Dictionary<Guid, MeshVariationDbEntry>();
+        public static Dictionary<Guid, MeshVariationDbEntry> ModifiedEntries { get => modifiedentries; set { modifiedentries = value; } }
+
+        private static Dictionary<Guid, MeshVariationDbEntry> modifiedentries = new Dictionary<Guid, MeshVariationDbEntry>();
 
         public static void LoadVariations(FrostyTaskWindow task)
         {
@@ -274,11 +278,67 @@ namespace Frosty.Core.Viewport
             IsLoaded = true;
         }
 
+        public static void LoadModifiedVariations()
+        {
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
+             || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+            {
+                IsLoaded = true;
+                return;
+            }
+
+            modifiedentries.Clear();
+
+            foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase").ToList().Where(o => o.IsModified == true))
+            {
+                App.Logger.Log(ebx.Name);
+                EbxAsset asset = App.AssetManager.GetEbx(ebx);
+                {
+                    dynamic db = asset.RootObject;
+                    int j = 0;
+
+                    foreach (dynamic v in db.Entries)
+                    {
+                        try
+                        {
+                            Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
+                            if (!modifiedentries.ContainsKey(meshGuid))
+                                modifiedentries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
+                            modifiedentries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
+                        }
+                        catch (Exception ex)
+                        {
+                            System.Diagnostics.Debug.WriteLine(ex.ToString());
+                            System.Diagnostics.Debugger.Break();
+                        }
+
+                        j++;
+                    }
+                }
+            }
+        }
+
         public static MeshVariationDbEntry GetVariations(Guid meshGuid)
         {
-            if (entries.Count == 0 || !entries.ContainsKey(meshGuid))
+            if ((entries.Count == 0 & modifiedentries.Count == 0) || (!entries.ContainsKey(meshGuid) & !modifiedentries.ContainsKey(meshGuid)))
                 return null;
-            return entries[meshGuid];
+            if (!modifiedentries.ContainsKey(meshGuid))
+                return entries[meshGuid];
+            else
+            {
+                MeshVariationDbEntry modifiedDBEntry = modifiedentries[meshGuid];
+                if (!entries.ContainsKey(meshGuid))
+                    return modifiedDBEntry;
+
+                MeshVariationDbEntry originalDBEntry = entries[meshGuid];
+                foreach(uint key in originalDBEntry.Variations.Keys)
+                {
+                    if (!modifiedDBEntry.Variations.ContainsKey(key))
+                        modifiedDBEntry.Variations.Add(key, originalDBEntry.Variations[key]);
+                }
+                return modifiedDBEntry;
+            }
         }
 
         public static MeshVariationDbEntry GetVariations(string name)
