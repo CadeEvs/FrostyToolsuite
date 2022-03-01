@@ -5,6 +5,7 @@ using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using Frosty.Core.Windows;
+using System.IO;
 
 namespace Frosty.Core.Viewport
 {
@@ -28,6 +29,13 @@ namespace Frosty.Core.Viewport
             {
                 TextureParameters = ebxEntry.TextureParameters;
             }
+        }
+        public MeshVariationMaterial(Guid input1, Guid input2, Guid input3, List<dynamic> input4)
+        {
+            MaterialGuid = input1;
+            MaterialVariationAssetGuid = input2;
+            MaterialVariationClassGuid = input3;
+            TextureParameters = input4;
         }
     }
 
@@ -54,6 +62,13 @@ namespace Frosty.Core.Viewport
             {
                 Materials.Add(new MeshVariationMaterial(material));
             }
+        }
+        public MeshVariation(uint hash, Guid guid, List<Tuple<EbxImportReference, int>> tups, List<MeshVariationMaterial> materials)
+        {
+            AssetNameHash = hash;
+            MeshGuid = guid;
+            DbLocations = tups;
+            Materials = materials;
         }
 
         public MeshVariationMaterial GetMaterial(Guid materialGuid)
@@ -106,29 +121,91 @@ namespace Frosty.Core.Viewport
 
         public static void LoadVariations(FrostyTaskWindow task)
         {
-            bool RenderPerformanceLoadingEnabled = Config.Get<bool>("RenderPerformanceLoadingEnabled", true);
+            int mvdbVersion = 1;
 
-            if (!RenderPerformanceLoadingEnabled)
-            {
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
              || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+            {
+                IsLoaded = true;
+                return;
+            }
+
+            uint totalCount = App.AssetManager.GetEbxCount("MeshVariationDatabase");
+            uint index = 0;
+
+            entries.Clear();
+            task.Update("Loading variation databases");
+
+            string cache = System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache";
+            bool generateMVDB = true;
+
+            if (File.Exists(cache))
+            {
+                using (NativeReader reader = new NativeReader(new FileStream(System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache", FileMode.Open)))
                 {
-                    IsLoaded = true;
-                    return;
+                    if (reader.ReadInt() == mvdbVersion)
+                    {
+                        generateMVDB = false;
+                        int count = reader.ReadInt();
+                        for (int i = 0; i < count; i++)
+                        {
+                            Guid guid = reader.ReadGuid();
+                            MeshVariationDbEntry mvEntry = new MeshVariationDbEntry(guid);
+                            int varCount = reader.ReadInt();
+                            for (int j = 0; j < varCount; j++)
+                            {
+                                uint var = reader.ReadUInt();
+                                uint nameHash = reader.ReadUInt();
+                                Guid meshGuid = reader.ReadGuid();
+
+                                List<Tuple<EbxImportReference, int>> tuples = new List<Tuple<EbxImportReference, int>>();
+                                int dbCount = reader.ReadInt();
+                                for (int i2 = 0; i2 < dbCount; i2++)
+                                {
+                                    EbxImportReference ebxRef = new EbxImportReference() { FileGuid = reader.ReadGuid(), ClassGuid = reader.ReadGuid() };
+                                    int tup2 = reader.ReadInt();
+                                    tuples.Add(new Tuple<EbxImportReference, int>(ebxRef, tup2));
+                                }
+                                List<MeshVariationMaterial> materials = new List<MeshVariationMaterial>();
+                                int matCount = reader.ReadInt();
+                                for (int i2 = 0; i2 < matCount; i2++)
+                                {
+                                    Guid MaterialGuid = reader.ReadGuid();
+                                    Guid MaterialVariationAssetGuid = reader.ReadGuid();
+                                    Guid MaterialVariationClassGuid = reader.ReadGuid();
+
+                                    int texParamCount = reader.ReadInt();
+                                    List<dynamic> texParams = new List<dynamic>();
+                                    for (int i3 = 0; i3 < texParamCount; i3++)
+                                    {
+                                        PointerRef pr = new PointerRef(new EbxImportReference() { FileGuid = reader.ReadGuid(), ClassGuid = reader.ReadGuid() });
+                                        CString cst = reader.ReadNullTerminatedString();
+                                        dynamic texParam = TypeLibrary.CreateObject("TextureShaderParameter");
+                                        texParam.Value = pr;
+                                        texParam.ParameterName = cst;
+                                        texParams.Add(texParam);
+                                    }
+
+                                    materials.Add(new MeshVariationMaterial(MaterialGuid, MaterialVariationAssetGuid, MaterialVariationClassGuid, texParams));
+                                }
+                                mvEntry.Variations.Add(var, new MeshVariation(nameHash, meshGuid, tuples, materials));
+                            }
+                            entries.Add(guid, mvEntry);
+                        }
+                    }
+                    
                 }
-
-                uint totalCount = App.AssetManager.GetEbxCount("MeshVariationDatabase");
-                uint index = 0;
-
-                entries.Clear();
-                task.Update("Loading variation databases");
-
+            }
+            if (generateMVDB)
+            {
                 foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
                 {
                     uint progress = (uint)((index / (float)totalCount) * 100);
                     task.Update(progress: progress);
-
-                    EbxAsset asset = App.AssetManager.GetEbx(ebx);
+                    if (ebx.IsAdded)
+                        continue;
+                    EbxAsset asset = App.AssetManager.GetEbx(ebx, true);
                     {
                         dynamic db = asset.RootObject;
                         int j = 0;
@@ -154,72 +231,47 @@ namespace Frosty.Core.Viewport
                     index++;
                 }
 
-                IsLoaded = true;
-            }
-            else
-            {
-                foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
+                using (NativeWriter writer = new NativeWriter(new FileStream(System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache", FileMode.Create)))
                 {
-                    if (ebx.ContainsDependency(App.SelectedAsset.Guid))
+                    writer.Write(mvdbVersion);
+                    writer.Write(entries.Count);
+                    foreach (MeshVariationDbEntry mvdbEntry in entries.Values)
                     {
-                        EbxAsset asset = App.AssetManager.GetEbx(ebx);
+                        writer.Write(mvdbEntry.Guid);
+                        writer.Write(mvdbEntry.Variations.Count);
+                        foreach (uint var in mvdbEntry.Variations.Keys)
                         {
-                            dynamic db = asset.RootObject;
-                            int j = 0;
-
-                            foreach (dynamic v in db.Entries)
+                            writer.Write(var);
+                            writer.Write(mvdbEntry.Variations[var].AssetNameHash);
+                            writer.Write(mvdbEntry.Variations[var].MeshGuid);
+                            writer.Write(mvdbEntry.Variations[var].DbLocations.Count);
+                            foreach (Tuple<EbxImportReference, int> tup in mvdbEntry.Variations[var].DbLocations)
                             {
-                                try
+                                writer.Write(tup.Item1.FileGuid);
+                                writer.Write(tup.Item1.ClassGuid);
+                                writer.Write(tup.Item2);
+                            }
+                            writer.Write(mvdbEntry.Variations[var].Materials.Count);
+                            foreach (MeshVariationMaterial mvMat in mvdbEntry.Variations[var].Materials)
+                            {
+                                writer.Write(mvMat.MaterialGuid);
+                                writer.Write(mvMat.MaterialVariationAssetGuid);
+                                writer.Write(mvMat.MaterialVariationClassGuid);
+                                dynamic texParams = mvMat.TextureParameters;
+                                writer.Write(texParams.Count);
+                                foreach (dynamic texParam in texParams)
                                 {
-                                    Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
-                                    if (!entries.ContainsKey(meshGuid))
-                                        entries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
-                                    entries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
+                                    writer.Write(texParam.Value.External.FileGuid);
+                                    writer.Write(texParam.Value.External.ClassGuid);
+                                    writer.WriteNullTerminatedString(texParam.ParameterName);
                                 }
-                                catch (Exception ex)
-                                {
-                                    System.Diagnostics.Debug.WriteLine(ex.ToString());
-                                    System.Diagnostics.Debugger.Break();
-                                }
-
-                                j++;
                             }
                         }
+
                     }
                 }
             }
-        }
-        public static void LoadVariations(EbxAssetEntry ebxEntry)
-        {
-            foreach (EbxAssetEntry ebx in App.AssetManager.EnumerateEbx("MeshVariationDatabase"))
-            {
-                if (ebx.ContainsDependency(ebxEntry.Guid))
-                {
-                    EbxAsset asset = App.AssetManager.GetEbx(ebx);
-                    {
-                        dynamic db = asset.RootObject;
-                        int j = 0;
-
-                        foreach (dynamic v in db.Entries)
-                        {
-                            try
-                            {
-                                Guid meshGuid = ((PointerRef)v.Mesh).External.FileGuid;
-                                if (!entries.ContainsKey(meshGuid))
-                                    entries.Add(meshGuid, new MeshVariationDbEntry(meshGuid));
-                                entries[meshGuid].Add(ebx.Guid, asset.RootInstanceGuid, j, v);
-                            }
-                            catch (Exception ex)
-                            {
-                                System.Diagnostics.Debug.WriteLine(ex.ToString());
-                                System.Diagnostics.Debugger.Break();
-                            }
-
-                            j++;
-                        }
-                    }
-                }
-            }
+            IsLoaded = true;
         }
 
         public static MeshVariationDbEntry GetVariations(Guid meshGuid)

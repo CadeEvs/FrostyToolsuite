@@ -21,8 +21,8 @@ using System.Windows;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("4b612468-9b6a-4304-88a5-055c3575eb3d")]
 
-[assembly: PluginDisplayName("Localized String Viewer")]
-[assembly: PluginAuthor("GalaxyMan2015")]
-[assembly: PluginVersion("1.0.1.0")]
+[assembly: PluginDisplayName("Localized String Editor")]
+[assembly: PluginAuthor("Mophead")]
+[assembly: PluginVersion("1.0.2.2")]
 
 [assembly: RegisterMenuExtension(typeof(LocalizedStringViewerMenuExtension))]
