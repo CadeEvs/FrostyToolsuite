@@ -3299,7 +3299,7 @@ namespace MeshSetPlugin
                         ulong resRid = ((dynamic)meshData.Asset.RootObject).MeshSetResource;
                         MeshSet previewMeshSet = App.AssetManager.GetResAs<MeshSet>(App.AssetManager.GetResEntry(resRid));
 
-                        if (Config.Get<bool>("RenderPerformanceLoadingEnabled", false) == true)
+                        if (Config.Get<bool>("RenderPerformanceLoadingEnabled", true) == true)
                             MeshVariationDb.LoadVariations(ebxEntry);
 
                         Matrix transform = SharpDXUtils.FromLinearTransform(meshData.Transform);
