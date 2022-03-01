@@ -27,10 +27,50 @@ namespace Frosty.Core
         string GetString(string stringId);
 
         /// <summary>
+        /// Sets the value of the string with the specified ID from the localized string database.
+        /// </summary>
+        /// <param name="id">The ID of the string to obtain.</param>
+        void SetString(uint id, string value);
+
+        /// <summary>
+        /// Sets the value of the string with the specified ID from the localized string database.
+        /// </summary>
+        /// <param name="id">The ID of the string to obtain.</param>
+        void SetString(string id, string value);
+
+        /// <summary>
+        /// Reverts the value of the string with the specified ID from the localized string database.
+        /// </summary>
+        /// <param name="id">The ID of the string to obtain.</param>
+        void RevertString(uint id);
+
+        /// <summary>
+        /// Checks if the string with the specified ID from the localized string database is modified.
+        /// </summary>
+        /// <param name="id">The ID of the string to obtain.</param>
+        bool isStringEdited(uint id);
+
+        /// <summary>
+        /// Opens a window to add strings to the localized string database.
+        /// </summary>
+        void AddStringWindow();
+
+        /// <summary>
+        /// Opens a window to replace all occurances of a string in the localized string database.
+        /// </summary>
+        void BulkReplaceWindow();
+
+        /// <summary>
         /// Retrieves a collection of string IDs that currently reside in the localized string database.
         /// </summary>
         /// <returns>A collection of string IDs, or an empty collection if no strings exist.</returns>
         IEnumerable<uint> EnumerateStrings();
+
+        /// <summary>
+        /// Retrieves a collection of string IDs that were modified from the localized string database.
+        /// </summary>
+        /// <returns>A collection of string IDs, or an empty collection if no modified strings exist.</returns>
+        IEnumerable<uint> EnumerateModifiedStrings();
     }
 
     // represents the default localized string database, in case no plugin with a specialized
@@ -38,6 +78,11 @@ namespace Frosty.Core
     internal class DefaultLocalizedStringDatabase : ILocalizedStringDatabase
     {
         public IEnumerable<uint> EnumerateStrings()
+        {
+            yield break;
+        }
+
+        public IEnumerable<uint> EnumerateModifiedStrings()
         {
             yield break;
         }
@@ -50,6 +95,36 @@ namespace Frosty.Core
         public string GetString(string stringId)
         {
             return "";
+        }
+
+        public void SetString(uint id, string value)
+        {
+            return;
+        }
+
+        public void SetString(string id, string value)
+        {
+            return;
+        }
+
+        public void RevertString(uint id)
+        {
+            return;
+        }
+
+        public void AddStringWindow()
+        {
+            return;
+        }
+
+        public void BulkReplaceWindow()
+        {
+            return;
+        }
+
+        public bool isStringEdited(uint id)
+        {
+            return false;
         }
 
         public void Initialize()

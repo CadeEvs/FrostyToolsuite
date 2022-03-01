@@ -67,6 +67,11 @@ namespace LegacyLocalizedStringsPlugin
                 yield return key;
         }
 
+        public IEnumerable<uint> EnumerateModifiedStrings()
+        {
+            throw new NotImplementedException();
+        }
+
         public string GetString(uint id)
         {
             if (!strings.ContainsKey(id))
@@ -79,6 +84,36 @@ namespace LegacyLocalizedStringsPlugin
         }
 
         public string GetString(string stringId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetString(uint id, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetString(string id, string value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void RevertString(uint id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool isStringEdited(uint id)
+        {
+            return false;
+        }
+
+        public void AddStringWindow()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void BulkReplaceWindow()
         {
             throw new NotImplementedException();
         }

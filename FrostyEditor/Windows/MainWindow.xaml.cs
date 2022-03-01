@@ -775,6 +775,29 @@ namespace FrostyEditor
             }
         }
 
+        private void TabItem_PreviewMouseMove(object sender, MouseEventArgs e) {
+            if (!(e.Source is FrostyTabItem tabItem)) {
+                return;
+            }
+
+            if (Mouse.PrimaryDevice.LeftButton == MouseButtonState.Pressed) {
+                DragDrop.DoDragDrop(tabItem, tabItem, DragDropEffects.All);
+            }
+        }
+
+        private void TabItem_Move(object sender, DragEventArgs e) {
+            if (e.Source is FrostyTabItem tabItemTarget &&
+                e.Data.GetData(typeof(FrostyTabItem)) is FrostyTabItem tabItemSource &&
+                !tabItemTarget.Equals(tabItemSource) &&
+                tabItemTarget.Parent is FrostyTabControl tabControl) {
+                int targetIndex = tabControl.Items.IndexOf(tabItemTarget);
+
+                tabControl.Items.Remove(tabItemSource);
+                tabControl.Items.Insert(targetIndex, tabItemSource);
+                tabItemSource.IsSelected = true;
+            }
+        }
+
         private void aboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
             AboutWindow win = new AboutWindow();

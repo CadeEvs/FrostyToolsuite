@@ -23,8 +23,8 @@ using FrostySdk;
 [assembly: Guid("4b612468-9b6a-4304-88a5-055c3575eb3d")]
 
 [assembly: PluginDisplayName("FsLocalization Loader")]
-[assembly: PluginAuthor("GalaxyMan2015")]
-[assembly: PluginVersion("1.0.0.0")]
+[assembly: PluginAuthor("GalaxyMan2015 & Mophead")]
+[assembly: PluginVersion("1.0.1.1")]
 
 [assembly: PluginNotValidForProfile((int)ProfileVersion.DragonAgeInquisition)]
 [assembly: PluginNotValidForProfile((int)ProfileVersion.MassEffectAndromeda)]
@@ -35,6 +35,5 @@ using FrostySdk;
 [assembly: PluginNotValidForProfile((int)ProfileVersion.Fifa20)]
 
 [assembly: RegisterCustomHandler(CustomHandlerType.Ebx, typeof(FsLocalizationCustomActionHandler), ebxType: "UITextDatabase")]
-[assembly: RegisterMenuExtension(typeof(FsLocalizationMenuExtension))]
 [assembly: RegisterLocalizedStringDatabase(typeof(FsLocalizationStringDatabase))]
 
