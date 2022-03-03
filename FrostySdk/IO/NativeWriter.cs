@@ -72,6 +72,17 @@ namespace FrostySdk.IO
                 Write(value);
         }
 
+        public void Write(ulong value, Endian endian)
+        {
+            if (endian == Endian.Big)
+            {
+                Write(((ulong)((value & 0xFF) << 56) | ((value & 0xFF00) << 40) | ((value & 0xFF0000) << 24) | ((value & 0xFF000000) << 8))
+                    | ((ulong)((value >> 8) & 0xFF000000) | ((value >> 24) & 0xFF0000) | ((value >> 40) & 0xFF00) | ((value >> 56) & 0xFF)));
+            }
+            else
+                Write(value);
+        }
+
         private void WriteString(string str)
         {
             for (int i = 0; i < str.Length; i++)

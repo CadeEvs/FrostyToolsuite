@@ -189,7 +189,7 @@ namespace TexturePlugin
                 case "BC1A_SRGB": header.HasExtendedHeader = true; header.ExtendedHeader.dxgiFormat = SharpDX.DXGI.Format.BC1_UNorm_SRgb; break;
                 case "BC1A_UNORM": header.ddspf.dwFourCC = 0x31545844; break;
                 case "BC1_SRGB": header.HasExtendedHeader = true; header.ExtendedHeader.dxgiFormat = SharpDX.DXGI.Format.BC1_UNorm_SRgb; break;
-                case "BC1_UNORM": header.ddspf.dwFourCC = 0x31545844; break;
+                case "BC1_UNORM": header.HasExtendedHeader = true; header.ExtendedHeader.dxgiFormat = SharpDX.DXGI.Format.BC1_UNorm; break;
                 //case "DXT3": header.ddspf.dwFourCC = 0x33545844; break;
                 case "BC2_SRGB": header.HasExtendedHeader = true; header.ExtendedHeader.dxgiFormat = SharpDX.DXGI.Format.BC2_UNorm_SRgb; break;
                 case "BC3_SRGB": header.HasExtendedHeader = true; header.ExtendedHeader.dxgiFormat = SharpDX.DXGI.Format.BC3_UNorm_SRgb; break;

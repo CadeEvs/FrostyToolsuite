@@ -3436,7 +3436,7 @@ namespace MeshSetPlugin
                 {
                     FrostyTaskWindow.Show("Loading Variations", "", MeshVariationDb.LoadVariations);
                 }
-
+                MeshVariationDb.LoadModifiedVariations();
                 variations = LoadVariations();
                 variations.Sort((MeshSetVariationDetails a, MeshSetVariationDetails b) =>
                 {
