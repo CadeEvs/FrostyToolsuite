@@ -756,9 +756,19 @@ namespace MeshSetPlugin.Resources
         public uint VertexBufferSize { get => vertexBufferSize; set => vertexBufferSize = value; }
         public int AdjacencyBufferSize => adjacencyBufferSize;
         public Guid ChunkId { get => chunkId; set => chunkId = value; }
-        public string String01 => shaderDebugName;
-        public string String02 => name;
-        public string String03 => shortName;
+        public string FullName
+        {
+            get { return shaderDebugName; }
+            set
+            {
+                shaderDebugName = "Mesh:" + value + shortName.Substring(shortName.LastIndexOf("_"));
+                name = value + shortName.Substring(shortName.LastIndexOf("_"));
+                nameHash = (uint)Frosty.Hash.Fnv1.HashString(name);
+                shortName = value.Substring(value.LastIndexOf("/") + 1) + shortName.Substring(shortName.LastIndexOf("_"));
+            }
+        }
+        public string Name => name;
+        public string ShortName => shortName;
         public int BoneCount => boneIndexArray.Count;
         public List<uint> BoneIndexArray => boneIndexArray;
         public List<uint> BoneShortNameArray => boneShortNameArray;

@@ -376,7 +376,7 @@ namespace MeshSetPlugin
                 {
                     foreach (MeshSetLod lod in meshSet.Lods)
                     {
-                        task.Update("Writing " + lod.String03);
+                        task.Update("Writing " + lod.ShortName);
                         FBXCreateMesh(scene, lod, boneNodes);
                     }
                 }
@@ -680,7 +680,7 @@ namespace MeshSetPlugin
 
             FbxNode meshNode = (flattenHierarchy) 
                 ? scene.RootNode 
-                : new FbxNode(scene, lod.String03);
+                : new FbxNode(scene, lod.ShortName);
 
             foreach (MeshSetSection section in lod.Sections)
             {
@@ -697,7 +697,7 @@ namespace MeshSetPlugin
                 {
                     FbxNode actor = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                     if (flattenHierarchy)
-                        actor.Name = lod.String03 + ":" + section.Name;
+                        actor.Name = lod.ShortName + ":" + section.Name;
                     meshNode.AddChild(actor);
 
                     if ((lod.Type == MeshType.MeshType_Skinned || lod.Type == MeshType.MeshType_Composite) && boneNodes.Count > 0)
@@ -3220,9 +3220,9 @@ namespace MeshSetPlugin
                     screen.RemoveLight(lightEntity.LightId);
                     return;
                 }
-                else if (e.NewValue is int count)
+                else if (e.NewValue is List<PreviewLightData> list)
                 {
-                    if (count == 0)
+                    if (list.Count == 0)
                     {
                         screen.ClearLights();
                         return;
@@ -3267,9 +3267,9 @@ namespace MeshSetPlugin
                     if (meshData.MeshId != -1)
                         screen.RemoveMesh(meshData.MeshId);
                 }
-                else if (e.NewValue is int count)
+                else if (e.NewValue is List<PreviewMeshData> list)
                 {
-                    if (count == 0)
+                    if (list.Count == 0)
                         screen.ClearMeshes();
                 }
             }
@@ -3491,7 +3491,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetLod lod in meshSet.Lods)
             {
-                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.String03 };
+                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
                 foreach (MeshSetSection section in lod.Sections)
                 {
                     if (lod.IsSectionRenderable(section) && section.PrimitiveCount > 0)

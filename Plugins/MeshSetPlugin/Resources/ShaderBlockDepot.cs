@@ -92,7 +92,7 @@ namespace MeshSetPlugin.Resources.Old
             {
                 Hash = Hash,
                 Parameters = Parameters,
-                UnknownGuid = UnknownGuid,
+                MeshAssetGuid = UnknownGuid,
                 LodIndex = LodIndex,
                 IsModified = true
             };
@@ -254,7 +254,7 @@ namespace MeshSetPlugin.Resources
 
     public class MeshParamDbBlock : ShaderBlockResource
     {
-        public Guid UnknownGuid;
+        public Guid MeshAssetGuid;
         public int LodIndex;
         public List<ParameterEntry> Parameters = new List<ParameterEntry>();
 
@@ -269,7 +269,7 @@ namespace MeshSetPlugin.Resources
             long offset = reader.ReadLong();
             int size = reader.ReadInt();
             LodIndex = reader.ReadInt();
-            UnknownGuid = reader.ReadGuid();
+            MeshAssetGuid = reader.ReadGuid();
 
             reader.Position = offset;
             int count = reader.ReadInt();
@@ -328,7 +328,7 @@ namespace MeshSetPlugin.Resources
             writer.Write(offset);
             writer.Write(size);
             writer.Write(LodIndex);
-            writer.Write(UnknownGuid);
+            writer.Write(MeshAssetGuid);
         }
     }
 
