@@ -22,40 +22,151 @@
                                 <RowDefinition Height="26"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Border Margin="1">
-                                <DockPanel>
-                                    <Border Background="{StaticResource ControlBackground}" CornerRadius="2">
-                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="0,0,6,0">
-                                            <Button x:Name="PART_ExportButton" ToolTip="Export to Text" Margin="6,0,0,0">
-                                                <Button.Content>
-                                                    <Grid>
-                                                        <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition Width="22"/>
-                                                            <ColumnDefinition Width="*"/>
-                                                        </Grid.ColumnDefinitions>
-                                                        <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Export.png"/>
-                                                        <TextBlock Grid.Column="1" Text="Export" Margin="0,0,4,0"/>
-                                                    </Grid>
-                                                </Button.Content>
-                                            </Button>
-                                        </StackPanel>
-                                    </Border>
-                                </DockPanel>
-                            </Border>
+                            <Grid Grid.Row="0" Background="{StaticResource ControlBackground}">
+                                <Border Background="{StaticResource ControlBackground}">
+                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                        <ComboBox  x:Name="PART_FilterType" ToolTip="Show only strings of a certain type" Width="200"/>
+                                        <Button x:Name="PART_AddStringButton" ToolTip="Add a new string value" Margin="6,0,0,0">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="22"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Add.png"/>
+                                                    <TextBlock Grid.Column="1" Text="Add String" Margin="0,0,4,0"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                        <Button x:Name="PART_BulkReplaceButton" ToolTip="Replace multiple strings at once with new values" Margin="6,0,0,0">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="22"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/ClassRef.png"/>
+                                                    <TextBlock Grid.Column="1" Text="Replace Multiple Strings" Margin="0,0,4,0"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                        <Button x:Name="PART_ExportButton" ToolTip="Export Strings List to CSV file" Margin="6,0,0,0">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="22"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Export.png"/>
+                                                    <TextBlock Grid.Column="1" Text="Export String List" Margin="0,0,4,0"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                        <Button x:Name="PART_ExportLogButton" ToolTip="Export a list of strings and which ebx assets use them to a txt file (time consuming)" Margin="6,0,0,0">
+                                            <Button.Content>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="22"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Export.png"/>
+                                                    <TextBlock Grid.Column="1" Text="Export String Usage List" Margin="0,0,4,0"/>
+                                                </Grid>
+                                            </Button.Content>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
 
                             <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="0.7*"/>
                                     <ColumnDefinition Width="2"/>
-                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="0.3*"/>
                                 </Grid.ColumnDefinitions>
 
                                 <Grid Grid.Column="0">
-                                    <ListBox x:Name="PART_StringIdList" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="26"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <Grid Grid.Row= "0" Background="{StaticResource ControlBackground}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="65"/>
+                                            <ColumnDefinition Width="2"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column ="0" x:Name="PART_FilterStringID" TextWrapping="Wrap" Padding="4" Text="" IsReadOnly="False" VerticalScrollBarVisibility="Disabled" />
+                                        <Border Grid.Column="1" Background="{StaticResource ControlBackground}"/>
+                                        <TextBox Grid.Column ="2" x:Name="PART_FilterText" TextWrapping="Wrap" Padding="4" Text="" IsReadOnly="False" VerticalScrollBarVisibility="Disabled" />
+                                    </Grid>
+                                    <ListBox Grid.Row ="1" x:Name="PART_StringIdList" ScrollViewer.HorizontalScrollBarVisibility="Disabled"/>
                                 </Grid>
                                 <Border Grid.Column="1" Background="{StaticResource ControlBackground}"/>
                                 <Grid Grid.Column="2" Background="{StaticResource WindowBackground}">
-                                    <TextBox x:Name="PART_LocalizedString" TextWrapping="Wrap" Padding="4" Text="" IsReadOnly="True" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"/>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="26"/>
+                                        <RowDefinition Height="26"/>
+                                        <RowDefinition Height="*"/>
+                                    </Grid.RowDefinitions>
+                                    <TextBox Grid.Row ="0" x:Name="PART_LocalizedStringHash" TextWrapping="Wrap" Padding="4" Text="" IsReadOnly="True" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Disabled"/>
+                                    <Border Grid.Row="1" Margin="1">
+                                        <DockPanel>
+                                            <Border Background="{StaticResource ControlBackground}" CornerRadius="2">
+                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="0,0,6,0">
+                                                    <Button x:Name="PART_UpdateCurrentStringButton" ToolTip="Update Currently Selected String" Margin="6,0,0,0">
+                                                        <Button.Content>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="22"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Save.png"/>
+                                                                <TextBlock Grid.Column="1" Text="Update" Margin="0,0,4,0"/>
+                                                            </Grid>
+                                                        </Button.Content>
+                                                    </Button>
+                                                    <Button x:Name="PART_CopyCurrentStringButton" ToolTip="Copy the text of the current string" Margin="6,0,0,0">
+                                                        <Button.Content>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="22"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Copy.png"/>
+                                                                <TextBlock Grid.Column="1" Text="Copy" Margin="0,0,4,0"/>
+                                                            </Grid>
+                                                        </Button.Content>
+                                                    </Button>
+                                                    <Button x:Name="PART_PasteCurrentStringButton" ToolTip="Paste text over the current string" Margin="6,0,0,0">
+                                                        <Button.Content>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="22"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Paste.png"/>
+                                                                <TextBlock Grid.Column="1" Text="Paste" Margin="0,0,4,0"/>
+                                                            </Grid>
+                                                        </Button.Content>
+                                                    </Button>
+                                                    <Button x:Name="PART_RevertCurrentStringButton" ToolTip="Revert/Remove Currently Selected String" Margin="6,0,0,0">
+                                                        <Button.Content>
+                                                            <Grid>
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="22"/>
+                                                                    <ColumnDefinition Width="*"/>
+                                                                </Grid.ColumnDefinitions>
+                                                                <Image Grid.Column="0" Width="14" Source="/FrostyEditor;component/Images/Revert.png"/>
+                                                                <TextBlock Grid.Column="1" Text="Revert" Margin="0,0,4,0"/>
+                                                            </Grid>
+                                                        </Button.Content>
+                                                    </Button>
+                                                </StackPanel>
+                                            </Border>
+                                        </DockPanel>
+                                    </Border>
+                                    <TextBox Grid.Row ="2" x:Name="PART_LocalizedString" TextWrapping="Wrap" Padding="4" Text="" IsReadOnly="False" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"/>
                                 </Grid>
 
                             </Grid>
@@ -65,5 +176,5 @@
             </Setter.Value>
         </Setter>
     </Style>
-    
+
 </ResourceDictionary>

@@ -282,6 +282,13 @@
                             </Setter>
                         </Style>
                     </ctrl2:FrostyTabControl.Style>
+                    <ctrl2:FrostyTabControl.Resources>
+                        <Style TargetType="ctrl2:FrostyTabItem">
+                            <Setter Property="AllowDrop" Value="True"/>
+                            <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
+                            <EventSetter Event="DragOver" Handler="TabItem_Move"/>
+                        </Style>
+                    </ctrl2:FrostyTabControl.Resources>
                     <ctrl2:FrostyTabItem Header="Home Page" CloseButtonVisible="False" Icon="/FrostyEditor;component/Images/Home.png">
                         <Grid Background="{StaticResource ControlBackground}">
                             <Grid.RowDefinitions>
