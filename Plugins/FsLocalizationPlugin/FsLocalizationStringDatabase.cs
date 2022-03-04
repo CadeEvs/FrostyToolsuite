@@ -13,6 +13,8 @@ using FrostySdk.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media; //
+using System.Diagnostics.Contracts;
+using System.Text;
 
 namespace FsLocalizationPlugin
 {
@@ -30,7 +32,14 @@ namespace FsLocalizationPlugin
             for (int i = 0; i < count; i++)
             {
                 uint hash = reader.ReadUInt();
-                string str = reader.ReadNullTerminatedString();
+                string str = "";
+                while (true)
+                {
+                    ushort u = reader.ReadUShort();
+                    if (u == 0)
+                        break;
+                    str += (char)u;
+                }
                 AddString(hash, str);
             }
         }
@@ -41,7 +50,10 @@ namespace FsLocalizationPlugin
             for (int i = 0; i < strings.Count; i++)
             {
                 writer.Write(strings.Keys.ElementAt(i));
-                writer.WriteNullTerminatedString(strings.Values.ElementAt(i));
+                string s = strings.Values.ElementAt(i);
+                foreach (char c in s)
+                    writer.Write((ushort)c);
+                writer.Write((ushort)0);
             }
         }
 
@@ -136,6 +148,9 @@ namespace FsLocalizationPlugin
 
             Guid binaryChunk = Guid.Empty;
             Guid histogram = Guid.Empty;
+
+            strings.Clear();
+            orderedIds.Clear();
 
             foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("LocalizationAsset"))
             {
