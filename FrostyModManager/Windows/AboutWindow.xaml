@@ -21,7 +21,7 @@
         <Border Grid.Row="0" Background="{StaticResource ControlBackground}">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="75"/>
+                    <RowDefinition Height="55"/>
                     <RowDefinition/>
                 </Grid.RowDefinitions>
 
@@ -47,7 +47,7 @@
 
                 <StackPanel Grid.Row="1" Orientation="Vertical" Margin="10,0,10,10">
                     <TextBlock x:Name="versionTextBox" Text="Version" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" Margin="2,2,2,8" FontFamily="Global User Interface" FontSize="12"/>
-                    <TextBlock Text="Copyright© 2017-2020" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" Margin="2" FontFamily="Global User Interface" FontSize="12"/>
+                    <TextBlock Text="Copyright© 2017-2022" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" Margin="2" FontFamily="Global User Interface" FontSize="12"/>
                     <TextBlock Text="derwangler, Cade and benji" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" Margin="2" FontFamily="Global User Interface" FontSize="12"/>
                     <TextBlock Text="Originally created by GalaxyMan2015" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" Margin="2" FontFamily="Global User Interface" FontSize="12"/>
                     <TextBox Height="158" IsReadOnly="True" Padding="4" Margin="2,6,2,8" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" FontFamily="Consolas" Text="{local:Text 'Credits.txt'}"/>
@@ -65,6 +65,14 @@
                         <TextBlock FontFamily="Global User Interface" FontSize="12" Margin="2" HorizontalAlignment="Center">
                             <Hyperlink NavigateUri="https://discord.gg/sB8ZUAT" Foreground="{StaticResource FontColor}" RequestNavigate="hyperlink_RequestNavigate">
                                 https://discord.gg/sB8ZUAT
+                            </Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="Source Code: " Foreground="{StaticResource FontColor}"/>
+                        <TextBlock FontFamily="Global User Interface" FontSize="12" Margin="2" HorizontalAlignment="Center">
+                            <Hyperlink NavigateUri="https://github.com/CadeEvs/FrostyToolsuite" Foreground="{StaticResource FontColor}" RequestNavigate="hyperlink_RequestNavigate">
+                                https://github.com/CadeEvs/FrostyToolsuite
                             </Hyperlink>
                         </TextBlock>
                     </StackPanel>
