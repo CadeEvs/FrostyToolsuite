@@ -285,7 +285,7 @@
                     <ctrl2:FrostyTabControl.Resources>
                         <Style TargetType="ctrl2:FrostyTabItem">
                             <Setter Property="AllowDrop" Value="True"/>
-                            <EventSetter Event="PreviewMouseMove" Handler="TabItem_PreviewMouseMove"/>
+                            <EventSetter Event="MouseMove" Handler="TabItem_MouseMove"/>
                             <EventSetter Event="DragOver" Handler="TabItem_Move"/>
                         </Style>
                     </ctrl2:FrostyTabControl.Resources>

@@ -775,7 +775,7 @@ namespace FrostyEditor
             }
         }
 
-        private void TabItem_PreviewMouseMove(object sender, MouseEventArgs e) {
+        private void TabItem_MouseMove(object sender, MouseEventArgs e) {
             if (!(e.Source is FrostyTabItem tabItem)) {
                 return;
             }
