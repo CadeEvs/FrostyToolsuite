@@ -248,6 +248,19 @@ namespace FrostySdk.IO
             }
         }
 
+        public string ReadNullTerminatedWideString()
+        {
+            StringBuilder sb = new StringBuilder();
+            while (true)
+            {
+                char c = ReadWideChar();
+                if (c == 0x0000)
+                    return sb.ToString();
+
+                sb.Append(c);
+            }
+        }
+
         public string ReadSizedString(int strLen)
         {
             StringBuilder sb = new StringBuilder();
@@ -275,6 +288,25 @@ namespace FrostySdk.IO
 
             if (c == 0x0d)
                 ReadByte();
+
+            return sb.ToString().Trim('\r', '\n');
+        }
+
+        public string ReadWideLine()
+        {
+            StringBuilder sb = new StringBuilder();
+            char c = (char)0x00;
+
+            while (c != 0x0d && c != 0x0a)
+            {
+                c = ReadWideChar();
+                sb.Append(c);
+                if (c == 0x0a || c == 0x0d || Position >= Length)
+                    break;
+            }
+
+            if (c == 0x0d)
+                ReadWideChar();
 
             return sb.ToString().Trim('\r', '\n');
         }
