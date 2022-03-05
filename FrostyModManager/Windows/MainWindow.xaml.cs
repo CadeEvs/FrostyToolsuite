@@ -1578,7 +1578,7 @@ namespace FrostyModManager
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
-                Title = "Import Pack",
+                Title = "Import FBPack",
                 Multiselect = false
             };
 
@@ -1590,7 +1590,7 @@ namespace FrostyModManager
 
         private void packExport_Click(object sender, RoutedEventArgs e)
         {
-            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save FPack As", "*.fbpack (FBPack)|*.fbpack", "FBPack");
+            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save FBPack As", "*.fbpack (FBPack)|*.fbpack", "FBPack");
             if (sfd.ShowDialog())
             {
                 if (File.Exists(sfd.FileName))
@@ -1605,7 +1605,7 @@ namespace FrostyModManager
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
-                Title = "Import Pack",
+                Title = "Import FBPack",
                 Multiselect = false
             };
 
