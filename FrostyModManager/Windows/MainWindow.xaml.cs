@@ -1577,7 +1577,7 @@ namespace FrostyModManager
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "frosty pack (*.zip)|*.zip",
+                Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
                 Title = "Import Pack",
                 Multiselect = false
             };
