@@ -74,9 +74,6 @@
                                                 </Grid>
                                             </Button.Content>
                                         </Button>
-                                        <Button x:Name="PART_Refresh" ToolTip="Refresh the current LocalizedStringDb" Margin="6,0,0,0">
-                                            <Image Width="14" Source="/LocalizedStringPlugin;component/Images/Refresh.png"/>
-                                        </Button>
                                     </StackPanel>
                                 </Border>
                             </Grid>

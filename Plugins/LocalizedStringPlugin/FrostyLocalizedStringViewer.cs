@@ -21,11 +21,10 @@ namespace LocalizedStringPlugin
 {
     [TemplatePart(Name = PART_ExportButton, Type = typeof(Button))]
     [TemplatePart(Name = PART_LocalizedString, Type = typeof(TextBox))]
-    [TemplatePart(Name = PART_Refresh, Type = typeof(Button))]
     class FrostyLocalizedStringViewer : FrostyBaseEditor
     {
         public override ImageSource Icon => LocalizedStringViewerMenuExtension.imageSource;
-        public ILocalizedStringDatabase db => LocalizedStringDatabase.Current;
+        public ILocalizedStringDatabase db = LocalizedStringDatabase.Current;
 
         private const string PART_ExportButton = "PART_ExportButton";
         //private const string PART_ImportButton = "PART_ImportButton";
@@ -34,7 +33,6 @@ namespace LocalizedStringPlugin
         private const string PART_LocalizedString = "PART_LocalizedString";
         private const string PART_LocalizedStringHash = "PART_LocalizedStringHash";
         private const string PART_BulkReplaceButton = "PART_BulkReplaceButton";
-        private const string PART_Refresh = "PART_Refresh";
 
         private const string PART_FilterText = "PART_FilterText";
         private const string PART_FilterStringID = "PART_FilterStringID";
@@ -57,7 +55,6 @@ namespace LocalizedStringPlugin
         private Button btnCopyString;
         private Button btnPasteString;
         private Button btnRemoveString;
-        private Button refresh;
 
         private TextBox tbFilter;
         private string CurrentFilterText;
@@ -116,8 +113,6 @@ namespace LocalizedStringPlugin
             btnRemoveString.Click += BtnRemoveString_Click;
             btnRemoveString.IsEnabled = false;
             btnPasteString.IsEnabled = false;
-            refresh = GetTemplateChild(PART_Refresh) as Button;
-            refresh.Click += Refresh_Click;
 
             btnExport = GetTemplateChild(PART_ExportButton) as Button;
             //btnImport = GetTemplateChild(PART_ImportButton) as Button;
@@ -139,24 +134,6 @@ namespace LocalizedStringPlugin
             tbLocalizedString.TextChanged += TbLocalizedString_TextChanged;
 
             Loaded += FrostyLocalizedStringViewer_Loaded;
-        }
-
-        private void Refresh_Click(object sender, RoutedEventArgs e)
-        {
-            FrostyTaskWindow.Show("Loading strings", "", (task) =>
-            {
-                stringIds = db.EnumerateStrings().Distinct().ToList();
-                stringIds.Sort();
-            });
-
-            if (stringIds.Count == 0)
-            {
-                btnExport.IsEnabled = false;
-                return;
-            }
-
-            FillStringIDs(stringIds);
-            RemakeList();
         }
 
         private void BtnRemoveString_Click(object sender, RoutedEventArgs e)

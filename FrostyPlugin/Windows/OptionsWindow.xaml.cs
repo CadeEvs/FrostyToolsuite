@@ -153,8 +153,6 @@ namespace Frosty.Core.Windows
 
             Config.Save();
 
-            LocalizedStringDatabase.Current.Initialize();
-
             //Config.Add("Autosave", "Enabled", AutosaveEnabled);
             //Config.Add("Autosave", "Period", AutosavePeriod);
             //Config.Add("Autosave", "MaxCount", AutosaveMaxSaves);

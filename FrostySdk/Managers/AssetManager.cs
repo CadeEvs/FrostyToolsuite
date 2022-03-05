@@ -1501,7 +1501,7 @@ namespace FrostySdk.Managers
         public EbxAsset GetEbx(EbxAssetEntry entry, bool getUnmodifiedData = false)
         {
             // return modified data as a data object
-            if ((entry.ModifiedEntry?.DataObject as EbxAsset) != null && !getUnmodifiedData)
+            if (entry.ModifiedEntry?.DataObject != null && !getUnmodifiedData)
                 return entry.ModifiedEntry.DataObject as EbxAsset;
 
             Stream ebxStream = GetAsset(entry);
