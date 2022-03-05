@@ -1848,9 +1848,11 @@ namespace MeshSetPlugin.Resources
                 {
                     writer.Write(boneCount);
                     writer.Write((ushort)boneIndices.Count);
-
-                    meshContainer.WriteRelocPtr("BONEINDICES", boneIndices, writer);
-                    meshContainer.WriteRelocPtr("BONEBBOXES", boneBoundingBoxes, writer);
+                    if (boneIndices.Count != 0)
+                    {
+                        meshContainer.WriteRelocPtr("BONEINDICES", boneIndices, writer);
+                        meshContainer.WriteRelocPtr("BONEBBOXES", boneBoundingBoxes, writer);
+                    }
                 }
             }
 
