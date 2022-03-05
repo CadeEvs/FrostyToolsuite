@@ -826,7 +826,7 @@ namespace FrostyModManager
                             // create decompressor
                             IDecompressor decompressor = null;
                             if (fi.Extension == ".rar") decompressor = new RarDecompressor();
-                            else if (fi.Extension == ".zip") decompressor = new ZipDecompressor();
+                            else if (fi.Extension == ".zip" || fi.Extension == ".fbpack") decompressor = new ZipDecompressor();
                             else if (fi.Extension == ".7z") decompressor = new SevenZipDecompressor();
 
                             // search out fbmods in archive
@@ -1244,7 +1244,7 @@ namespace FrostyModManager
             }
         }
 
-        private bool IsCompressed(FileInfo fi) => fi.Extension == ".rar" || fi.Extension == ".zip" || fi.Extension == ".7z";
+        private bool IsCompressed(FileInfo fi) => fi.Extension == ".rar" || fi.Extension == ".zip" || fi.Extension == ".7z" || fi.Extension == ".fbpack";
 
         private void launchOptionsMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -1590,7 +1590,7 @@ namespace FrostyModManager
 
         private void packExport_Click(object sender, RoutedEventArgs e)
         {
-            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Pack As", "*.zip (Frosty Pack)|*.zip", "Pack");
+            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save FPack As", "*.fbpack (FBPack)|*.fbpack", "FBPack");
             if (sfd.ShowDialog())
             {
                 if (File.Exists(sfd.FileName))
@@ -1604,7 +1604,7 @@ namespace FrostyModManager
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "frosty pack (*.zip)|*.zip",
+                Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
                 Title = "Import Pack",
                 Multiselect = false
             };
