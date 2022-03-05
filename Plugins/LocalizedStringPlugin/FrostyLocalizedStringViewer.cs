@@ -28,7 +28,7 @@ namespace LocalizedStringPlugin
         public ILocalizedStringDatabase db => LocalizedStringDatabase.Current;
 
         private const string PART_ExportButton = "PART_ExportButton";
-        private const string PART_ImportButton = "PART_ImportButton";
+        //private const string PART_ImportButton = "PART_ImportButton";
         private const string PART_ExportLogButton = "PART_ExportLogButton";
         private const string PART_AddStringButton = "PART_AddStringButton";
         private const string PART_LocalizedString = "PART_LocalizedString";
@@ -49,7 +49,7 @@ namespace LocalizedStringPlugin
         private TextBox tbLocalizedString;
         private TextBox tbLocalizedStringHash;
         private Button btnExport;
-        private Button btnImport;
+        //private Button btnImport;
         private Button btnLogExport;
         private Button btnAddString;
         private Button btnBulkReplace;
@@ -120,7 +120,7 @@ namespace LocalizedStringPlugin
             refresh.Click += Refresh_Click;
 
             btnExport = GetTemplateChild(PART_ExportButton) as Button;
-            btnImport = GetTemplateChild(PART_ImportButton) as Button;
+            //btnImport = GetTemplateChild(PART_ImportButton) as Button;
             btnLogExport = GetTemplateChild(PART_ExportLogButton) as Button;
             btnAddString = GetTemplateChild(PART_AddStringButton) as Button;
             btnBulkReplace = GetTemplateChild(PART_BulkReplaceButton) as Button;
@@ -128,7 +128,7 @@ namespace LocalizedStringPlugin
 
             stringIdListBox.SelectionChanged += stringIdListbox_SelectionChanged;
             btnExport.Click += PART_ExportButton_Click;
-            btnImport.Click += BtnImport_Click;
+            //btnImport.Click += BtnImport_Click;
             btnAddString.Click += BtnAddString_Click;
             btnBulkReplace.Click += PART_BulkReplaceButton_Click;
 
@@ -207,6 +207,7 @@ namespace LocalizedStringPlugin
             }
         }
 
+
         private void PART_PasteStringButton_Click(object sender, RoutedEventArgs e)
         {
             if (StringToCopy != null)
@@ -231,9 +232,7 @@ namespace LocalizedStringPlugin
                 btnPasteString.IsEnabled = true;
             }
         }
-
-        private string StringToCopy = null;
-
+        public string StringToCopy = null;
         private void PART_UpdateCurrentStringButton_Click(object sender, RoutedEventArgs e)
         {
             btnUpdateCurrentString.IsEnabled = false;
@@ -420,7 +419,6 @@ namespace LocalizedStringPlugin
         {
             CheckFilterStrings();
         }
-
         private void CheckFilterStrings()
         {
             if (CurrentFilterstringID != tbFilterStringID.Text || CurrentFilterText != tbFilter.Text)
@@ -428,7 +426,6 @@ namespace LocalizedStringPlugin
                 FilterStrings();
             }
         }
-
         private void FilterStrings()
         {
             stringIdListBox.Items.Filter = new Predicate<object>((object a) => ((((string)a).Substring(0, 8).ToLower().Contains(tbFilterStringID.Text.ToLower())) & (((string)a).Substring(10).ToLower().Contains(tbFilter.Text.ToLower()))));
@@ -482,7 +479,7 @@ namespace LocalizedStringPlugin
             {
                 FrostyTaskWindow.Show("Exporting Localized Strings", "", (task) =>
                 {
-                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create), false, true))
+                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create)))
                     {
                         int index = 0;
                         foreach (uint stringId in stringIds)
@@ -491,7 +488,7 @@ namespace LocalizedStringPlugin
 
                             str = str.Replace("\r", "");
                             str = str.Replace("\n", " ");
-                            str = str.Replace("\"", "\"\"");
+                            str = str.Replace("\"", "\"\"");    
 
                             writer.WriteLine(stringId.ToString("X8") + ",\"" + str + "\"");
                             task.Update(progress: ((index++) / (double)stringIds.Count) * 100.0);
@@ -503,45 +500,75 @@ namespace LocalizedStringPlugin
             }
         }
 
-        private void BtnImport_Click(object sender, RoutedEventArgs e)
-        {
-            FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import Localized Strings", "*.csv (CSV File)|*.csv", "LocalizedStrings");
-            if (ofd.ShowDialog())
-            {
-                int modified = 0;
-                int added = 0;
-                FrostyTaskWindow.Show("Importing Localized Strings", "", (task) =>
-                {
-                    using (NativeReader reader = new NativeReader(new FileStream(ofd.FileName, FileMode.Open)))
-                    {
-                        while (reader.Position < reader.Length)
-                        {
-                            string line = reader.ReadWideLine();
-                            uint hash = uint.Parse(line.Substring(0, 8), System.Globalization.NumberStyles.HexNumber);
-                            string s = line.Substring(10, line.Length - 11);
-                            if (stringIds.Contains(hash) && s != db.GetString(hash))
-                            {
-                                db.SetString(hash, s);
-                                modified++;
-                            }
-                            else
-                            {
-                                db.SetString(hash, s);
-                                added++;
-                            }
-                        }
-                    }
-                });
-                Refresh_Click(sender, e);
-                logger.Log(string.Format("{0} strings modified and {1} strings added.", modified, added));
-            }
-        }
+        //private void BtnImport_Click(object sender, RoutedEventArgs e)
+        //{
+        //    FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import Localized Strings", "*.csv (CSV File)|*.csv", "LocalizedStrings");
+        //    if (ofd.ShowDialog())
+        //    {
+        //        int modifiedstrings = 0;
+        //        int newstrings = 0;
+        //        int unmodifiedstrings = stringIds.Count;
+        //        FrostyTaskWindow.Show("Importing Localized Strings", "", (task) =>
+        //        {
+        //            using (NativeReader reader = new NativeReader(new FileStream(ofd.FileName, FileMode.Open)))
+        //            {
+        //                string line;
+        //                while ((line = reader.ReadLine()) != null)
+        //                {
+        //                    if (line.Length > 8)
+        //                    {
+        //                        List<string> stringparts = line.Split(',').ToList();
+        //                        if (stringIds.Contains(Convert.ToUInt32(stringparts[0], 16)))
+        //                        {
+        //                            List<string> origstringparts = db.GetString(Convert.ToUInt32(stringparts[0], 16)).Split(',').ToList();
+        //                            bool modified = false;
+        //                            for (int i = 1; i < stringparts.Count; i++)
+        //                            {
+        //                                if (!(origstringparts.Count - 1 < i))
+        //                                {
+        //                                    if (stringparts[i] != origstringparts[i-1])
+        //                                    {
+        //                                        modified = true;
+        //                                        break;
+        //                                    }
+        //                                }
+        //                                else
+        //                                {
+        //                                    //if (stringparts[i] != "")
+        //                                    //{
+        //                                    //    modified = true;
+        //                                    //    break;
+        //                                    //}
+        //                                }
+        //                            }
+        //                            if (modified == true)
+        //                            {
+        //                                db.SetString(Convert.ToUInt32(stringparts[0], 16), line.Substring(9).TrimEnd(','));
+        //                                modifiedstrings += 1;
+        //                            }
+        //                        }
+        //                        else
+        //                        {
+        //                            newstrings += 1;
+        //                        }
+        //                    }
+        //                    else
+        //                    {
+        //                        break;
+        //                    }
+        //                }
+        //            }
+        //        });
+        //        RemakeList();
+        //        App.Logger.Log(string.Format("{0} strings imported from {1}, {2}/{3} strings modified and {4} strings added.", modifiedstrings + newstrings, ofd.FileName, modifiedstrings, unmodifiedstrings, newstrings));
+        //    }
+        //}
+
 
         public static bool HasProperty(object obj, string propertyName)
         {
             return obj.GetType().GetProperty(propertyName) != null;
         }
-
         private void PART_ExportLogButton_Click(object sender, RoutedEventArgs e)
         {
             FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Localized Strings Usage List", "*.txt (Text File)|*.txt", "LocalizedStringsUsage");

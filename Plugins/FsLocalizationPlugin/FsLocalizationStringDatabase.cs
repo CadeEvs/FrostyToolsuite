@@ -12,7 +12,7 @@ using Frosty.Core.Windows;
 using FrostySdk.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Media; //
 using System.Diagnostics.Contracts;
 using System.Text;
 
@@ -28,30 +28,24 @@ namespace FsLocalizationPlugin
 
         public override void ReadInternal(NativeReader reader)
         {
-            uint magic = reader.ReadUInt();
-            if (magic != 0xABCD0001)
-            {
-                int countOld = (int)magic;
-                for (int i = 0; i < countOld; i++)
-                {
-                    uint hash = reader.ReadUInt();
-                    string str = reader.ReadNullTerminatedString();
-                    AddString(hash, str);
-                }
-                return;
-            }
             int count = reader.ReadInt();
             for (int i = 0; i < count; i++)
             {
                 uint hash = reader.ReadUInt();
-                string str = reader.ReadNullTerminatedWideString();
+                string str = "";
+                while (true)
+                {
+                    ushort u = reader.ReadUShort();
+                    if (u == 0)
+                        break;
+                    str += (char)u;
+                }
                 AddString(hash, str);
             }
         }
 
         public override void SaveInternal(NativeWriter writer)
         {
-            writer.Write(0xABCD0001);
             writer.Write(strings.Count);
             for (int i = 0; i < strings.Count; i++)
             {
