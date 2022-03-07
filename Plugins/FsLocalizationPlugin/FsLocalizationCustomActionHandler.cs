@@ -220,79 +220,45 @@ namespace FsLocalizationPlugin
                 foreach (uint key in modifiedData.EnumerateStrings())
                 {
                     string str = modifiedData.GetString(key);
-                    if (!ids.Contains(key))
+                    using (NativeWriter writer = new NativeWriter(new MemoryStream()))
                     {
-                        ids.Add(key);
-                        
-                        using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+                        for (int j = 0; j < str.Length; j++)
                         {
-                            for (int j = 0; j < str.Length; j++)
-                            {
-                                byte b = (byte)str[j];
+                            char b = (char)str[j];
 
-                                if (b < 0x80)
-                                    writer.Write(b);
+                            if (b < 0x80)
+                                writer.Write((byte)b);
+                            else
+                            {
+                                int index = GetUnicodeCharacter(values, b);
+                                if (index == -1)
+                                    throw new Exception("Character not supported");
+                                if (index <= 0xFF)
+                                    writer.Write((byte)index);
                                 else
                                 {
-                                    int index = GetUnicodeCharacter(values, str[j]);
-                                    if (index == -1)
-                                        throw new Exception("Character not supported");
-                                    if (index <= 0xFF)
-                                        writer.Write((byte)index);
-                                    else
+                                    List<byte> list = GetShifts(values);
+                                    foreach (byte shift in list)
                                     {
-                                        List<byte> list = GetShifts(values);
-                                        foreach (byte shift in list)
+                                        if ((index - (values[shift] << 7)) < 0x80)
                                         {
-                                            if ((index - (values[shift] << 7)) < 0x80)
-                                            {
-                                                writer.Write(shift);
-                                                writer.Write((byte)(index - (values[shift] << 7) + 0x80));
-                                                break;
-                                            }
+                                            writer.Write(shift);
+                                            writer.Write((byte)(index - (values[shift] << 7) + 0x80));
+                                            break;
                                         }
                                     }
                                 }
                             }
-                            writer.Write((byte)0x00);
+                        }
+                        writer.Write((byte)0x00);
+
+                        if (!ids.Contains(key))
+                        {
+                            ids.Add(key);
                             strings.Add(key, writer.ToByteArray());
                         }
-                    }
-                    else
-                    {
-                        using (NativeWriter writer = new NativeWriter(new MemoryStream()))
-                        {
-                            for (int j = 0; j < str.Length; j++)
-                            {
-                                byte b = (byte)str[j];
-
-                                if (b < 0x80)
-                                    writer.Write(b);
-                                else
-                                {
-                                    int index = GetUnicodeCharacter(values, str[j]);
-                                    if (index == -1)
-                                        throw new Exception("Character not supported");
-                                    if (index <= 0xFF)
-                                        writer.Write((byte)index);
-                                    else
-                                    {
-                                        List<byte> list = GetShifts(values);
-                                        foreach (byte shift in list)
-                                        {
-                                            if ((index - (values[shift] << 7)) < 0x80)
-                                            {
-                                                writer.Write(shift);
-                                                writer.Write((byte)(index - (values[shift] << 7) + 0x80));
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            writer.Write((byte)0x00);
+                        else
                             strings[key] = writer.ToByteArray();
-                        }
                     }
                 }
 
