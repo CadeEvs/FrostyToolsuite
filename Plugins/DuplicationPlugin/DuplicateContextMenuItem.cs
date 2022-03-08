@@ -36,16 +36,17 @@ namespace DuplicationPlugin
 
             // Get the original chunk and res entries
             ResAssetEntry resEntry = App.AssetManager.GetResEntry(textureAsset.Resource);
-            ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(textureAsset.ChunkId);
+            Texture texture = App.AssetManager.GetResAs<Texture>(resEntry);
+            ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
 
             // Read the texture data 
-            Texture texture = new Texture();
-            texture.Read(new NativeReader(App.AssetManager.GetRes(resEntry)), App.AssetManager, resEntry, null);
+            Texture newTexture = new Texture();
+            newTexture.Read(new NativeReader(App.AssetManager.GetRes(resEntry)), App.AssetManager, resEntry, null);
 
             // Duplicate the chunk
-            Guid chunkGuid = App.AssetManager.AddChunk(new NativeReader(texture.Data).ReadToEnd(), null, texture);
+            Guid chunkGuid = App.AssetManager.AddChunk(new NativeReader(newTexture.Data).ReadToEnd(), null, newTexture);
             ChunkAssetEntry newChunkEntry = App.AssetManager.GetChunkEntry(chunkGuid);
-            texture.ChunkId = chunkGuid;
+            newTexture.ChunkId = chunkGuid;
 
             // Duplicate the res
             ResAssetEntry newResEntry = App.AssetManager.AddRes(newName, ResourceType.Texture, resEntry.ResMeta, new NativeReader(App.AssetManager.GetRes(resEntry)).ReadToEnd());
@@ -58,6 +59,10 @@ namespace DuplicationPlugin
             // Link the newly duplicates ebx, chunk, and res entries together
             newResEntry.LinkAsset(newChunkEntry);
             newEntry.LinkAsset(newResEntry);
+
+            // Modify the newly duplicates ebx, chunk, and res
+            App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
+            App.AssetManager.ModifyRes(newResEntry.Name, newTexture);
 
             return newEntry;
         }
@@ -87,7 +92,7 @@ namespace DuplicationPlugin
             {
                 ChunkAssetEntry lodChunk = App.AssetManager.GetChunkEntry(lod.ChunkId);
                 lod.ChunkId = DuplicateChunk(lodChunk);
-                lod.FullName = newName.ToLower();
+                lod.Name = newName.ToLower();
                 newResEntry.LinkAsset(App.AssetManager.GetChunkEntry(lod.ChunkId));
             }
             
@@ -367,9 +372,16 @@ namespace DuplicationPlugin
             {
                 try
                 {
-                    string key = entry.Type;
-                    if (!extensions.ContainsKey(entry.Type))
-                        key = "null";
+                    string key = "null";
+                    foreach (string typekey in extensions.Keys)
+                    {
+                        if (TypeLibrary.IsSubClassOf(entry.Type, typekey))
+                        {
+                            key = typekey;
+                            break;
+                        }
+                    }
+
                     extensions[key].DuplicateAsset(entry, newName, newType != null, newType);
                 }
                 catch (Exception e)
