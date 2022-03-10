@@ -354,7 +354,7 @@
                                 <Condition Property="IsSelected" Value="True"/>
                                 <Condition Property="IsMouseOver" Value="True"/>
                             </MultiTrigger.Conditions>
-                            <Setter Property="Background" TargetName="Bd" Value="#333333"/>
+                            <Setter Property="Background" TargetName="Bd" Value="#444"/>
                             <Setter Property="BorderBrush" TargetName="Bd" Value="#777"/>
                         </MultiTrigger>
                         <MultiTrigger>

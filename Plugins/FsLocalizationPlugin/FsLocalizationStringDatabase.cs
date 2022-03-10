@@ -12,7 +12,9 @@ using Frosty.Core.Windows;
 using FrostySdk.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media; //
+using System.Windows.Media;
+using System.Diagnostics.Contracts;
+using System.Text;
 
 namespace FsLocalizationPlugin
 {
@@ -26,22 +28,38 @@ namespace FsLocalizationPlugin
 
         public override void ReadInternal(NativeReader reader)
         {
+            uint magic = reader.ReadUInt();
+            if (magic != 0xABCD0001)
+            {
+                int countOld = (int)magic;
+                for (int i = 0; i < countOld; i++)
+                {
+                    uint hash = reader.ReadUInt();
+                    string str = reader.ReadNullTerminatedString();
+                    AddString(hash, str);
+                }
+                return;
+            }
             int count = reader.ReadInt();
             for (int i = 0; i < count; i++)
             {
                 uint hash = reader.ReadUInt();
-                string str = reader.ReadNullTerminatedString();
+                string str = reader.ReadNullTerminatedWideString();
                 AddString(hash, str);
             }
         }
 
         public override void SaveInternal(NativeWriter writer)
         {
+            writer.Write(0xABCD0001);
             writer.Write(strings.Count);
             for (int i = 0; i < strings.Count; i++)
             {
                 writer.Write(strings.Keys.ElementAt(i));
-                writer.WriteNullTerminatedString(strings.Values.ElementAt(i));
+                string s = strings.Values.ElementAt(i);
+                foreach (char c in s)
+                    writer.Write((ushort)c);
+                writer.Write((ushort)0);
             }
         }
 
@@ -136,6 +154,9 @@ namespace FsLocalizationPlugin
 
             Guid binaryChunk = Guid.Empty;
             Guid histogram = Guid.Empty;
+
+            strings.Clear();
+            orderedIds.Clear();
 
             foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("LocalizationAsset"))
             {

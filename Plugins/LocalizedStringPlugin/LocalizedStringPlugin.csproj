@@ -41,6 +41,10 @@
   </Target>
   
   <ItemGroup>
+    <None Remove="Images\Refresh.png" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\..\FrostyControls\FrostyControls.csproj">
       <Private>false</Private>
     </ProjectReference>
@@ -57,5 +61,6 @@
   
   <ItemGroup>
     <Resource Include="Images\LocalizedStringViewer.png" />
+    <Resource Include="Images\Refresh.png" />
   </ItemGroup>
 </Project>
