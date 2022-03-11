@@ -363,43 +363,43 @@ namespace MeshSetPlugin
                     FbxNode rootNode = FBXCreateSkeleton(scene, meshAsset, skeleton, ref boneNodes);
                     scene.RootNode.AddChild(rootNode);
                 }
-                //else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
-                //{
-                //    // composite skeleton has parts defined in mesh
-                //    FrostyTask.Update("Writing composite skeleton");
-                //    FbxNode rootNode = FBXCreateCompositeSkeleton(scene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
-                //    scene.RootNode.AddChild(rootNode);
-                //}
+                else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
+                {
+                    // composite skeleton has parts defined in mesh
+                    task.Update("Writing composite skeleton");
+                    FbxNode rootNode = FBXCreateCompositeSkeleton(scene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
+                    scene.RootNode.AddChild(rootNode);
+                }
 
                 currentProgress++;
                 foreach (MeshSet meshSet in meshSets)
                 {
                     foreach (MeshSetLod lod in meshSet.Lods)
                     {
-                        task.Update("Writing " + lod.String03);
+                        task.Update("Writing " + lod.ShortName);
                         FBXCreateMesh(scene, lod, boneNodes);
                     }
                 }
 
                 // move composite parts
-                //if (meshSets[0].Type == MeshType.MeshType_Composite)
-                //{
-                //    MeshSetLod lod = meshSets[0].Lods[0];
-                //    for (int i = 0; i < lod.PartTransforms.Count; i++)
-                //    {
-                //        LinearTransform lt = lod.PartTransforms[i];
-                //        FbxNode node = boneNodes[i];
+                if (meshSets[0].Type == MeshType.MeshType_Composite)
+                {
+                    MeshSetLod lod = meshSets[0].Lods[0];
+                    for (int i = 0; i < lod.PartTransforms.Count; i++)
+                    {
+                        LinearTransform lt = lod.PartTransforms[i];
+                        FbxNode node = boneNodes[i];
 
-                //        Matrix boneMatrix = SharpDXUtils.FromLinearTransform(lt);
+                        Matrix boneMatrix = SharpDXUtils.FromLinearTransform(lt);
 
-                //        Vector3 scale = boneMatrix.ScaleVector;
-                //        Vector3 translation = boneMatrix.TranslationVector;
-                //        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
+                        Vector3 scale = boneMatrix.ScaleVector;
+                        Vector3 translation = boneMatrix.TranslationVector;
+                        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
 
-                //        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
-                //        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
-                //    }
-                //}
+                        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
+                        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
+                    }
+                }
 
                 using (FbxExporter exporter = new FbxExporter(manager, ""))
                 {
@@ -680,7 +680,7 @@ namespace MeshSetPlugin
 
             FbxNode meshNode = (flattenHierarchy) 
                 ? scene.RootNode 
-                : new FbxNode(scene, lod.String03);
+                : new FbxNode(scene, lod.ShortName);
 
             foreach (MeshSetSection section in lod.Sections)
             {
@@ -697,7 +697,7 @@ namespace MeshSetPlugin
                 {
                     FbxNode actor = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                     if (flattenHierarchy)
-                        actor.Name = lod.String03 + ":" + section.Name;
+                        actor.Name = lod.ShortName + ":" + section.Name;
                     meshNode.AddChild(actor);
 
                     if ((lod.Type == MeshType.MeshType_Skinned || lod.Type == MeshType.MeshType_Composite) && boneNodes.Count > 0)
@@ -3220,9 +3220,9 @@ namespace MeshSetPlugin
                     screen.RemoveLight(lightEntity.LightId);
                     return;
                 }
-                else if (e.NewValue is int count)
+                else if (e.NewValue is List<PreviewLightData> list)
                 {
-                    if (count == 0)
+                    if (list.Count == 0)
                     {
                         screen.ClearLights();
                         return;
@@ -3267,9 +3267,9 @@ namespace MeshSetPlugin
                     if (meshData.MeshId != -1)
                         screen.RemoveMesh(meshData.MeshId);
                 }
-                else if (e.NewValue is int count)
+                else if (e.NewValue is List<PreviewMeshData> list)
                 {
-                    if (count == 0)
+                    if (list.Count == 0)
                         screen.ClearMeshes();
                 }
             }
@@ -3491,7 +3491,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetLod lod in meshSet.Lods)
             {
-                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.String03 };
+                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
                 foreach (MeshSetSection section in lod.Sections)
                 {
                     if (lod.IsSectionRenderable(section) && section.PrimitiveCount > 0)
