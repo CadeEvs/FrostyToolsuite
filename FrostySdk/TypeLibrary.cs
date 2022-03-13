@@ -505,34 +505,88 @@ namespace FrostySdk
             private static Dictionary<Guid, string> typeInfos = new Dictionary<Guid, string>();
             private static Dictionary<uint, Type> typeInfosByHash = new Dictionary<uint, Type>();
 
+            private static int cacheVersion = 1;
+
             private static bool bInitialized = false;
+
+            public static bool ReadCache()
+            {
+                if (!File.Exists($"Caches/{ProfilesLibrary.CacheName}_typeinfo.cache"))
+                    return false;
+
+                using (NativeReader reader = new NativeReader(new FileStream($"Caches/{ProfilesLibrary.CacheName}_typeinfo.cache", FileMode.Open, FileAccess.Read)))
+                {
+                    uint version = reader.ReadUInt();
+                    if (version != cacheVersion)
+                        return false;
+
+                    int profileHash = reader.ReadInt();
+                    if (profileHash != Fnv1.HashString(ProfilesLibrary.ProfileName))
+                        return false;
+
+                    int count = reader.ReadInt();
+                    for (int i = 0; i < count; i++)
+                    {
+                        Guid guid = reader.ReadGuid();
+                        string s = reader.ReadNullTerminatedString();
+
+                        typeInfos.Add(guid, s);
+                    }
+                }
+
+                return true;
+            }
+
+            public static void WriteToCache()
+            {
+                FileInfo fi = new FileInfo($"Caches/{ProfilesLibrary.CacheName}_typeinfo.cache");
+                if (!Directory.Exists(fi.DirectoryName))
+                    Directory.CreateDirectory(fi.DirectoryName);
+
+                using (NativeWriter writer = new NativeWriter(new FileStream(fi.FullName, FileMode.Create)))
+                {
+                    writer.Write(cacheVersion);
+                    writer.Write(Fnv1.HashString(ProfilesLibrary.ProfileName));
+
+                    writer.Write(typeInfos.Count);
+                    foreach (KeyValuePair<Guid, string> kv in typeInfos)
+                    {
+                        writer.Write(kv.Key); // Guid
+                        writer.WriteNullTerminatedString(kv.Value); // 
+                    }
+                }
+            }
 
             public static void LoadClassInfoAssets(AssetManager am)
             {
-                foreach (EbxAssetEntry entry in am.EnumerateEbx(type: "TypeInfoAsset"))
+                if (!ReadCache())
                 {
-                    EbxAsset asset = am.GetEbx(entry);
-                    if (!typeInfos.ContainsKey(asset.RootInstanceGuid))
-                        typeInfos.Add(asset.RootInstanceGuid, ((dynamic)asset.RootObject).TypeName);
-                }
-                foreach (Type type in GetConcreteTypes())
-                {
-                    GuidAttribute attr = type.GetCustomAttribute<GuidAttribute>();
-                    if (attr != null)
+                    foreach (EbxAssetEntry entry in am.EnumerateEbx(type: "TypeInfoAsset"))
                     {
-                        string name = type.Name;
-                        if (type.GetCustomAttribute<DisplayNameAttribute>() != null)
-                            name = type.GetCustomAttribute<DisplayNameAttribute>().Name;
-                        typeInfos.Add(attr.Guid, name);
+                        EbxAsset asset = am.GetEbx(entry);
+                        if (!typeInfos.ContainsKey(asset.RootInstanceGuid))
+                            typeInfos.Add(asset.RootInstanceGuid, ((dynamic)asset.RootObject).TypeName);
                     }
-                    ArrayGuidAttribute arrayAttr = type.GetCustomAttribute<ArrayGuidAttribute>();
-                    if (arrayAttr != null)
+                    foreach (Type type in GetConcreteTypes())
                     {
-                        string name = type.Name;
-                        if (type.GetCustomAttribute<DisplayNameAttribute>() != null)
-                            name = type.GetCustomAttribute<DisplayNameAttribute>().Name;
-                        typeInfos.Add(arrayAttr.Guid, $"List<{name}>");
+                        GuidAttribute attr = type.GetCustomAttribute<GuidAttribute>();
+                        if (attr != null)
+                        {
+                            string name = type.Name;
+                            if (type.GetCustomAttribute<DisplayNameAttribute>() != null)
+                                name = type.GetCustomAttribute<DisplayNameAttribute>().Name;
+                            typeInfos.Add(attr.Guid, name);
+                        }
+                        ArrayGuidAttribute arrayAttr = type.GetCustomAttribute<ArrayGuidAttribute>();
+                        if (arrayAttr != null)
+                        {
+                            string name = type.Name;
+                            if (type.GetCustomAttribute<DisplayNameAttribute>() != null)
+                                name = type.GetCustomAttribute<DisplayNameAttribute>().Name;
+                            typeInfos.Add(arrayAttr.Guid, $"List<{name}>");
+                        }
                     }
+                    WriteToCache();
                 }
 
                 bInitialized = true;
