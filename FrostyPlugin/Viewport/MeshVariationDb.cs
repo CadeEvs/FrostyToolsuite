@@ -262,6 +262,11 @@ namespace Frosty.Core.Viewport
                                 writer.Write(mvMat.MaterialVariationAssetGuid);
                                 writer.Write(mvMat.MaterialVariationClassGuid);
                                 dynamic texParams = mvMat.TextureParameters;
+                                if (texParams == null)
+                                {
+                                    writer.Write(0);
+                                    continue;
+                                }
                                 writer.Write(texParams.Count);
                                 foreach (dynamic texParam in texParams)
                                 {
