@@ -1246,6 +1246,10 @@ namespace Frosty.Core.Sdk
                 return false;
             }
 
+            // delete type info cache if there is one
+            if (File.Exists($"{App.FileSystem.CacheName}_typeinfo.cache"))
+                File.Delete($"{App.FileSystem.CacheName}_typeinfo.cache");
+
             return true;
         }
 
