@@ -106,6 +106,36 @@ namespace MeshSetPlugin.Resources.Old
 
 namespace MeshSetPlugin.Resources
 {
+    public enum RvmLevelOfDetail
+    {
+        RvmLevelOfDetail_Low = 0,
+        RvmLevelOfDetail_High = 1
+    }
+
+    public enum ShaderInstancingMethod
+    {
+        ShaderInstancingMethod_None = 0,
+        ShaderInstancingMethod_ObjectTransform4x3Half = 1,
+        ShaderInstancingMethod_ObjectTransform4x3InstanceData4x1Half = 2,
+        ShaderInstancingMethod_ObjectTransform4x3InstanceData4x2Half = 3,
+        ShaderInstancingMethod_WorldTransform4x3Float = 4,
+        ShaderInstancingMethod_WorldTransform4x3FloatInstanceData4x2Half = 5,
+        ShaderInstancingMethod_PrevWorldTransform4x3FloatInstanceData4x2Half = 6,
+        ShaderInstancingMethod_ObjectTranslationScaleHalf = 7,
+        ShaderInstancingMethod_ObjectTranslationScaleHalfInstanceData4x1Half = 8,
+        ShaderInstancingMethod_ObjectTranslationScaleHalfInstanceData4x2Half = 9,
+        ShaderInstancingMethod_PositionStream = 10,
+        ShaderInstancingMethod_PositionTbnStream = 11,
+        ShaderInstancingMethod_PrevPositionStream = 12,
+        ShaderInstancingMethod_LinearMediaStreaming = 13,
+        ShaderInstancingMethod_PositionStreamAux = 14,
+        ShaderInstancingMethod_DxBuffer = 15,
+        ShaderInstancingMethod_DxBufferInstanceData4x1Float = 16,
+        ShaderInstancingMethod_DxBufferInstanceData4x2Float = 17,
+        ShaderInstancingMethod_Manual = 18,
+        ShaderInstancingMethodCount = 19
+    }
+
     public class ShaderBlockHashException : Exception
     {
         public ShaderBlockHashException(int length) 
@@ -332,10 +362,12 @@ namespace MeshSetPlugin.Resources
         }
     }
 
-    public class MeshVariationDbBlock : ShaderBlockResource
+    public class ShaderMeshVariationEntry : ShaderBlockResource
     {
-        private List<byte[]> unknowns = new List<byte[]>();
-        public MeshVariationDbBlock()
+        public List<Guid> RvmShaderRefGuids = new List<Guid>();
+        public List<int> RvmShaderRefInts = new List<int>();
+
+        public ShaderMeshVariationEntry()
         {
         }
 
@@ -344,13 +376,14 @@ namespace MeshSetPlugin.Resources
             base.Read(reader, shaderBlockEntries);
 
             long offset = reader.ReadLong();
-            long size = reader.ReadLong();
+            long count = reader.ReadLong();
 
             reader.Position = offset;
 
-            for (long i = 0; i < size; i++)
+            for (long i = 0; i < count; i++)
             {
-                unknowns.Add(reader.ReadBytes(0x14));
+                RvmShaderRefGuids.Add(reader.ReadGuid());
+                RvmShaderRefInts.Add(reader.ReadInt());
             }
         }
 
@@ -358,14 +391,18 @@ namespace MeshSetPlugin.Resources
         {
             long offset = writer.Position;
 
-            for (int i = 0; i < unknowns.Count; i++)
-                writer.Write(unknowns[i]);
+            for (int i = 0; i < RvmShaderRefGuids.Count; i++)
+            {
+                writer.Write(RvmShaderRefGuids[i]);
+                writer.Write(RvmShaderRefInts[i]);
+            }
+
             writer.WritePadding(0x08);
 
             base.Save(writer, relocTable, out startOffset);
 
             writer.Write(offset);
-            writer.Write((long)unknowns.Count);
+            writer.Write((long)RvmShaderRefGuids.Count);
         }
     }
 
@@ -373,6 +410,11 @@ namespace MeshSetPlugin.Resources
     {
         public ShaderBlockEntry()
         {
+        }
+
+        public override void Read(NativeReader reader, List<ShaderBlockResource> shaderBlockEntries)
+        {
+            base.Read(reader, shaderBlockEntries);
         }
 
         public MeshParamDbBlock GetMeshParams(int sectionIndex)
@@ -425,8 +467,13 @@ namespace MeshSetPlugin.Resources
 
             if (value is bool) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Boolean"));
             else if (value is uint) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Uint32"));
+            else if (value is float) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Float32"));
+            else if (value is long) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Int64"));
             else if (value is float[]) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Vec"));
             else if (value is Guid) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("ITexture"));
+            else if (value is PrimitiveType) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("PrimitiveType"));
+            else if (value is ShaderInstancingMethod) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("ShaderInstancingMethod"));
+            else if (value is RvmLevelOfDetail) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("RvmLevelOfDetail"));
             else actualType = objType;
 
             TypeHash = (uint)Fnv1.HashString(actualType.Name);
@@ -457,6 +504,11 @@ namespace MeshSetPlugin.Resources
             switch (TypeHash)
             {
                 case 0x9638b221: retVal = BitConverter.ToBoolean(Value, 0); break;
+                case 0x0d1cfa1b: retVal = Value[0]; break;
+                case 0xb0bc3c22: retVal = BitConverter.ToUInt32(Value, 0); break;
+                case 0x7f39a7b4: retVal = BitConverter.ToSingle(Value, 0); break;
+                case 0xcc971f4: retVal = BitConverter.ToInt64(Value, 0); break;
+                case 0xad0abfd3: retVal = new Guid(Value); break;
                 case 0x0b87fa95:
                     {
                         float[] f = new float[4];
@@ -467,7 +519,9 @@ namespace MeshSetPlugin.Resources
                         retVal = f;
                     }
                     break;
-                case 0xb0bc3c22: retVal = BitConverter.ToUInt32(Value, 0); break;
+                case 0x3AD97822: retVal = (RvmLevelOfDetail)BitConverter.ToInt32(Value, 0); break;
+                case 0x963FC9FC: retVal = (PrimitiveType)BitConverter.ToInt32(Value, 0); break;
+                case 0x85EA841F: retVal = (ShaderInstancingMethod)BitConverter.ToInt32(Value, 0); break;
             }
             return retVal;
         }
@@ -477,6 +531,10 @@ namespace MeshSetPlugin.Resources
             switch (TypeHash)
             {
                 case 0x9638b221: Value = new byte[1] { (byte)(((bool)value) ? 1 : 0) }; break;
+                case 0x0d1cfa1b: Value = new byte[1] { (byte)value }; break;
+                case 0xb0bc3c22: Value = BitConverter.GetBytes((uint)value); break;
+                case 0x7f39a7b4: Value = BitConverter.GetBytes((float)value); break;
+                case 0xcc971f4: Value = BitConverter.GetBytes((long)value); break;
                 case 0x0b87fa95:
                     {
                         using (NativeWriter writer = new NativeWriter(new MemoryStream()))
@@ -486,13 +544,14 @@ namespace MeshSetPlugin.Resources
                             writer.Write(f[1]);
                             writer.Write(f[2]);
                             writer.Write(f[3]);
-                            Value = writer.ToByteArray();;
+                            Value = writer.ToByteArray(); ;
                         }
                     }
                     break;
-                case 0xb0bc3c22: Value = BitConverter.GetBytes((uint)value); break;
                 case 0xad0abfd3: Value = ((Guid)value).ToByteArray(); break;
-                case 0x0d1cfa1b: Value = new byte[1] { (byte)value }; break;
+                case 0x3AD97822: Value = BitConverter.GetBytes((int)value); break;
+                case 0x963FC9FC: Value = BitConverter.GetBytes((int)value); break;
+                case 0x85EA841F: Value = BitConverter.GetBytes((int)value); break;
                 default: Value = BitConverter.GetBytes((int)value); break;
             }
         }
@@ -573,7 +632,7 @@ namespace MeshSetPlugin.Resources
                     case 1: bde = new ShaderPersistentParamDbBlock(); break;
                     case 2: bde = new ShaderStaticParamDbBlock(); break;
                     case 3: bde = new MeshParamDbBlock(); break;
-                    case 4: bde = new MeshVariationDbBlock(); break;
+                    case 4: bde = new ShaderMeshVariationEntry(); break;
                 }
 
                 sbResources.Add(bde);
@@ -661,7 +720,7 @@ namespace MeshSetPlugin.Resources
                     else if (sbResources[i] is ShaderPersistentParamDbBlock) writer.Write((long)1);
                     else if (sbResources[i] is ShaderStaticParamDbBlock) writer.Write((long)2);
                     else if (sbResources[i] is MeshParamDbBlock) writer.Write((long)3);
-                    else if (sbResources[i] is MeshVariationDbBlock) writer.Write((long)4);
+                    else if (sbResources[i] is ShaderMeshVariationEntry) writer.Write((long)4);
                 }
 
                 unsafe
@@ -781,7 +840,7 @@ namespace MeshSetPlugin.Resources
                     case 1: bde = new ShaderPersistentParamDbBlock(); break;
                     case 2: bde = new ShaderStaticParamDbBlock(); break;
                     case 3: bde = new MeshParamDbBlock(); break;
-                    case 4: bde = new MeshVariationDbBlock(); break;
+                    case 4: bde = new ShaderMeshVariationEntry(); break;
                 }
 
                 resources.Add(bde);
