@@ -32,6 +32,7 @@ using Frosty.Controls;
 
 namespace MeshSetPlugin
 {
+    #region EbxData
     public class MeshSetMaterialDetails
     {
         public object TextureParameters { get; set; } = new List<dynamic>();
@@ -288,7 +289,8 @@ namespace MeshSetPlugin
             SunPosition.y = 20.0f;
             SunPosition.z = 20.0f;
         }
-    }
+    } 
+    #endregion
 
     #region -- Exporters --
     public class FBXExporter
@@ -2808,13 +2810,29 @@ namespace MeshSetPlugin
                                                     if (vertex.HasValue(channelName))
                                                     {
                                                         Vector2 uv = vertex.GetValue<Vector2>(channelName);
-                                                        chunkWriter.Write(HalfUtils.Pack(uv.X));
-                                                        chunkWriter.Write(HalfUtils.Pack(1.0f - uv.Y));
+                                                        if (elem.Format == VertexElementFormat.Float2)
+                                                        {
+                                                            chunkWriter.Write(uv.X);
+                                                            chunkWriter.Write(1.0f - uv.Y);
+                                                        }
+                                                        else
+                                                        {
+                                                            chunkWriter.Write(HalfUtils.Pack(uv.X));
+                                                            chunkWriter.Write(HalfUtils.Pack(1.0f - uv.Y));
+                                                        }
                                                     }
                                                     else
                                                     {
-                                                        chunkWriter.Write((ushort)0);
-                                                        chunkWriter.Write((ushort)0);
+                                                        if (elem.Format == VertexElementFormat.Float2)
+                                                        {
+                                                            chunkWriter.Write((float)0);
+                                                            chunkWriter.Write((float)0);
+                                                        }
+                                                        else
+                                                        {
+                                                            chunkWriter.Write((ushort)0);
+                                                            chunkWriter.Write((ushort)0);
+                                                        }
                                                     }
                                                 }
                                                 else

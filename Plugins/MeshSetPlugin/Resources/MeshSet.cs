@@ -482,22 +482,6 @@ namespace MeshSetPlugin.Resources
         {
         }
 
-        //public MeshSetSection(string inName, int inMaterialId)
-        //{
-        //    materialName = inName;
-        //    materialId = inMaterialId;
-
-        //    int count = 44;
-        //    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda)
-        //        count = 48;
-        //    else if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals)
-        //        count = 36;
-        //    unknownData = new byte[count];
-
-        //    texCoordRatios = new List<float>() { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
-        //    primitiveType = PrimitiveType.PrimitiveType_TriangleList;
-        //}
-
         public MeshSetSection(NativeReader reader, AssetManager am, int index)
         {
             sectionIndex = index;
@@ -507,76 +491,99 @@ namespace MeshSetPlugin.Resources
 
             long stringOffset = reader.ReadLong(); // materialName
 
-            materialId = reader.ReadInt();
-            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedEdge)
-                unknownInt1 = reader.ReadUInt();
-            primitiveCount = reader.ReadUInt();
-            startIndex = reader.ReadUInt();
-            vertexOffset = reader.ReadUInt();
-            vertexCount = reader.ReadUInt();
-            vertexStride = reader.ReadByte();
-            primitiveType = (PrimitiveType)reader.ReadByte();
-            bonesPerVertex = reader.ReadByte();
-            uint boneCount = reader.ReadByte();
+            long boneListOffset = 0;
+            uint boneCount = 0;
 
-            // Fifa 17/18 store boneCount in a UINT
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem
-                || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
-                )
-            {
-                boneCount = reader.ReadUInt();
-            }
+            //if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22)
+            //{
+            //    boneListOffset = reader.ReadLong();
+            //    boneCount = reader.ReadUShort();
+            //    bonesPerVertex = (byte)reader.ReadUShort();
+            //    materialId = reader.ReadUShort();
+            //    vertexStride = reader.ReadByte();
+            //    primitiveType = (PrimitiveType)reader.ReadByte();
+            //    primitiveCount = reader.ReadUInt();
+            //    startIndex = reader.ReadUInt();
+            //    vertexOffset = reader.ReadUInt();
+            //    vertexCount = reader.ReadUInt();
+            //    reader.ReadUInt();
 
-            // MEC/BF1/SWBF2/SWS
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield1 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
-            {
-                reader.ReadUInt();
-                reader.ReadUInt();
-                reader.ReadUInt();
+            //    // texture ratios
+            //    for (int i = 0; i < 6; i++)
+            //        texCoordRatios.Add(reader.ReadFloat());
+            //}
+            //else
+            //{
+                materialId = reader.ReadInt();
+                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedEdge)
+                    unknownInt1 = reader.ReadUInt();
+                primitiveCount = reader.ReadUInt();
+                startIndex = reader.ReadUInt();
+                vertexOffset = reader.ReadUInt();
+                vertexCount = reader.ReadUInt();
+                vertexStride = reader.ReadByte();
+                primitiveType = (PrimitiveType)reader.ReadByte();
+                bonesPerVertex = reader.ReadByte();
+                boneCount = reader.ReadByte();
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                // Fifa 17/18 store boneCount in a UINT
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem
+                    || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
+                    )
                 {
-                    bonesPerVertex = reader.ReadByte();
-                    reader.ReadByte();
-                    boneCount = reader.ReadUShort();
+                    boneCount = reader.ReadUInt();
                 }
-                else
+
+                // MEC/BF1/SWBF2/SWS
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield1 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 {
-                    bonesPerVertex = reader.ReadByte();
-                    boneCount = reader.ReadUShort();
-                    reader.ReadByte();
+                    reader.ReadUInt();
+                    reader.ReadUInt();
+                    reader.ReadUInt();
+
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                    {
+                        bonesPerVertex = reader.ReadByte();
+                        reader.ReadByte();
+                        boneCount = reader.ReadUShort();
+                    }
+                    else
+                    {
+                        bonesPerVertex = reader.ReadByte();
+                        boneCount = reader.ReadUShort();
+                        reader.ReadByte();
+                    }
                 }
-            }
 
-            // boneIndices
-            long boneListOffset = reader.ReadLong();
+                // boneIndices
+                boneListOffset = reader.ReadLong();
 
-            // Fifa18/SWBF2/NFS Payback/Anthem
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem
-                || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons
-                )
-            {
-                reader.ReadULong();
-            }
+                // Fifa18/SWBF2/NFS Payback/Anthem
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem
+                    || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                {
+                    reader.ReadULong();
+                }
 
-            // Fifa 17/18
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
-            {
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
-                    reader.ReadLong();
+                // Fifa 17/18
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
+                {
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
+                        reader.ReadLong();
 
-                long unknownOffset = reader.ReadLong();
-                if (unknownOffset != 0)
-                    hasUnknown = true;
+                    long unknownOffset = reader.ReadLong();
+                    if (unknownOffset != 0)
+                        hasUnknown = true;
 
-                unknownOffset = reader.ReadLong();
-                if (unknownOffset != 0)
-                    hasUnknown2 = true;
+                    unknownOffset = reader.ReadLong();
+                    if (unknownOffset != 0)
+                        hasUnknown2 = true;
 
-                unknownOffset = reader.ReadLong();
-                if (unknownOffset != 0)
-                    hasUnknown3 = true;
-            }
+                    unknownOffset = reader.ReadLong();
+                    if (unknownOffset != 0)
+                        hasUnknown3 = true;
+                }
+            //}
 
             // geometry declarations
             for (int geomDeclId = 0; geomDeclId < DeclCount; geomDeclId++)
@@ -613,14 +620,18 @@ namespace MeshSetPlugin.Resources
             }
 
             // texture ratios
-            for (int i = 0; i < 6; i++)
-                texCoordRatios.Add(reader.ReadFloat());
+            //if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden22)
+            //{
+                for (int i = 0; i < 6; i++)
+                    texCoordRatios.Add(reader.ReadFloat());
+            //}
 
             // unknown data block
             int count = 0;
             switch (ProfilesLibrary.DataVersion)
             {
                 case (int)ProfileVersion.MassEffectAndromeda:
+                //case (int)ProfileVersion.Madden22:
                     count = 48;
                     break;
                 case (int)ProfileVersion.NeedForSpeed:
@@ -639,7 +650,6 @@ namespace MeshSetPlugin.Resources
                 case (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville:
                 case (int)ProfileVersion.NeedForSpeedHeat:
                 case (int)ProfileVersion.Fifa20:
-                case (int)ProfileVersion.StarWarsSquadrons:
                     count = 36;
                     break;
                 default:
@@ -712,6 +722,9 @@ namespace MeshSetPlugin.Resources
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield1 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 writer.Write(offset2);
             meshContainer.WriteRelocPtr("STR", sectionIndex + ":" + materialName, writer);
+            
+            // TODO: M22 section
+            
             writer.Write(materialId);
             if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedEdge)
                 writer.Write(unknownInt1);
@@ -952,6 +965,33 @@ namespace MeshSetPlugin.Resources
             }
         }
 
+        public bool HasNewPartBoneLayout
+        {
+            get
+            {
+                switch (ProfilesLibrary.DataVersion)
+                {
+                    case (int)ProfileVersion.Anthem:
+                    case (int)ProfileVersion.Fifa17:
+                    case (int)ProfileVersion.Fifa18:
+                    case (int)ProfileVersion.Fifa19:
+                    case (int)ProfileVersion.Fifa20:
+                    case (int)ProfileVersion.Madden19:
+                    case (int)ProfileVersion.Madden20:
+                    /*case (int)ProfileVersion.Madden22:*/
+                    case (int)ProfileVersion.MassEffectAndromeda:
+                    case (int)ProfileVersion.NeedForSpeedHeat:
+                    case (int)ProfileVersion.NeedForSpeedPayback:
+                    case (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville:
+                    case (int)ProfileVersion.StarWarsBattlefrontII:
+                    case (int)ProfileVersion.StarWarsSquadrons:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         private MeshType meshType;
         private uint maxInstances;
         private uint unknownUInt;
@@ -981,7 +1021,7 @@ namespace MeshSetPlugin.Resources
         private byte[] adjacencyData;
         private bool hasBoneShortNames;
 
-        public MeshSetLod(NativeReader reader, AssetManager am)
+        public MeshSetLod(NativeReader reader, AssetManager am, ref int sectionIndex)
         {
             meshType = (MeshType)reader.ReadUInt();
             maxInstances = reader.ReadUInt();
@@ -993,8 +1033,11 @@ namespace MeshSetPlugin.Resources
             long sectionOffset = reader.ReadLong();
 
             // sections
-            for (uint i = 0; i < sectionCount; i++)
-                sections.Add(null);
+            long curPos = reader.Position;
+            reader.Position = sectionOffset;
+            for (int i = 0; i < sectionCount; i++)
+                sections.Add(new MeshSetSection(reader, am, sectionIndex++));
+            reader.Position = curPos;
 
             // section categories
             for (int i = 0; i < MaxCategories; i++)
@@ -1002,17 +1045,18 @@ namespace MeshSetPlugin.Resources
                 int count = reader.ReadInt();
                 long subsetCategoryOffset = reader.ReadLong();
                 subsetCategories.Add(new List<byte>());
-                long curpos = reader.Position;
+                curPos = reader.Position;
                 reader.Position = subsetCategoryOffset;
                 for (int z = 0; z < count; z++)
                     subsetCategories[i].Add(reader.ReadByte());
-                reader.Position = curpos;
+                reader.Position = curPos;
             }
 
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
                 unknownUInt = reader.ReadUInt();
 
             flags = (MeshLayoutFlags)reader.ReadUInt();
+
             if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals)
                 indexBufferFormat.format = reader.ReadInt();
             else
@@ -1048,17 +1092,12 @@ namespace MeshSetPlugin.Resources
             long bonePartOffset03 = 0;
 
             // Fifa 17/18/SWBF2/NFS Payback/SWS/MEA/Anthem
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
-                     ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat ||
-                     ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+            if (HasNewPartBoneLayout)
             {
                 if (meshType == MeshType.MeshType_Skinned)
                 {
                     bonePartCount = reader.ReadUInt();
                     bonePartOffset01 = reader.ReadLong();
-                    // TODO: Check if this is right
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda)
-                        bonePartOffset03 = reader.ReadLong();
                 }
                 else if (meshType == MeshType.MeshType_Composite)
                     bonePartOffset03 = reader.ReadLong();
@@ -1080,7 +1119,7 @@ namespace MeshSetPlugin.Resources
             reader.Pad(16);
 
             // bone data
-            long curPos = reader.Position;
+            curPos = reader.Position;
             if (meshType == MeshType.MeshType_Skinned)
             {
                 reader.Position = bonePartOffset01;
@@ -1128,7 +1167,7 @@ namespace MeshSetPlugin.Resources
                             }
                         }
                         partIndices.Add(sectionPartIndices);
-                    }                
+                    }
                 }
             }
 
@@ -1318,18 +1357,12 @@ namespace MeshSetPlugin.Resources
                 if (boneIndexArray.Count != 0)
                     meshContainer.AddRelocPtr("BONES", boneIndexArray);
 
-                // !SWBF2/NFS Payback/Anthem maybe ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
-                if (boneShortNameArray.Count != 0 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 &&
-                         ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedPayback && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
-                {
+                if (boneShortNameArray.Count != 0 && !HasNewPartBoneLayout)
                     meshContainer.AddRelocPtr("BONESNAMES", boneShortNameArray);
-                }
             }
             else if (meshType == MeshType.MeshType_Composite)
             {
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda && ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 &&
-                     ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedHeat &&
-                     ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedPayback && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+                if (!HasNewPartBoneLayout)
                 {
                     if (partBoundingBoxes.Count != 0)
                         meshContainer.AddRelocPtr("PARTBBOX", partBoundingBoxes);
@@ -1349,9 +1382,7 @@ namespace MeshSetPlugin.Resources
                 writer.Write(unknownUInt);
             meshContainer.WriteRelocArray("SECTION", sections, writer);
             foreach (var category in subsetCategories)
-            {
                 meshContainer.WriteRelocArray("SUBSET", category, writer);
-            }
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
                 writer.Write(unknownUInt);
             writer.Write((int)flags);
@@ -1385,27 +1416,15 @@ namespace MeshSetPlugin.Resources
                 if (boneIndexArray.Count != 0)
                     meshContainer.WriteRelocPtr("BONES", boneIndexArray, writer);
 
-                // !SWBF2/NFS Payback/Anthem maybe ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 &&
-                         ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedPayback && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
-                {
-                    if (boneShortNameArray.Count != 0)
-                        meshContainer.WriteRelocPtr("BONESNAMES", boneShortNameArray, writer);
-                }
+                if (boneShortNameArray.Count != 0 && !HasNewPartBoneLayout)
+                    meshContainer.WriteRelocPtr("BONESNAMES", boneShortNameArray, writer);
             }
             else if (meshType == MeshType.MeshType_Composite)
             {
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda && ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 &&
-                     ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedHeat &&
-                     ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedPayback && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+                if (!HasNewPartBoneLayout)
                 {
                     if (partBoundingBoxes.Count != 0)
                         meshContainer.WriteRelocPtr("PARTBBOX", partBoundingBoxes, writer);
-                }
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 &&
-                     ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedHeat &&
-                     ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedPayback && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
-                {
                     if (partTransforms.Count != 0)
                         meshContainer.WriteRelocPtr("PARTTRANSFORM", partTransforms, writer);
                 }
@@ -1469,6 +1488,33 @@ namespace MeshSetPlugin.Resources
             }
         }
 
+        public bool HasNewPartBoneLayout
+        {
+            get
+            {
+                switch (ProfilesLibrary.DataVersion)
+                {
+                    case (int)ProfileVersion.Anthem:
+                    case (int)ProfileVersion.Fifa17:
+                    case (int)ProfileVersion.Fifa18:
+                    case (int)ProfileVersion.Fifa19:
+                    case (int)ProfileVersion.Fifa20:
+                    case (int)ProfileVersion.Madden19:
+                    case (int)ProfileVersion.Madden20:
+                    /*case (int)ProfileVersion.Madden22:*/
+                    case (int)ProfileVersion.MassEffectAndromeda:
+                    case (int)ProfileVersion.NeedForSpeedHeat:
+                    case (int)ProfileVersion.NeedForSpeedPayback:
+                    case (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville:
+                    case (int)ProfileVersion.StarWarsBattlefrontII:
+                    case (int)ProfileVersion.StarWarsSquadrons:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        }
+
         private TangentSpaceCompressionType tangentSpaceCompressionType;
         private AxisAlignedBox boundingBox;
         private string fullname;
@@ -1477,13 +1523,17 @@ namespace MeshSetPlugin.Resources
         private MeshType meshType;
         private MeshLayoutFlags flags;
         private List<MeshSetLod> lods = new List<MeshSetLod>();
+
         private List<uint> unknownUInts = new List<uint>();
+        private uint unknown1;
+        private uint unknownFifa;
+        private ushort unknownUShort;
+        private uint unknownNewLayout;
 
         private ushort bonePartCount;
         private ushort boneCount;
         private List<ushort> boneIndices = new List<ushort>();
         private List<AxisAlignedBox> boneBoundingBoxes = new List<AxisAlignedBox>();
-
         private List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
         private List<LinearTransform> partTransforms = new List<LinearTransform>();
 
@@ -1507,70 +1557,34 @@ namespace MeshSetPlugin.Resources
             meshType = (MeshType)reader.ReadUInt();
             flags = (MeshLayoutFlags)reader.ReadUInt();
 
-            switch (ProfilesLibrary.DataVersion)
+            // unknown block
+            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedEdge || ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals || ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare || ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeed)
             {
-                case (int)ProfileVersion.Fifa17:
-                    unknownUInts.Add(reader.ReadUInt());
-                    unknownUInts.Add(reader.ReadUInt());
-                    break;
-                case (int)ProfileVersion.NeedForSpeedRivals:
-                case (int)ProfileVersion.DragonAgeInquisition:
-                case (int)ProfileVersion.Battlefield4:
-                case (int)ProfileVersion.PlantsVsZombiesGardenWarfare:
-                case (int)ProfileVersion.PlantsVsZombiesGardenWarfare2:
-                case (int)ProfileVersion.NeedForSpeed:
-                    break;
-                case (int)ProfileVersion.NeedForSpeedEdge:
-                    unknownUInts.Add(reader.ReadUShort());
-                    break;
-                case (int)ProfileVersion.Fifa18:
-                case (int)ProfileVersion.Madden19:
-                case (int)ProfileVersion.Fifa19:
-                case (int)ProfileVersion.Fifa20:
-                    for (int i = 0; i < 8; i++)
-                        unknownUInts.Add(reader.ReadUInt());
-                    break;
-                case (int)ProfileVersion.Battlefield5:
-                    for (int i = 0; i < 6; i++)
-                        unknownUInts.Add(reader.ReadUInt());
-                    break;
-                case (int)ProfileVersion.Anthem:
-                case (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville:
-                case (int)ProfileVersion.NeedForSpeedHeat:
-                    for (int i = 0; i < 7; i++)
-                        unknownUInts.Add(reader.ReadUInt());
-                    break;
-                case (int)ProfileVersion.Madden20:
-                    for (int i = 0; i < 8; i++)
-                        unknownUInts.Add(reader.ReadUInt());
-                    unknownUInts.Add(reader.ReadUShort());
-                    break;
-                default:
-                    unknownUInts.Add(reader.ReadUInt());
-                    if (ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda)
-                    {
-                        for (int i = 0; i < 5; i++)
-                            unknownUInts.Add(reader.ReadUInt());
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
-                            unknownUInts.Add(reader.ReadUInt());
-                    }
-                    break;
+                for (int i = 0; i < 5; i++)
+                    unknownUInts.Add(reader.ReadUInt()); // 0s
+                unknown1 = reader.ReadUInt();
             }
+            
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20/* || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22*/)
+                unknownFifa = reader.ReadUInt();
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedEdge || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20/* || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22*/)
+                unknownUShort = reader.ReadUShort();
+
+            if (HasNewPartBoneLayout)
+                unknownNewLayout = reader.ReadUInt(); // 0x1F, 0x7F in madden20
 
             ushort lodCount = reader.ReadUShort();
             ushort sectionCount = reader.ReadUShort();
 
-            // SWBF2/NFS Payback/Fifa 20/SWS
-            if (meshType != MeshType.MeshType_Rigid && 
-                (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda ||ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons || 
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || 
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat))
+            // part/bone data not stored per lod
+            if (meshType != MeshType.MeshType_Rigid && HasNewPartBoneLayout)
             {
                 bonePartCount = reader.ReadUShort();
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20)
-                    boneCount = reader.ReadUShort();
-                else
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20/* || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22*/)
                     boneCount = (ushort)reader.ReadUInt();
+                else
+                    boneCount = reader.ReadUShort();
 
 
                 if (meshType == MeshType.MeshType_Skinned && boneCount != 0)
@@ -1624,23 +1638,14 @@ namespace MeshSetPlugin.Resources
                 reader.ReadBytes(16);
 
             // lods
+            int z = 0;
             for (int i = 0; i < lodCount; i++)
             {
                 Debug.Assert(reader.Position == lodOffsets[i]);
-                lods.Add(new MeshSetLod(reader, am ));
+                lods.Add(new MeshSetLod(reader, am, ref z));
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons ||
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+                if (HasNewPartBoneLayout)
                     lods[i].SetParts(partTransforms, partBoundingBoxes);
-            }
-
-            // sections
-            int z = 0;
-            foreach (MeshSetLod lod in lods)
-            {
-                for (int i = 0; i < lod.Sections.Count; i++)
-                    lod.Sections[i] = new MeshSetSection(reader, am, z++);
             }
 
             // strings
@@ -1650,7 +1655,7 @@ namespace MeshSetPlugin.Resources
             reader.Position = nameOffset;
             name = reader.ReadNullTerminatedString();
 
-            // Fifa 17/18 unknown blocks
+            // Fifa 17/18/19 unknown blocks
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19)
             {
                 reader.Pad(16);
@@ -1691,83 +1696,10 @@ namespace MeshSetPlugin.Resources
                 }
             }
 
-            //// subset categories
-            //reader.Pad(16);
-            //foreach (MeshSetLod lod in lods)
-            //{
-            //    for (int i = 0; i < lod.CategorySubsetIndices.Count; i++)
-            //    {
-            //        for (int j = 0; j < lod.CategorySubsetIndices[i].Count; j++)
-            //            lod.CategorySubsetIndices[i][j] = reader.ReadByte();
-            //    }
-            //}
-
-            // adjacency buffer
-            reader.Pad(16);
-            foreach (MeshSetLod lod in lods)
-                reader.Position += lod.AdjacencyBufferSize;
-
-            // lod bone / part data
-            //reader.Pad(16);
-            //foreach (MeshSetLod lod in lods)
-            //{
-            //    // Fifa 17/18/19, SWBF2, Madden
-            //    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 ||
-            //        ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
-            //    {
-            //        // no padding between entries
-            //        if (lod.Type == MeshType.MeshType_Skinned)
-            //            reader.Position += (lod.BoneCount * sizeof(int));
-            //        else if (lod.Type == MeshType.MeshType_Composite)
-            //            reader.Position += (lod.Sections.Count * 0x18);
-            //    }
-            //    else
-            //    {
-            //        // All others
-            //        if (lod.Type == MeshType.MeshType_Skinned)
-            //        {
-            //            reader.Position += (lod.BoneCount * sizeof(int));
-            //            if (lod.BoneShortNameArray.Count != 0)
-            //                reader.Position += (lod.BoneCount * sizeof(int));
-            //        }
-            //        else if (lod.Type == MeshType.MeshType_Composite)
-            //        {
-            //            reader.Position += (lod.PartCount * Marshal.SizeOf<AxisAlignedBox>()) + (lod.PartCount * Marshal.SizeOf<LinearTransform>());
-            //            reader.Position += (lod.Sections.Count * 0x18);
-            //        }
-            //    }
-            //}
-
-            //int actualCount = boneCount;
-            ////if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
-            ////    actualCount = bonePartCount;
-
-            //// Bones/Parts
-            //if (meshType == MeshType.MeshType_Skinned)
-            //{
-            //    reader.Pad(16);
-            //    for (int i = 0; i < actualCount; i++)
-            //        boneIndices.Add(reader.ReadUShort());
-            //    reader.Pad(16);
-            //    for (int i = 0; i < actualCount; i++)
-            //        boneBoundingBoxes.Add(reader.ReadAxisAlignedBox());
-            //}
-            //else if (meshType == MeshType.MeshType_Composite)
-            //{
-            //    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda)
-            //    {
-            //        reader.Pad(16);
-            //        for (int i = 0; i < bonePartCount; i++)
-            //            partTransforms.Add(reader.ReadLinearTransform());
-            //    }
-            //    reader.Pad(16);
-            //    for (int i = 0; i < bonePartCount; i++)
-            //        partBoundingBoxes.Add(reader.ReadAxisAlignedBox());
-            //}
-
             //inline data
             uint inlineDataOffset = BitConverter.ToUInt32(resMeta, 0);
             uint inlineDataSize = BitConverter.ToUInt32(resMeta, 4);
+
             if (inlineDataOffset != 0 && inlineDataSize != 0)
             {
                 reader.Position = inlineDataOffset;
@@ -1856,9 +1788,7 @@ namespace MeshSetPlugin.Resources
             meshContainer.AddString(fullname, fullname.Replace(name, ""), true);
             meshContainer.AddString(name, name);
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons ||
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+            if (HasNewPartBoneLayout)
             {
                 if (meshType == MeshType.MeshType_Skinned)
                 {
@@ -1869,7 +1799,6 @@ namespace MeshSetPlugin.Resources
                 }
                 else if (meshType == MeshType.MeshType_Composite)
                 {
-                    //TODO: Test composite import
                     if (HasPartTransforms(partTransforms))
                         meshContainer.AddRelocPtr("PARTTRANSFORM", partTransforms);
                     if (partBoundingBoxes.Count != 0)
@@ -1894,8 +1823,23 @@ namespace MeshSetPlugin.Resources
             writer.Write(nameHash);
             writer.Write((uint)meshType);
             writer.Write((uint)flags);
-            foreach (uint value in unknownUInts)
-                writer.Write(value);
+
+            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedEdge || ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals || ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare || ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeed)
+            {
+                foreach (uint value in unknownUInts)
+                    writer.Write(value);
+                writer.Write(unknown1);
+            }
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20/* || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22*/)
+                writer.Write(unknownFifa);
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedEdge/* || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22*/)
+                writer.Write(unknownUShort);
+
+            if (HasNewPartBoneLayout)
+                writer.Write(unknownNewLayout);
+
             writer.Write((ushort)lods.Count);
 
             ushort sectionCount = 0;
@@ -1904,15 +1848,13 @@ namespace MeshSetPlugin.Resources
 
             writer.Write(sectionCount);
 
-            if (meshType != MeshType.MeshType_Rigid && (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons ||
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
-                ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat))
+            if (meshType != MeshType.MeshType_Rigid && HasNewPartBoneLayout)
             {
                 writer.Write(bonePartCount);
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20)
-                    writer.Write(boneCount);
-                else
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20/* || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden22*/)
                     writer.Write((int)boneCount);
+                else
+                    writer.Write(boneCount);
 
                 if (meshType == MeshType.MeshType_Skinned)
                 {
@@ -1923,7 +1865,6 @@ namespace MeshSetPlugin.Resources
                 }
                 else if (meshType == MeshType.MeshType_Composite)
                 {
-                    //TODO: Test composite import
                     if (HasPartTransforms(partTransforms))
                         meshContainer.WriteRelocPtr("PARTTRANSFORM", partTransforms, writer);
                     if (partBoundingBoxes.Count != 0)
@@ -1964,6 +1905,7 @@ namespace MeshSetPlugin.Resources
                     }
                 }
             }
+
             writer.WritePadding(16);
 
             // strings
@@ -1982,6 +1924,7 @@ namespace MeshSetPlugin.Resources
                     writer.Write(category.ToArray());
                 }
             }
+
             writer.WritePadding(16);
 
             // LOD bones
@@ -1993,8 +1936,7 @@ namespace MeshSetPlugin.Resources
                     foreach (var idx in lod.BoneIndexArray)
                         writer.Write(idx);
 
-                    if (lod.BoneShortNameArray.Count != 0 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 &&
-                        ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+                    if (lod.BoneShortNameArray.Count != 0 && !HasNewPartBoneLayout) // TODO: see if this works
                     {
                         meshContainer.AddOffset("BONESNAMES", lod.BoneShortNameArray, writer);
                         foreach (var idx in lod.BoneShortNameArray)
@@ -2003,8 +1945,7 @@ namespace MeshSetPlugin.Resources
                 }
                 else if (meshType == MeshType.MeshType_Composite)
                 {
-                    if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa18 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden19 &&
-                        ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+                    if (!HasNewPartBoneLayout)
                     {
                         if (lod.PartBoundingBoxes.Count != 0)
                         {
@@ -2026,16 +1967,21 @@ namespace MeshSetPlugin.Resources
                         meshContainer.AddOffset("PARTINDICES", lod.PartIndices, writer);
                         foreach (var section in lod.PartIndices)
                         {
-                            // TODO: partIndices writing
+                            byte[] buffer = new byte[0x18];
+                            for (int i = 0; i < section.Count; i++)
+                            {
+                                int index = section[i] / 8;
+                                buffer[index] |= (byte)(1 << (section[i] % 8));
+                            }
+                            writer.Write(buffer);
                         }
                     }
                 }
             }
+
             writer.WritePadding(16);
             
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda ||
-                    ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 ||
-                    ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+            if (HasNewPartBoneLayout)
             {
                 if (meshType == MeshType.MeshType_Skinned)
                 {
