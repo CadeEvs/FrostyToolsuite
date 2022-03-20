@@ -801,14 +801,19 @@ namespace FrostyModManager
             }
         }
 
-        private void InstallMods(string[] filenames)
+        private void InstallMods(string[] filenames, bool Pack = false)
         {
             FrostyMod lastInstalledMod = null;
             List<ImportErrorInfo> errors = new List<ImportErrorInfo>();
 
             PackManifest packManifest = null;
 
-            FrostyTaskWindow.Show("Installing Mods", "", (task) =>
+            string installText;
+
+            if (Pack) installText = "Installing Pack";
+            else installText = "Installing Mods";
+
+            FrostyTaskWindow.Show(installText, "", (task) =>
             {
                 foreach (string filename in filenames)
                 {
@@ -833,6 +838,37 @@ namespace FrostyModManager
                             decompressor.OpenArchive(filename);
                             foreach (CompressedFileInfo compressedFi in decompressor.EnumerateFiles())
                             {
+                                
+                                if (compressedFi.Extension == ".fbpack") {
+                                    decompressor.DecompressToFile(Path.ChangeExtension(filename, ".fbpack"));
+                                    decompressor.OpenArchive(Path.ChangeExtension(filename, ".fbpack"));
+                                    foreach (CompressedFileInfo compressedFiPack in decompressor.EnumerateFiles()) {
+                                        if (compressedFiPack.Extension == ".fbmod") {
+                                            string modFilename = compressedFiPack.Filename;
+                                            byte[] buffer = decompressor.DecompressToMemory();
+
+                                            using (MemoryStream ms = new MemoryStream(buffer)) {
+                                                int retCode = VerifyMod(ms);
+                                                if (retCode >= 0) {
+                                                    if ((retCode & 1) != 0) {
+                                                        errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was designed for a different game version, it may or may not work.", isWarning = true });
+                                                    }
+                                                    mods.Add(compressedFiPack.Filename);
+                                                    format.Add((retCode & 0x8000) != 0 ? 1 : 0);
+                                                }
+                                                else if (retCode == -2) {
+                                                    errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was not designed for this game." });
+                                                }
+                                            }
+                                        }
+                                        else if (compressedFiPack.Filename == "manifest.json") {
+                                            using (StreamReader reader = new StreamReader(compressedFiPack.Stream)) {
+                                                packManifest = JsonConvert.DeserializeObject<PackManifest>(reader.ReadToEnd());
+                                            }
+                                        }
+                                    }
+                                }
+
                                 if (compressedFi.Extension == ".fbmod")
                                 {
                                     string modFilename = compressedFi.Filename;
@@ -1578,19 +1614,19 @@ namespace FrostyModManager
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
-                Title = "Import FBPack",
+                Title = "Import Pack",
                 Multiselect = false
             };
 
             if (ofd.ShowDialog() == true)
             {
-                InstallMods(ofd.FileNames);
+                InstallMods(ofd.FileNames, true);
             }
         }
 
         private void packExport_Click(object sender, RoutedEventArgs e)
         {
-            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save FBPack As", "*.fbpack (FBPack)|*.fbpack", "FBPack");
+            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Pack As", "*.fbpack (FBPack)|*.fbpack", "FBPack");
             if (sfd.ShowDialog())
             {
                 if (File.Exists(sfd.FileName))
@@ -1605,13 +1641,13 @@ namespace FrostyModManager
             OpenFileDialog ofd = new OpenFileDialog
             {
                 Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
-                Title = "Import FBPack",
+                Title = "Import Pack",
                 Multiselect = false
             };
 
             if (ofd.ShowDialog() == true)
             {
-                InstallMods(ofd.FileNames);
+                InstallMods(ofd.FileNames, true);
             }
         }
     }
