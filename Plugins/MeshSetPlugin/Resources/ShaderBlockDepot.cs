@@ -111,7 +111,6 @@ namespace MeshSetPlugin.Resources
         RvmLevelOfDetail_Low = 0,
         RvmLevelOfDetail_High = 1
     }
-
     public enum ShaderInstancingMethod
     {
         ShaderInstancingMethod_None = 0,
@@ -549,9 +548,9 @@ namespace MeshSetPlugin.Resources
                     }
                     break;
                 case 0xad0abfd3: Value = ((Guid)value).ToByteArray(); break;
-                case 0x3AD97822: Value = BitConverter.GetBytes((int)value); break;
-                case 0x963FC9FC: Value = BitConverter.GetBytes((int)value); break;
-                case 0x85EA841F: Value = BitConverter.GetBytes((int)value); break;
+                case 0x3AD97822:
+                case 0x963FC9FC:
+                case 0x85EA841F:
                 default: Value = BitConverter.GetBytes((int)value); break;
             }
         }
