@@ -420,21 +420,6 @@ namespace MeshSetPlugin.Resources
                     bonesPerVertex = 8;
             }
         }
-        //public static int Size
-        //{
-        //    get
-        //    {
-        //        switch (ProfilesLibrary.DataVersion)
-        //        {
-        //            case (int)ProfileVersion.MassEffectAndromeda: return 0xD0;
-        //            case (int)ProfileVersion.StarWarsBattlefront: return 0xC0;
-        //            case (int)ProfileVersion.MirrorsEdgeCatalyst: return 0x130;
-        //            case (int)ProfileVersion.DragonAgeInquisition: return 0xC0;
-        //            case (int)ProfileVersion.Battlefield4: return 0xC0;
-        //            default: return 0;
-        //        }
-        //    }
-        //}
         public int DeclCount
         {
             get

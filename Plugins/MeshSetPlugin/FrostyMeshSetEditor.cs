@@ -1731,7 +1731,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetSection meshSection in meshLod.Sections)
             {
-                if (meshSection.Name != "")
+                if (!string.IsNullOrEmpty(meshSection.Name))
                     meshSections.Add(meshSection);
                 else
                 {
@@ -2570,6 +2570,23 @@ namespace MeshSetPlugin
                                         case VertexElementUsage.BinormalSign:
                                             {
                                                 if (elem.Format == VertexElementFormat.Half) chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f));
+                                                else if (elem.Format == VertexElementFormat.Half4 || elem.Format == VertexElementFormat.Float4)
+                                                {
+                                                    if (elem.Format == VertexElementFormat.Half4)
+                                                    {
+                                                        chunkWriter.Write(HalfUtils.Pack(tangent.X));
+                                                        chunkWriter.Write(HalfUtils.Pack(tangent.Y));
+                                                        chunkWriter.Write(HalfUtils.Pack(tangent.Z));
+                                                        chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f));
+                                                    }
+                                                    else
+                                                    {
+                                                        chunkWriter.Write(tangent.X);
+                                                        chunkWriter.Write(tangent.Y);
+                                                        chunkWriter.Write(tangent.Z);
+                                                        chunkWriter.Write((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f);
+                                                    }
+                                                }
                                                 else chunkWriter.Write((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f);
                                             }
                                             break;
@@ -2644,7 +2661,7 @@ namespace MeshSetPlugin
                                                 chunkWriter.Write(HalfUtils.Pack(normal.X));
                                                 chunkWriter.Write(HalfUtils.Pack(normal.Y));
                                                 chunkWriter.Write(HalfUtils.Pack(normal.Z));
-                                                chunkWriter.Write(HalfUtils.Pack(1.0f));
+                                                chunkWriter.Write(HalfUtils.Pack(binormal.Y));
                                             }
                                             break;
 
@@ -2653,7 +2670,7 @@ namespace MeshSetPlugin
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.X));
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.Y));
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.Z));
-                                                chunkWriter.Write(HalfUtils.Pack(1.0f));
+                                                chunkWriter.Write(HalfUtils.Pack(binormal.Z));
                                             }
                                             break;
 
