@@ -548,8 +548,13 @@ namespace Frosty.Core.Viewport
 
 
         #region -- Texture Loading --
-        public static SharpDX.DXGI.Format ToTextureFormat(string pixelFormat)
+        public static SharpDX.DXGI.Format ToTextureFormat(string pixelFormat, bool bLegacySrgb = false)
         {
+            if (bLegacySrgb)
+            {
+                if (pixelFormat.StartsWith("BC") && bLegacySrgb)
+                    pixelFormat = pixelFormat.Replace("UNORM", "SRGB");
+            }
             switch (pixelFormat)
             {
                 //case "DXT1": return SharpDX.DXGI.Format.BC1_UNorm;
@@ -739,7 +744,7 @@ namespace Frosty.Core.Viewport
             ushort width = textureAsset.Width;
             ushort height = textureAsset.Height;
 
-            SharpDX.DXGI.Format format = TextureUtils.ToTextureFormat(textureAsset.PixelFormat);
+            SharpDX.DXGI.Format format = TextureUtils.ToTextureFormat(textureAsset.PixelFormat, (textureAsset.Flags & TextureFlags.SrgbGamma) != 0);
             D3D11.ResourceOptionFlags roFlags = D3D11.ResourceOptionFlags.None;
             D3D11.BindFlags bindFlags = D3D11.BindFlags.ShaderResource;
             int mipCount = textureAsset.MipCount;
