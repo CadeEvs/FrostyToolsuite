@@ -687,6 +687,42 @@ namespace FrostyModManager
             FrostyMessageBox.Show("Mod(s) has been successfully uninstalled", "Frosty Mod Manager");
         }
 
+        private void uninstallAllModsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (FrostyMessageBox.Show("Are you sure you want to remove all mods?", "Frosty Mod Manager", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            {
+                foreach (FrostyMod mod in availableModsList.Items)
+                {
+                    FileInfo fi = new FileInfo(mod.Path);
+
+                    // remove all mods from available list
+                    availableMods.Remove(mod);
+
+                    // remove all mods from current pack
+                    int idx = selectedPack.AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod == mod);
+                    if (idx != -1)
+                        selectedPack.AppliedMods.RemoveAt(idx);
+
+                    if (!fi.Exists)
+                        continue;
+
+                    // remove from hdd
+                    File.Delete(fi.FullName);
+                    foreach (string path in Directory.EnumerateFiles(fi.DirectoryName, fi.Name.Replace(".fbmod", "*")))
+                        File.Delete(path);
+                }
+
+                availableModsList.SelectedItem = null;
+                ICollectionView view = CollectionViewSource.GetDefaultView(availableModsList.ItemsSource);
+                view.Refresh();
+
+                selectedPack.Refresh();
+                appliedModsList.Items.Refresh();
+
+                App.Logger.Log("Mod list cleared for " + ProfilesLibrary.DisplayName);
+            }
+        }
+
         private int VerifyMod(Stream stream)
         {
             using (DbReader reader = new DbReader(stream, null))
