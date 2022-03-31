@@ -340,6 +340,10 @@ namespace FrostyEditor
                     m_autoSaveTimer.Start();
                 }
             }
+
+            if (App.OpenProject) {
+                LoadProject(App.LaunchArgs, false);
+            }
         }
 
         private void logTextBox_TextChanged(object sender, TextChangedEventArgs e)
