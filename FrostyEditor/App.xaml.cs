@@ -11,6 +11,7 @@ using FrostySdk.IO;
 using Frosty.Core;
 using Frosty.Core.Controls;
 using FrostyCore;
+using System.Text;
 
 namespace FrostyEditor
 {
@@ -31,12 +32,23 @@ namespace FrostyEditor
         public static string Version = "";
         public static long StartTime;
 
+        public static bool OpenProject {
+            get => openProject;
+            set => openProject = value;
+        }
+
+        public static string LaunchArgs { get; private set; }
+
+        private static bool openProject;
+
         private FrostyConfiguration defaultConfig;
 
         public App()
         {
             Assembly entryAssembly = Assembly.GetEntryAssembly();
             Version = entryAssembly.GetName().Version.ToString();
+
+            Environment.CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
 
             Logger = new FrostyLogger();
             Logger.Log("Frosty Editor v{0}", Version);
@@ -198,6 +210,13 @@ namespace FrostyEditor
 
                 App.InitDiscordRPC();
                 App.UpdateDiscordRPC("Loading...");
+            }
+
+            if (e.Args.Length > 0) {
+                string arg = e.Args[0];
+
+                openProject = true;
+                LaunchArgs = arg;
             }
         }
 
