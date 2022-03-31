@@ -214,9 +214,10 @@ namespace FrostyEditor
 
             if (e.Args.Length > 0) {
                 string arg = e.Args[0];
-
-                openProject = true;
-                LaunchArgs = arg;
+                if (arg.Contains(".fbproject")) {
+                    openProject = true;
+                    LaunchArgs = arg;
+                }
             }
         }
 
