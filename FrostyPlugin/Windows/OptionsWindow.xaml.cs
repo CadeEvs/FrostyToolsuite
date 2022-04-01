@@ -179,7 +179,7 @@ namespace Frosty.Core.Windows
 
             LocalizedStringDatabase.Current.Initialize();
 
-            //Make file association if checked
+            //Create file association if enabled
             if (defaultInstallation) {
                 string Extension = ".fbproject";
                 string KeyName = "frostyproject";
