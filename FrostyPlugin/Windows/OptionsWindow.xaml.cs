@@ -98,7 +98,7 @@ namespace Frosty.Core.Windows
         public bool RememberChoice { get; set; } = false;
 
         [Category("Editor")]
-        [DisplayName("Set Default Installation on Save")]
+        [DisplayName("Set as Default Installation")]
         [Description("Use this installation for .fbproject files.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool defaultInstallation { get; set; } = false;
