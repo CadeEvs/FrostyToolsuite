@@ -121,14 +121,13 @@ namespace Frosty.Core.Windows
             AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", false);
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
 
+            //Checks the registry for the current association instead of loading from config
             string KeyName = "frostyproject";
             string OpenWith = Assembly.GetEntryAssembly().Location;
 
             string openCommand = (string)Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("");
 
-            if (openCommand.Contains(OpenWith)) {
-                defaultInstallation = true;
-            }
+            if (openCommand.Contains(OpenWith)) defaultInstallation = true;
 
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
@@ -175,6 +174,7 @@ namespace Frosty.Core.Windows
 
             LocalizedStringDatabase.Current.Initialize();
 
+            //Make file association if checked
             if (defaultInstallation) {
                 string Extension = ".fbproject";
                 string KeyName = "frostyproject";
