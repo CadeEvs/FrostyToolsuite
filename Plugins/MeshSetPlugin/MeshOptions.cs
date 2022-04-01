@@ -18,22 +18,26 @@ namespace MeshSetPlugin
     {
         [Category("Rendering")]
         [DisplayName("Display Adapter")]
-        [Description("Which display adapter to use in the rendering viewport")]
+        [Description("Selects which display adapter to use in the rendering viewport.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyDisplayAdapterEditor))]
         public CustomComboData<string, string> DisplayAdapter { get; set; }
         [Category("Rendering")]
         [DisplayName("Shadows Enabled")]
+        [Description("Enables shadows for the mesh.")]
         public bool RenderShadowsEnabled { get; set; } = true;
         [Category("Rendering")]
         [DisplayName("Shadow Resolution")]
+        [Description("Sets the shadow resolution for the mesh.")]
         [DependsOn("RenderShadowsEnabled")]
         public int RenderShadowResolution { get; set; } = 2048;
         [Category("Rendering")]
         [DisplayName("HBAO Enabled")]
+        [Description("Enables HBAO for the mesh.")]
         public bool RenderHBAOEnabled { get; set; } = true;
         [Category("Rendering")]
         [DisplayName("TXAA Enabled")]
+        [Description("Enables TXAA for the mesh.")]
         public bool RenderTXAAEnabled { get; set; } = true;
         [Category("Rendering")]
         [DisplayName("Performance Loading")]
@@ -42,21 +46,21 @@ namespace MeshSetPlugin
 
         [Category("Viewer")]
         [DisplayName("Show Grid")]
-        [Description("Determines wether or not the grid will be shown by default")]
+        [Description("Determines whether or not the grid will be shown by default.")]
         public bool ShowGrid { get; set; }
         [Category("Viewer")]
         [DisplayName("Show Ground")]
-        [Description("Determines wether or not the ground will be shown by default")]
+        [Description("Determines whether or not the ground will be shown by default.")]
         public bool ShowFloor { get; set; }
 
         [Category("Export/Import")]
         [DisplayName("Export Skeleton")]
-        [Description("Determines the default skeleton selected when exporting meshes")]
+        [Description("Determines the default skeleton selected when exporting meshes.")]
         [Editor(typeof(FrostySkeletonEditor))]
         public string ExportSkeletonAsset { get; set; }
         [Category("Export/Import")]
         [DisplayName("Import Skeleton")]
-        [Description("Determines the default skeleton selected when importing meshes")]
+        [Description("Determines the default skeleton selected when importing meshes.")]
         [Editor(typeof(FrostySkeletonEditor))]
         public string ImportSkeletonAsset { get; set; }
 
