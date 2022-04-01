@@ -14,6 +14,8 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using FrostySdk;
+using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 namespace Frosty.Core.Windows
 {
@@ -95,6 +97,12 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool RememberChoice { get; set; } = false;
 
+        [Category("Editor")]
+        [DisplayName("Set Default Installation on Save")]
+        [Description("Use this installation for .fbproject files.")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool defaultInstallation { get; set; } = false;
+
         public override void Load()
         {
             List<string> langs = GetLocalizedLanguages();
@@ -113,6 +121,15 @@ namespace Frosty.Core.Windows
             AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", false);
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
 
+            string KeyName = "frostyproject";
+            string OpenWith = Assembly.GetEntryAssembly().Location;
+
+            string openCommand = (string)Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("");
+
+            if (openCommand.Contains(OpenWith)) {
+                defaultInstallation = true;
+            }
+
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
@@ -129,6 +146,9 @@ namespace Frosty.Core.Windows
             //AssetDisplayModuleInId = Config.Get<bool>("Asset", "DisplayModuleInId", true);
             //RememberChoice = Config.Get<bool>("Init", "RememberChoice", false);
         }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
         public override void Save()
         {
@@ -154,6 +174,38 @@ namespace Frosty.Core.Windows
             Config.Save();
 
             LocalizedStringDatabase.Current.Initialize();
+
+            if (defaultInstallation) {
+                string Extension = ".fbproject";
+                string KeyName = "frostyproject";
+                string OpenWith = Assembly.GetEntryAssembly().Location;
+                string FileDescription = "Frosty Project";
+
+                RegistryKey BaseKey;
+                RegistryKey OpenMethod;
+                RegistryKey Shell;
+                RegistryKey CurrentUser;
+
+                BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
+                BaseKey.SetValue("", KeyName);
+
+                OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
+                OpenMethod.SetValue("", FileDescription);
+                OpenMethod.CreateSubKey("DefaultIcon").SetValue("", "\"" + OpenWith + "\",0");
+                Shell = OpenMethod.CreateSubKey("shell");
+                Shell.CreateSubKey("edit").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+                Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+                BaseKey.Close();
+                OpenMethod.Close();
+                Shell.Close();
+
+                CurrentUser = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + Extension, true);
+                CurrentUser.DeleteSubKey("UserChoice", false);
+                CurrentUser.Close();
+
+                // Tell explorer the file association has been changed
+                SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
+            }
 
             //Config.Add("Autosave", "Enabled", AutosaveEnabled);
             //Config.Add("Autosave", "Period", AutosavePeriod);
