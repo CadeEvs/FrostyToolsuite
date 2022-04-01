@@ -197,6 +197,29 @@ namespace FrostyEditor
                 }
             }
 
+            //check args to see if it is loading a project
+            if (e.Args.Length > 0) {
+                string arg = e.Args[0];
+                if (arg.Contains(".fbproject")) {
+                    openProject = true;
+                    LaunchArgs = arg;
+
+                    //get game profile from project file
+                    using (NativeReader reader = new NativeReader(new FileStream(arg, FileMode.Open, FileAccess.Read))) {
+                        if (reader.ReadULong() == 0x00005954534F5246) {
+                            reader.ReadUInt();
+                            string gameProfile = reader.ReadNullTerminatedString();
+                            try { 
+                                defaultConfig = new FrostyConfiguration(gameProfile); 
+                            }
+                            catch { 
+                                FrostyMessageBox.Show("There was an error when trying to load project using the profile: " + gameProfile, "Frosty Editor");
+                            }
+                        }
+                    }
+                }
+            }
+
             if (defaultConfig != null)
             {
                 // load profile
@@ -210,14 +233,6 @@ namespace FrostyEditor
 
                 App.InitDiscordRPC();
                 App.UpdateDiscordRPC("Loading...");
-            }
-
-            if (e.Args.Length > 0) {
-                string arg = e.Args[0];
-                if (arg.Contains(".fbproject")) {
-                    openProject = true;
-                    LaunchArgs = arg;
-                }
             }
         }
 
