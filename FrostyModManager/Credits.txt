@@ -23,12 +23,17 @@ The source code of UnRAR utility is freeware. This means:
 
 6. If you don't agree with terms of the license you must remove UnRAR files from your storage devices and cease to use the utility.
 
+[Contributors]
+Mophead
+Wannkunstbeikor
+Brawltendo
+Dyvinia
+Zhpete
+NoOneOfSignificance
+AllyJaxx
+MrJTGaming
+
 [Acknowledgements]
 Special thanks to GalaxyMan2015: without his years of work and dedication, Frosty would not exist and Frostbite modding would very well still be in the dark ages. Thanks GMan!
-
-Special thanks to Mophead for allowing us to bundle his 3rd party plugins with the software:
-- Bundle Manager
-- Gameplay Merger
-- FsLocalization
 
 Special thanks to munchyfly for providing endless support to our users

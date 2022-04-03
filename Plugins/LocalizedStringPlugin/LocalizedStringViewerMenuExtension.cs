@@ -9,12 +9,12 @@ namespace LocalizedStringPlugin
 
         public override string TopLevelMenuName => "View";
         public override string SubLevelMenuName => null;
-        public override string MenuItemName => "Localized String Explorer";
+        public override string MenuItemName => "Localized String Editor";
         public override ImageSource Icon => imageSource;
 
         public override RelayCommand MenuItemClicked => new RelayCommand((o) =>
         {
-            App.EditorWindow.OpenEditor("Localized String Viewer", new FrostyLocalizedStringViewer(App.Logger));
+            App.EditorWindow.OpenEditor("Localized String Editor", new FrostyLocalizedStringViewer(App.Logger));
         });
     }
 }

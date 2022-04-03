@@ -1,6 +1,34 @@
-﻿v1.0.6 (Alpha 5)
+﻿v1.0.6 (Alpha 6)
+--------
+- Added anti-aliasing to mod icons in the Mod Manager (#3)
+- Added visual when hovering over tabs in the Editor (#8)
+- Added styling for ComboBox (#9)
+- Added more functionality for moving mods under the Applied Mods list (#3)
+- Added caching for type info loading process (#31)
+- Added caching to MeshVariationDataBase loading process (#22)
+- Added Performance Mode option to MeshVariationDataBase loading (#16)
+- Modified DisplayModuleInId option to be false by default
+- Fixed numerous profile banners
+- Fixed InitFs loading for Need for Speed: Rivals, Need for Speed: Online, and Battlefield 4
+- Fixed ScalableEmitterDocument asset not using the correct icon (#6)
+- Fixed hard crashing when config gets corrupted
+- Fixed minor inconsistencies with UI 
+
+Technical Changes
+- Fixed opening certain textures that use SRGB flags
+- Removed the reading and writing of int32 in Texture resource for Star Wars Battlefront II
+
+Plugin Changes
+- Added editor support for Localized Strings (#19)
+- Fixed crash when removing all additional meshes in scene (#19)
+- Fixed localized string export encoding (#1)
+- Fixed escaping of characters in exported localized strings which have both quotes and commas (#1)
+
+
+v1.0.6 (Alpha 5)
 --------
 - Added pack zipping and loading
+- Config files are now stored in AppData
 - Fixed an issue where the Mod Manager wouldn't save removing packs
 - Fixed an issue where type overrides weren't appearing in non-categorized property grids
 - Fixed an issue where the Lua Editor wasn't open properly
