@@ -9,26 +9,6 @@
         mc:Ignorable="d"
         Title="" Height="150" Width="400" AllowsTransparency="True" WindowStyle="None" Background="Transparent" UseLayoutRounding="True" SnapsToDevicePixels="True"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
-    <Window.Resources>
-        <Style x:Key="CancelButtonStyle" TargetType="{x:Type Button}">
-            <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="{x:Type Button}">
-                        <Border x:Name="buttonBorder" Background="Transparent" BorderThickness="0" CornerRadius="4">
-                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}">
-                                <ContentPresenter.Resources>
-                                    <Style TargetType="{x:Type TextBlock}">
-                                        <Setter Property="TextDecorations" Value="Underline" />
-                                    </Style>
-                                </ContentPresenter.Resources>
-                            </ContentPresenter>
-                        </Border>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
     <Grid x:Name="taskWindow" Visibility="Visible" SnapsToDevicePixels="True">
         <Border Background="Transparent"/>
         <Border Background="{StaticResource ControlBackground}" VerticalAlignment="Center" HorizontalAlignment="Center" Width="350" Height="125" BorderBrush="{StaticResource ListBackground}" BorderThickness="1">
@@ -57,8 +37,34 @@
 
                     <TextBlock x:Name="statusTextBox" Grid.Column="1" Background="Transparent" Text="Status Text" Padding="4,5,4,0" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" TextTrimming="CharacterEllipsis"/>
 
-                    <Button x:Name="cancelButton" Grid.Column="2" Content="Cancel" Margin="0" Padding="8 0 8 0" Style="{StaticResource CancelButtonStyle}" Visibility="Collapsed" Cursor="Hand"/>
-
+                    <Button x:Name="cancelButton" Grid.Column="2" Margin="0" Visibility="Visible" Cursor="Hand">
+                        <Image Source="/FrostyControls;component/Images/CloseWindow.png"/>
+                        <!--<TextBlock Padding="8 0 8 0" TextDecorations="Underline">
+                            Cancel
+                        </TextBlock>-->
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Opacity" Value="0.6"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Opacity" Value="0.4"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Template>
+                            <ControlTemplate TargetType="{x:Type Button}" >
+                                <Border Background="{TemplateBinding Background}">
+                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    
                 </Grid>
             </Grid>
         </Border>
