@@ -450,6 +450,12 @@ namespace Frosty.Core
             using (StreamReader reader = new StreamReader(path))
             {
                 Current = JsonConvert.DeserializeObject<Config>(reader.ReadToEnd());
+
+                // TODO techdebt: fix underlying issue with config getting set to null when saving
+                if (Current == null)
+                {
+                    Current = new Config();
+                }
             }
         }
     }
