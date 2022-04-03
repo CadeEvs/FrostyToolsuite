@@ -1459,6 +1459,7 @@ namespace FrostyModManager
                 return result == 0 ? a.Name.CompareTo(b.Name) : result;
             });
 
+            Dispatcher.BeginInvoke((Action)(() => tabControl.SelectedItem = conflictsTabItem));
             conflictsListView.ItemsSource = totalResourceList;
             conflictsListView.SelectedIndex = 0;
         }
