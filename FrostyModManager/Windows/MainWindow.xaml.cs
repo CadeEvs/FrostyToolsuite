@@ -280,7 +280,6 @@ namespace FrostyModManager
         private List<FrostyPack> packs = new List<FrostyPack>();
         private FrostyPack selectedPack;
         private FileSystem fs;
-        private TabItem currentTab;
 
         private static int manifestVersion = 1;
 
@@ -1479,11 +1478,8 @@ namespace FrostyModManager
 
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (tabControl.SelectedItem != currentTab)
-            {
-                currentTab = tabControl.SelectedItem as TabItem;
-                if (currentTab == conflictsTabItem)
-                    UpdateConflicts();
+            if (conflictsTabItem.IsSelected) {
+                UpdateConflicts();
             }
         }
 
