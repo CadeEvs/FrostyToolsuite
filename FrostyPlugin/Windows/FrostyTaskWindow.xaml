@@ -37,7 +37,7 @@
 
                     <TextBlock x:Name="statusTextBox" Grid.Column="1" Background="Transparent" Text="Status Text" Padding="4,5,4,0" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" TextTrimming="CharacterEllipsis"/>
 
-                    <Button x:Name="cancelButton" Grid.Column="2" Margin="0" Visibility="Visible" Cursor="Hand">
+                    <Button x:Name="cancelButton" Grid.Column="2" Margin="0" Visibility="Collapsed" Cursor="Hand">
                         <Image Source="/FrostyControls;component/Images/CloseWindow.png"/>
                         <!--<TextBlock Padding="8 0 8 0" TextDecorations="Underline">
                             Cancel
