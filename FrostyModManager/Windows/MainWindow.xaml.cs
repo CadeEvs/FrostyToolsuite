@@ -801,7 +801,7 @@ namespace FrostyModManager
             }
         }
 
-        private void InstallMods(string[] filenames, bool Pack = false)
+        private void InstallMods(string[] filenames, bool pack = false)
         {
             FrostyMod lastInstalledMod = null;
             List<ImportErrorInfo> errors = new List<ImportErrorInfo>();
@@ -809,7 +809,7 @@ namespace FrostyModManager
             PackManifest packManifest = null;
 
             string installText = "Installing Mods";
-            if (Pack) installText = "Installing Pack";
+            if (pack) installText = "Installing Pack";
 
             FrostyTaskWindow.Show(installText, "", (task) =>
             {
@@ -844,6 +844,7 @@ namespace FrostyModManager
 
                                     tempdir.Create();
                                     decompressor.DecompressToFile(tempfile.FullName);
+                                    decompressor.CloseArchive();
 
                                     //install temp file
                                     Dispatcher.Invoke(() => {
