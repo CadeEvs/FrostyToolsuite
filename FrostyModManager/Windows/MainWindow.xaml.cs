@@ -808,10 +808,8 @@ namespace FrostyModManager
 
             PackManifest packManifest = null;
 
-            string installText;
-
+            string installText = "Installing Mods";
             if (Pack) installText = "Installing Pack";
-            else installText = "Installing Mods";
 
             FrostyTaskWindow.Show(installText, "", (task) =>
             {
@@ -840,33 +838,27 @@ namespace FrostyModManager
                             {
                                 
                                 if (compressedFi.Extension == ".fbpack") {
-                                    decompressor.DecompressToFile(Path.ChangeExtension(filename, ".fbpack"));
-                                    decompressor.OpenArchive(Path.ChangeExtension(filename, ".fbpack"));
-                                    foreach (CompressedFileInfo compressedFiPack in decompressor.EnumerateFiles()) {
-                                        if (compressedFiPack.Extension == ".fbmod") {
-                                            string modFilename = compressedFiPack.Filename;
-                                            byte[] buffer = decompressor.DecompressToMemory();
+                                    //create temp file
+                                    DirectoryInfo tempdir = new DirectoryInfo($"temp/");
+                                    FileInfo tempfile = new FileInfo(tempdir + Path.GetFileName(Path.ChangeExtension(filename, ".fbpack")));
 
-                                            using (MemoryStream ms = new MemoryStream(buffer)) {
-                                                int retCode = VerifyMod(ms);
-                                                if (retCode >= 0) {
-                                                    if ((retCode & 1) != 0) {
-                                                        errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was designed for a different game version, it may or may not work.", isWarning = true });
-                                                    }
-                                                    mods.Add(compressedFiPack.Filename);
-                                                    format.Add((retCode & 0x8000) != 0 ? 1 : 0);
-                                                }
-                                                else if (retCode == -2) {
-                                                    errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was not designed for this game." });
-                                                }
-                                            }
-                                        }
-                                        else if (compressedFiPack.Filename == "manifest.json") {
-                                            using (StreamReader reader = new StreamReader(compressedFiPack.Stream)) {
-                                                packManifest = JsonConvert.DeserializeObject<PackManifest>(reader.ReadToEnd());
-                                            }
-                                        }
-                                    }
+                                    tempdir.Create();
+                                    decompressor.DecompressToFile(tempfile.FullName);
+
+                                    //install temp file
+                                    Dispatcher.Invoke(() => {
+                                        //hide first install window to prevent overlap
+                                        task.Hide();
+
+                                        //install using temp file
+                                        InstallMods(new string[] { tempfile.FullName }, true);
+                                    });
+
+                                    //delete temp files
+                                    if (tempfile.Exists) tempfile.Delete();
+                                    if (tempdir.Exists) tempdir.Delete();
+
+                                    return;
                                 }
 
                                 if (compressedFi.Extension == ".fbmod")
