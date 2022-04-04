@@ -801,17 +801,14 @@ namespace FrostyModManager
             }
         }
 
-        private void InstallMods(string[] filenames, bool pack = false)
+        private void InstallMods(string[] filenames)
         {
             FrostyMod lastInstalledMod = null;
             List<ImportErrorInfo> errors = new List<ImportErrorInfo>();
 
             PackManifest packManifest = null;
 
-            string installText = "Installing Mods";
-            if (pack) installText = "Installing Pack";
-
-            FrostyTaskWindow.Show(installText, "", (task) =>
+            FrostyTaskWindow.Show("Installing Mods", "", (task) =>
             {
                 foreach (string filename in filenames)
                 {
@@ -825,6 +822,7 @@ namespace FrostyModManager
                             List<string> mods = new List<string>();
                             List<int> format = new List<int>();
                             List<string> archives = new List<string>();
+                            int fbpacks = 0;
 
                             // create decompressor
                             IDecompressor decompressor = null;
@@ -844,22 +842,17 @@ namespace FrostyModManager
 
                                     tempdir.Create();
                                     decompressor.DecompressToFile(tempfile.FullName);
-                                    decompressor.CloseArchive();
 
                                     //install temp file
                                     Dispatcher.Invoke(() => {
-                                        //hide first install window to prevent overlap
-                                        task.Hide();
-
-                                        //install using temp file
-                                        InstallMods(new string[] { tempfile.FullName }, true);
+                                        InstallMods(new string[] { tempfile.FullName });
                                     });
 
                                     //delete temp files
                                     if (tempfile.Exists) tempfile.Delete();
                                     if (tempdir.Exists) tempdir.Delete();
 
-                                    return;
+                                    fbpacks++;
                                 }
 
                                 if (compressedFi.Extension == ".fbmod")
@@ -903,7 +896,7 @@ namespace FrostyModManager
                             }
                             decompressor.CloseArchive();
 
-                            if (mods.Count == 0)
+                            if (mods.Count == 0 && fbpacks == 0)
                             {
                                 // no point continuing with this archive
                                 errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Archive contains no installable mods." });
@@ -1613,7 +1606,7 @@ namespace FrostyModManager
 
             if (ofd.ShowDialog() == true)
             {
-                InstallMods(ofd.FileNames, true);
+                InstallMods(ofd.FileNames);
             }
         }
 
@@ -1640,7 +1633,7 @@ namespace FrostyModManager
 
             if (ofd.ShowDialog() == true)
             {
-                InstallMods(ofd.FileNames, true);
+                InstallMods(ofd.FileNames);
             }
         }
     }
