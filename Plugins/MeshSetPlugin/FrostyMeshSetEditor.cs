@@ -3267,9 +3267,9 @@ namespace MeshSetPlugin
                     if (meshData.MeshId != -1)
                         screen.RemoveMesh(meshData.MeshId);
                 }
-                else if (e.NewValue is int count)
+                else if (e.NewValue is List<PreviewMeshData> list)
                 {
-                    if (count == 0)
+                    if (list.Count == 0)
                         screen.ClearMeshes();
                 }
             }

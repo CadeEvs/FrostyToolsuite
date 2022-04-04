@@ -35,10 +35,6 @@ namespace MeshSetPlugin
         [Category("Rendering")]
         [DisplayName("TXAA Enabled")]
         public bool RenderTXAAEnabled { get; set; } = true;
-        [Category("Rendering")]
-        [DisplayName("Performance Loading")]
-        [Description("If enabled, MeshVariationDatabases will only be loaded in when they are needed.")]
-        public bool RenderPerformanceLoadingEnabled { get; set; } = false;
 
         [Category("Viewer")]
         [DisplayName("Show Grid")]
@@ -77,7 +73,6 @@ namespace MeshSetPlugin
             RenderShadowResolution = Config.Get<int>("RenderShadowRes", 2048);
             RenderHBAOEnabled = Config.Get<bool>("RenderHBAOEnabled", true);
             RenderTXAAEnabled = Config.Get<bool>("RenderTXAAEnabled", true);
-            RenderPerformanceLoadingEnabled = Config.Get<bool>("RenderPerformanceLoadingEnabled", false);
 
             //DisplayAdapter = new CustomComboData<string, string>(adapters, adapters) {SelectedIndex = Config.Get<int>("Render", "AdapterIndex", 0)};
             //RenderShadowsEnabled = Config.Get<bool>("Render", "ShadowsEnabled", true);
@@ -98,7 +93,6 @@ namespace MeshSetPlugin
             Config.Add("RenderShadowRes", RenderShadowResolution);
             Config.Add("RenderHBAOEnabled", RenderHBAOEnabled);
             Config.Add("RenderTXAAEnabled", RenderTXAAEnabled);
-            Config.Add("RenderPerformanceLoadingEnabled", RenderPerformanceLoadingEnabled);
 
             Config.Save();
 
