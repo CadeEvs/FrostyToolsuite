@@ -92,6 +92,8 @@
             <Menu Grid.Row="0">
                 <MenuItem Header="File" Height="22">
                     <MenuItem Header="Pack">
+                        <MenuItem x:Name="packRename" Header="Rename" Click="packRename_Click"/>
+                        <MenuItem x:Name="packDuplicate" Header="Duplicate" Click="packDuplicate_Click"/>
                         <MenuItem x:Name="packExport" Header="Export" Click="packExport_Click"/>
                         <MenuItem x:Name="packImport" Header="Import" Click="packImport_Click"/>
                     </MenuItem>
