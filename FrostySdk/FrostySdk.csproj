@@ -82,6 +82,7 @@
     <Compile Include="Deobfuscators\DADeobfuscator.cs" />
     <Compile Include="Deobfuscators\MEADeobfuscator.cs" />
     <Compile Include="Deobfuscators\NullDeobfuscator.cs" />
+    <Compile Include="Deobfuscators\PVZDeobfuscator.cs" />
     <Compile Include="Ebx\AssetClassGuid.cs" />
     <Compile Include="Ebx\BoxedValueRef.cs" />
     <Compile Include="Ebx\CString.cs" />
