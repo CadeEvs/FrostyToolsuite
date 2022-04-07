@@ -57,15 +57,9 @@ namespace FrostyEditor
 #if FROSTY_DEVELOPER
             Version += " (Developer)";
 #elif FROSTY_ALPHA
-            //Version += " (" + FrostyEditor.Properties.Resources.BuildDate + ")";
-            Version += " (07172021)";
+            Version += $" (ALPHA {Frosty.Core.App.Version})";
 #elif FROSTY_BETA
-            Version += " [BETA]";
-#else
-            Version += " (Alpha 5)";
-#endif
-#if DEBUG
-            System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
+            Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
         }
 
