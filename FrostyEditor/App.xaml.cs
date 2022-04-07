@@ -68,9 +68,9 @@ namespace FrostyEditor
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             Exit += Application_Exit;
 
-            string test = FrostyEditor.Properties.Resources.BuildDate;
-            test = test.Substring(test.IndexOf(' ') + 1);
-            test = test.Substring(0, test.IndexOf(' '));
+            string BuildDate = FrostyEditor.Properties.Resources.BuildDate;
+            BuildDate = BuildDate.Substring(BuildDate.IndexOf(' ') + 1);
+            BuildDate = BuildDate.Substring(0, BuildDate.IndexOf(' '));
 
 #if FROSTY_DEVELOPER
             Version += " (Developer)";
@@ -268,11 +268,11 @@ namespace FrostyEditor
                     int releaseLocalType = 0;
                     int releaseLatestType = 0;
 
-#if FROSTY_ALPHA
-            releaseLocalType = 2;
-#elif FROSTY_BETA
-            releaseLocalType = 1;
-#endif
+                    #if FROSTY_ALPHA
+                    releaseLocalType = 2;
+                    #elif FROSTY_BETA
+                    releaseLocalType = 1;
+                    #endif
 
                     if (latestVersionString.Contains("beta")) releaseLatestType = 1;
                     if (latestVersionString.Contains("alpha")) releaseLatestType = 2;

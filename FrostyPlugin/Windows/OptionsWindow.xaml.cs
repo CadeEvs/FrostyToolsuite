@@ -296,6 +296,18 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public string CommandLineArgs { get; set; } = "";
 
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("If you want to be notified for new releases")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prereleases")]
+        [Description("If you want to be notified for new Beta and Alpha releases")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheckPrerelease { get; set; } = true;
+
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
         //[Description("Automatically collapse mod categories in the Available Mods list on startup.")]
@@ -313,6 +325,9 @@ namespace Frosty.Core.Windows
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
+            updateCheck = Config.Get<bool>("UpdateCheck", true);
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
         }
@@ -321,6 +336,9 @@ namespace Frosty.Core.Windows
         {
             Config.Add("UseDefaultProfile", RememberChoice);
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
+
+            Config.Add("UpdateCheck", updateCheck);
+            Config.Add("UpdateCheckPrerelease", updateCheckPrerelease);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
