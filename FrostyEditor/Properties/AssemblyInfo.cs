@@ -52,7 +52,6 @@ using System.Windows.Markup;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.6.0")]
 [assembly: AssemblyFileVersion("1.0.6.0")]
-[assembly: AssemblyInformationalVersion("1.0.6-alpha1")]
 
 #if FROSTY_DEVELOPER
 [assembly: XmlnsDefinition("FrostyDeveloper", "FrostyEditor.Controls")]

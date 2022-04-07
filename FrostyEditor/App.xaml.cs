@@ -247,30 +247,32 @@ namespace FrostyEditor
         }
 
         public void checkVersion() {
+            bool updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
             try {
                 using (var client = new WebClient()) {
                     client.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
                     client.Headers.Add(HttpRequestHeader.UserAgent, "request");
 
                     dynamic results = JsonConvert.DeserializeObject<dynamic>(client.DownloadString("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases"));
-                    string latestVersionString = results[0].tag_name;
+                    if (!updateCheckPrerelease) results = JsonConvert.DeserializeObject<dynamic>(client.DownloadString("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases/latest"));
 
-                    // alphe/beta number
-                    int prereleaseLocalVersion = 0;
+                    string latestVersionString = results[0].tag_name;
+                    if (!updateCheckPrerelease) latestVersionString = results.tag_name;
+                    string versionString = Assembly.GetEntryAssembly().GetName().Version.ToString();
+
+                    // alpha/beta number
+                    int prereleaseLocalVersion = Frosty.Core.App.Version;
                     int prereleaseLatestVersion = 0;
 
                     // 0 is release, 1 is beta, 2 is alpha
                     int releaseLocalType = 0;
                     int releaseLatestType = 0;
 
-                    string versionString = Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.ToString();
-
-                    if (versionString.Contains("beta")) releaseLocalType = 1;
-                    if (versionString.Contains("alpha")) releaseLocalType = 2;
-                    if (versionString.Contains("-")) {
-                        prereleaseLocalVersion = int.Parse(versionString.Last().ToString());
-                        versionString = versionString.Substring(0, versionString.IndexOf("-"));
-                    }
+#if FROSTY_ALPHA
+            releaseLocalType = 2;
+#elif FROSTY_BETA
+            releaseLocalType = 1;
+#endif
 
                     if (latestVersionString.Contains("beta")) releaseLatestType = 1;
                     if (latestVersionString.Contains("alpha")) releaseLatestType = 2;
@@ -281,6 +283,8 @@ namespace FrostyEditor
                     
                     var latestVersion = new Version(latestVersionString.Substring(1));
                     var version = new Version(versionString);
+
+                    if (latestVersion.MinorRevision < 0) latestVersion = new Version(latestVersion.ToString() + ".0");
 
                     var result = version.CompareTo(latestVersion);
                     if (result <= 0) {
