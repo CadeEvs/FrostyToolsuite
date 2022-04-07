@@ -12,6 +12,10 @@ using Frosty.Core;
 using Frosty.Core.Controls;
 using FrostyCore;
 using System.Text;
+using System.Net;
+using Newtonsoft.Json;
+using System.Net.Cache;
+using System.Linq;
 
 namespace FrostyEditor
 {
@@ -65,19 +69,15 @@ namespace FrostyEditor
             Exit += Application_Exit;
 
             string test = FrostyEditor.Properties.Resources.BuildDate;
+            test = test.Substring(test.IndexOf(' ') + 1);
+            test = test.Substring(0, test.IndexOf(' '));
 
 #if FROSTY_DEVELOPER
             Version += " (Developer)";
 #elif FROSTY_ALPHA
-            //Version += " (" + FrostyEditor.Properties.Resources.BuildDate + ")";
-            Version += " (07172021)";
+            Version += $" (ALPHA {Frosty.Core.App.Version})";
 #elif FROSTY_BETA
-            Version += " [BETA]";
-#else
-            Version += " (Alpha 5)";
-#endif
-#if DEBUG
-            System.Diagnostics.PresentationTraceSources.DataBindingSource.Switch.Level = System.Diagnostics.SourceLevels.Critical;
+            Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
         }
 
@@ -185,10 +185,14 @@ namespace FrostyEditor
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
+
             if (!File.Exists($"{Frosty.Core.App.GlobalSettingsPath}/editor_config.json"))
                 Config.UpgradeConfigs();
 
             Config.Load();
+
+            if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", true))
+                checkVersion();
 
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
@@ -239,6 +243,57 @@ namespace FrostyEditor
 
                 App.InitDiscordRPC();
                 App.UpdateDiscordRPC("Loading...");
+            }
+        }
+
+        public void checkVersion() {
+            try {
+                using (var client = new WebClient()) {
+                    client.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
+                    client.Headers.Add(HttpRequestHeader.UserAgent, "request");
+
+                    dynamic results = JsonConvert.DeserializeObject<dynamic>(client.DownloadString("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases"));
+                    string latestVersionString = results[0].tag_name;
+
+                    // alphe/beta number
+                    int prereleaseLocalVersion = 0;
+                    int prereleaseLatestVersion = 0;
+
+                    // 0 is release, 1 is beta, 2 is alpha
+                    int releaseLocalType = 0;
+                    int releaseLatestType = 0;
+
+                    string versionString = Assembly.GetEntryAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion.ToString();
+
+                    if (versionString.Contains("beta")) releaseLocalType = 1;
+                    if (versionString.Contains("alpha")) releaseLocalType = 2;
+                    if (versionString.Contains("-")) {
+                        prereleaseLocalVersion = int.Parse(versionString.Last().ToString());
+                        versionString = versionString.Substring(0, versionString.IndexOf("-"));
+                    }
+
+                    if (latestVersionString.Contains("beta")) releaseLatestType = 1;
+                    if (latestVersionString.Contains("alpha")) releaseLatestType = 2;
+                    if ((bool)results[0].prerelease) {
+                        prereleaseLatestVersion = int.Parse(latestVersionString.Last().ToString());
+                        latestVersionString = latestVersionString.Substring(0, latestVersionString.IndexOf("-"));
+                    }
+                    
+                    var latestVersion = new Version(latestVersionString.Substring(1));
+                    var version = new Version(versionString);
+
+                    var result = version.CompareTo(latestVersion);
+                    if (result <= 0) {
+                        if ((releaseLatestType < releaseLocalType) || (releaseLatestType == releaseLocalType && prereleaseLatestVersion > prereleaseLocalVersion)) {
+                            MessageBoxResult mbResult = MessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Editor", MessageBoxButton.YesNo);
+                            if (mbResult == MessageBoxResult.Yes) 
+                                System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                        }
+                    }
+                }
+            }
+            catch (Exception e) {
+                FrostyMessageBox.Show(e.Message, "Frosty Editor", MessageBoxButton.OK);
             }
         }
 

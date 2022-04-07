@@ -63,15 +63,13 @@ namespace FrostyModManager
             // for displaying exception box on all unhandled exceptions
             DispatcherUnhandledException += App_DispatcherUnhandledException;
 
-#if FROSTY_ALPHA
-            //Version += " (" + FrostyModManager.Properties.Resources.BuildDate + ")";
-            Version += " (07172021)";
+#if FROSTY_DEVELOPER
+            Version += " (Developer)";
+#elif FROSTY_ALPHA
+            Version += $" (ALPHA {Frosty.Core.App.Version})";
+#elif FROSTY_BETA
+            Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
-#if FROSTY_BETA
-            Version += " [BETA]";
-#endif
-
-            Version += " (Alpha 5)";
         }
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
