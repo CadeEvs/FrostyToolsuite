@@ -42,56 +42,61 @@ namespace Frosty.Core.Windows
     public class EditorOptionsData : OptionsExtension
     {
         [Category("Localization")]
-        [Description("Which localized language files to read from the game files")]
+        [Description("Selects which localized language files to read from the game files.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> Language { get; set; }
 
         [Category("Autosave")]
         [DisplayName("Enabled")]
+        [Description("Enables autosaving for projects.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool AutosaveEnabled { get; set; } = true;
         [Category("Autosave")]
         [DisplayName("Period")]
-        [Description("How often to autosave the project. Value is defined in minutes")]
+        [Description("How often to autosave the project. Value is defined in minutes.")]
         [EbxFieldMeta(EbxFieldType.Int32)]
         [DependsOn("AutosaveEnabled")]
         public int AutosavePeriod { get; set; } = 5;
         [Category("Autosave")]
         [DisplayName("Max Saves")]
-        [Description("Maximum number of autosave files to generate per project")]
+        [Description("Maximum number of autosave files to generate per project.")]
         [EbxFieldMeta(EbxFieldType.Int32)]
         [DependsOn("AutosaveEnabled")]
         public int AutosaveMaxSaves { get; set; } = 10;
 
         [Category("Text Editor")]
         [DisplayName("Tab Size")]
+        [Description("Size of opened tabs in the Editor.")]
         [EbxFieldMeta(EbxFieldType.Int32)]
         public int TextEditorTabSize { get; set; } = 4;
         [Category("Text Editor")]
         [DisplayName("Indent on Enter")]
+        [Description("Indents text upon pressing the Enter key.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool TextEditorIndentOnEnter { get; set; } = false;
 
         [Category("Discord RPC")]
         [DisplayName("Enabled")]
+        [Description("Turns on rich presence for Discord.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool DiscordEnabled { get; set; } = false;
 
         [Category("Mod Settings")]
         [DisplayName("Default Author")]
+        [Description("Sets the default author for a mod.")]
         [EbxFieldMeta(EbxFieldType.String)]
         public string ModSettingsAuthor { get; set; } = "";
 
         [Category("Asset")]
         [DisplayName("Display Module in Class Id")]
-        [Description("Determines wether a classes default Id, when viewed in the property grid, is prepended with the module name of that class.\r\n\r\nTrue: Entity.MathEntityData\r\nFalse: MathEntityData")]
+        [Description("Determines whether a class's default Id, when viewed in the property grid, is prepended with the module name of that class.\r\n\r\nTrue: Entity.MathEntityData\r\nFalse: MathEntityData")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool AssetDisplayModuleInId { get; set; } = true;
 
         [Category("Editor")]
         [DisplayName("Remember Profile Choice")]
-        [Description("If true, the last chosen profile will be automatically loaded when starting the editor")]
+        [Description("If true, the last chosen profile will be automatically loaded when starting the Editor.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool RememberChoice { get; set; } = false;
 
@@ -211,7 +216,7 @@ namespace Frosty.Core.Windows
     {
         [Category("Manager")]
         [DisplayName("Remember Profile Choice")]
-        [Description("If true, the last chosen profile will be automatically loaded when starting the editor")]
+        [Description("If true, the last chosen profile will be automatically loaded when starting the Mod Manager.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool RememberChoice { get; set; } = false;
 

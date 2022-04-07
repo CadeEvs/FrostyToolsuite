@@ -10,7 +10,7 @@ namespace SoundEditorPlugin
     {
         [Category("Editor")]
         [DisplayName("Sound Volume")]
-        [Description("Playback volume")]
+        [Description("Playback volume for sounds.")]
         [Editor(typeof(FrostySliderEditor))]
         [SliderMinMax(0.0f, 100.0f, 1.0f, 10.0f, true)]
         [EbxFieldMeta(EbxFieldType.Float32)]
