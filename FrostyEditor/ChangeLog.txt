@@ -1,4 +1,14 @@
-﻿v1.0.6 (Beta 1)
+﻿v1.0.6 (Beta 2)
+--------
+- Modified Mod Manager loading process so mods no longer get removed from packs when the file cannot be found
+- Improved option descriptions (#42)
+- Fixed crashing issue when loading Garden Warfare 1 and 2 (#41)
+
+Technical Changes
+- Added missing PVZDeobfuscator to FrostySdk project (#41)
+- Improved version logic
+
+v1.0.6 (Beta 1)
 --------
 - Added caching for type info loading process (#31)
 - Added caching to MeshVariationDataBase loading process (#22)
