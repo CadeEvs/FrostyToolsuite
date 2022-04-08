@@ -32,6 +32,7 @@ using Frosty.Controls;
 
 namespace MeshSetPlugin
 {
+    #region EbxData
     public class MeshSetMaterialDetails
     {
         public object TextureParameters { get; set; } = new List<dynamic>();
@@ -288,7 +289,8 @@ namespace MeshSetPlugin
             SunPosition.y = 20.0f;
             SunPosition.z = 20.0f;
         }
-    }
+    } 
+    #endregion
 
     #region -- Exporters --
     public class FBXExporter
@@ -363,43 +365,43 @@ namespace MeshSetPlugin
                     FbxNode rootNode = FBXCreateSkeleton(scene, meshAsset, skeleton, ref boneNodes);
                     scene.RootNode.AddChild(rootNode);
                 }
-                //else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
-                //{
-                //    // composite skeleton has parts defined in mesh
-                //    FrostyTask.Update("Writing composite skeleton");
-                //    FbxNode rootNode = FBXCreateCompositeSkeleton(scene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
-                //    scene.RootNode.AddChild(rootNode);
-                //}
+                else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
+                {
+                    // composite skeleton has parts defined in mesh
+                    task.Update("Writing composite skeleton");
+                    FbxNode rootNode = FBXCreateCompositeSkeleton(scene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
+                    scene.RootNode.AddChild(rootNode);
+                }
 
                 currentProgress++;
                 foreach (MeshSet meshSet in meshSets)
                 {
                     foreach (MeshSetLod lod in meshSet.Lods)
                     {
-                        task.Update("Writing " + lod.String03);
+                        task.Update("Writing " + lod.ShortName);
                         FBXCreateMesh(scene, lod, boneNodes);
                     }
                 }
 
                 // move composite parts
-                //if (meshSets[0].Type == MeshType.MeshType_Composite)
-                //{
-                //    MeshSetLod lod = meshSets[0].Lods[0];
-                //    for (int i = 0; i < lod.PartTransforms.Count; i++)
-                //    {
-                //        LinearTransform lt = lod.PartTransforms[i];
-                //        FbxNode node = boneNodes[i];
+                if (meshSets[0].Type == MeshType.MeshType_Composite)
+                {
+                    MeshSetLod lod = meshSets[0].Lods[0];
+                    for (int i = 0; i < lod.PartTransforms.Count; i++)
+                    {
+                        LinearTransform lt = lod.PartTransforms[i];
+                        FbxNode node = boneNodes[i];
 
-                //        Matrix boneMatrix = SharpDXUtils.FromLinearTransform(lt);
+                        Matrix boneMatrix = SharpDXUtils.FromLinearTransform(lt);
 
-                //        Vector3 scale = boneMatrix.ScaleVector;
-                //        Vector3 translation = boneMatrix.TranslationVector;
-                //        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
+                        Vector3 scale = boneMatrix.ScaleVector;
+                        Vector3 translation = boneMatrix.TranslationVector;
+                        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
 
-                //        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
-                //        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
-                //    }
-                //}
+                        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
+                        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
+                    }
+                }
 
                 using (FbxExporter exporter = new FbxExporter(manager, ""))
                 {
@@ -680,7 +682,7 @@ namespace MeshSetPlugin
 
             FbxNode meshNode = (flattenHierarchy) 
                 ? scene.RootNode 
-                : new FbxNode(scene, lod.String03);
+                : new FbxNode(scene, lod.ShortName);
 
             foreach (MeshSetSection section in lod.Sections)
             {
@@ -697,7 +699,7 @@ namespace MeshSetPlugin
                 {
                     FbxNode actor = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                     if (flattenHierarchy)
-                        actor.Name = lod.String03 + ":" + section.Name;
+                        actor.Name = lod.ShortName + ":" + section.Name;
                     meshNode.AddChild(actor);
 
                     if ((lod.Type == MeshType.MeshType_Skinned || lod.Type == MeshType.MeshType_Composite) && boneNodes.Count > 0)
@@ -1729,7 +1731,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetSection meshSection in meshLod.Sections)
             {
-                if (meshSection.Name != "")
+                if (!string.IsNullOrEmpty(meshSection.Name))
                     meshSections.Add(meshSection);
                 else
                 {
@@ -2568,6 +2570,23 @@ namespace MeshSetPlugin
                                         case VertexElementUsage.BinormalSign:
                                             {
                                                 if (elem.Format == VertexElementFormat.Half) chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f));
+                                                else if (elem.Format == VertexElementFormat.Half4 || elem.Format == VertexElementFormat.Float4)
+                                                {
+                                                    if (elem.Format == VertexElementFormat.Half4)
+                                                    {
+                                                        chunkWriter.Write(HalfUtils.Pack(tangent.X));
+                                                        chunkWriter.Write(HalfUtils.Pack(tangent.Y));
+                                                        chunkWriter.Write(HalfUtils.Pack(tangent.Z));
+                                                        chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f));
+                                                    }
+                                                    else
+                                                    {
+                                                        chunkWriter.Write(tangent.X);
+                                                        chunkWriter.Write(tangent.Y);
+                                                        chunkWriter.Write(tangent.Z);
+                                                        chunkWriter.Write((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f);
+                                                    }
+                                                }
                                                 else chunkWriter.Write((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f);
                                             }
                                             break;
@@ -2642,7 +2661,7 @@ namespace MeshSetPlugin
                                                 chunkWriter.Write(HalfUtils.Pack(normal.X));
                                                 chunkWriter.Write(HalfUtils.Pack(normal.Y));
                                                 chunkWriter.Write(HalfUtils.Pack(normal.Z));
-                                                chunkWriter.Write(HalfUtils.Pack(1.0f));
+                                                chunkWriter.Write(HalfUtils.Pack(binormal.Y));
                                             }
                                             break;
 
@@ -2651,7 +2670,7 @@ namespace MeshSetPlugin
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.X));
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.Y));
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.Z));
-                                                chunkWriter.Write(HalfUtils.Pack(1.0f));
+                                                chunkWriter.Write(HalfUtils.Pack(binormal.Z));
                                             }
                                             break;
 
@@ -2808,13 +2827,29 @@ namespace MeshSetPlugin
                                                     if (vertex.HasValue(channelName))
                                                     {
                                                         Vector2 uv = vertex.GetValue<Vector2>(channelName);
-                                                        chunkWriter.Write(HalfUtils.Pack(uv.X));
-                                                        chunkWriter.Write(HalfUtils.Pack(1.0f - uv.Y));
+                                                        if (elem.Format == VertexElementFormat.Float2)
+                                                        {
+                                                            chunkWriter.Write(uv.X);
+                                                            chunkWriter.Write(1.0f - uv.Y);
+                                                        }
+                                                        else
+                                                        {
+                                                            chunkWriter.Write(HalfUtils.Pack(uv.X));
+                                                            chunkWriter.Write(HalfUtils.Pack(1.0f - uv.Y));
+                                                        }
                                                     }
                                                     else
                                                     {
-                                                        chunkWriter.Write((ushort)0);
-                                                        chunkWriter.Write((ushort)0);
+                                                        if (elem.Format == VertexElementFormat.Float2)
+                                                        {
+                                                            chunkWriter.Write((float)0);
+                                                            chunkWriter.Write((float)0);
+                                                        }
+                                                        else
+                                                        {
+                                                            chunkWriter.Write((ushort)0);
+                                                            chunkWriter.Write((ushort)0);
+                                                        }
                                                     }
                                                 }
                                                 else
@@ -3220,9 +3255,9 @@ namespace MeshSetPlugin
                     screen.RemoveLight(lightEntity.LightId);
                     return;
                 }
-                else if (e.NewValue is int count)
+                else if (e.NewValue is List<PreviewLightData> list)
                 {
-                    if (count == 0)
+                    if (list.Count == 0)
                     {
                         screen.ClearLights();
                         return;
@@ -3491,7 +3526,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetLod lod in meshSet.Lods)
             {
-                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.String03 };
+                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
                 foreach (MeshSetSection section in lod.Sections)
                 {
                     if (lod.IsSectionRenderable(section) && section.PrimitiveCount > 0)
