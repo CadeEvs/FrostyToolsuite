@@ -12,6 +12,10 @@ using Frosty.Core;
 using Frosty.Core.Controls;
 using FrostyCore;
 using System.Text;
+using System.Linq;
+using System.Net;
+using System.Net.Cache;
+using Newtonsoft.Json;
 
 namespace FrostyEditor
 {
@@ -184,6 +188,9 @@ namespace FrostyEditor
 
             Config.Load();
 
+            if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", true))
+                checkVersion();
+
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
             {
@@ -240,6 +247,64 @@ namespace FrostyEditor
         {
             if (Config.Current != null && Config.Get<bool>("DiscordRPCEnabled", false))
                 DiscordRPC.Discord_Shutdown();
+        }
+
+        public void checkVersion() {
+            bool updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+            try {
+                using (var client = new WebClient()) {
+                    client.CachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
+                    client.Headers.Add(HttpRequestHeader.UserAgent, "request");
+
+                    dynamic results;
+                    if (updateCheckPrerelease) results = JsonConvert.DeserializeObject<dynamic>(client.DownloadString("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases"));
+                    else results = JsonConvert.DeserializeObject<dynamic>(client.DownloadString("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases/latest"));
+
+                    string latestVersionString;
+                    if (updateCheckPrerelease) latestVersionString = results[0].tag_name;
+                    else latestVersionString = results.tag_name;
+
+                    string versionString = Assembly.GetEntryAssembly().GetName().Version.ToString();
+
+                    // alpha/beta number
+                    int prereleaseLocalVersion = Frosty.Core.App.Version;
+                    int prereleaseLatestVersion = 0;
+
+                    // 0 is release, 1 is beta, 2 is alpha
+                    int releaseLocalType = 0;
+                    int releaseLatestType = 0;
+
+#if FROSTY_ALPHA
+                    releaseLocalType = 2;
+#elif FROSTY_BETA
+                    releaseLocalType = 1;
+#endif
+
+                    if (latestVersionString.Contains("beta")) releaseLatestType = 1;
+                    if (latestVersionString.Contains("alpha")) releaseLatestType = 2;
+                    if ((bool)results[0].prerelease) {
+                        prereleaseLatestVersion = int.Parse(latestVersionString.Last().ToString());
+                        latestVersionString = latestVersionString.Substring(0, latestVersionString.IndexOf("-"));
+                    }
+
+                    var latestVersion = new Version(latestVersionString.Substring(1));
+                    var version = new Version(versionString);
+
+                    if (latestVersion.MinorRevision < 0) latestVersion = new Version(latestVersion.ToString() + ".0");
+
+                    var result = version.CompareTo(latestVersion);
+                    if (result <= 0) {
+                        if ((releaseLatestType < releaseLocalType) || (releaseLatestType == releaseLocalType && prereleaseLatestVersion > prereleaseLocalVersion)) {
+                            MessageBoxResult mbResult = MessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Editor", MessageBoxButton.YesNo);
+                            if (mbResult == MessageBoxResult.Yes)
+                                System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                        }
+                    }
+                }
+            }
+            catch (Exception e) {
+                FrostyMessageBox.Show(e.Message, "Frosty Editor", MessageBoxButton.OK);
+            }
         }
 
         private static void DiscordReady(DiscordUser user)

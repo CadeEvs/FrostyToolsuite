@@ -108,6 +108,18 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool defaultInstallation { get; set; } = false;
 
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("Check Github for Frosty updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prerelease Updates")]
+        [Description("Check Github for Frosty Alpha and Beta updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheckPrerelease { get; set; } = true;
+
         public override void Load()
         {
             List<string> langs = GetLocalizedLanguages();
@@ -125,6 +137,9 @@ namespace Frosty.Core.Windows
 
             AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", false);
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
+
+            updateCheck = Config.Get<bool>("UpdateCheck", true);
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
 
             //Checks the registry for the current association instead of loading from config
             string KeyName = "frostyproject";
@@ -167,6 +182,9 @@ namespace Frosty.Core.Windows
             Config.Add("ModAuthor", ModSettingsAuthor);
             Config.Add("DisplayModuleInId", AssetDisplayModuleInId);
             Config.Add("UseDefaultProfile", RememberChoice);
+
+            Config.Add("UpdateCheck", updateCheck);
+            Config.Add("UpdateCheckPrerelease", updateCheckPrerelease);
 
             if (RememberChoice)
                 Config.Add("DefaultProfile", ProfilesLibrary.ProfileName);
@@ -278,6 +296,18 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public string CommandLineArgs { get; set; } = "";
 
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("Check Github for Frosty updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prerelease Updates")]
+        [Description("Check Github for Frosty Alpha and Beta updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheckPrerelease { get; set; } = true;
+
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
         //[Description("Automatically collapse mod categories in the Available Mods list on startup.")]
@@ -295,6 +325,9 @@ namespace Frosty.Core.Windows
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
+            updateCheck = Config.Get<bool>("UpdateCheck", true);
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
         }
@@ -303,6 +336,9 @@ namespace Frosty.Core.Windows
         {
             Config.Add("UseDefaultProfile", RememberChoice);
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
+
+            Config.Add("UpdateCheck", updateCheck);
+            Config.Add("UpdateCheckPrerelease", updateCheckPrerelease);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
