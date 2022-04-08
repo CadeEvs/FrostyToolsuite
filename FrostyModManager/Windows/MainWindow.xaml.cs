@@ -385,11 +385,11 @@ namespace FrostyModManager
                 for (int i = 0; i < valuesArray.Length; i++)
                 {
                     string[] modEnabledPair = valuesArray[i].Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
+                    string backupFileName = modEnabledPair[0];
                     bool isEnabled = bool.Parse(modEnabledPair[1]);
 
                     FrostyMod mod = availableMods.Find((FrostyMod a) => a.Filename == modEnabledPair[0]);
-                    if (mod != null)
-                        pack.AddMod(mod, isEnabled);
+                    pack.AddMod(mod, isEnabled, backupFileName);
                 }
             }
 
@@ -556,7 +556,7 @@ namespace FrostyModManager
             List<string> modPaths = new List<string>();
             foreach (FrostyAppliedMod mod in selectedPack.AppliedMods)
             {
-                if(mod.IsEnabled)
+                if(mod.IsFound && mod.IsEnabled)
                     modPaths.Add(mod.Mod.Filename);
             }
 
@@ -1322,7 +1322,7 @@ namespace FrostyModManager
                     // Iterate through mod resources
                     for (int i = 0; i < selectedPack.AppliedMods.Count; i++) {
                         FrostyAppliedMod appliedMod = selectedPack.AppliedMods[i];
-                        if (!appliedMod.IsEnabled)
+                        if (!appliedMod.IsFound && !appliedMod.IsEnabled)
                             continue;
 
                         FrostyMod mod = appliedMod.Mod;
@@ -1405,7 +1405,7 @@ namespace FrostyModManager
             for (int i = 0; i < selectedPack.AppliedMods.Count; i++)
             {
                 FrostyAppliedMod appliedMod = selectedPack.AppliedMods[i];
-                if (!appliedMod.IsEnabled)
+                if (!appliedMod.IsFound && !appliedMod.IsEnabled)
                     continue;
 
                 Binding primaryActionBinding = new Binding("") { Converter = new ModPrimaryActionConverter(), ConverterParameter = appliedMod.Mod.Filename };
@@ -1539,7 +1539,7 @@ namespace FrostyModManager
                     List<string> mods = new List<string>();
                     foreach (FrostyAppliedMod mod in selectedPack.AppliedMods)
                     {
-                        if (mod.IsEnabled)
+                        if (mod.IsFound && mod.IsEnabled)
                             mods.Add(mod.Mod.Filename);
                     }
 

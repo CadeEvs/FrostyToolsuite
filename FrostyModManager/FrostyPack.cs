@@ -24,13 +24,18 @@ namespace FrostyModManager
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
-        public void AddMod(FrostyMod mod, bool isEnabled = true)
+        public void AddMod(FrostyMod mod, bool isEnabled = true, string backupFileName = "")
         {
-            int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod == mod);
+            int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod != null ? a.Mod == mod : a.ModName == backupFileName);
             if (index != -1)
                 return;
 
-            AppliedMods.Add(new FrostyAppliedMod(mod, isEnabled));
+            // if mod is null and couldn't be found, create a FrostyAppliedMod with IsFound to false
+            if (mod != null)
+                AppliedMods.Add(new FrostyAppliedMod(mod, isEnabled));
+            else
+                AppliedMods.Add(new FrostyAppliedMod(backupFileName, isEnabled));
+
             Config.Add(Name, ToConfigString(), ConfigScope.Pack);
             //Config.Add("Profiles", Name, ToConfigString());
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
@@ -109,7 +114,14 @@ namespace FrostyModManager
             if (AppliedMods.Count > 0)
             {
                 foreach (FrostyAppliedMod mod in AppliedMods)
-                    sb.Append(mod.Mod.Filename + ":" + mod.IsEnabled + "|");
+                {
+                    // append backup file name is mod isn't found
+                    if (mod.Mod != null)
+                        sb.Append(mod.Mod.Filename + ":" + mod.IsEnabled + "|");
+                    else
+                        sb.Append(mod.BackupFileName + ":" + mod.IsEnabled + "|");
+                }
+                    
                 sb.Remove(sb.Length - 1, 1);
             }
             return sb.ToString();
