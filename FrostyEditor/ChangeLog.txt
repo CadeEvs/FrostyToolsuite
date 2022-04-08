@@ -1,4 +1,51 @@
-﻿v1.0.6 (Beta 2)
+﻿v1.0.6
+--------
+- Added plugin support
+- Added Sound Import functionality
+- Added Mesh Import functionality
+- Added Bundle Editor
+- Added TextureAsset duplication support (For some games)
+- Added "Copy Guid" button to PointerRef Property Grid items
+- Added cancel button to Mod Applying process
+- Added modding categories to Mod Export window
+- Added experimental NFS: Heat support
+- Added InitFS Viewer
+- Added Type Viewer
+- Added Localized String Editor
+- Added Scan for Games functionality to Prelaunch window
+- Added Refresh MeshVariations functionality
+- Added MeshVariation caching
+- Added TypeInfo caching
+- Added warnings for games containing EasyAntiCheat
+- Added BoxedValueRef editing functionality
+- Added a new Type Editor for Event/Property/Link Connections in the Property Grid
+- Added pack zipping and loading
+- Moved location of the Editor and Explorer menu items (Moved from Tools to View)
+- Moved to json format for Frosty Editor and Mod Manager configs
+- Moved config files to local folder under AppData for global access between builds
+- Revamped Sound Editor
+- Revamped layout for Prelaunch window
+- Revamped Home Page
+- Redesigned theme
+
+Plugin Changes
+- Added TypeEditor extension
+- Added Menu extension
+- Added Tab extension
+- Added Option extension
+- Added Data Explorer Context Menu Item extension
+- Added Asset Definition extension
+- Added Localized String Database extension
+- Added ThirdPartyDll extension
+- Added Type Override extension
+- Added Custom Handler extension
+- Added Custom Asset Manager extension
+- Added Custom User Shader extension
+- Added Custom Type Field extension
+- Added Startup Action extension
+- Added ExecutionAction extension
+
+v1.0.6 (Beta 2)
 --------
 - Modified Mod Manager loading process so mods no longer get removed from packs when the file cannot be found
 - Improved option descriptions (#42)
