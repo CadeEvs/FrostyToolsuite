@@ -294,7 +294,7 @@ namespace FrostyEditor
 
                     var result = version.CompareTo(latestVersion);
                     if (result <= 0) {
-                        if ((releaseLatestType < releaseLocalType) || (releaseLatestType == releaseLocalType && prereleaseLatestVersion > prereleaseLocalVersion)) {
+                        if ((releaseLatestType < releaseLocalType) || (releaseLatestType == releaseLocalType && prereleaseLatestVersion > prereleaseLocalVersion) || (releaseLatestType == 0 && releaseLocalType == 0)) {
                             MessageBoxResult mbResult = MessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Editor", MessageBoxButton.YesNo);
                             if (mbResult == MessageBoxResult.Yes)
                                 System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
