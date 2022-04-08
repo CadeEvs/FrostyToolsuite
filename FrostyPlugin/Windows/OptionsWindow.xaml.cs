@@ -145,10 +145,10 @@ namespace Frosty.Core.Windows
             string KeyName = "frostyproject";
             string OpenWith = Assembly.GetEntryAssembly().Location;
 
-            string openCommand = (string)Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("");
-
-            if (openCommand.Contains(OpenWith)) defaultInstallation = true;
-
+            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName) != null) {
+                string openCommand = (string)Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("");
+                if (openCommand.Contains(OpenWith)) defaultInstallation = true;
+            }
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
