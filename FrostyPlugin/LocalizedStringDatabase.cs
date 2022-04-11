@@ -71,12 +71,22 @@ namespace Frosty.Core
         /// </summary>
         /// <returns>A collection of string IDs, or an empty collection if no modified strings exist.</returns>
         IEnumerable<uint> EnumerateModifiedStrings();
+
+        /// <summary>
+        /// Retrieves a collection of string IDs that were modified from the localized string database.
+        /// </summary>
+        /// <returns>A collection of string IDs, or an empty collection if no modified strings exist.</returns>
+        List<string> GetLanguages();
     }
 
     // represents the default localized string database, in case no plugin with a specialized
     // database is loaded. Will just return blank strings
     internal class DefaultLocalizedStringDatabase : ILocalizedStringDatabase
     {
+        public List<string> GetLanguages()
+        {
+            return new List<string>(1) { "English" };
+        }
         public IEnumerable<uint> EnumerateStrings()
         {
             yield break;

@@ -203,6 +203,38 @@ namespace FsLocalizationPlugin
             }
         }
 
+        public List<string> GetLanguages()
+        {
+            List<string> languages = new List<string>();
+            foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("LocalizationAsset"))
+            {
+                // read master localization asset
+                dynamic localizationAsset = App.AssetManager.GetEbx(entry).RootObject;
+
+                // iterate through localized texts
+                foreach (PointerRef pointer in localizationAsset.LocalizedTexts)
+                {
+                    EbxAssetEntry textEntry = App.AssetManager.GetEbxEntry(pointer.External.FileGuid);
+                    if (textEntry == null)
+                        continue;
+
+                    // read localized text asset
+                    dynamic localizedText = App.AssetManager.GetEbx(textEntry).RootObject;
+
+                    string lang = localizedText.Language.ToString();
+                    lang = lang.Replace("LanguageFormat_", "");
+
+                    if (!languages.Contains(lang))
+                        languages.Add(lang);
+                }
+            }
+
+            if (languages.Count == 0)
+                languages.Add("English");
+
+            return languages;
+        }
+
         public IEnumerable<uint> EnumerateStrings()
         {
             foreach (uint key in strings.Keys)

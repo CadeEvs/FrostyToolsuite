@@ -122,9 +122,9 @@ namespace Frosty.Core.Windows
 
         public override void Load()
         {
-            List<string> langs = GetLocalizedLanguages();
-            Language = new CustomComboData<string, string>(langs, langs) {SelectedIndex = langs.IndexOf(Config.Get<string>("Language", "English", ConfigScope.Game))};
-            
+            List<string> langs = LocalizedStringDatabase.Current.GetLanguages();
+            Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Language", "English", ConfigScope.Game)) };
+
             AutosaveEnabled = Config.Get<bool>("AutosaveEnabled", true);
             AutosavePeriod = Config.Get<int>("AutosavePeriod", 5);
             AutosaveMaxSaves = Config.Get<int>("AutosaveMaxCount", 10);
@@ -145,7 +145,8 @@ namespace Frosty.Core.Windows
             string KeyName = "frostyproject";
             string OpenWith = Assembly.GetEntryAssembly().Location;
 
-            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName) != null) {
+            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName) != null)
+            {
                 string openCommand = (string)Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("");
                 if (openCommand.Contains(OpenWith)) defaultInstallation = true;
             }
@@ -198,7 +199,8 @@ namespace Frosty.Core.Windows
             LocalizedStringDatabase.Current.Initialize();
 
             //Create file association if enabled
-            if (defaultInstallation) {
+            if (defaultInstallation)
+            {
                 string Extension = ".fbproject";
                 string KeyName = "frostyproject";
                 string OpenWith = Assembly.GetEntryAssembly().Location;
@@ -247,37 +249,6 @@ namespace Frosty.Core.Windows
         public override bool Validate()
         {
             return true;
-        }
-
-        private List<string> GetLocalizedLanguages()
-        {
-            List<string> languages = new List<string>();
-            foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("LocalizationAsset"))
-            {
-                // read master localization asset
-                dynamic localizationAsset = App.AssetManager.GetEbx(entry).RootObject;
-
-                // iterate through localized texts
-                foreach (PointerRef pointer in localizationAsset.LocalizedTexts)
-                {
-                    EbxAssetEntry textEntry = App.AssetManager.GetEbxEntry(pointer.External.FileGuid);
-                    if (textEntry == null)
-                        continue;
-
-                    // read localized text asset
-                    dynamic localizedText = App.AssetManager.GetEbx(textEntry).RootObject;
-
-                    string lang = localizedText.Language.ToString();
-                    lang = lang.Replace("LanguageFormat_", "");
-
-                    languages.Add(lang);
-                }
-            }
-
-            if (languages.Count == 0)
-                languages.Add("English");
-
-            return languages;
         }
     }
 
@@ -388,7 +359,7 @@ namespace Frosty.Core.Windows
                 FrostyTabItem ti = new FrostyTabItem
                 {
                     Header = new OptionsDisplayNameToStringConverter().Convert(optionData, null, null, null),
-                    Content = new FrostyPropertyGrid() {Object = optionData}
+                    Content = new FrostyPropertyGrid() { Object = optionData }
                 };
                 optionsTabControl.Items.Add(ti);
             }

@@ -61,6 +61,11 @@ namespace LegacyLocalizedStringsPlugin
             }
         }
 
+        public List<string> GetLanguages()
+        {
+            return new List<string>(1) { "English" };
+        }
+
         public IEnumerable<uint> EnumerateStrings()
         {
             foreach (uint key in strings.Keys)
