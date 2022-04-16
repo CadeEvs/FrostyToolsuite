@@ -200,38 +200,41 @@ namespace Frosty.Core
             int pluginCount = 0;
 
             // now load from plugins directory
-            foreach (string pluginPath in Directory.EnumerateFiles("Plugins", "*.dll", SearchOption.AllDirectories))
+            if (Directory.Exists("Plugins"))
             {
-                FileInfo fi = new FileInfo(pluginPath);
-                string statusText = "Located plugin ";
-
-                try
+                foreach (string pluginPath in Directory.EnumerateFiles("Plugins", "*.dll", SearchOption.AllDirectories))
                 {
-                    var assembly = Assembly.LoadFile(fi.FullName);
+                    FileInfo fi = new FileInfo(pluginPath);
+                    string statusText = "Located plugin ";
 
-                    LoadDefinitionsFromAssembly(PluginLoadType.Startup, assembly);
+                    try
+                    {
+                        var assembly = Assembly.LoadFile(fi.FullName);
 
-                    var displayName = assembly.GetCustomAttribute<PluginDisplayNameAttribute>()?.DisplayName;
-                    var author = assembly.GetCustomAttribute<PluginAuthorAttribute>()?.Author;
-                    var version = assembly.GetCustomAttribute<PluginVersionAttribute>()?.Version;
+                        LoadDefinitionsFromAssembly(PluginLoadType.Startup, assembly);
 
-                    if (string.IsNullOrEmpty(displayName))
-                        displayName = fi.Name;
-                    if (string.IsNullOrEmpty(author))
-                        author = "Unknown";
-                    if (string.IsNullOrEmpty(version))
-                        version = "1.0.0.0";
+                        var displayName = assembly.GetCustomAttribute<PluginDisplayNameAttribute>()?.DisplayName;
+                        var author = assembly.GetCustomAttribute<PluginAuthorAttribute>()?.Author;
+                        var version = assembly.GetCustomAttribute<PluginVersionAttribute>()?.Version;
 
-                    statusText += displayName + " (v" + version + ") by " + author;
-                    pluginCount++;
+                        if (string.IsNullOrEmpty(displayName))
+                            displayName = fi.Name;
+                        if (string.IsNullOrEmpty(author))
+                            author = "Unknown";
+                        if (string.IsNullOrEmpty(version))
+                            version = "1.0.0.0";
 
-                    plugins.Add(new Plugin(displayName, author, version, assembly));
-                    logger.Log(statusText);
-                }
-                catch (Exception e)
-                {
-                    statusText += fi.Name + " - Failed (" + e.Message + ")";
-                    logger.Log(statusText);
+                        statusText += displayName + " (v" + version + ") by " + author;
+                        pluginCount++;
+
+                        plugins.Add(new Plugin(displayName, author, version, assembly));
+                        logger.Log(statusText);
+                    }
+                    catch (Exception e)
+                    {
+                        statusText += fi.Name + " - Failed (" + e.Message + ")";
+                        logger.Log(statusText);
+                    }
                 }
             }
 

@@ -257,7 +257,6 @@
     <Resource Include="Images\RemoveMod.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="ChangeLog.txt" />
     <Resource Include="Credits.txt" />
     <Resource Include="Images\Frosty.png" />
     <Resource Include="Images\ModImportError.png" />
