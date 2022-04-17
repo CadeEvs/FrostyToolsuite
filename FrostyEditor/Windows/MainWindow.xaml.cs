@@ -958,7 +958,7 @@ namespace FrostyEditor
                 if (assetDefinition.Import(entry, ofd.FileName, filters[ofd.FilterIndex - 1].Extension))
                 {
                     dataExplorer.RefreshItems();
-                    App.Logger.Log("Imported {0} to {1}", entry.Name, ofd.FileName);
+                    App.Logger.Log("Imported {0} into {1}", ofd.FileName, entry.Name);
                 }
             }
         }
