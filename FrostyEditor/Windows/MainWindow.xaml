@@ -915,7 +915,7 @@
                                             </Grid>
                                             <Label x:Name="BookmarkFilterInfo" FontFamily="MS Reference Sans Serif"/>
                                         </StackPanel>
-                                        <TreeView x:Name="BookmarkTreeView" Grid.Row="1" SelectedItemChanged="BookmarkTreeView_SelectedItemChanged" ItemsSource="{Binding Path=SelectedItem.Bookmarks,ElementName=BookmarkContextPicker}">
+                                        <TreeView x:Name="BookmarkTreeView" Grid.Row="1" SelectedItemChanged="BookmarkTreeView_SelectedItemChanged" ItemsSource="{Binding Path=SelectedItem.Bookmarks,ElementName=BookmarkContextPicker}" MouseDown="BookmarkTreeView_MouseDown">
                                             <TreeView.ItemContainerStyle>
                                                 <Style TargetType="{x:Type TreeViewItem}">
                                                     <Setter Property="ContextMenu" Value="{StaticResource bookmarksContextMenu}"/>
