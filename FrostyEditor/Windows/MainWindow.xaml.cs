@@ -355,6 +355,7 @@ namespace FrostyEditor
                 return;
 
             App.Logger.Log("Launching game");
+            App.NotificationManager.Show("Launching game");
 
             // setup ability to cancel the process
             CancellationTokenSource cancelToken = new CancellationTokenSource();
@@ -420,6 +421,7 @@ namespace FrostyEditor
             {
                 // process was cancelled
                 App.Logger.Log("Launch cancelled");
+                App.NotificationManager.Show("Launch cancelled");
             }
 
             // remove editor mod
@@ -428,7 +430,8 @@ namespace FrostyEditor
                 editorMod.Delete();
 
             launchButton.IsEnabled = true;
-            App.Logger.Log("Done");
+            App.Logger.Log("Launch complete");
+            App.NotificationManager.Show("Launch complete");
         }
 
         private void unimplementedMenuItem_Click(object sender, RoutedEventArgs e)
@@ -475,6 +478,7 @@ namespace FrostyEditor
             project = new FrostyProject();
 
             App.Logger.Log("New project started");
+            App.NotificationManager.Show("New project started");
 
             UpdateWindowTitle();
             UpdateDiscordState();
@@ -574,6 +578,8 @@ namespace FrostyEditor
                 {
                     // failed to load for whatever reason
                     App.Logger.LogWarning("Failed to load {0}", filename);
+                    App.NotificationManager.Show("Failed to load project");
+
                     newProject = null;
                 }
             });
@@ -592,6 +598,7 @@ namespace FrostyEditor
 
                 // report success
                 App.Logger.Log("Loaded {0}", project.Filename);
+                App.NotificationManager.Show($"Loaded {project.Filename}");
 
                 UpdateWindowTitle();
                 UpdateDiscordState();

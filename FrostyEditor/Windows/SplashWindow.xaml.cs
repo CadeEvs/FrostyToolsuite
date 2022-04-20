@@ -164,6 +164,7 @@ namespace FrostyEditor.Windows
             win.Show();
 
             App.Logger.Log("Initialization complete");
+            App.NotificationManager.Show("Initialization complete");
 
             Close();
 

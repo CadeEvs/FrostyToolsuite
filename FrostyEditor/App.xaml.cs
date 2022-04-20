@@ -10,6 +10,7 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using Frosty.Core;
 using Frosty.Core.Controls;
+using Frosty.Core.Managers;
 using FrostyCore;
 using System.Text;
 using System.Linq;
@@ -28,6 +29,8 @@ namespace FrostyEditor
         public static ResourceManager ResourceManager { get => Frosty.Core.App.ResourceManager; set => Frosty.Core.App.ResourceManager = value; }
         public static FileSystem FileSystem { get => Frosty.Core.App.FileSystem; set => Frosty.Core.App.FileSystem = value; }
         public static PluginManager PluginManager { get => Frosty.Core.App.PluginManager; set => Frosty.Core.App.PluginManager = value; }
+        public static NotificationManager NotificationManager { get => Frosty.Core.App.NotificationManager; set => Frosty.Core.App.NotificationManager = value; }
+
         public static EbxAssetEntry SelectedAsset { get => Frosty.Core.App.SelectedAsset; set => Frosty.Core.App.SelectedAsset = value; }
         public static ILogger Logger { get => Frosty.Core.App.Logger; set => Frosty.Core.App.Logger = value; }
 
@@ -63,6 +66,8 @@ namespace FrostyEditor
             TypeLibrary.Initialize();
             PluginManager = new PluginManager(App.Logger, PluginManagerType.Editor);
             ProfilesLibrary.Initialize(PluginManager.Profiles);
+
+            NotificationManager = new NotificationManager();
 
             // for displaying exception box on all unhandled exceptions
             DispatcherUnhandledException += App_DispatcherUnhandledException;

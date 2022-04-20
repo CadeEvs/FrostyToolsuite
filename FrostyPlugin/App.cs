@@ -1,4 +1,5 @@
 ﻿using Frosty.Core.Interfaces;
+using Frosty.Core.Managers;
 using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
@@ -9,10 +10,13 @@ namespace Frosty.Core
 {
     public sealed class App
     {
+        // managers
         public static AssetManager AssetManager;
         public static ResourceManager ResourceManager;
         public static FileSystem FileSystem;
         public static PluginManager PluginManager;
+        public static NotificationManager NotificationManager;
+
         public static EbxAssetEntry SelectedAsset;
         public static string SelectedProfile;
         public static string SelectedPack;
