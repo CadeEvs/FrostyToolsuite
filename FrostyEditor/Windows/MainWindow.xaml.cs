@@ -1374,5 +1374,10 @@ namespace FrostyEditor
         {
             RemoveAllTabs();
         }
+
+        private void BookmarkTreeView_MouseDown(object sender, MouseButtonEventArgs e) {
+            TreeViewItem treeItem = (TreeViewItem)BookmarkTreeView.ItemContainerGenerator.ContainerFromItem(BookmarkTreeView.SelectedItem);
+            if (treeItem != null) treeItem.IsSelected = false;
+        }
     }
 }
