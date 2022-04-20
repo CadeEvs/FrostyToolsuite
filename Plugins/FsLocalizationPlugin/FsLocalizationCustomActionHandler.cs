@@ -97,7 +97,7 @@ namespace FsLocalizationPlugin
             ChunkAssetEntry newChunkEntry = new ChunkAssetEntry();
 
             byte[] buf2 = NativeReader.ReadInStream(am.GetChunk(HistogramEntry));
-            List<ushort> values = ModifyHistogram(buf2, modFs);
+            List<char> values = ModifyHistogram(buf2, modFs);
 
             byte[] buf = NativeReader.ReadInStream(am.GetChunk(chunkEntry));
             buf = ModifyChunk(buf, modFs, values);
@@ -127,9 +127,9 @@ namespace FsLocalizationPlugin
         }
 
         #endregion
-        private List<ushort> ModifyHistogram(byte[] histogramData, ModifiedFsLocalizationAsset modifiedData)
+        private List<char> ModifyHistogram(byte[] histogramData, ModifiedFsLocalizationAsset modifiedData)
         {
-            List<ushort> values = new List<ushort>();
+            List<char> values = new List<char>();
             using (NativeReader reader = new NativeReader(new MemoryStream(histogramData)))
             {
                 uint unk = reader.ReadUInt();
@@ -137,7 +137,7 @@ namespace FsLocalizationPlugin
                 uint unk2 = reader.ReadUInt();
 
                 for (int i = 0; i < (size / 2); i++)
-                    values.Add(reader.ReadUShort());
+                    values.Add(reader.ReadWideChar());
             }
             //using (NativeWriter chkwriter = new NativeWriter(new FileStream("D:\\Document\\Frosty Editor Alpha 4\\Exported.txt", FileMode.Create), false, true))
             //{
@@ -149,14 +149,7 @@ namespace FsLocalizationPlugin
             return values;
         }
 
-        public bool ContainsUnicodeCharacter(string input)
-        {
-            const int MaxAnsiCode = 255;
-
-            return input.Any(c => c > MaxAnsiCode);
-        }
-
-        public List<byte> GetShifts(List<ushort> Values)
+        public List<byte> GetShifts(List<char> Values)
         {
             List<byte> retVals = new List<byte>();
             for (int i = 0x1FE; i >= 0x80; i--)
@@ -168,18 +161,13 @@ namespace FsLocalizationPlugin
             return retVals;
         }
 
-        public int GetUnicodeCharacter(List<ushort> Values, char unicode)
+        private byte[] ModifyChunk(byte[] chunkData, ModifiedFsLocalizationAsset modifiedData, List<char> values)
         {
-            for (int i = 0; i < Values.Count; i++)
-            {
-                if (Values[i] == unicode)
-                    return i;
-            }
-            return -1;
-        }
+            string tag = null;
+            List<uint> ids = null;
+            List<uint> offsets = null;
+            Dictionary<uint, string> strings = new Dictionary<uint, string>();
 
-        private byte[] ModifyChunk(byte[] chunkData, ModifiedFsLocalizationAsset modifiedData, List<ushort> values)
-        {
             using (NativeReader reader = new NativeReader(new MemoryStream(chunkData)))
             {
                 uint magic = reader.ReadUInt();
@@ -187,234 +175,114 @@ namespace FsLocalizationPlugin
                     throw new InvalidDataException();
 
                 uint size = reader.ReadUInt();
-                uint unk = reader.ReadUInt();
+                int count = reader.ReadInt();
                 uint dataOffset = reader.ReadUInt();
                 uint stringsOffset = reader.ReadUInt();
-                string tag = reader.ReadNullTerminatedString();
+                tag = reader.ReadNullTerminatedString();
 
                 reader.Position = dataOffset + 8;
 
-                List<uint> ids = new List<uint>();
-                List<uint> offsets = new List<uint>();
-                Dictionary<uint, byte[]> strings = new Dictionary<uint, byte[]>();
+                ids = new List<uint>(count);
+                offsets = new List<uint>(count);
 
-                while (reader.Position != stringsOffset + 8)
+                for (int i = 0; i < count; i++)
                 {
                     ids.Add(reader.ReadUInt());
+                    if (!strings.ContainsKey(ids[i]))
+                        strings.Add(ids[i], null);
                     offsets.Add(reader.ReadUInt());
                 }
 
-                for (int i = 0; i < ids.Count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     reader.Position = stringsOffset + offsets[i] + 8;
-                    int strLength = reader.ReadNullTerminatedString().Length;
-                    reader.Position = stringsOffset + offsets[i] + 8;
-                    byte[] Bytes = reader.ReadBytes(strLength + 1);
+                    strings[ids[i]] = reader.ReadNullTerminatedString();
 
-                    if (!strings.ContainsKey(ids[i]))
-                    {
-                        strings.Add(ids[i], Bytes);
-                    }
                 }
+            }
 
-                foreach (uint key in modifiedData.EnumerateStrings())
+            foreach (uint key in modifiedData.EnumerateStrings())
+            {
+                string str = modifiedData.GetString(key);
+                StringBuilder sb = new StringBuilder();
+                for (int j = 0; j < str.Length; j++)
                 {
-                    string str = modifiedData.GetString(key);
-                    using (NativeWriter writer = new NativeWriter(new MemoryStream()))
-                    {
-                        for (int j = 0; j < str.Length; j++)
-                        {
-                            char b = (char)str[j];
+                    char b = str[j];
 
-                            if (b < 0x80)
-                                writer.Write((byte)b);
-                            else
+                    if (b < 0x80)
+                        sb.Append(b);
+                    else
+                    {
+                        int index = values.FindIndex((char a) => { return a.Equals(b); });
+                        if (index == -1)
+                        {
+                            App.Logger.LogWarning("Character not supported: " + b + " from string: " + str);
+                            /*throw new Exception("Character not supported: " + b + " from string: " + str);*/
+                            continue;
+                        }
+
+                        if (index <= 0xFF)
+                            sb.Append((char)((byte)index));
+                        else
+                        {
+                            List<byte> list = GetShifts(values);
+                            foreach (byte shift in list)
                             {
-                                int index = GetUnicodeCharacter(values, b);
-                                if (index == -1)
-                                    throw new Exception("Character not supported");
-                                if (index <= 0xFF)
-                                    writer.Write((byte)index);
-                                else
+                                if ((index - (values[shift] << 7)) < 0x80)
                                 {
-                                    List<byte> list = GetShifts(values);
-                                    foreach (byte shift in list)
-                                    {
-                                        if ((index - (values[shift] << 7)) < 0x80)
-                                        {
-                                            writer.Write(shift);
-                                            writer.Write((byte)(index - (values[shift] << 7) + 0x80));
-                                            break;
-                                        }
-                                    }
+                                    sb.Append((char)shift);
+                                    sb.Append((char)((byte)(index - (values[shift] << 7) + 0x80)));
+                                    break;
                                 }
                             }
                         }
-                        writer.Write((byte)0x00);
-
-                        if (!ids.Contains(key))
-                        {
-                            ids.Add(key);
-                            strings.Add(key, writer.ToByteArray());
-                        }
-                        else
-                            strings[key] = writer.ToByteArray();
                     }
                 }
-
-                ids.Sort();
-                offsets.Clear();
-
-                long stringsSize = 0;
-                stringsOffset = 0;
-                size = 0;
-
-                byte[] stringData;
-                using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+                if (!ids.Contains(key))
                 {
-                    for (int i = 0; i < ids.Count; i++)
-                    {
-                        offsets.Add((uint)writer.BaseStream.Position);
-                        stringsSize += strings[ids[i]].Length / 2 + 1;
-                        writer.Write(strings[ids[i]]);
-                        //if (i < 10)
-                        //{
-                        //    App.Logger.Log(stringsSize.ToString());
-                        //    App.Logger.Log(writer.BaseStream.Position.ToString());
-                        //    App.Logger.Log("\n\n");
-                        //}
-                        //writer.WriteNullTerminatedString(strings[ids[i]]);
-                    }
-                    stringData = writer.ToByteArray();
+                    ids.Add(key);
+                    strings.Add(key, sb.ToString());
                 }
-                using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+                else
+                    strings[key] = sb.ToString();
+            }
+
+            ids.Sort();
+            offsets.Clear();
+
+            byte[] stringData = null;
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                for (int i = 0; i < ids.Count; i++)
                 {
-                    stringsOffset = (uint)(0x8C + (8 * ids.Count));
-                    size = (uint)(0x8C + (8 * ids.Count) + stringsSize);
-
-                    writer.Write(0x00039000);
-                    writer.Write(size); // size
-                    writer.Write(ids.Count);
-                    writer.Write(0x8C); // dataOffset
-                    writer.Write(stringsOffset); // stringOffset
-                    writer.WriteNullTerminatedString(tag);
-                    for (int i = 0; i < 0x79; i++)
-                        writer.Write((byte)0x00);
-
-                    for (int i = 0; i < ids.Count; i++)
-                    {
-                        writer.Write(ids[i]);
-                        writer.Write(offsets[i]);
-                    }
-
-                    writer.Write(stringData);
-                    //writer.ToByteArray();
-                    //using (NativeWriter chkwriter = new NativeWriter(new FileStream("D:\\Document\\Frosty Editor Alpha 4\\Exported.chunk", FileMode.Create), false, true))
-                    //{
-                    //    chkwriter.Write(writer.ToByteArray());
-                    //}
-                    return writer.ToByteArray();
+                    offsets.Add((uint)writer.Position);
+                    writer.WriteNullTerminatedString(strings[ids[i]]);
                 }
-                //Dictionary<uint, string> strings = new Dictionary<uint, string>();
+                stringData = writer.ToByteArray();
+            }
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.Write(0x00039000);
+                writer.Write(0xdeadbeef); // size
+                writer.Write(ids.Count);
+                writer.Write(0x8C); // dataOffset
+                writer.Write((uint)(0x8C + (8 * ids.Count))); // stringOffset
+                writer.WriteNullTerminatedString(tag);
+                while (writer.Position < 0x8C + 8)
+                    writer.Write((byte)0x00);
 
-                //while (reader.Position != stringsOffset + 8)
-                //{
-                //    ids.Add(reader.ReadUInt());
-                //    offsets.Add(reader.ReadUInt());
-                //}
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    writer.Write(ids[i]);
+                    writer.Write(offsets[i]);
+                }
 
-                //for (int i = 0; i < ids.Count; i++)
-                //{
-                //    reader.Position = stringsOffset + offsets[i] + 8;
+                writer.Write(stringData);
+                uint size = (uint)(writer.Position - 8);
+                writer.Position = 4;
+                writer.Write(size);
 
-                //    string str = reader.ReadNullTerminatedString();
-                //    string dstStr = "";
-
-                //    for (int j = 0; j < str.Length; j++)
-                //    {
-                //        byte b = (byte)str[j];
-
-                //        if (b < 0x80)
-                //            dstStr += (char)b;
-                //        else
-                //        {
-                //            ushort tmp = values[b];
-                //            if (tmp >= 0x80)
-                //                dstStr += (char)tmp;
-                //            else
-                //            {
-                //                b = (byte)str[++j];
-                //                if (b >= 0x80)
-                //                {
-                //                    b -= 0x80;
-                //                    dstStr += (char)values[(b + (tmp << 7))];
-                //                }
-                //            }
-                //        }
-                //    }
-
-                //    if (!strings.ContainsKey(ids[i]))
-                //    {
-                //        strings.Add(ids[i], dstStr);
-                //    }
-                //}
-
-                //foreach (uint key in modifiedData.EnumerateStrings())
-                //{
-                //    if (!ids.Contains(key))
-                //    {
-                //        ids.Add(key);
-                //        strings.Add(key, modifiedData.GetString(key));
-                //    }
-                //    else
-                //    {
-                //        strings[key] = modifiedData.GetString(key);
-                //    }
-                //}
-
-                //ids.Sort();
-                //offsets.Clear();
-
-                //long stringsSize = 0;
-                //stringsOffset = 0;
-                //size = 0;
-
-                //byte[] stringData;
-                //using (NativeWriter writer = new NativeWriter(new MemoryStream()))
-                //{
-                //    for (int i = 0; i < ids.Count; i++)
-                //    {
-                //        offsets.Add((uint)writer.BaseStream.Position);
-                //        stringsSize += strings[ids[i]].Length + 1;
-
-                //        writer.WriteNullTerminatedString(strings[ids[i]]);
-                //    }
-                //    stringData = writer.ToByteArray();
-                //}
-                //using (NativeWriter writer = new NativeWriter(new MemoryStream()))
-                //{
-                //    stringsOffset = (uint)(0x8C + (8 * ids.Count));
-                //    size = (uint)(0x8C + (8 * ids.Count) + stringsSize);
-
-                //    writer.Write(0x00039000);
-                //    writer.Write(size); // size
-                //    writer.Write(ids.Count);
-                //    writer.Write(0x8C); // dataOffset
-                //    writer.Write(stringsOffset); // stringOffset
-                //    writer.WriteNullTerminatedString(tag);
-                //    for (int i = 0; i < 0x79; i++)
-                //        writer.Write((byte)0x00);
-
-                //    for (int i = 0; i < ids.Count; i++)
-                //    {
-                //        writer.Write(ids[i]);
-                //        writer.Write(offsets[i]);
-                //    }
-
-                //    writer.Write(stringData);
-
-                //    return writer.ToByteArray();
-                //}
+                return writer.ToByteArray();
             }
         }
     }
