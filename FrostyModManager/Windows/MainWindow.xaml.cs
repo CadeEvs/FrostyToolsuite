@@ -496,8 +496,7 @@ namespace FrostyModManager
                 string newPackName = win.ProfileName;
                 var oldPack = selectedPack;
 
-                FrostyPack existingPack = packs.Find((FrostyPack a) =>
-                {
+                FrostyPack existingPack = packs.Find((FrostyPack a) => {
                     return a.Name.CompareTo(newPackName) == 0;
                 });
 
