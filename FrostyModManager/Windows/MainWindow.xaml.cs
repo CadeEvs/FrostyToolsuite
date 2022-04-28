@@ -1279,6 +1279,12 @@ namespace FrostyModManager
             win.ShowDialog();
         }
 
+        private void modDataMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ManageModDataWindow win = new ManageModDataWindow();
+            win.ShowDialog();
+        }
+
         private void appliedModsList_SelectionChanged(object sender, SelectionChangedEventArgs e) => updateAppliedModButtons();
 
         private void updateAppliedModButtons()

@@ -99,6 +99,7 @@
                     <MenuItem x:Name="exitMenuItem" Header="Exit" Click="exitMenuItem_Click"/>
                 </MenuItem>
                 <MenuItem x:Name="toolsMenuItem" Header="Tools" Height="22">
+                    <MenuItem x:Name="manageModData" Header="Manage ModData" Click="modDataMenuItem_Click"/>
                 </MenuItem>
                 <MenuItem Header="Help" Height="22">
                     <MenuItem x:Name="aboutMenuItem" Header="About Frosty Mod Manager" Click="aboutMenuItem_Click"/>

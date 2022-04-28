@@ -1,0 +1,42 @@
+﻿<!--
+    ManageModDataWindow
+    Author: Clonedelta
+-->
+<ctrl:FrostyDockableWindow x:Class="FrostyModManager.ManageModDataWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FrostyModManager"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        mc:Ignorable="d"
+        Title="Manage ModData" Height="250" Width="300"
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+    <Grid Background="{StaticResource ListBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="30"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Vertical" Margin="4,7,4,4">
+            <TextBlock Grid.Column="0" Text="ModData Path:" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Margin="2,1"/>
+            <TextBox IsReadOnly="True" Grid.Column="1" x:Name="modDataNameTextBox" BorderThickness="1" VerticalContentAlignment="Center" Height="22"/>
+            <TextBlock Text="Pack's ModData to Delete:" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" VerticalAlignment="Center" Height="16" Margin="0,15,0,5"/>
+            <ComboBox x:Name="modDataComboBox" SelectedIndex="0" SelectedValuePath="Content" Height = "25" Width = "150" Margin = "0,0,0,20" VerticalContentAlignment="Center" >
+                <ComboBoxItem Content = "-- Select a Pack --"/>
+                <ComboBoxItem Content = "All ModData"/>
+            </ComboBox>
+            <Button Content="Delete Selected ModData Folder" HorizontalAlignment="center" Padding="10,2,10,2" Click="deleteModDataButton_Click"/>
+            <TextBlock x:Name="outputText" Foreground="{StaticResource FontColor}" HorizontalAlignment="Center" VerticalAlignment="top" Height="35"/>
+
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0" x:Name="closeButton" Content="Close" Width="50" Height="22" HorizontalAlignment="Left" Click="closeButton_Click"/>
+        </Grid>
+    </Grid>
+</ctrl:FrostyDockableWindow>
