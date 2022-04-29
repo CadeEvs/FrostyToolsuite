@@ -45,7 +45,7 @@ namespace TexturePlugin
                     Texture texture = App.AssetManager.GetResAs<Texture>(resEntry);
 
                     TextureExporter exporter = new TextureExporter();
-                    exporter.Export(texture, path, filterType);
+                    exporter.Export(texture, path, "*." + filterType);
                     return true;
                 }
             }
