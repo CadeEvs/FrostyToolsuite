@@ -256,7 +256,7 @@ namespace FsLocalizationPlugin
                 for (int i = 0; i < ids.Count; i++)
                 {
                     offsets.Add((uint)writer.Position);
-                    writer.WriteNullTerminatedString(strings[ids[i]]);
+                    writer.WriteNullTerminatedOneBytePerCharString(strings[ids[i]]);
                 }
                 stringData = writer.ToByteArray();
             }
@@ -284,6 +284,18 @@ namespace FsLocalizationPlugin
 
                 return writer.ToByteArray();
             }
+        }
+    }
+
+    public static class WriterStringExtension
+    {
+        public static void WriteNullTerminatedOneBytePerCharString(this NativeWriter writer, string str)
+        {
+            for (int i = 0; i < str.Length; i++)
+            {
+                writer.Write((byte)str[i]);
+            }
+            writer.Write((byte)0x00);
         }
     }
 }
