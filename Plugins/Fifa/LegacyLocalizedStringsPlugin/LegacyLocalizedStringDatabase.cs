@@ -63,7 +63,46 @@ namespace LegacyLocalizedStringsPlugin
 
         public List<string> GetLanguages()
         {
-            return new List<string>(1) { "English" };
+            Dictionary<string, string> languages = new Dictionary<string, string>()
+            {
+                { "eng_us", "English" },
+                { "fre_fr", "French" },
+                { "ita_it", "Italian" },
+                { "ger_de", "German" },
+                { "spa_es", "Spanish" },
+                { "por_pt", "Portuguese" },
+                { "jpn_jp", "Japanese" },
+                { "cze_cz", "Czech" },
+                { "chi_hk", "TraditionalChinese" },
+                { "tur_tr", "Turkish" },
+                { "pol_pl", "Polish" },
+                { "rus_ru", "Russian" },
+                { "nor_no", "Norwegian" },
+                { "dut_nl", "Dutch" },
+                { "por_bz", "BrazilianPortuguese" },
+                { "swe_se", "Swedish" },
+                { "spa_mx", "SpanishMex" },
+                { "dan_dk", "Danish" },
+                { "ara_sa", "ArabicSA" },
+                { "chs_cn", "SimplifiedChinese" },
+            };
+
+            List<string> retValues = new List<string>();
+            
+            foreach (var entry in App.AssetManager.EnumerateCustomAssets("legacy"))
+            {
+                if (entry.Name.StartsWith("data/loc/"))
+                {
+                    string language = languages[entry.Name.Substring(entry.Name.LastIndexOf("/") + 1, 6)];
+                    if (!retValues.Contains(language))
+                        retValues.Add(language);
+                }
+            }
+
+            if (retValues.Count == 0)
+                retValues.Add("English");
+            
+            return retValues;
         }
 
         public IEnumerable<uint> EnumerateStrings()
