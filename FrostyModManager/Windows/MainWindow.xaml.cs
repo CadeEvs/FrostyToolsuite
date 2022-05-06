@@ -672,8 +672,6 @@ namespace FrostyModManager
 
                 // remove from hdd
                 File.Delete(fi.FullName);
-                foreach (string path in Directory.EnumerateFiles(fi.DirectoryName, fi.Name.Replace(".fbmod", "*")))
-                    File.Delete(path);
             }
 
             availableModsList.SelectedItem = null;
