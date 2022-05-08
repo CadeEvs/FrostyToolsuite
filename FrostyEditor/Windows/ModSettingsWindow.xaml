@@ -8,6 +8,16 @@
         mc:Ignorable="d"
         Title="Export Mod" Height="530" Width="600"
         ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
+
+    <Window.Resources>
+        <Style x:Key="TextBoxValidate" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBoxBase}}">
+            <Style.Triggers>
+                <Trigger Property="Text" Value="">
+                    <Setter Property="BorderBrush" Value="Red"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     
     <Grid Background="{StaticResource WindowBackground}">
         <Grid.RowDefinitions>
@@ -17,25 +27,19 @@
 
         <Grid Background="{StaticResource ListBackground}">
             <DockPanel LastChildFill="True">
-                <Grid Margin="5" DockPanel.Dock="Top">
-                    <Label Content="Please fill out each of the following sections. Only the first section is mandatory." FontFamily="Global User Interface" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="14"/>
-                </Grid>
-                
-                <Border DockPanel.Dock="Top" Background="{StaticResource ControlBackground}" Height="2"/>
-                
                 <Grid DockPanel.Dock="Top" Margin="5">
                     <StackPanel>
                         <DockPanel LastChildFill="True">
                             <Label Content="Title " FontFamily="Global User Interface" Width="75"/>
-                            <TextBox x:Name="modTitleTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
+                            <TextBox x:Name="modTitleTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
                         </DockPanel>
                         <DockPanel LastChildFill="True">
                             <Label Content="Author " FontFamily="Global User Interface" Width="75"/>
-                            <TextBox x:Name="modAuthorTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
+                            <TextBox x:Name="modAuthorTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
                         </DockPanel>
                         <DockPanel LastChildFill="True">
                             <Label Content="Version " FontFamily="Global User Interface" Width="75"/>
-                            <TextBox Grid.Column="1" x:Name="modVersionTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
+                            <TextBox Grid.Column="1" x:Name="modVersionTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
                         </DockPanel>
                         <DockPanel LastChildFill="True">
                             <Label Content="Category " FontFamily="Global User Interface" Width="75"/>
@@ -46,7 +50,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <ComboBox Grid.Column="0" x:Name="modCategoryComboBox" Margin="1,1,0,1" SelectionChanged="modCategoryComboBox_SelectionChanged"/>
-                                <TextBox Grid.Column="1" x:Name="modCategoryTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
+                                <TextBox Grid.Column="1" x:Name="modCategoryTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
                             </Grid>
                         </DockPanel>
                     </StackPanel>
