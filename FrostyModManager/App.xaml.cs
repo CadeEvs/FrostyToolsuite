@@ -260,15 +260,19 @@ namespace FrostyModManager
                     var result = version.CompareTo(latestVersion);
                     if (result <= 0) {
                         if ((releaseLatestType < releaseLocalType) || (releaseLatestType == releaseLocalType && prereleaseLatestVersion > prereleaseLocalVersion) || (releaseLatestType == 0 && releaseLocalType == 0)) {
-                            MessageBoxResult mbResult = MessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Editor", MessageBoxButton.YesNo);
-                            if (mbResult == MessageBoxResult.Yes)
-                                System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                            System.Threading.Tasks.Task.Run(() => {
+                                MessageBoxResult mbResult = FrostyMessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Mod Manager", MessageBoxButton.YesNo);
+                                if (mbResult == MessageBoxResult.Yes)
+                                    System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                            });
                         }
                     }
                 }
             }
             catch (Exception e) {
-                FrostyMessageBox.Show(e.Message, "Frosty Editor", MessageBoxButton.OK);
+                System.Threading.Tasks.Task.Run(() => {
+                    FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Mod Manager", MessageBoxButton.OK);
+                });
             }
         }
     }
