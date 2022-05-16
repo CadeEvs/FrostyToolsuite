@@ -104,23 +104,6 @@ namespace FrostyModManager
             return null;
         }
 
-        //private void RefreshConfigurationList()
-        //{
-        //    configs.Clear();
-        //    foreach (string s in Directory.EnumerateFiles("./", "FrostyModManager*.ini"))
-        //    {
-        //        try
-        //        {
-        //            FrostyConfiguration config = new FrostyConfiguration(s);
-        //            configs.Add(config);
-        //        }
-        //        catch (Exception /*ex*/)
-        //        {
-        //            //FrostyMessageBox.Show("Couldn't load profile from '" + s + "': \n\n" + ex.ToString());
-        //        }
-        //    }
-        //}
-
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (!File.Exists($"{Frosty.Core.App.GlobalSettingsPath}/manager_config.json"))
@@ -130,6 +113,9 @@ namespace FrostyModManager
 
             Config.Load();
             //ini.LoadEntries("DefaultSettings.ini");
+
+            if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
+                CheckVersion();
 
             //string defaultConfigname = ini.GetEntry("Init", "DefaultConfiguration", "");
 
@@ -205,6 +191,33 @@ namespace FrostyModManager
             }
 
             LaunchArgs = sb.ToString().Trim();
+        }
+
+        private void CheckVersion() {
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+            Version localVersion = Assembly.GetEntryAssembly().GetName().Version;
+
+            try
+            {
+                if (UpdateChecker.CheckVersion(checkPrerelease, localVersion))
+                {
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        MessageBoxResult mbResult = FrostyMessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Mod Manager", MessageBoxButton.YesNo);
+                        if (mbResult == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                        }
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Mod Manager", MessageBoxButton.OK);
+                });
+            }
         }
     }
 }
