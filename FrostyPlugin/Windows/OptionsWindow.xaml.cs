@@ -118,7 +118,7 @@ namespace Frosty.Core.Windows
         [DisplayName("Check for Prerelease Updates")]
         [Description("Check Github for Frosty Alpha and Beta updates on startup")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
-        public bool updateCheckPrerelease { get; set; } = true;
+        public bool updateCheckPrerelease { get; set; } = false;
 
         public override void Load()
         {
@@ -139,7 +139,7 @@ namespace Frosty.Core.Windows
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
 
             updateCheck = Config.Get<bool>("UpdateCheck", true);
-            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
             //Checks the registry for the current association instead of loading from config
             string KeyName = "frostyproject";
