@@ -285,11 +285,6 @@ namespace FrostyEditor
         {
             (App.Logger as FrostyLogger).AddBinding(tb, TextBox.TextProperty);
 
-            LoadProfile("starwarsbattlefrontii");
-
-            dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
-            legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
-
             DirectoryInfo di = new DirectoryInfo("Mods/" + ProfilesLibrary.ProfileName);
             if (!di.Exists)
                 Directory.CreateDirectory(di.FullName);
@@ -311,23 +306,6 @@ namespace FrostyEditor
             if (App.OpenProject) {
                 LoadProject(App.LaunchArgs, false);
             }
-        }
-
-        private void LoadProfile(string profile)
-        {
-            // load profiles
-            if (!ProfilesLibrary.Initialize(profile))
-            {
-                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-                Close();
-                return;
-            }
-
-            App.InitDiscordRPC();
-            App.UpdateDiscordRPC("Initializing");
-
-            // launch splash
-            FrostyProfileTaskWindow.Show(this);
         }
 
         private void logTextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -576,7 +554,6 @@ namespace FrostyEditor
             RemoveAllTabs();
 
             FrostyProject newProject = null;
-            FrostyTaskWindow.Show("Loading Project", "", (task) =>
             {
                 if (saveProject)
                 {
@@ -584,10 +561,11 @@ namespace FrostyEditor
                     App.Logger.Log("Project saved to {0}", project.Filename);
                 }
 
-                task.Update(filename);
-
                 // clear all modifications
-                App.AssetManager.Reset();
+                if (App.AssetManager != null)
+                {
+                    App.AssetManager.Reset();
+                }
 
                 // load project
                 newProject = new FrostyProject();
@@ -599,19 +577,28 @@ namespace FrostyEditor
 
                     newProject = null;
                 }
-            });
+            }
 
             if (newProject != null)
             {
                 project = newProject;
 
-                dataExplorer.ShowOnlyModified = false;
-                dataExplorer.ShowOnlyModified = true;
-                dataExplorer.RefreshItems();
+                if (project.RequiresNewProfile)
+                {
+                    dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
+                    legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
+                }
+                else
+                {
+                    dataExplorer.ShowOnlyModified = false;
+                    dataExplorer.ShowOnlyModified = true;
+                    dataExplorer.RefreshItems();
 
-                legacyExplorer.ShowOnlyModified = false;
-                legacyExplorer.ShowOnlyModified = true;
-                legacyExplorer.RefreshItems();
+                    legacyExplorer.ShowOnlyModified = false;
+                    legacyExplorer.ShowOnlyModified = true;
+                    legacyExplorer.RefreshItems();
+                }
+
 
                 // report success
                 App.Logger.Log("Loaded {0}", project.Filename);

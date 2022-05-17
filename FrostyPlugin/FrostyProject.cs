@@ -9,6 +9,9 @@ using FrostySdk.Resources;
 using Frosty.Core.Handlers;
 using Frosty.Core.Mod;
 using Frosty.Core.IO;
+using Frosty.Controls;
+using Frosty.Core.Windows;
+using System.Windows;
 
 namespace Frosty.Core
 {
@@ -56,7 +59,17 @@ namespace Frosty.Core
             get => filename;
             set => filename = value;
         }
-        public bool IsDirty => App.AssetManager.GetDirtyCount() != 0 || modSettings.IsDirty;
+        public string Profile
+        {
+            get => gameProfile;
+            set => gameProfile = value;
+        }
+        public bool RequiresNewProfile
+        {
+            get => requiresNewProfile;
+            set => requiresNewProfile = value;
+        }
+        public bool IsDirty => App.AssetManager != null ? App.AssetManager.GetDirtyCount() != 0 || modSettings.IsDirty : false;
 
         public ModSettings ModSettings => modSettings;
 
@@ -64,6 +77,9 @@ namespace Frosty.Core
         private DateTime creationDate;
         private DateTime modifiedDate;
         private uint gameVersion;
+
+        private string gameProfile;
+        private bool requiresNewProfile;
 
         // mod export settings
         private ModSettings modSettings;
@@ -76,6 +92,22 @@ namespace Frosty.Core
             gameVersion = 0;
             modSettings = new ModSettings { Author = Config.Get("ModAuthor", "") };
             modSettings.ClearDirtyFlag();
+        }
+
+        public void LoadProfile(string profile)
+        {
+            // load profiles
+            if (!ProfilesLibrary.Initialize(profile))
+            {
+                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Core");
+                return;
+            }
+
+            //App.InitDiscordRPC();
+            //App.UpdateDiscordRPC("Initializing");
+
+            // open profile task window
+            FrostyProfileTaskWindow.Show(Application.Current.MainWindow);
         }
 
         public bool Load(string inFilename)
@@ -563,411 +595,429 @@ namespace Frosty.Core
             if (version < 9)
                 return false;
 
-            string gameProfile = reader.ReadNullTerminatedString();
-            if (gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
-                return false;
+            gameProfile = reader.ReadNullTerminatedString();
 
-            Dictionary<int, AssetEntry> h32map = new Dictionary<int, AssetEntry>();
-
-            creationDate = new DateTime(reader.ReadLong());
-            modifiedDate = new DateTime(reader.ReadLong());
-            gameVersion = reader.ReadUInt();
-
-            modSettings.Title = reader.ReadNullTerminatedString();
-            modSettings.Author = reader.ReadNullTerminatedString();
-            modSettings.Category = reader.ReadNullTerminatedString();
-            modSettings.Version = reader.ReadNullTerminatedString();
-            modSettings.Description = reader.ReadNullTerminatedString();
-
-            int size = reader.ReadInt();
-            if (size > 0)
-                modSettings.Icon = reader.ReadBytes(size);
-
-            for (int i = 0; i < 4; i++)
+            // load profile if one isn't already loaded or if it doesn't match the last project profile
+            if (ProfilesLibrary.Profile == null || gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
             {
-                size = reader.ReadInt();
+                // clear out all global managers
+                Frosty.Core.App.AssetManager = null;
+                Frosty.Core.App.ResourceManager = null;
+                Frosty.Core.App.FileSystem = null;
+
+                Frosty.Core.App.PluginManager.Clear();
+                GC.Collect();
+
+                requiresNewProfile = true;
+                LoadProfile(gameProfile);
+            }
+
+            FrostyTaskWindow.Show("Loading Project", "", (task) =>
+            {
+                task.Update(filename);
+
+                Dictionary<int, AssetEntry> h32map = new Dictionary<int, AssetEntry>();
+
+                creationDate = new DateTime(reader.ReadLong());
+                modifiedDate = new DateTime(reader.ReadLong());
+                gameVersion = reader.ReadUInt();
+
+                modSettings.Title = reader.ReadNullTerminatedString();
+                modSettings.Author = reader.ReadNullTerminatedString();
+                modSettings.Category = reader.ReadNullTerminatedString();
+                modSettings.Version = reader.ReadNullTerminatedString();
+                modSettings.Description = reader.ReadNullTerminatedString();
+
+                int size = reader.ReadInt();
                 if (size > 0)
-                    modSettings.SetScreenshot(i, reader.ReadBytes(size));
-            }
+                    modSettings.Icon = reader.ReadBytes(size);
 
-            modSettings.ClearDirtyFlag();
-
-            // -----------------------------------------------------------------------------
-            // added data
-            // -----------------------------------------------------------------------------
-
-            // superbundles
-            int numItems = reader.ReadInt();
-
-            // bundles
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                string name = reader.ReadNullTerminatedString();
-                string sbName = reader.ReadNullTerminatedString();
-                BundleType type = (BundleType)reader.ReadInt();
-
-                App.AssetManager.AddBundle(name, type, App.AssetManager.GetSuperBundleId(sbName));
-            }
-
-            // ebx
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                EbxAssetEntry entry = new EbxAssetEntry
+                for (int i = 0; i < 4; i++)
                 {
-                    Name = reader.ReadNullTerminatedString(),
-                    Guid = reader.ReadGuid()
-                };
-                App.AssetManager.AddEbx(entry);
-            }
-
-            // res
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                ResAssetEntry entry = new ResAssetEntry
-                {
-                    Name = reader.ReadNullTerminatedString(),
-                    ResRid = reader.ReadULong(),
-                    ResType = reader.ReadUInt(),
-                    ResMeta = reader.ReadBytes(0x10)
-                };
-                App.AssetManager.AddRes(entry);
-            }
-
-            // chunks
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                ChunkAssetEntry newEntry = new ChunkAssetEntry
-                {
-                    Id = reader.ReadGuid(),
-                    H32 = reader.ReadInt()
-                };
-                App.AssetManager.AddChunk(newEntry);
-            }
-
-            // -----------------------------------------------------------------------------
-            // modified data
-            // -----------------------------------------------------------------------------
-
-            // ebx
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                string name = reader.ReadNullTerminatedString();
-                List<AssetEntry> linkedEntries = LoadLinkedAssets(reader);
-                List<int> bundles = new List<int>();
-
-                if (version >= 13)
-                {
-                    int length = reader.ReadInt();
-                    for (int j = 0; j < length; j++)
-                    {
-                        string bundleName = reader.ReadNullTerminatedString();
-                        int bid = App.AssetManager.GetBundleId(bundleName);
-                        if (bid != -1)
-                            bundles.Add(bid);
-                    }
+                    size = reader.ReadInt();
+                    if (size > 0)
+                        modSettings.SetScreenshot(i, reader.ReadBytes(size));
                 }
 
-                bool isModified = reader.ReadBoolean();
+                modSettings.ClearDirtyFlag();
 
-                bool isTransientModified = false;
-                string userData = "";
-                byte[] data = null;
-                bool modifiedResource = false;
+                // -----------------------------------------------------------------------------
+                // added data
+                // -----------------------------------------------------------------------------
 
-                if (isModified)
+                // superbundles
+                int numItems = reader.ReadInt();
+
+                // bundles
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
                 {
-                    isTransientModified = reader.ReadBoolean();
-                    if (version >= 12)
-                        userData = reader.ReadNullTerminatedString();
+                    string name = reader.ReadNullTerminatedString();
+                    string sbName = reader.ReadNullTerminatedString();
+                    BundleType type = (BundleType)reader.ReadInt();
 
-                    if (version < 13)
-                    {
-                        int length = reader.ReadInt();
-                        for (int j = 0; j < length; j++)
-                        {
-                            string bundleName = reader.ReadNullTerminatedString();
-                            int bid = App.AssetManager.GetBundleId(bundleName);
-                            if (bid != -1)
-                                bundles.Add(bid);
-                        }
-                    }
-
-                    if (version >= 13)
-                        modifiedResource = reader.ReadBoolean();
-                    data = reader.ReadBytes(reader.ReadInt());
+                    App.AssetManager.AddBundle(name, type, App.AssetManager.GetSuperBundleId(sbName));
                 }
 
-                EbxAssetEntry entry = App.AssetManager.GetEbxEntry(name);
-                if (entry != null)
+                // ebx
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
                 {
-                    entry.LinkedAssets.AddRange(linkedEntries);
-                    entry.AddedBundles.AddRange(bundles);
-
-                    if (isModified)
+                    EbxAssetEntry entry = new EbxAssetEntry
                     {
-                        entry.ModifiedEntry = new ModifiedAssetEntry
-                        {
-                            IsTransientModified = isTransientModified,
-                            UserData = userData
-                        };
-
-                        if (modifiedResource)
-                        {
-                            // store as modified resource data object
-                            entry.ModifiedEntry.DataObject = ModifiedResource.Read(data);
-                        }
-                        else
-                        {
-                            if (!entry.IsAdded && App.PluginManager.GetCustomHandler(entry.Type) != null)
-                            {
-                                // @todo: throw some kind of error
-                            }
-
-                            // store as a regular ebx
-                            using (EbxReader ebxReader = EbxReader.CreateProjectReader(new MemoryStream(data)))
-                            {
-                                EbxAsset asset = ebxReader.ReadAsset<EbxAsset>();
-                                entry.ModifiedEntry.DataObject = asset;
-
-                                if (entry.IsAdded)
-                                    entry.Type = asset.RootObject.GetType().Name;
-                                entry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
-                            }
-                        }
-
-                        entry.OnModified();
-                    }
-
-                    int hash = Fnv1.HashString(entry.Name);
-                    if (!h32map.ContainsKey(hash))
-                        h32map.Add(hash, entry);
-                }
-            }
-
-            // res
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                string name = reader.ReadNullTerminatedString();
-                List<AssetEntry> linkedEntries = LoadLinkedAssets(reader);
-                List<int> bundles = new List<int>();
-
-                if (version >= 13)
-                {
-                    int length = reader.ReadInt();
-                    for (int j = 0; j < length; j++)
-                    {
-                        string bundleName = reader.ReadNullTerminatedString();
-                        int bid = App.AssetManager.GetBundleId(bundleName);
-                        if (bid != -1)
-                            bundles.Add(bid);
-                    }
+                        Name = reader.ReadNullTerminatedString(),
+                        Guid = reader.ReadGuid()
+                    };
+                    App.AssetManager.AddEbx(entry);
                 }
 
-                bool isModified = reader.ReadBoolean();
-
-                Sha1 sha1 = Sha1.Zero;
-                long originalSize = 0;
-                byte[] resMeta = null;
-                byte[] data = null;
-                string userData = "";
-
-                if (isModified)
+                // res
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
                 {
-                    sha1 = reader.ReadSha1();
-                    originalSize = reader.ReadLong();
-
-                    int length = reader.ReadInt();
-                    if (length > 0)
-                        resMeta = reader.ReadBytes(length);
-
-                    if (version >= 12)
-                        userData = reader.ReadNullTerminatedString();
-
-                    if (version < 13)
+                    ResAssetEntry entry = new ResAssetEntry
                     {
-                        length = reader.ReadInt();
-                        for (int j = 0; j < length; j++)
-                        {
-                            string bundleName = reader.ReadNullTerminatedString();
-                            int bid = App.AssetManager.GetBundleId(bundleName);
-                            if (bid != -1)
-                                bundles.Add(bid);
-                        }
-                    }
-
-                    data = reader.ReadBytes(reader.ReadInt());
+                        Name = reader.ReadNullTerminatedString(),
+                        ResRid = reader.ReadULong(),
+                        ResType = reader.ReadUInt(),
+                        ResMeta = reader.ReadBytes(0x10)
+                    };
+                    App.AssetManager.AddRes(entry);
                 }
 
-                ResAssetEntry entry = App.AssetManager.GetResEntry(name);
-                if (entry != null)
+                // chunks
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
                 {
-                    entry.LinkedAssets.AddRange(linkedEntries);
-                    entry.AddedBundles.AddRange(bundles);
-
-                    if (isModified)
-                    {
-                        entry.ModifiedEntry = new ModifiedAssetEntry
-                        {
-                            Sha1 = sha1,
-                            OriginalSize = originalSize,
-                            ResMeta = resMeta,
-                            UserData = userData
-                        };
-
-                        if (sha1 == Sha1.Zero)
-                        {
-                            // store as modified resource data object
-                            entry.ModifiedEntry.DataObject = ModifiedResource.Read(data);
-                        }
-                        else
-                        {
-                            if (!entry.IsAdded && App.PluginManager.GetCustomHandler((ResourceType)entry.ResType) != null)
-                            {
-                                // @todo: throw some kind of error here
-                            }
-
-                            // store as normal data
-                            entry.ModifiedEntry.Data = data;
-                        }
-
-                        entry.OnModified();
-                    }
-
-                    int hash = Fnv1.HashString(entry.Name);
-                    if (!h32map.ContainsKey(hash))
-                        h32map.Add(hash, entry);
-                }
-            }
-
-            // chunks
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                Guid id = reader.ReadGuid();
-                List<int> bundles = new List<int>();
-
-                if (version >= 13)
-                {
-                    int length = reader.ReadInt();
-                    for (int j = 0; j < length; j++)
-                    {
-                        string bundleName = reader.ReadNullTerminatedString();
-                        int bid = App.AssetManager.GetBundleId(bundleName);
-                        if (bid != -1)
-                            bundles.Add(bid);
-                    }
-                }
-
-                bool isModified = true;
-                if (version >= 13)
-                    isModified = reader.ReadBoolean();
-
-                Sha1 sha1 = Sha1.Zero;
-                uint logicalOffset = 0;
-                uint logicalSize = 0;
-                uint rangeStart = 0;
-                uint rangeEnd = 0;
-                int firstMip = -1;
-                int h32 = 0;
-                bool addToChunkBundles = false;
-                string userData = "";
-                byte[] data = null;
-
-                if (isModified)
-                {
-                    sha1 = reader.ReadSha1();
-                    logicalOffset = reader.ReadUInt();
-                    logicalSize = reader.ReadUInt();
-                    rangeStart = reader.ReadUInt();
-                    rangeEnd = reader.ReadUInt();
-                    firstMip = reader.ReadInt();
-                    h32 = reader.ReadInt();
-                    addToChunkBundles = reader.ReadBoolean();
-                    if (version >= 12)
-                        userData = reader.ReadNullTerminatedString();
-
-                    if (version < 13)
-                    {
-                        int length = reader.ReadInt();
-                        for (int j = 0; j < length; j++)
-                        {
-                            string bundleName = reader.ReadNullTerminatedString();
-                            int bid = App.AssetManager.GetBundleId(bundleName);
-                            if (bid != -1)
-                                bundles.Add(bid);
-                        }
-                    }
-
-                    data = reader.ReadBytes(reader.ReadInt());
-                }
-
-                ChunkAssetEntry entry = App.AssetManager.GetChunkEntry(id);
-
-                if (entry == null && isModified)
-                {
-                    // hack: since chunks are not modified by FrostEd patches, instead a new one
-                    // is added when something that uses a chunk is modified. If an existing chunk
-                    // from a project is missing, a new one is created, and its linked resource
-                    // is used to fill in the bundles (this may fail if a chunk is not meant to be
-                    // in any bundles)
-
                     ChunkAssetEntry newEntry = new ChunkAssetEntry
                     {
-                        Id = id,
-                        H32 = h32
+                        Id = reader.ReadGuid(),
+                        H32 = reader.ReadInt()
                     };
                     App.AssetManager.AddChunk(newEntry);
-
-                    if (h32map.ContainsKey(newEntry.H32))
-                    {
-                        foreach (int bundleId in h32map[newEntry.H32].Bundles)
-                            newEntry.AddToBundle(bundleId);
-                    }
-                    entry = newEntry;
                 }
 
-                if (entry != null)
+                // -----------------------------------------------------------------------------
+                // modified data
+                // -----------------------------------------------------------------------------
+
+                // ebx
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
                 {
-                    entry.AddedBundles.AddRange(bundles);
+                    string name = reader.ReadNullTerminatedString();
+                    List<AssetEntry> linkedEntries = LoadLinkedAssets(reader);
+                    List<int> bundles = new List<int>();
+
+                    if (version >= 13)
+                    {
+                        int length = reader.ReadInt();
+                        for (int j = 0; j < length; j++)
+                        {
+                            string bundleName = reader.ReadNullTerminatedString();
+                            int bid = App.AssetManager.GetBundleId(bundleName);
+                            if (bid != -1)
+                                bundles.Add(bid);
+                        }
+                    }
+
+                    bool isModified = reader.ReadBoolean();
+
+                    bool isTransientModified = false;
+                    string userData = "";
+                    byte[] data = null;
+                    bool modifiedResource = false;
+
                     if (isModified)
                     {
-                        entry.ModifiedEntry = new ModifiedAssetEntry
+                        isTransientModified = reader.ReadBoolean();
+                        if (version >= 12)
+                            userData = reader.ReadNullTerminatedString();
+
+                        if (version < 13)
                         {
-                            Sha1 = sha1,
-                            LogicalOffset = logicalOffset,
-                            LogicalSize = logicalSize,
-                            RangeStart = rangeStart,
-                            RangeEnd = rangeEnd,
-                            FirstMip = firstMip,
-                            H32 = h32,
-                            AddToChunkBundle = addToChunkBundles,
-                            UserData = userData,
-                            Data = data
-                        };
-                        entry.OnModified();
+                            int length = reader.ReadInt();
+                            for (int j = 0; j < length; j++)
+                            {
+                                string bundleName = reader.ReadNullTerminatedString();
+                                int bid = App.AssetManager.GetBundleId(bundleName);
+                                if (bid != -1)
+                                    bundles.Add(bid);
+                            }
+                        }
+
+                        if (version >= 13)
+                            modifiedResource = reader.ReadBoolean();
+                        data = reader.ReadBytes(reader.ReadInt());
+                    }
+
+                    EbxAssetEntry entry = App.AssetManager.GetEbxEntry(name);
+                    if (entry != null)
+                    {
+                        entry.LinkedAssets.AddRange(linkedEntries);
+                        entry.AddedBundles.AddRange(bundles);
+
+                        if (isModified)
+                        {
+                            entry.ModifiedEntry = new ModifiedAssetEntry
+                            {
+                                IsTransientModified = isTransientModified,
+                                UserData = userData
+                            };
+
+                            if (modifiedResource)
+                            {
+                                // store as modified resource data object
+                                entry.ModifiedEntry.DataObject = ModifiedResource.Read(data);
+                            }
+                            else
+                            {
+                                if (!entry.IsAdded && App.PluginManager.GetCustomHandler(entry.Type) != null)
+                                {
+                                    // @todo: throw some kind of error
+                                }
+
+                                // store as a regular ebx
+                                using (EbxReader ebxReader = EbxReader.CreateProjectReader(new MemoryStream(data)))
+                                {
+                                    EbxAsset asset = ebxReader.ReadAsset<EbxAsset>();
+                                    entry.ModifiedEntry.DataObject = asset;
+
+                                    if (entry.IsAdded)
+                                        entry.Type = asset.RootObject.GetType().Name;
+                                    entry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
+                                }
+                            }
+
+                            entry.OnModified();
+                        }
+
+                        int hash = Fnv1.HashString(entry.Name);
+                        if (!h32map.ContainsKey(hash))
+                            h32map.Add(hash, entry);
                     }
                 }
-            }
 
-            // custom actions
-            numItems = reader.ReadInt();
-            for (int i = 0; i < numItems; i++)
-            {
-                string typeString = reader.ReadNullTerminatedString();
+                // res
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
+                {
+                    string name = reader.ReadNullTerminatedString();
+                    List<AssetEntry> linkedEntries = LoadLinkedAssets(reader);
+                    List<int> bundles = new List<int>();
 
-                ILegacyCustomActionHandler actionHandler = new LegacyCustomActionHandler();
-                actionHandler.LoadFromProject(version, reader, typeString);
+                    if (version >= 13)
+                    {
+                        int length = reader.ReadInt();
+                        for (int j = 0; j < length; j++)
+                        {
+                            string bundleName = reader.ReadNullTerminatedString();
+                            int bid = App.AssetManager.GetBundleId(bundleName);
+                            if (bid != -1)
+                                bundles.Add(bid);
+                        }
+                    }
 
-                // @hack: fixes an issue where v11 projects incorrectly wrote a null custom handler
-                if (version < 12)
-                    break;
-            }
+                    bool isModified = reader.ReadBoolean();
+
+                    Sha1 sha1 = Sha1.Zero;
+                    long originalSize = 0;
+                    byte[] resMeta = null;
+                    byte[] data = null;
+                    string userData = "";
+
+                    if (isModified)
+                    {
+                        sha1 = reader.ReadSha1();
+                        originalSize = reader.ReadLong();
+
+                        int length = reader.ReadInt();
+                        if (length > 0)
+                            resMeta = reader.ReadBytes(length);
+
+                        if (version >= 12)
+                            userData = reader.ReadNullTerminatedString();
+
+                        if (version < 13)
+                        {
+                            length = reader.ReadInt();
+                            for (int j = 0; j < length; j++)
+                            {
+                                string bundleName = reader.ReadNullTerminatedString();
+                                int bid = App.AssetManager.GetBundleId(bundleName);
+                                if (bid != -1)
+                                    bundles.Add(bid);
+                            }
+                        }
+
+                        data = reader.ReadBytes(reader.ReadInt());
+                    }
+
+                    ResAssetEntry entry = App.AssetManager.GetResEntry(name);
+                    if (entry != null)
+                    {
+                        entry.LinkedAssets.AddRange(linkedEntries);
+                        entry.AddedBundles.AddRange(bundles);
+
+                        if (isModified)
+                        {
+                            entry.ModifiedEntry = new ModifiedAssetEntry
+                            {
+                                Sha1 = sha1,
+                                OriginalSize = originalSize,
+                                ResMeta = resMeta,
+                                UserData = userData
+                            };
+
+                            if (sha1 == Sha1.Zero)
+                            {
+                                // store as modified resource data object
+                                entry.ModifiedEntry.DataObject = ModifiedResource.Read(data);
+                            }
+                            else
+                            {
+                                if (!entry.IsAdded && App.PluginManager.GetCustomHandler((ResourceType)entry.ResType) != null)
+                                {
+                                    // @todo: throw some kind of error here
+                                }
+
+                                // store as normal data
+                                entry.ModifiedEntry.Data = data;
+                            }
+
+                            entry.OnModified();
+                        }
+
+                        int hash = Fnv1.HashString(entry.Name);
+                        if (!h32map.ContainsKey(hash))
+                            h32map.Add(hash, entry);
+                    }
+                }
+
+                // chunks
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
+                {
+                    Guid id = reader.ReadGuid();
+                    List<int> bundles = new List<int>();
+
+                    if (version >= 13)
+                    {
+                        int length = reader.ReadInt();
+                        for (int j = 0; j < length; j++)
+                        {
+                            string bundleName = reader.ReadNullTerminatedString();
+                            int bid = App.AssetManager.GetBundleId(bundleName);
+                            if (bid != -1)
+                                bundles.Add(bid);
+                        }
+                    }
+
+                    bool isModified = true;
+                    if (version >= 13)
+                        isModified = reader.ReadBoolean();
+
+                    Sha1 sha1 = Sha1.Zero;
+                    uint logicalOffset = 0;
+                    uint logicalSize = 0;
+                    uint rangeStart = 0;
+                    uint rangeEnd = 0;
+                    int firstMip = -1;
+                    int h32 = 0;
+                    bool addToChunkBundles = false;
+                    string userData = "";
+                    byte[] data = null;
+
+                    if (isModified)
+                    {
+                        sha1 = reader.ReadSha1();
+                        logicalOffset = reader.ReadUInt();
+                        logicalSize = reader.ReadUInt();
+                        rangeStart = reader.ReadUInt();
+                        rangeEnd = reader.ReadUInt();
+                        firstMip = reader.ReadInt();
+                        h32 = reader.ReadInt();
+                        addToChunkBundles = reader.ReadBoolean();
+                        if (version >= 12)
+                            userData = reader.ReadNullTerminatedString();
+
+                        if (version < 13)
+                        {
+                            int length = reader.ReadInt();
+                            for (int j = 0; j < length; j++)
+                            {
+                                string bundleName = reader.ReadNullTerminatedString();
+                                int bid = App.AssetManager.GetBundleId(bundleName);
+                                if (bid != -1)
+                                    bundles.Add(bid);
+                            }
+                        }
+
+                        data = reader.ReadBytes(reader.ReadInt());
+                    }
+
+                    ChunkAssetEntry entry = App.AssetManager.GetChunkEntry(id);
+
+                    if (entry == null && isModified)
+                    {
+                        // hack: since chunks are not modified by FrostEd patches, instead a new one
+                        // is added when something that uses a chunk is modified. If an existing chunk
+                        // from a project is missing, a new one is created, and its linked resource
+                        // is used to fill in the bundles (this may fail if a chunk is not meant to be
+                        // in any bundles)
+
+                        ChunkAssetEntry newEntry = new ChunkAssetEntry
+                        {
+                            Id = id,
+                            H32 = h32
+                        };
+                        App.AssetManager.AddChunk(newEntry);
+
+                        if (h32map.ContainsKey(newEntry.H32))
+                        {
+                            foreach (int bundleId in h32map[newEntry.H32].Bundles)
+                                newEntry.AddToBundle(bundleId);
+                        }
+                        entry = newEntry;
+                    }
+
+                    if (entry != null)
+                    {
+                        entry.AddedBundles.AddRange(bundles);
+                        if (isModified)
+                        {
+                            entry.ModifiedEntry = new ModifiedAssetEntry
+                            {
+                                Sha1 = sha1,
+                                LogicalOffset = logicalOffset,
+                                LogicalSize = logicalSize,
+                                RangeStart = rangeStart,
+                                RangeEnd = rangeEnd,
+                                FirstMip = firstMip,
+                                H32 = h32,
+                                AddToChunkBundle = addToChunkBundles,
+                                UserData = userData,
+                                Data = data
+                            };
+                            entry.OnModified();
+                        }
+                    }
+                }
+
+                // custom actions
+                numItems = reader.ReadInt();
+                for (int i = 0; i < numItems; i++)
+                {
+                    string typeString = reader.ReadNullTerminatedString();
+
+                    ILegacyCustomActionHandler actionHandler = new LegacyCustomActionHandler();
+                    actionHandler.LoadFromProject(version, reader, typeString);
+
+                    // @hack: fixes an issue where v11 projects incorrectly wrote a null custom handler
+                    if (version < 12)
+                        break;
+                }
+            });
 
             return true;
         }

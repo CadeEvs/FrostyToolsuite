@@ -258,6 +258,29 @@ namespace Frosty.Core
         }
 
         /// <summary>
+        /// Clears out every registered plugin extension
+        /// </summary>
+        public void Clear()
+        {
+            definitions.Clear();
+            menuExtensions.Clear();
+            tabExtensions.Clear();
+            contextMenuItemExtensions.Clear();
+            //globalTypEditors.Clear();
+            //typeOverrides.Clear();
+            optionsExtensions.Clear();
+            thirdPartyDlls.Clear();
+            //profiles.Clear();
+            loadedPlugins.Clear();
+            executionActions.Clear();
+            //startupActions.Clear();
+            customHandlers.Clear();
+            resCustomHandlers.Clear();
+            shaders.Clear();
+            userShaders.Clear();
+        }
+
+        /// <summary>
         /// Returns the <see cref="AssetDefinition"/> with the specified type.
         /// </summary>
         /// <param name="type">The type of the asset definition to obtain.</param>
