@@ -66,10 +66,6 @@ namespace MeshSetPlugin
             ShowFloor = Config.Get<bool>("MeshSetViewerShowFloor", true);
             ExportSkeletonAsset = Config.Get<string>("MeshSetExportSkeleton", "", ConfigScope.Game);
             ImportSkeletonAsset = Config.Get<string>("MeshSetImportSkeleton", "", ConfigScope.Game);
-            //ShowGrid = Config.Get<bool>("MeshSetViewer", "ShowGrid", true);
-            //ShowFloor = Config.Get<bool>("MeshSetViewer", "ShowFloor", true);
-            //ExportSkeletonAsset = Config.Get<string>("MeshSetExport", "Skeleton", "");
-            //ImportSkeletonAsset = Config.Get<string>("MeshSetImport", "Skeleton", "");
 
             List<string> adapters = GetDisplayAdapters();
             DisplayAdapter = new CustomComboData<string, string>(adapters, adapters) {SelectedIndex = Config.Get<int>("RenderAdapterIndex", 0)};
@@ -77,12 +73,6 @@ namespace MeshSetPlugin
             RenderShadowResolution = Config.Get<int>("RenderShadowRes", 2048);
             RenderHBAOEnabled = Config.Get<bool>("RenderHBAOEnabled", true);
             RenderTXAAEnabled = Config.Get<bool>("RenderTXAAEnabled", true);
-
-            //DisplayAdapter = new CustomComboData<string, string>(adapters, adapters) {SelectedIndex = Config.Get<int>("Render", "AdapterIndex", 0)};
-            //RenderShadowsEnabled = Config.Get<bool>("Render", "ShadowsEnabled", true);
-            //RenderShadowResolution = Config.Get<int>("Render", "ShadowRes", 2048);
-            //RenderHBAOEnabled = Config.Get<bool>("Render", "HBAOEnabled", true);
-            //RenderTXAAEnabled = Config.Get<bool>("Render", "TXAAEnabled", true);
         }
 
         public override void Save()
@@ -99,17 +89,6 @@ namespace MeshSetPlugin
             Config.Add("RenderTXAAEnabled", RenderTXAAEnabled);
 
             Config.Save();
-
-            //Config.Add("MeshSetViewer", "ShowGrid", ShowGrid);
-            //Config.Add("MeshSetViewer", "ShowFloor", ShowFloor);
-            //Config.Add("MeshSetExport", "Skeleton", ExportSkeletonAsset);
-            //Config.Add("MeshSetImport", "Skeleton", ImportSkeletonAsset);
-
-            //Config.Add("Render", "AdapterIndex", DisplayAdapter.SelectedIndex);
-            //Config.Add("Render", "ShadowsEnabled", RenderShadowsEnabled);
-            //Config.Add("Render", "ShadowRes", RenderShadowResolution);
-            //Config.Add("Render", "HBAOEnabled", RenderHBAOEnabled);
-            //Config.Add("Render", "TXAAEnabled", RenderTXAAEnabled);
         }
 
         public override bool Validate()

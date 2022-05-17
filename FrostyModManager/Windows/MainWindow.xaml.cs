@@ -297,16 +297,6 @@ namespace FrostyModManager
             (App.Logger as FrostyLogger).AddBinding(tb, TextBox.TextProperty);
 
             string gamePath = Config.Get<string>("GamePath", "", ConfigScope.Game);
-            //string gamePath = Config.Get<string>("Init", "GamePath", "");
-            //string gameProfileName = Config.Get<string>("Init", "Profile", "");
-
-            //if (!ProfilesLibrary.Initialize(gameProfileName))
-            //{
-            //    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Mod Manager");
-            //    Closing -= FrostyWindow_Closing;
-            //    Close();
-            //    return;
-            //}
 
             if (!ProfilesLibrary.EnableExecution)
             {
@@ -317,13 +307,11 @@ namespace FrostyModManager
             }
 
             fs = new FileSystem(gamePath);
-            //fs = new FileSystem(Config.Get<string>("Init", "GamePath", ""));
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 fs.AddSource(source.Path, source.SubDirs);
             fs.Initialize();
 
             Config.Save();
-            //Config.Save(App.configFilename);
             Title = "Frosty Mod Manager - " + App.Version + " (" + ProfilesLibrary.DisplayName + ")";
 
             TypeLibrary.Initialize();
@@ -373,10 +361,8 @@ namespace FrostyModManager
             view.GroupDescriptions.Add(groupDescription);
 
             foreach (string packName in Config.EnumerateKeys(ConfigScope.Pack))
-            //foreach (string profileName in Config.EnumerateKeys("Profiles"))
             {
                 string values = Config.Get(packName, "", ConfigScope.Pack);
-                //string values = Config.Get<string>("Profiles", profileName, "");
                 string[] valuesArray = values.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
 
                 FrostyPack pack = new FrostyPack(packName);
@@ -425,7 +411,6 @@ namespace FrostyModManager
             toolsMenuItem.Items.Add(optionsMenuItem);
 
             string selectedProfileName = Config.Get<string>("SelectedPack", "", ConfigScope.Game);
-            //string selectedProfileName = Config.Get<string>("Application", "SelectedProfile", "");
             int selectedIndex = 0;
             if (selectedProfileName != null)
             {
@@ -465,7 +450,6 @@ namespace FrostyModManager
             selectedPack.Refresh();
 
             Config.Add("SelectedPack", selectedPack.Name, ConfigScope.Game);
-            //Config.Add("Application", "SelectedProfile", selectedProfile.Name);
         }
 
         private void removeProfileButton_Click(object sender, RoutedEventArgs e)
@@ -479,7 +463,6 @@ namespace FrostyModManager
             if (FrostyMessageBox.Show("Are you sure you want to delete this pack?", "Frosty Mod Manager", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 Config.Remove(selectedPack.Name, ConfigScope.Pack);
-                //Config.Remove("Profiles", selectedProfile.Name);
                 packs.Remove(selectedPack);
 
                 packsComboBox.Items.Refresh();
@@ -602,11 +585,9 @@ namespace FrostyModManager
         private void launchButton_Click(object sender, RoutedEventArgs e)
         {
             Config.Save();
-            //Config.Save(App.configFilename);
 
             // initialize
             Frosty.Core.App.FileSystem = new FileSystem(Config.Get<string>("GamePath", "", ConfigScope.Game));
-            //FileSystem fs = new FileSystem(Config.Get<string>("Init", "GamePath", ""));
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);
             Frosty.Core.App.FileSystem.Initialize();
@@ -624,7 +605,6 @@ namespace FrostyModManager
 
             // combine stored args with launch args
             string additionalArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ";
-            //string additionalArgs = Config.Get<string>("Init", "AdditionalArgs", "") + " ";
             additionalArgs += App.LaunchArgs;
 
             // setup ability to cancel the process
@@ -665,7 +645,6 @@ namespace FrostyModManager
 
         private void FrostyWindow_Closing(object sender, CancelEventArgs e) 
             => Config.Save();
-            //=> Config.Save(App.configFilename);
 
         private bool AddPack(string packName)
         {
@@ -683,7 +662,6 @@ namespace FrostyModManager
                 packsComboBox.SelectedItem = pack;
 
                 Config.Add(pack.Name, "", ConfigScope.Pack);
-                //Config.Add("Profiles", profile.Name, "");
 
                 return true;
             }
@@ -1577,7 +1555,6 @@ namespace FrostyModManager
         private void launchConfigurationWindow_Click(object sender, RoutedEventArgs e)
         {
             Config.Save();
-            //Config.Save(App.configFilename);
 
             Windows.PrelaunchWindow2 SelectConfiguration = new Windows.PrelaunchWindow2();
             App.Current.MainWindow = SelectConfiguration;

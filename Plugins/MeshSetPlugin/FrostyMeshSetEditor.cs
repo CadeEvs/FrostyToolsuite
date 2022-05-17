@@ -4003,12 +4003,6 @@ namespace MeshSetPlugin
             bool exportAdditionalMeshes = Config.Get<bool>("MeshSetExportExportAdditionalMeshes", false, ConfigScope.Game);
             string skeleton = Config.Get<string>("MeshSetExportSkeleton", "", ConfigScope.Game);
 
-            //string Version = Config.Get<string>("MeshSetExport", "Version", "FBX_2012");
-            //string Scale = Config.Get<string>("MeshSetExport", "Scale", "Centimeters");
-            //bool flattenHierarchy = Config.Get<bool>("MeshSetExport", "FlattenHierarchy", false);
-            //bool exportAdditionalMeshes = Config.Get<bool>("MeshSetExport", "ExportAdditionalMeshes", false);
-            //string skeleton = Config.Get<string>("MeshSetExport", "Skeleton", "");
-
             settings.Version = (MeshExportVersion)Enum.Parse(typeof(MeshExportVersion), Version);
             settings.Scale = (MeshExportScale)Enum.Parse(typeof(MeshExportScale), Scale);
             settings.FlattenHierarchy = flattenHierarchy;
@@ -4059,14 +4053,8 @@ namespace MeshSetPlugin
                     Config.Add("MeshSetExportFlattenHierarchy", settings.FlattenHierarchy, ConfigScope.Game);
                     Config.Add("MeshSetExportExportAdditionalMeshes", settings.ExportAdditionalMeshes, ConfigScope.Game);
 
-                    //Config.Add("MeshSetExport", "Version", settings.Version.ToString());
-                    //Config.Add("MeshSetExport", "Scale", settings.Scale.ToString());
-                    //Config.Add("MeshSetExport", "FlattenHierarchy", settings.FlattenHierarchy);
-                    //Config.Add("MeshSetExport", "ExportAdditionalMeshes", settings.ExportAdditionalMeshes);
-
                     if (settings is SkinnedMeshExportSettings meshExportSettings)
                         Config.Add("MeshSetExportSkeleton", meshExportSettings.SkeletonAsset, ConfigScope.Game);
-                    //Config.Add("MeshSetExport", "Skeleton", meshExportSettings.SkeletonAsset);
 
                     Config.Save();
                 }
@@ -4088,13 +4076,11 @@ namespace MeshSetPlugin
                 if (meshSet.Type == MeshType.MeshType_Skinned)
                 {
                     settings = new FrostyMeshImportSettings { SkeletonAsset = Config.Get<string>("MeshSetImportSkeleton", "", ConfigScope.Game) };
-                    //settings = new FrostyMeshImportSettings {SkeletonAsset = Config.Get<string>("MeshSetImport", "Skeleton", "")};
 
                     if (FrostyImportExportBox.Show<FrostyMeshImportSettings>("Import Skinned Mesh", FrostyImportExportType.Import, settings) == MessageBoxResult.OK)
                     {
                         bOk = true;
                         Config.Add("MeshSetImportSkeleton", settings.SkeletonAsset, ConfigScope.Game);
-                        //Config.Add("MeshSetImport", "Skeleton", settings.SkeletonAsset);
                     }
                 }
                 else

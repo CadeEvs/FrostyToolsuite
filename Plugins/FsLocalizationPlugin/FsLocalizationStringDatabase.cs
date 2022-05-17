@@ -150,7 +150,6 @@ namespace FsLocalizationPlugin
         {
             string language = "LanguageFormat_" + Config.Get<string>("Language", "English", ConfigScope.Game);
             App.Logger.Log(language);
-            //string language = "LanguageFormat_" + Config.Get<string>("Init", "Language", "English");
 
             Guid binaryChunk = Guid.Empty;
             Guid histogram = Guid.Empty;

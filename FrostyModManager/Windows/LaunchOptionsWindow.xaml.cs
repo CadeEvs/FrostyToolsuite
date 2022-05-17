@@ -37,7 +37,6 @@ namespace FrostyModManager
         private void saveButton_Click(object sender, RoutedEventArgs e)
         {
             Config.Add("AdditionalArgs", cmdArgsTextBox.Text, ConfigScope.Game);
-            //Config.Add("Application", "AdditionalArgs", cmdArgsTextBox.Text);
             DialogResult = true;
             Close();
         }

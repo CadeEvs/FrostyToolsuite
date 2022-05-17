@@ -37,7 +37,6 @@ namespace LegacyLocalizedStringsPlugin
                 { "ArabicSA", "ara_sa" },
                 { "SimplifiedChinese", "chs_cn" },
             };
-            //string langName = languages[Config.Get("Init", "Language", "English")];
             string langName = languages[Config.Get("Language", "English", ConfigScope.Game)];
             LegacyFileEntry metaEntry = App.AssetManager.GetCustomAssetEntry<LegacyFileEntry>("legacy", "data/loc/" + langName + "-meta.xml");
             LegacyFileEntry dbEntry = App.AssetManager.GetCustomAssetEntry<LegacyFileEntry>("legacy", "data/loc/" + langName + ".db");

@@ -29,11 +29,8 @@ namespace FrostyModManager.Windows
             InitializeComponent();
         }
 
-        private void LaunchConfig(string profile /*Config config, string filename*/)
+        private void LaunchConfig(string profile)
         {
-            //App.configFilename = filename;
-            //Config.Load(config); // Load game config
-
             // load profiles
             if (!ProfilesLibrary.Initialize(profile))
             {
@@ -41,13 +38,6 @@ namespace FrostyModManager.Windows
                 Close();
                 return;
             }
-
-            //if (!ProfilesLibrary.Initialize(Config.Get<string>("Init", "Profile", "")))
-            //{
-            //    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-            //    Close();
-            //    return;
-            //}
 
             if (ProfilesLibrary.RequiresKey && ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19)
             {
@@ -103,10 +93,7 @@ namespace FrostyModManager.Windows
             RemoveConfigButton.IsEnabled = false;
             LaunchConfigButton.IsEnabled = false;
 
-            //ini.LoadEntries("DefaultSettings.ini");
-
             string defaultConfigName = Config.Get<string>("DefaultProfile", null);
-            //string defaultConfigName = ini.GetEntry("Init", "DefaultConfiguration", "");
 
             foreach (FrostyConfiguration name in configs)
             {
@@ -135,18 +122,6 @@ namespace FrostyModManager.Windows
                     Config.Save();
                 }
             }
-            //foreach (string s in Directory.EnumerateFiles("./", "FrostyModManager*.ini"))
-            //{
-            //    try
-            //    {
-            //        FrostyConfiguration config = new FrostyConfiguration(s);
-            //        configs.Add(config);
-            //    }
-            //    catch (Exception /*ex*/)
-            //    {
-            //        //FrostyMessageBox.Show("Couldn't load profile from '" + s + "': \n\n" + ex.ToString());
-            //    }
-            //}
 
             ConfigList.ItemsSource = configs;
         }
@@ -194,14 +169,7 @@ namespace FrostyModManager.Windows
             Config.AddGame(fi.Name.Remove(fi.Name.Length - 4), fi.DirectoryName);
             configs.Add(new FrostyConfiguration(fi.Name.Remove(fi.Name.Length - 4)));
             Config.Save();
-            //Config ini = new Config();
-            //ini.AddEntry("Init", "GamePath", fi.DirectoryName);
-            //ini.AddEntry("Init", "Profile", fi.Name.Remove(fi.Name.Length - 4));
-            //string filename = "FrostyModManager " + ini.GetEntry("Init", "Profile", "") + ".ini";
-            //ini.SaveEntries(filename);
 
-            //FrostyConfiguration cfg = new FrostyConfiguration(filename);
-            //configs.Add(cfg);
             ConfigList.Items.Refresh();
         }
 
@@ -226,10 +194,6 @@ namespace FrostyModManager.Windows
                 FrostyConfiguration selectedItem = ConfigList.SelectedItem as FrostyConfiguration;
 
                 Config.RemoveGame(selectedItem.ProfileName);
-                //if (File.Exists(selectedItem.Filename))
-                //{
-                //    File.Delete(selectedItem.Filename);
-                //}
 
                 configs.Remove(selectedItem);
                 ConfigList.Items.Refresh();
@@ -304,14 +268,6 @@ namespace FrostyModManager.Windows
 
                             Config.AddGame(fi.Name.Remove(fi.Name.Length - 4), fi.DirectoryName);
                             configs.Add(new FrostyConfiguration(fi.Name.Remove(fi.Name.Length - 4)));
-                            //Config ini = new Config();
-                            //ini.AddEntry("Init", "GamePath", fi.DirectoryName);
-                            //ini.AddEntry("Init", "Profile", fi.Name.Remove(fi.Name.Length - 4));
-                            //string fileName = "FrostyModManager " + ini.GetEntry("Init", "Profile", "") + ".ini";
-                            //ini.SaveEntries(fileName);
-
-                            //FrostyConfiguration cfg = new FrostyConfiguration(fileName);
-                            //configs.Add(cfg);
 
                             totalCount++;
                         }

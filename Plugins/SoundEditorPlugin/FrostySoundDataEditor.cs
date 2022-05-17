@@ -245,8 +245,6 @@ namespace SoundEditorPlugin
 
             Voice_BufferEnd(IntPtr.Zero);
 
-            //voice.SetVolume(Math.Min(Config.Get("SoundVolume", 20.0f) / 100.0f, 1.0f));
-            //voice.SetVolume((float)Math.Min(Config.Get<float>("Editor", "SoundVolume", 20) / 100, 1.0));
             voice.Start();
         }
 
@@ -402,7 +400,6 @@ namespace SoundEditorPlugin
             volumeSlider = GetTemplateChild(PART_VolumeSlider) as Slider;
 
             volumeSlider.Value = Math.Min(Config.Get<float>("SoundVolume", 20.0f), 100);
-            //volumeSlider.Value = (float)Math.Min(Config.Get<float>("Editor", "SoundVolume", 20), 100);
 
             volumeSlider.ValueChanged += VolumeSlider_ValueChanged;
 
@@ -456,10 +453,8 @@ namespace SoundEditorPlugin
             {
                 audioPlayer.OutputVoice.SetVolume((float)(slider.Value / 100.0));
 
-                //Config.Current["SoundVolume"] = slider.Value;
                 Config.Add("SoundVolume", (float)slider.Value);
                 Config.Save();
-                //Config.Add("Editor", "SoundVolume", slider.Value);
             }
         }
 
@@ -481,7 +476,6 @@ namespace SoundEditorPlugin
         {
             if (bFirstTime)
             {
-                //volumeSlider.Value = Config.Get<float>("Editor", "SoundVolume", 20);
                 audioPlayer = new AudioPlayer();
 
                 List<SoundDataTrack> tracks = null;

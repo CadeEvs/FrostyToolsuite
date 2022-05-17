@@ -75,7 +75,6 @@ namespace Frosty.Core
             modifiedDate = DateTime.Now;
             gameVersion = 0;
             modSettings = new ModSettings { Author = Config.Get("ModAuthor", "") };
-            //modSettings = new ModSettings {Author = Config.Get("ModSettings", "Author", "")};
             modSettings.ClearDirtyFlag();
         }
 

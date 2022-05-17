@@ -108,7 +108,6 @@ namespace FrostyModManager.Windows
             }
 
             Config.Save();
-            //Config.Save(App.configFilename);
 
             profileTextBlock.Text = ProfilesLibrary.DisplayName;
             bannerImage.Source = LoadBanner(ProfilesLibrary.Banner);
@@ -132,7 +131,6 @@ namespace FrostyModManager.Windows
 
             // load filesystem to gather details on game version
             string basePath = Config.Get<string>("GamePath", "", ConfigScope.Game);
-            //string basePath = Config.Get<string>("Init", "GamePath", "");
             Frosty.Core.App.FileSystem = new FileSystem(basePath);
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);

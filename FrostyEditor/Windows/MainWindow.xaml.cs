@@ -55,7 +55,6 @@ namespace FrostyEditor
         public MainWindow()
         {
             FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", false);
-            //FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("Asset", "DisplayModuleInId", true);
             BookmarkItemDoubleClickCommand = new ItemDoubleClickCommand(BookmarkTreeView_MouseDoubleClick);
             Bookmarks.BookmarkDb.LoadDb();
             project = new FrostyProject();
@@ -294,10 +293,8 @@ namespace FrostyEditor
 
             // kick off autosave timer
             bool enabled = Config.Get<bool>("AutosaveEnabled", true);
-            //bool enabled = Config.Get<bool>("Autosave", "Enabled", true);
             if (enabled)
             {
-                //int timerInterval = Config.Get<int>("Autosave", "Period", 5) * 60 * 1000;
                 int timerInterval = Config.Get<int>("AutosavePeriod", 5) * 60 * 1000;
                 if (timerInterval > 0)
                 {
@@ -837,7 +834,6 @@ namespace FrostyEditor
             }
 
             Bookmarks.BookmarkDb.SaveDb();
-            //Config.Save(App.configFilename);
         }
 
         private void dataExplorer_SelectedAssetDoubleClick(object sender, RoutedEventArgs e)
@@ -1129,7 +1125,6 @@ namespace FrostyEditor
             }
             UpdateBookmarkFilters();
             Bookmarks.BookmarkDb.SaveDb();
-            //Config.Save(App.configFilename);
         }
 
         private void RemoveSelectedBookmark()
@@ -1147,7 +1142,6 @@ namespace FrostyEditor
                 }
                 UpdateBookmarkFilters();
                 Bookmarks.BookmarkDb.SaveDb();
-                //Config.Save(App.configFilename);
             }
         }
 
@@ -1180,7 +1174,6 @@ namespace FrostyEditor
             TriggerPulseAnimation();
             UpdateBookmarkFilters();
             Bookmarks.BookmarkDb.SaveDb();
-            //Config.Save(App.configFilename);
         }
 
         private void BookmarkAddButton_Click(object sender, RoutedEventArgs e)
@@ -1316,7 +1309,6 @@ namespace FrostyEditor
         {
             UpdateBookmarkFilters();
             Bookmarks.BookmarkDb.SaveDb();
-            //Config.Save(App.configFilename);
             Focus();
         }
 

@@ -108,11 +108,6 @@ namespace LuaPlugin.CodeEditor
             Config.Add("TextEditorIndentOnEnter", IndentOnEnter);
             Config.Add("TextEditorTabSize", TabSize);
             Config.Save();
-
-            //IndentOnEnter = Config.Get("TextEditor", "IndentOnEnter", true);
-            //TabSize = Config.Get("TextEditor", "TabSize", 4);
-            //Config.Add("TextEditor", "IndentOnEnter", IndentOnEnter);
-            //Config.Add("TextEditor", "TabSize", TabSize);
         }
 
         private void Timer_Tick(object sender, EventArgs e)

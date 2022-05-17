@@ -108,7 +108,6 @@ namespace FrostyEditor.Windows
             }
 
             Config.Save();
-            //Config.Save(App.configFilename);
 
             App.Logger.Log("Loading profile for " + ProfilesLibrary.DisplayName);
 
@@ -199,7 +198,6 @@ namespace FrostyEditor.Windows
             await Task.Run(() =>
             {
                 string basePath = Config.Get<string>("GamePath", null, ConfigScope.Game);
-                //string basePath = Config.Get<string>("Init", "GamePath", "");
 
                 App.FileSystem = new FileSystem(basePath);
                 foreach (FileSystemSource source in ProfilesLibrary.Sources)

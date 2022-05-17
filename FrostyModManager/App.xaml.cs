@@ -113,15 +113,10 @@ namespace FrostyModManager
             if (!File.Exists($"{Frosty.Core.App.GlobalSettingsPath}/manager_config.json"))
                 Config.UpgradeConfigs();
 
-            //RefreshConfigurationList();
-
             Config.Load();
-            //ini.LoadEntries("DefaultSettings.ini");
 
             if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
                 CheckVersion();
-
-            //string defaultConfigname = ini.GetEntry("Init", "DefaultConfiguration", "");
 
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
@@ -135,13 +130,6 @@ namespace FrostyModManager
                     Config.Save();
                 }
             }
-            //foreach (FrostyConfiguration name in configs)
-            //{
-            //    if (name.ProfileName == defaultConfigname)
-            //    {
-            //        defaultConfig = name;
-            //    }
-            //}
 
             // Launches the Frosty Mod Manager is there is a Default Config
             if (defaultConfig != null)
@@ -155,20 +143,6 @@ namespace FrostyModManager
 
                 StartupUri = new Uri("/FrostyModManager;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
             }
-            //if (defaultConfig != null)
-            //{
-            //    App.configFilename = defaultConfig.Filename;
-            //    Config.Load(defaultConfig.Config); // Load game config
-
-            //    // load profiles
-            //    if (!ProfilesLibrary.Initialize(Config.Get<string>("Init", "Profile", "")))
-            //    {
-            //        FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-            //        return;
-            //    }
-
-            //    this.StartupUri = new Uri("/FrostyModManager;component/Windows/MainWindow.xaml", UriKind.Relative);
-            //}
 
             StringBuilder sb = new StringBuilder();
             if (e.Args.Length > 0)
@@ -197,7 +171,8 @@ namespace FrostyModManager
             LaunchArgs = sb.ToString().Trim();
         }
 
-        private void CheckVersion() {
+        private void CheckVersion()
+        {
             bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
             Version localVersion = Assembly.GetEntryAssembly().GetName().Version;
 

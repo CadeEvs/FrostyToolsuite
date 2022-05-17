@@ -123,7 +123,6 @@ namespace Frosty.Core.Viewport
 #endif
 
                 int adapterIndex = Config.Get<int>("RenderAdapterIndex", 0);
-                //int adapterIndex = Config.Get<int>("Render", "AdapterIndex", 0);
                 SharpDX.DXGI.Factory factory = new SharpDX.DXGI.Factory1();
                 SharpDX.DXGI.Adapter adapter = factory.GetAdapter(adapterIndex);
 
