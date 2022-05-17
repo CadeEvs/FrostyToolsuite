@@ -48,7 +48,6 @@ namespace Frosty.Core
 #endif
 
             // check if local version isn't the latest
-            bool requiresUpdate = false;
             if (localVersion.CompareTo(release.Version) < 0)
             {
                 if (isLocalPrerelease)
@@ -59,24 +58,16 @@ namespace Frosty.Core
                     // check if local beta/alpha version isn't the latest
                     if (Frosty.Core.App.Version < preVersion)
                     {
-                        requiresUpdate = true;
+                        return true;
                     }
                 }
                 else
                 {
-                    requiresUpdate = true;
+                    return true;
                 }
             }
 
-            if (requiresUpdate)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return false;
         }
-
     }
 }
