@@ -175,6 +175,12 @@
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
     <Compile Include="Utils\UpdateChecker.cs" />
+    <Compile Include="Windows\FrostyProfileTaskWindow.xaml.cs">
+      <DependentUpon>FrostyProfileTaskWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\KeyPromptWindow.xaml.cs">
+      <DependentUpon>KeyPromptWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\OptionsWindow.xaml.cs">
       <DependentUpon>OptionsWindow.xaml</DependentUpon>
     </Compile>
@@ -263,6 +269,9 @@
     <Compile Include="Windows\FrostyTaskWindow.xaml.cs">
       <DependentUpon>FrostyTaskWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\PatchSummaryWindow.xaml.cs">
+      <DependentUpon>PatchSummaryWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\RenameInstanceWindow.xaml.cs">
       <DependentUpon>RenameInstanceWindow.xaml</DependentUpon>
     </Compile>
@@ -292,6 +301,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Windows\FrostyProfileTaskWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\KeyPromptWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Windows\OptionsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -313,6 +330,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\FrostyTaskWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\PatchSummaryWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

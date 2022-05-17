@@ -56,7 +56,7 @@ namespace FrostyEditor
         {
             FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", false);
             BookmarkItemDoubleClickCommand = new ItemDoubleClickCommand(BookmarkTreeView_MouseDoubleClick);
-            Bookmarks.BookmarkDb.LoadDb();
+            //Bookmarks.BookmarkDb.LoadDb(); @todo: refactor after prelaunch removed
             project = new FrostyProject();
 
             InitializeComponent();
@@ -273,7 +273,7 @@ namespace FrostyEditor
 
         private void UpdateWindowTitle()
         {
-            Title = "Frosty Editor - " + App.Version + " (" + ProfilesLibrary.DisplayName + ") ";
+            Title = "Frosty Editor - " + Frosty.Core.App.Version + " (" + ProfilesLibrary.DisplayName + ") ";
 
             if (ProfilesLibrary.EnableExecution)
                 Title += "[" + project.DisplayName + "]";
@@ -284,6 +284,9 @@ namespace FrostyEditor
         private void FrostyWindow_Loaded(object sender, EventArgs e)
         {
             (App.Logger as FrostyLogger).AddBinding(tb, TextBox.TextProperty);
+
+            LoadProfile("starwarsbattlefrontii");
+
             dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
             legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
 
@@ -308,6 +311,23 @@ namespace FrostyEditor
             if (App.OpenProject) {
                 LoadProject(App.LaunchArgs, false);
             }
+        }
+
+        private void LoadProfile(string profile)
+        {
+            // load profiles
+            if (!ProfilesLibrary.Initialize(profile))
+            {
+                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
+                Close();
+                return;
+            }
+
+            App.InitDiscordRPC();
+            App.UpdateDiscordRPC("Initializing");
+
+            // launch splash
+            FrostyProfileTaskWindow.Show(this);
         }
 
         private void logTextBox_TextChanged(object sender, TextChangedEventArgs e)

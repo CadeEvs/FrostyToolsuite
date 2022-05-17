@@ -22,7 +22,10 @@ namespace Frosty.Core
         public static string SelectedPack;
         public static ILogger Logger;
 
-        public static readonly int Version = 1;
+        public static bool IsEditor = true;
+
+        public static string Version = "";
+        public static readonly int MinorVersion = 1;
 
         public static string ProfileSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty/" + ProfilesLibrary.ProfileName;
         public static string GlobalSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty";

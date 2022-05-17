@@ -312,7 +312,7 @@ namespace FrostyModManager
             fs.Initialize();
 
             Config.Save();
-            Title = "Frosty Mod Manager - " + App.Version + " (" + ProfilesLibrary.DisplayName + ")";
+            Title = "Frosty Mod Manager - " + Frosty.Core.App.Version + " (" + ProfilesLibrary.DisplayName + ")";
 
             TypeLibrary.Initialize();
             App.PluginManager.Initialize();
@@ -1612,7 +1612,7 @@ namespace FrostyModManager
 
                     PackManifest manifest = new PackManifest()
                     {
-                        managerVersion = App.Version,
+                        managerVersion = Frosty.Core.App.Version,
                         version = manifestVersion,
                         name = selectedPack.Name,
                         mods = mods

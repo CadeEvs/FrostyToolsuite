@@ -29,8 +29,6 @@ namespace FrostyModManager
         
         public static string SelectedPack { get => Frosty.Core.App.SelectedPack; set => Frosty.Core.App.SelectedPack = value; }
 
-        public static string Version = "";
-
         public static bool LaunchGameImmediately 
         { 
             get => launchGameImmediately;
@@ -52,10 +50,12 @@ namespace FrostyModManager
         public App()
         {
             Assembly entryAssembly = Assembly.GetEntryAssembly();
-            Version = entryAssembly.GetName().Version.ToString();
+            Frosty.Core.App.Version = entryAssembly.GetName().Version.ToString();
+
+            Frosty.Core.App.IsEditor = false;
 
             Logger = new FrostyLogger();
-            Logger.Log("Frosty Mod Manager v{0}", Version);
+            Logger.Log("Frosty Mod Manager v{0}", Frosty.Core.App.Version);
 
             FileUnblocker.UnblockDirectory(".\\");
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
@@ -68,11 +68,11 @@ namespace FrostyModManager
             DispatcherUnhandledException += App_DispatcherUnhandledException;
 
 #if FROSTY_DEVELOPER
-            Version += " (Developer)";
+            Frosty.Core.App.Version += " (Developer)";
 #elif FROSTY_ALPHA
-            Version += $" (ALPHA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (ALPHA {Frosty.Core.App.Version})";
 #elif FROSTY_BETA
-            Version += $" (BETA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
         }
 

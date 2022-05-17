@@ -59,7 +59,7 @@ namespace FrostyEditor.Windows
         public SplashWindow()
         {
             InitializeComponent();
-            versionTextBlock.Text = App.Version;
+            //versionTextBlock.Text = App.Version;
             TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo();
         }
 

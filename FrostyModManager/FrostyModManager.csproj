@@ -97,9 +97,6 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="FrostyAppliedMod.cs" />
-    <Compile Include="Windows\KeyPromptWindow.xaml.cs">
-      <DependentUpon>KeyPromptWindow.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Windows\ManageModDataWindow.xaml.cs">
       <DependentUpon>ManageModDataWindow.xaml</DependentUpon>
     </Compile>
@@ -116,10 +113,6 @@
     <Page Include="Windows\ConfigWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\KeyPromptWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\LaunchOptionsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

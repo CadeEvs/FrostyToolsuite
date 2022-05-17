@@ -1,13 +1,14 @@
-﻿<ctrl:FrostyDockableWindow x:Class="FrostyModManager.Windows.KeyPromptWindow"
+﻿<ctrl:FrostyDockableWindow x:Class="Frosty.Core.Windows.KeyPromptWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FrostyModManager.Windows"
+        xmlns:local="clr-namespace:Frosty.Core.Windows"
         xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
         Title="Enter Key" Height="200" Width="325"
         ResizeMode="NoResize" WindowStartupLocation="CenterScreen">
+    
     <Grid Background="{StaticResource ListBackground}">
         <Grid.RowDefinitions>
             <RowDefinition/>

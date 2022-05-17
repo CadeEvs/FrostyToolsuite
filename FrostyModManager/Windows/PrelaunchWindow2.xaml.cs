@@ -39,47 +39,6 @@ namespace FrostyModManager.Windows
                 return;
             }
 
-            if (ProfilesLibrary.RequiresKey && ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19)
-            {
-                byte[] keyData = null;
-                if (!File.Exists(ProfilesLibrary.CacheName + ".key"))
-                {
-                    // prompt for encryption key
-                    KeyPromptWindow keyPromptWin = new KeyPromptWindow();
-                    if (keyPromptWin.ShowDialog() == false)
-                    {
-                        FrostyMessageBox.Show("Encryption key not entered. Unable to load profile.", "Frosty Editor");
-                        return;
-                    }
-
-                    keyData = keyPromptWin.EncryptionKey;
-                    using (NativeWriter writer = new NativeWriter(new FileStream(ProfilesLibrary.CacheName + ".key", FileMode.Create)))
-                        writer.Write(keyData);
-                }
-                else
-                {
-                    // otherwise just read the key from file
-                    keyData = NativeReader.ReadInStream(new FileStream(ProfilesLibrary.CacheName + ".key", FileMode.Open, FileAccess.Read));
-                }
-
-                // add primary encryption key
-                byte[] key = new byte[0x10];
-                Array.Copy(keyData, key, 0x10);
-                KeyManager.Instance.AddKey("Key1", key);
-
-                if (keyData.Length > 0x10)
-                {
-                    // add additional encryption keys
-                    key = new byte[0x10];
-                    Array.Copy(keyData, 0x10, key, 0, 0x10);
-                    KeyManager.Instance.AddKey("Key2", key);
-
-                    key = new byte[0x4000];
-                    Array.Copy(keyData, 0x20, key, 0, 0x4000);
-                    KeyManager.Instance.AddKey("Key3", key);
-                }
-            }
-
             // launch Mod Manager
             SplashWindow splashWin = new SplashWindow();
             App.Current.MainWindow = splashWin;

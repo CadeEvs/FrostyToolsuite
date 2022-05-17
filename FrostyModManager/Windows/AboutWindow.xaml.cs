@@ -34,7 +34,7 @@ namespace FrostyModManager
         public AboutWindow()
         {
             InitializeComponent();
-            versionTextBox.Text = "Version " + App.Version;
+            versionTextBox.Text = "Version " + Frosty.Core.App.Version;
         }
 
         private void hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

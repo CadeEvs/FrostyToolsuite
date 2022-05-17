@@ -1,7 +1,7 @@
 ﻿using Frosty.Controls;
 using System.Windows;
 
-namespace FrostyModManager.Windows
+namespace Frosty.Core.Windows
 {
     /// <summary>
     /// Interaction logic for KeyPromptWindow.xaml

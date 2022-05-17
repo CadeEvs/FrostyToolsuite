@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ShutdownMode="OnMainWindowClose"
              Startup="Application_Startup"
-             StartupUri="/FrostyEditor;component/Windows/PrelaunchWindow2.xaml">
+             StartupUri="/FrostyEditor;component/Windows/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

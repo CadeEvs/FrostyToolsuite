@@ -56,7 +56,7 @@ namespace Frosty.Core
                     int preVersion = int.Parse(version.Substring(version.Length - 1));
 
                     // check if local beta/alpha version isn't the latest
-                    if (Frosty.Core.App.Version < preVersion)
+                    if (Frosty.Core.App.MinorVersion < preVersion)
                     {
                         return true;
                     }

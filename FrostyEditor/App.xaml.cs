@@ -35,7 +35,6 @@ namespace FrostyEditor
 
         public static string SelectedPack { get => Frosty.Core.App.SelectedPack; set => Frosty.Core.App.SelectedPack = value; }
 
-        public static string Version = "";
         public static long StartTime;
 
         public static bool OpenProject {
@@ -52,12 +51,12 @@ namespace FrostyEditor
         public App()
         {
             Assembly entryAssembly = Assembly.GetEntryAssembly();
-            Version = entryAssembly.GetName().Version.ToString();
+            Frosty.Core.App.Version = entryAssembly.GetName().Version.ToString();
 
             Environment.CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
 
             Logger = new FrostyLogger();
-            Logger.Log("Frosty Editor v{0}", Version);
+            Logger.Log("Frosty Editor v{0}", Frosty.Core.App.Version);
 
             FileUnblocker.UnblockDirectory(".\\");
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
@@ -73,11 +72,11 @@ namespace FrostyEditor
             Exit += Application_Exit;
 
 #if FROSTY_DEVELOPER
-            Version += " (Developer)";
+            Frosty.Core.App.Version += " (Developer)";
 #elif FROSTY_ALPHA
-            Version += $" (ALPHA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (ALPHA {Frosty.Core.App.Version})";
 #elif FROSTY_BETA
-            Version += $" (BETA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
         }
 
@@ -144,7 +143,7 @@ namespace FrostyEditor
                 state = state,
                 startTimestamp = App.StartTime,
                 largeImageKey = "frostylogobig",
-                largeImageText = "Frosty Editor v" + App.Version.Replace(" (Developer)", "")
+                largeImageText = "Frosty Editor v" + Frosty.Core.App.Version.Replace(" (Developer)", "")
             };
 
             if (Current.MainWindow is MainWindow)
