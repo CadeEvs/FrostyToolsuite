@@ -56,7 +56,7 @@ namespace FrostyEditor
         {
             FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", false);
             BookmarkItemDoubleClickCommand = new ItemDoubleClickCommand(BookmarkTreeView_MouseDoubleClick);
-            //Bookmarks.BookmarkDb.LoadDb(); @todo: refactor after prelaunch removed
+
             project = new FrostyProject();
 
             InitializeComponent();
@@ -99,14 +99,6 @@ namespace FrostyEditor
                 launchButton.IsEnabled = true;
             }
 
-            InitGameSpecificMenus();
-
-            LoadMenuExtensions();
-            LoadTabExtensions();
-            LoadDataExplorerMenuItemExtensions();
-
-            LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
-
             if (toolsMenuItem.Items.Count != 0)
                 toolsMenuItem.Items.Add(new Separator());
 
@@ -129,6 +121,28 @@ namespace FrostyEditor
             TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo();
 
             currentExplorer = dataExplorer;
+        }
+
+        private void LoadDefaultTabs()
+        {
+
+        }
+        private void LoadDefaultMenuItems()
+        {
+
+        }
+
+        private void ClearPluginExtensions()
+        {
+            miscTabControl.Items.Clear();
+        }
+        private void LoadPluginExtensions()
+        {
+            InitGameSpecificMenus();
+
+            LoadMenuExtensions();
+            LoadTabExtensions();
+            LoadDataExplorerMenuItemExtensions();
         }
 
         private void LoadMenuExtensions()
@@ -186,7 +200,6 @@ namespace FrostyEditor
                 foundMenuItem.Items.Add(menuExtItem);
             }
         }
-
         private void LoadDataExplorerMenuItemExtensions()
         {
             foreach (var contextItemExtension in App.PluginManager.DataExplorerContextMenuExtensions)
@@ -200,7 +213,6 @@ namespace FrostyEditor
                 dataExplorer.AssetContextMenu.Items.Add(contextMenuItem);
             }
         }
-
         private void LoadTabExtensions()
         {
             foreach (var tabExtension in App.PluginManager.TabExtensions)
@@ -301,6 +313,11 @@ namespace FrostyEditor
                     autoSaveTimer.AutoReset = false;
                     autoSaveTimer.Start();
                 }
+            }
+
+            if (ProfilesLibrary.HasLoadedProfile)
+            {
+                Bookmarks.BookmarkDb.LoadDb();
             }
 
             if (App.OpenProject) {
@@ -550,55 +567,53 @@ namespace FrostyEditor
         {
             autoSaveTimer?.Stop();
 
-            // close all open tabs
-            RemoveAllTabs();
-
-            FrostyProject newProject = null;
+            if (saveProject)
             {
-                if (saveProject)
-                {
-                    project.Save();
-                    App.Logger.Log("Project saved to {0}", project.Filename);
-                }
+                project.Save();
+                App.Logger.Log("Project saved to {0}", project.Filename);
+            }
 
-                // clear all modifications
-                if (App.AssetManager != null)
-                {
-                    App.AssetManager.Reset();
-                }
+            // load project
+            FrostyProject newProject = new FrostyProject();
+            if (!newProject.Load(filename))
+            {
+                // failed to load for whatever reason
+                App.Logger.LogWarning("Failed to load {0}", filename);
+                App.NotificationManager.Show("Failed to load project");
 
-                // load project
-                newProject = new FrostyProject();
-                if (!newProject.Load(filename))
-                {
-                    // failed to load for whatever reason
-                    App.Logger.LogWarning("Failed to load {0}", filename);
-                    App.NotificationManager.Show("Failed to load project");
-
-                    newProject = null;
-                }
+                newProject = null;
             }
 
             if (newProject != null)
             {
+                // close all open tabs
+                RemoveAllTabs();
+
+                ClearPluginExtensions();
+
                 project = newProject;
 
+                // update UI
                 if (project.RequiresNewProfile)
                 {
+                    LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+
+                    LoadPluginExtensions();
+
                     dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
                     legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
                 }
                 else
                 {
-                    dataExplorer.ShowOnlyModified = false;
-                    dataExplorer.ShowOnlyModified = true;
                     dataExplorer.RefreshItems();
-
-                    legacyExplorer.ShowOnlyModified = false;
-                    legacyExplorer.ShowOnlyModified = true;
                     legacyExplorer.RefreshItems();
                 }
 
+                legacyExplorer.ShowOnlyModified = false;
+                legacyExplorer.ShowOnlyModified = true;
+
+                dataExplorer.ShowOnlyModified = false;
+                dataExplorer.ShowOnlyModified = true;
 
                 // report success
                 App.Logger.Log("Loaded {0}", project.Filename);
@@ -840,7 +855,10 @@ namespace FrostyEditor
                 }
             }
 
-            Bookmarks.BookmarkDb.SaveDb();
+            if (ProfilesLibrary.HasLoadedProfile)
+            {
+                Bookmarks.BookmarkDb.SaveDb();
+            }
         }
 
         private void dataExplorer_SelectedAssetDoubleClick(object sender, RoutedEventArgs e)

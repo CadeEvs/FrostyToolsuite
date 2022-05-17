@@ -12,6 +12,10 @@
     
     <Grid>
         <Border Background="{StaticResource WindowBackground}" BorderThickness="1" BorderBrush="{StaticResource ListBackground}">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="20" ShadowDepth="1"/>
+            </Border.Effect>
+
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>

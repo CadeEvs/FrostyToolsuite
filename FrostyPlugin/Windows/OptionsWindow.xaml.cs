@@ -122,9 +122,17 @@ namespace Frosty.Core.Windows
 
         public override void Load()
         {
-            List<string> langs = GetLocalizedLanguages();
-            Language = new CustomComboData<string, string>(langs, langs) {SelectedIndex = langs.IndexOf(Config.Get<string>("Language", "English", ConfigScope.Game))};
-            
+            if (ProfilesLibrary.HasLoadedProfile)
+            {
+                List<string> langs = GetLocalizedLanguages();
+                Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Language", "English", ConfigScope.Game)) };
+            }
+            else
+            {
+                List<string> emptyLangs = new List<string>();
+                Language = new CustomComboData<string, string>(emptyLangs, emptyLangs);
+            }
+
             AutosaveEnabled = Config.Get<bool>("AutosaveEnabled", true);
             AutosavePeriod = Config.Get<int>("AutosavePeriod", 5);
             AutosaveMaxSaves = Config.Get<int>("AutosaveMaxCount", 10);
