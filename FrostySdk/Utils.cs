@@ -883,7 +883,8 @@ namespace FrostySdk
                 else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                     compressionType = CompressionType.ZStd;
             }
-            else if (resType == ResourceType.SwfMovie)
+            
+            if (resType == ResourceType.SwfMovie)
             {
                 compressionType = CompressionType.None;
             }
