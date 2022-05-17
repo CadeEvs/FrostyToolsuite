@@ -862,8 +862,6 @@ namespace FrostySdk
         public static byte[] CompressFile(byte[] inData, Texture texture = null, ResourceType resType = ResourceType.Invalid, CompressionType compressionOverride = CompressionType.Default, uint offset = 0)
         {
             CompressionType compressionType = compressionOverride;
-            if (resType == ResourceType.SwfMovie)
-                compressionType = CompressionType.None;
 
             if (compressionOverride == CompressionType.Default)
             {
@@ -884,6 +882,10 @@ namespace FrostySdk
                     compressionType = CompressionType.ZStd;
                 else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                     compressionType = CompressionType.ZStd;
+            }
+            else if (resType == ResourceType.SwfMovie)
+            {
+                compressionType = CompressionType.None;
             }
 
             MemoryStream outMs = new MemoryStream();
