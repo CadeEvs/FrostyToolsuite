@@ -43,7 +43,8 @@ namespace Frosty.Core.IO
                 ReadNullTerminatedString(),
                 ReadNullTerminatedString(),
                 ReadNullTerminatedString(),
-                ReadNullTerminatedString()
+                ReadNullTerminatedString(),
+                Version >= 5 ? ReadNullTerminatedString() : ""
                 );
         }
 

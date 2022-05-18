@@ -19,10 +19,11 @@ namespace Frosty.Core.Mod
             2 - Merging of defined res files (eg. ShaderBlockDepot)
             3 - Added user data
             4 - Various structural changes as well as removal of modifiedBundles
+            5 - Added link for the modpage
         */
 
         public static ulong Magic = 0x01005954534F5246;
-        public static uint Version = 4;
+        public static uint Version = 5;
 
         public FrostyModDetails ModDetails { get; }
         public string Path { get; }
@@ -55,7 +56,8 @@ namespace Frosty.Core.Mod
                 modObj.GetValue<string>("author"),
                 modObj.GetValue<string>("category"),
                 modObj.GetValue<string>("version"),
-                modObj.GetValue<string>("description")
+                modObj.GetValue<string>("description"),
+                ""
                 );
             GameVersion = modObj.GetValue<int>("gameVersion");
 
