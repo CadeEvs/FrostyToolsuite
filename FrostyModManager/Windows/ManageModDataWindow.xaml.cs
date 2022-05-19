@@ -1,14 +1,25 @@
-﻿using System.IO;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
-using System.Windows.Media;
+using System.Windows.Controls;
 using Frosty.Controls;
 using Frosty.Core;
+using Frosty.ModSupport;
 using FrostySdk;
 
 namespace FrostyModManager
 {
+
+    public class Pack
+    {
+        public string Name { get; set; }
+        public string Path { get; set; }
+    }
+
+
     /// <summary>
-    /// Author: Clonedelta
+    /// Author: Clonedelta, Dyvinia
     /// Class <c>ManageModDataWindow</c> handles the logic for deleting specified ModData folders. 
     /// </summary>
     public partial class ManageModDataWindow : FrostyDockableWindow
@@ -25,17 +36,16 @@ namespace FrostyModManager
                 double y = mainWin.Top + (mainWin.Height / 2.0);
 
                 Left = x - (Width / 2.0);
-                Top = y - (Height / 2.0);
+                Top = y - (MaxHeight / 2.0);
             }
 
             // Draws the user's ModData directory on modDataNameTextBox
-            string modPath = getModDataPath();
-            modDataNameTextBox.Text = modPath;
+            string modDataPath = getModDataPath();
+            modDataNameTextBox.Text = modDataPath;
 
-            if (!Directory.Exists(modPath + "\\ModData"))
-            {
-                Directory.CreateDirectory(modPath + "\\ModData"); // Done to avoid potential IO error on init
-            }
+            // Done to avoid potential IO error on init
+            if (!Directory.Exists(modDataPath))
+                Directory.CreateDirectory(modDataPath);
 
             listPacks();
         }
@@ -45,7 +55,7 @@ namespace FrostyModManager
         /// </summary>
         private string getModDataPath()
         {
-            return Config.Get<string>("GamePath", "", ConfigScope.Game, ProfilesLibrary.ProfileName);
+            return Config.Get<string>("GamePath", "", ConfigScope.Game, ProfilesLibrary.ProfileName) + "\\ModData";
         }
 
         /// <summary>
@@ -53,74 +63,18 @@ namespace FrostyModManager
         /// </summary>
         private void listPacks()
         {
-            string modPath = getModDataPath();
+            // Cleans out old items
+            modDataList.Items.Clear();
+
+            string modDataPath = getModDataPath();
 
             // Grabs the packs currently in the ModData folder.
-            string[] modDataPacks = Directory.GetDirectories(@modPath + "\\ModData\\", "*", SearchOption.TopDirectoryOnly);
+            string[] modDataPacks = Directory.GetDirectories(modDataPath, "*", SearchOption.TopDirectoryOnly);
 
             // Adds them to the ComboBox in the window.
-            // TODO: Find better way to get subdirectory names instead of parsing full path
             foreach (string packNamePath in modDataPacks)
             {
-                string[] packNamePathSplit = packNamePath.Split('\\');
-                string packName = packNamePathSplit[packNamePathSplit.Length - 1];
-                modDataComboBox.Items.Add(packName);
-            }
-        }
-
-        /// <summary>
-        /// Method <c>deleteModDataButton_Click</c> Delete operation for the selected ModData pack folder
-        /// </summary>
-        private void deleteModDataButton_Click(object sender, RoutedEventArgs e)
-        {
-            string modPath = getModDataPath();
-
-            try
-            {
-                // Checks which ComboBox item was selected
-                switch ((string)modDataComboBox.SelectedValue)
-                {
-                    case "-- Select a Pack --":
-                        outputText.Text = "Please select a Pack to delete.";
-                        outputText.Foreground = Brushes.Red;
-                        outputText.Visibility = Visibility.Visible;
-                        break;
-
-                    case "All ModData":
-                        Directory.Delete(modPath + "\\ModData", true);
-                        Directory.CreateDirectory(modPath + "\\ModData"); // Done to avoid potential IO error on init
-
-                        outputText.Text = "ModData Successfully Deleted.";
-                        outputText.Foreground = Brushes.Green;
-                        outputText.Visibility = Visibility.Visible;
-
-                        // Removes all options from the ComboBox
-                        for (int i = 2; i < modDataComboBox.Items.Count;)
-                        {
-                            modDataComboBox.Items.RemoveAt(i);
-                        }
-
-                        modDataComboBox.SelectedIndex = 0;
-                        break;
-
-                    default:
-
-                        Directory.Delete(modPath + "\\ModData\\" + modDataComboBox.SelectedItem, true);
-
-                        outputText.Text = modDataComboBox.SelectedItem + "'s ModData Successfully Deleted.";
-                        outputText.Foreground = Brushes.Green;
-                        outputText.Visibility = Visibility.Visible;
-
-                        modDataComboBox.Items.Remove(modDataComboBox.SelectedItem);
-                        modDataComboBox.SelectedIndex = 0;
-                        break;
-                }
-            }
-            catch (IOException)
-            {
-                outputText.Text = "Error deleting Pack!\nTry running Frosty as Administrator.";
-                outputText.Foreground = Brushes.Red;
-                outputText.Visibility = Visibility.Visible;
+                modDataList.Items.Add(new Pack { Name = Path.GetFileName(packNamePath), Path = packNamePath });
             }
         }
 
@@ -131,6 +85,48 @@ namespace FrostyModManager
         {
             DialogResult = false;
             Close();
+        }
+
+        /// <summary>
+        /// Method <c>deleteModData_Click</c> Delete operation for the ModData pack folder
+        /// </summary>
+        private void deleteModData_Click(object sender, RoutedEventArgs e)
+        {
+            Pack selectedPack = ((Button)sender).DataContext as Pack;
+
+            MessageBoxResult result = FrostyMessageBox.Show("Do you want to delete pack \"" + selectedPack.Name + "\"?", "Frosty Mod Manager", MessageBoxButton.YesNo);
+            if (result == MessageBoxResult.Yes)
+            {
+                try
+                {
+                    Directory.Delete(selectedPack.Path, true);
+                }
+                catch (IOException)
+                {
+                    System.Threading.Tasks.Task.Run(() => {
+                        FrostyMessageBox.Show("Error deleting Pack!\nTry running Frosty as Administrator.", "Frosty Mod Manager", MessageBoxButton.OK);
+                    });
+                }
+            }   
+            listPacks();
+        }
+
+        /// <summary>
+        /// Method <c>openModData_Click</c> Open ModData pack folder
+        /// </summary>
+        private void openModData_Click(object sender, RoutedEventArgs e)
+        {
+            Pack selectedPack = ((Button)sender).DataContext as Pack;
+            Process.Start(selectedPack.Path);
+        }
+
+        /// <summary>
+        /// Method <c>launchModData_Click</c> Attempts to launch game with existing ModData pack folder
+        /// </summary>
+        private void launchModData_Click(object sender, RoutedEventArgs e)
+        {
+            Pack selectedPack = ((Button)sender).DataContext as Pack;
+            FrostyModExecutor.ExecuteProcess($"{Path.GetDirectoryName(getModDataPath())}\\{ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{selectedPack.Path.Trim('\\')}\"");
         }
     }
 }
