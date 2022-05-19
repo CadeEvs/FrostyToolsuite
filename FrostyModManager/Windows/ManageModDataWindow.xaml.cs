@@ -11,7 +11,7 @@ using FrostySdk;
 namespace FrostyModManager
 {
 
-    public class Pack
+    public class ModDataListItem
     {
         public string Name { get; set; }
         public string Path { get; set; }
@@ -74,7 +74,7 @@ namespace FrostyModManager
             // Adds them to the ComboBox in the window.
             foreach (string packNamePath in modDataPacks)
             {
-                modDataList.Items.Add(new Pack { Name = Path.GetFileName(packNamePath), Path = packNamePath });
+                modDataList.Items.Add(new ModDataListItem { Name = Path.GetFileName(packNamePath), Path = packNamePath });
             }
         }
 
@@ -92,7 +92,7 @@ namespace FrostyModManager
         /// </summary>
         private void deleteModData_Click(object sender, RoutedEventArgs e)
         {
-            Pack selectedPack = ((Button)sender).DataContext as Pack;
+            ModDataListItem selectedPack = ((Button)sender).DataContext as ModDataListItem;
 
             MessageBoxResult result = FrostyMessageBox.Show("Do you want to delete pack \"" + selectedPack.Name + "\"?", "Frosty Mod Manager", MessageBoxButton.YesNo);
             if (result == MessageBoxResult.Yes)
@@ -116,7 +116,7 @@ namespace FrostyModManager
         /// </summary>
         private void openModData_Click(object sender, RoutedEventArgs e)
         {
-            Pack selectedPack = ((Button)sender).DataContext as Pack;
+            ModDataListItem selectedPack = ((Button)sender).DataContext as ModDataListItem;
             Process.Start(selectedPack.Path);
         }
 
@@ -125,7 +125,7 @@ namespace FrostyModManager
         /// </summary>
         private void launchModData_Click(object sender, RoutedEventArgs e)
         {
-            Pack selectedPack = ((Button)sender).DataContext as Pack;
+            ModDataListItem selectedPack = ((Button)sender).DataContext as ModDataListItem;
             FrostyModExecutor.ExecuteProcess($"{Path.GetDirectoryName(getModDataPath())}\\{ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{selectedPack.Path.Trim('\\')}\"");
         }
     }
