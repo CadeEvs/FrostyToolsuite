@@ -80,28 +80,26 @@
                                     <ListBox.ItemTemplate>
                                         <DataTemplate>
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="22">
-                                                <Image x:Name="typeImage" Source="/FrostyModManager;component/Images/Ebx.png" Height="18" Margin="0,0,4,0"/>
-                                                <!--<Image x:Name="modifyImage" Source="/FrostyModManager;component/Images/ModifyAction.png" Height="18" Margin="0,0,4,0" ToolTip="File is modified" Opacity="0.1"/>
-                                                <Image x:Name="addedImage" Source="/FrostyModManager;component/Images/AddAction.png" Height="18" Margin="0,0,4,0" ToolTip="File is new or added to a bundle" Opacity="0.1"/>-->
+                                                <Grid Height="18" Margin="0,0,4,2">
+                                                    <Rectangle Width="35" Height="15" RadiusY="3" RadiusX="3" Fill="#FFFFFFFF" />
+                                                    <TextBlock x:Name="typeName" Text="{Binding Path=Type}" Foreground="Black" FontFamily="Segoe UI" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="9"/>
+                                                </Grid>
                                                 <TextBlock Text="{Binding Path=Name}" FontFamily="Consolas" VerticalAlignment="Center"/>
                                             </StackPanel>
+                                            
+                                            <!-- Custom Names for Types with long Names -->
                                             <DataTemplate.Triggers>
-                                                <DataTrigger Binding="{Binding Path=Type}" Value="RES">
-                                                    <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Res.png"/>
-                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding Path=Type}" Value="CHUNK">
-                                                    <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Chunk.png"/>
+                                                    <Setter TargetName="typeName" Property="Text" Value="CHK"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding Path=Type}" Value="LEGACY">
-                                                    <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Legacy.png"/>
+                                                    <Setter TargetName="typeName" Property="Text" Value="LEG"/>
                                                 </DataTrigger>
-                                                <!--<DataTrigger Binding="{Binding Path=IsModified}" Value="True">
-                                                    <Setter TargetName="modifyImage" Property="Opacity" Value="1"/>
+                                                <DataTrigger Binding="{Binding Path=Type}" Value="FSFILE">
+                                                    <Setter TargetName="typeName" Property="Text" Value="FSF"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding Path=IsAdded}" Value="True">
-                                                    <Setter TargetName="addedImage" Property="Opacity" Value="1"/>
-                                                </DataTrigger>-->
                                             </DataTemplate.Triggers>
+                                            
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>
                                 </ListBox>

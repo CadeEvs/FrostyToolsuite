@@ -704,18 +704,23 @@
                                                 </DataTemplate>
                                                 <DataTemplate x:Key="conflictsNameTemplate">
                                                     <StackPanel Height="22" Orientation="Horizontal">
-                                                        <Image x:Name="typeImage" Source="/FrostyModManager;component/Images/Ebx.png" Margin="0,0,4,0" Height="18"/>
+                                                        <Grid Height="18" Margin="0,0,4,2">
+                                                            <Rectangle Width="35" Height="15" RadiusY="3" RadiusX="3" Fill="#FFFFFFFF" />
+                                                            <TextBlock x:Name="typeName" Text="{Binding Path=Type}" Foreground="Black" FontFamily="Segoe UI" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="9"/>
+                                                        </Grid>
                                                         <TextBlock Text="{Binding Path=Name}" FontFamily="Consolas" VerticalAlignment="Center"/>
                                                     </StackPanel>
+                                                    
+                                                    <!-- Custom Names for Types with long Names -->
                                                     <DataTemplate.Triggers>
-                                                        <DataTrigger Binding="{Binding Path=Type}" Value="res">
-                                                            <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Res.png"/>
+                                                        <DataTrigger Binding="{Binding Path=Type}" Value="CHUNK">
+                                                            <Setter TargetName="typeName" Property="Text" Value="CHK"/>
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Path=Type}" Value="chunk">
-                                                            <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Chunk.png"/>
+                                                        <DataTrigger Binding="{Binding Path=Type}" Value="LEGACY">
+                                                            <Setter TargetName="typeName" Property="Text" Value="LEG"/>
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Path=Type}" Value="legacy">
-                                                            <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Legacy.png"/>
+                                                        <DataTrigger Binding="{Binding Path=Type}" Value="FSFILE">
+                                                            <Setter TargetName="typeName" Property="Text" Value="FSF"/>
                                                         </DataTrigger>
                                                     </DataTemplate.Triggers>
                                                 </DataTemplate>
