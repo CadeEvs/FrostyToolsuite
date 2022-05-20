@@ -166,6 +166,7 @@
     <Compile Include="Mod\ICustomHandler.cs" />
     <Compile Include="Mod\ILegacyCustomHandler.cs" />
     <Compile Include="Mod\IModCustomHandler.cs" />
+    <Compile Include="Mod\InitFsResource.cs" />
     <Compile Include="Mod\IResourceContainer.cs" />
     <Compile Include="Mod\ModResourceType.cs" />
     <Compile Include="Mod\ModSettings.cs" />

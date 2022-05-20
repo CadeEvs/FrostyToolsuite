@@ -155,6 +155,7 @@ namespace Frosty.ModSupport
         private Dictionary<string, EbxAssetEntry> modifiedEbx = new Dictionary<string, EbxAssetEntry>();
         private Dictionary<string, ResAssetEntry> modifiedRes = new Dictionary<string, ResAssetEntry>();
         private Dictionary<Guid, ChunkAssetEntry> modifiedChunks = new Dictionary<Guid, ChunkAssetEntry>();
+        private Dictionary<string, DbObject> modifiedFs = new Dictionary<string, DbObject>();
 
         private Dictionary<Sha1, ArchiveInfo> archiveData = new Dictionary<Sha1, ArchiveInfo>();
         private int numArchiveEntries = 0;
@@ -581,6 +582,16 @@ namespace Frosty.ModSupport
                                 }
                             }
                         }
+                    }
+                    else if (resource.Type == ModResourceType.FsFile)
+                    {
+                        DbObject fileStub;
+                        using (DbReader reader = new DbReader(new MemoryStream(fmod.GetResourceData(resource)), null))
+                            fileStub = reader.ReadDbObject();
+
+                        if (!modifiedFs.ContainsKey(resource.Name))
+                            modifiedFs.Add(resource.Name, null);
+                        modifiedFs[resource.Name] = fileStub;
                     }
 
                     // modified bundle actions (these are pulled from the asset manager during applying)
@@ -1645,7 +1656,7 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
 
                 // finally copy in the left over patch data
-                CopyFileIfRequired(fs.BasePath + patchPath + "/initfs_win32", modPath + patchPath + "/initfs_win32");
+                fs.WriteInitFs(fs.BasePath + patchPath + "/initfs_win32", modPath + patchPath + "/initfs_win32", modifiedFs);
 
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                 {
@@ -1734,7 +1745,7 @@ namespace Frosty.ModSupport
                 {
                     // copy from old data to new data
                     CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modPath + "Data/chunkmanifest");
-                    CopyFileIfRequired(fs.BasePath + "Data/initfs_Win32", modPath + "Data/initfs_Win32");
+                    fs.WriteInitFs(fs.BasePath + "Data/initfs_Win32", modPath + "Data/initfs_Win32", modifiedFs);
                 }
 
                 // create the frosty mod list file

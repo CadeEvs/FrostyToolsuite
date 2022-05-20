@@ -34,6 +34,11 @@ namespace Frosty.Core.Mod
         /// <summary>
         /// Data relating to bundles.
         /// </summary>
-        Bundle
+        Bundle,
+
+        /// <summary>
+        /// Data relating to initfs files.
+        /// </summary>
+        FsFile
     }
 }

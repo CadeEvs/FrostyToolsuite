@@ -6,7 +6,8 @@ namespace Frosty.Core.Attributes
     public enum CustomHandlerType
     {
         Ebx,
-        Res
+        Res,
+        CustomAsset
     }
 
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
@@ -21,12 +22,16 @@ namespace Frosty.Core.Attributes
         // Res
         public ResourceType ResType { get; set; }
 
-        public RegisterCustomHandlerAttribute(CustomHandlerType inType, Type inClassType, ResourceType resType = ResourceType.Invalid, string ebxType = "")
+        // Custom
+        public string CustomAssetType { get; set; }
+
+        public RegisterCustomHandlerAttribute(CustomHandlerType inType, Type inClassType, ResourceType resType = ResourceType.Invalid, string ebxType = "", string customType = "")
         {
             HandlerType = inType;
             HandlerClassType = inClassType;
             ResType = resType;
             EbxType = ebxType;
+            CustomAssetType = customType;
         }
     }
 }

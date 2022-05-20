@@ -1,6 +1,8 @@
 ﻿using Frosty.Core;
 using Frosty.Hash;
+using FrostySdk;
 using FrostySdk.Interfaces;
+using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
@@ -51,12 +53,19 @@ namespace TestPlugin.Managers
 
         public Stream GetAsset(AssetEntry entry)
         {
-            throw new NotImplementedException();
+            if (entry != null)
+            {
+                byte[] buf = App.FileSystem.GetFileFromMemoryFs(entry.Name);
+
+                return new MemoryStream(buf);
+            }
+            else
+                return null;
         }
 
         public AssetEntry GetAssetEntry(string key)
         {
-            throw new NotImplementedException();
+            return entries.ContainsKey(Fnv1.HashString(key)) ? entries[Fnv1.HashString(key)] : null;
         }
 
         public void Initialize(ILogger logger)
@@ -79,7 +88,18 @@ namespace TestPlugin.Managers
 
         public void ModifyAsset(string key, byte[] data)
         {
-            throw new NotImplementedException();
+            int hash = Fnv1.HashString(key);
+            if (!entries.ContainsKey(hash))
+                return;
+
+            FsFileEntry entry = entries[hash];
+
+            if (entry.ModifiedEntry == null)
+                entry.ModifiedEntry = new ModifiedAssetEntry();
+
+            using (DbReader reader = new DbReader(new MemoryStream(data), null))
+                entry.ModifiedEntry.DataObject = reader.ReadDbObject();
+            entry.IsDirty = true;
         }
 
         public void OnCommand(string command, params object[] value)

@@ -10,7 +10,7 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
     </ResourceDictionary.MergedDictionaries>
-    
+
     <!-- InitFSViewer -->
     <Style TargetType="{x:Type lctrl:InitFSViewer}">
         <Setter Property="Template">
@@ -25,7 +25,17 @@
                         <ctrl:FrostyDockablePanel Grid.Column="0" TitleBarVisible="False">
                             <Grid>
                                 <ListBox x:Name="PART_ListBox" Visibility="Collapsed"/>
-                                <core:FrostyDataExplorer x:Name="PART_DataExplorer" ToolbarVisible="False" Margin="0,1,0,0"/>
+                                <core:FrostyDataExplorer x:Name="PART_DataExplorer" ToolbarVisible="False" Margin="0,1,0,0">
+                                    <core:FrostyDataExplorer.AssetContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem x:Name="PART_RevertMenuItem" Header="Revert">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Revert.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </core:FrostyDataExplorer.AssetContextMenu>
+                                </core:FrostyDataExplorer>
                             </Grid>
                         </ctrl:FrostyDockablePanel>
 
