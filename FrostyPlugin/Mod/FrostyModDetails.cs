@@ -12,19 +12,21 @@ namespace Frosty.Core.Mod
         public string Version { get; }
         public string Description { get; }
         public string Category => (category == "") ? "Misc" : category;
+        public string Link { get; }
         public ImageSource Icon { get; private set; }
         public List<ImageSource> Screenshots { get; } = new List<ImageSource>();
         public List<FrostyModRequirement> Requirements { get; } = new List<FrostyModRequirement>();
 
         private string category;
 
-        public FrostyModDetails(string inTitle, string inAuthor, string inCategory, string inVersion, string inDescription)
+        public FrostyModDetails(string inTitle, string inAuthor, string inCategory, string inVersion, string inDescription, string inModPageLink)
         {
             Title = inTitle;
             Author = inAuthor;
             Version = inVersion;
             Description = inDescription;
             category = inCategory;
+            Link = inModPageLink;
         }
 
         public void SetIcon(byte[] buffer)

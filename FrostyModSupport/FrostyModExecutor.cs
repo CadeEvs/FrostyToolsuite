@@ -695,7 +695,7 @@ namespace Frosty.ModSupport
 
                             if (fmod.NewFormat)
                             {
-                                b = $"{modPaths[i].ToLower()}:{fmod.ModDetails.Version} '{fmod.ModDetails.Title}' '{fmod.ModDetails.Category}'";
+                                b = $"{modPaths[i].ToLower()}:{fmod.ModDetails.Version} '{fmod.ModDetails.Title}' '{fmod.ModDetails.Category}' '{fmod.ModDetails.Link}'";
                             }
                             else
                             {
@@ -703,7 +703,7 @@ namespace Frosty.ModSupport
                                 using (DbReader reader = new DbReader(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), null))
                                     mod = reader.ReadDbObject();
 
-                                b = $"{modPaths[i].ToLower()}:{mod.GetValue<string>("version")} '{mod.GetValue<string>("title")}' '{mod.GetValue<string>("category")}'";
+                                b = $"{modPaths[i].ToLower()}:{mod.GetValue<string>("version")} '{mod.GetValue<string>("title")}' '{mod.GetValue<string>("category")}' ''";
                             }
 
                             if (!a.Equals(b, StringComparison.OrdinalIgnoreCase))
@@ -1748,11 +1748,13 @@ namespace Frosty.ModSupport
                         string version = "";
                         string name = "";
                         string category = "";
+                        string link = "";
                         if (fmod.NewFormat)
                         {
                             version = fmod.ModDetails.Version;
                             name = fmod.ModDetails.Title;
                             category = fmod.ModDetails.Category;
+                            link = fmod.ModDetails.Link;
                         }
                         else
                         {
@@ -1763,7 +1765,7 @@ namespace Frosty.ModSupport
                             name = mod.GetValue<string>("title");
                         }
 
-                        writer.WriteLine($"{path}:{version} '{name}' '{category}'");
+                        writer.WriteLine($"{path}:{version} '{name}' '{category}' '{link}'");
                     }
                 }
             }

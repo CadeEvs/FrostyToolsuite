@@ -76,6 +76,18 @@ namespace Frosty.Core.Mod
                 }
             }
         }
+        public string Link
+        {
+            get => link;
+            set
+            {
+                if (!link.Equals(value))
+                {
+                    link = value;
+                    isDirty = true;
+                }
+            }
+        }
         public byte[] Icon
         {
             get => iconData;
@@ -92,6 +104,7 @@ namespace Frosty.Core.Mod
         private int selectedCategory = 0;
         private string version = "";
         private string description = "";
+        private string link = "";
 
         private byte[] iconData = null;
         private byte[][] screenshotData = null;
