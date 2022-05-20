@@ -22,8 +22,6 @@ namespace Frosty.Core
         public static string SelectedPack;
         public static ILogger Logger;
 
-        public static readonly int Version = 3;
-      
         public static bool IsEditor = true;
 
         public static string Version = "";
