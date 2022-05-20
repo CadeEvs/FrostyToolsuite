@@ -273,6 +273,7 @@
     <Resource Include="Images\PrimaryActionAdd.png" />
     <Resource Include="Images\PrimaryActionMerge.png" />
     <Resource Include="Images\Import.png" />
+    <Resource Include="Images\Open.png" />
     <Content Include="ThirdParty\Newtonsoft.Json.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
