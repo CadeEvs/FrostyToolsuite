@@ -690,8 +690,8 @@ namespace FrostyCmd
 
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey)
-                ProfileFlags pf = new ProfileFlags(0, 4, 0, 0);
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 4, 0, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -919,41 +919,42 @@ namespace FrostyCmd
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("SWSSDK");
                 writer.Write(CreateBanner("SWS"));
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_N");
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_SRM");
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_DefaultWhite_C");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_DefaultNormal_N");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_Default_Midgray");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_Default_Midgray");
 
                 string[] sharedBundleNames = new string[]
                 {
-                    "win32/gameplay/blueprintbundles/vehiclescommonbundle",
-                    "win32/gameplay/blueprintbundles/charactercommonmpbundle",
-                    "win32/gameplay/weapons/bundling/weaponsbundlecommon",
-                    "win32/animations/commonanimationbundle",
-                    "win32/ui/static",
+                    "win32/game/ui/systems/uiassetsbundle_stategroups",
+                    "win32/game/gameplay/starships/starships_sharedbundle",
+                    "win32/game/levels/lobby/bundles/sharedbundlelobbylooseassets",
+                    "win32/game/gameplay/bundles/sharedbundles/starships/sharedbundlestarshipscine",
+                    "win32/game/gameplay/bundles/sharedbundles/pilots/sharedbundlepilots",
                     "win32/default_settings",
-                    "win32/gameconfigurations/warsaw",
+                    "win32/ui/static",
                     "win32/systems/frostbitestartupdata",
                     "win32/loadingscreens_bundle",
-                    "win32/webbrowser/webbrowserbundle",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_simplifiedchinese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_worstcase",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_arabicsa",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_brazilianportuguese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_korean",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_traditionalchinese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_polish",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_russian",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_japanese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_italian",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_spanishMex",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_spanish",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_german",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_french",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_english",
-                    "win32/sound/music/loadingmusicplayer:5c5a6f4f-8d55-a023-fbef-f4bf6c067209",
-                    "win32/twinkle/ui/twinklevideos",
-                    "win32/sparta/offline/spartabundles"
+                    "win32/game/incomgameconfiguration",
+                    "win32/game/gameplay/bundles/sharedbundles/starships/sharedbundlestarshipsgarage",
+                    "win32/game/gameplay/bundles/sharedbundles/flairs/sharedbundleflairs",
+                    "win32/game/gameplay/starships/starships_sp_sharedbundle",
+                    "win32/sound/music/mav01_loadingmusic_title_and_frontend:89dce4fb-ac26-4be0-9f57-8969eaff7f28",
+                    "win32/game/ui/frontend/webbrowser/webbrowserresourcebundle",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_english",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_french",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_german",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_spanish",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_spanishmex",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_italian",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_japanese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_russian",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_polish",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_traditionalchinese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_korean",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_brazilianportuguese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_simplifiedchinese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_worstcase",
                 };
 
                 writer.Write(sharedBundleNames.Length);
@@ -962,7 +963,7 @@ namespace FrostyCmd
 
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, EAC)
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly, EAC)
                 ProfileFlags pf = new ProfileFlags(0, 4, 0, 1, 1);
                 pf.Write(writer);
 
@@ -999,7 +1000,7 @@ namespace FrostyCmd
             CreatePVZ3Profile();
             CreateNFSHeatProfile();
             CreateBFHProfile();
-            //CreateSWSProfile();
+            CreateSWSProfile();
 
 #if FROSTY_DEVELOPER
 

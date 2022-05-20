@@ -9,6 +9,7 @@
         Title="Frosty Editor" Height="200" Width="600" WindowStyle="None" AllowsTransparency="True"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="Transparent"
         Loaded="Window_Loaded" Icon="/FrostyEditor;component/AppIcon.ico">
+    
     <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown">
 
         <Border Background="{StaticResource WindowBackground}" BorderThickness="1" BorderBrush="{StaticResource ListBackground}">

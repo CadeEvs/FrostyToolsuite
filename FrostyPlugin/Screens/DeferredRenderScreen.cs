@@ -705,7 +705,6 @@ namespace Frosty.Core.Screens
                 return;
 
             uint shadowMapRes = (uint)Config.Get<int>("RenderShadowRes", 2048);
-            //uint shadowMapRes = (uint)Config.Get<int>("Render", "ShadowRes", 2048);
             uint FTMapRes = 256;
             uint FTMapScale = 8;
             uint RTMapRes = 256;
@@ -2292,8 +2291,6 @@ namespace Frosty.Core.Screens
 
             GroundVisible = Config.Get<bool>("MeshSetViewerShowFloor", true);
             GridVisible = Config.Get<bool>("MeshSetViewerShowGrid", true);
-            //GroundVisible = Config.Get<bool>("MeshViewer", "ShowFloor", true);
-            //GridVisible = Config.Get<bool>("MeshViewer", "ShowGrid", true);
         }
 
         #region -- Creation --
@@ -2548,10 +2545,6 @@ namespace Frosty.Core.Screens
             ShadowsEnabled = Config.Get<bool>("RenderShadowsEnabled", true);
             HBAOEnabled = Config.Get<bool>("RenderHBAOEnabled", true);
             TXAAEnabled = Config.Get<bool>("RenderTXAAEnabled", true);
-            //ShadowsEnabled = Config.Get<bool>("Render", "ShadowsEnabled", true);
-            //HBAOEnabled = Config.Get<bool>("Render", "HBAOEnabled", true);
-            //TXAAEnabled = Config.Get<bool>("Render", "TXAAEnabled", true);
-
 
             // initialize the libraries
             textureLibrary = new TextureLibrary(Viewport.Device);

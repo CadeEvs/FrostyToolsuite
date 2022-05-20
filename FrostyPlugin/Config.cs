@@ -58,6 +58,17 @@ namespace Frosty.Core
                 }
             }
 
+            internal void Rename(string option, string newoption, ConfigScope scope = ConfigScope.Game) {
+                if (scope == ConfigScope.Pack) {
+                    if (Packs.ContainsKey(option)) {
+                        Packs.TryGetValue(option, out var value);
+                        Packs.Add(newoption, value);
+                        Packs.Remove(option);
+                    }
+                        
+                }
+            }
+
             internal IEnumerable<string> EnumerateKeys(ConfigScope scope = ConfigScope.Game)
             {
                 if (scope == ConfigScope.Game)
@@ -165,6 +176,13 @@ namespace Frosty.Core
         {
             if (scope == ConfigScope.Game || scope == ConfigScope.Pack)
                 Current.Games[profile ?? ProfilesLibrary.ProfileName].Remove(option, scope);
+            else if (Current.GlobalOptions.ContainsKey(option))
+                Current.GlobalOptions.Remove(option);
+        }
+
+        public static void Rename(string option, string newoption, ConfigScope scope = ConfigScope.Global, string profile = null) {
+            if (scope == ConfigScope.Game || scope == ConfigScope.Pack)
+                Current.Games[profile ?? ProfilesLibrary.ProfileName].Rename(option, newoption, scope);
             else if (Current.GlobalOptions.ContainsKey(option))
                 Current.GlobalOptions.Remove(option);
         }

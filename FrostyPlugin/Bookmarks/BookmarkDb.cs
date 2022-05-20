@@ -85,7 +85,6 @@ namespace Frosty.Core.Bookmarks
             List<BookmarkItem> allTargets = new List<BookmarkItem>();
 
             string db = Config.Get("BookmarkDb", "", ConfigScope.Game);
-            //string db = Config.Get("Bookmarks", "BookmarkDb", "");
             if (string.IsNullOrEmpty(db))
                 return;
 
@@ -177,7 +176,6 @@ namespace Frosty.Core.Bookmarks
 
             Config.Add("BookmarkDb", string.Join("|", lines), ConfigScope.Game);
             Config.Save();
-            //Config.Add("Bookmarks", "BookmarkDb", string.Join("|", lines));
         }
     }
 }

@@ -19,14 +19,12 @@ namespace SoundEditorPlugin
         public override void Load()
         {
             Volume = Config.Get<float>("SoundVolume", 20.0f);
-            //Volume = Config.Get<float>("Editor", "SoundVolume", 50);
         }
 
         public override void Save()
         {
             Config.Add("SoundVolume", Volume);
             Config.Save();
-            //Config.Add("Editor", "SoundVolume", Volume);
         }
 
         public override bool Validate() => Volume >= 0.0f && Volume <= 100.0f;

@@ -9,6 +9,7 @@
         mc:Ignorable="d"
         Title="" Height="150" Width="400" AllowsTransparency="True" WindowStyle="None" Background="Transparent" UseLayoutRounding="True" SnapsToDevicePixels="True"
         WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    
     <Grid x:Name="taskWindow" Visibility="Visible" SnapsToDevicePixels="True">
         <Border Background="Transparent"/>
         <Border Background="{StaticResource ControlBackground}" VerticalAlignment="Center" HorizontalAlignment="Center" Width="350" Height="125" BorderBrush="{StaticResource ListBackground}" BorderThickness="1">

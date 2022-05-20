@@ -1,4 +1,5 @@
 ﻿using Frosty.Core.Interfaces;
+using Frosty.Core.Managers;
 using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
@@ -9,16 +10,24 @@ namespace Frosty.Core
 {
     public sealed class App
     {
+        // managers
         public static AssetManager AssetManager;
         public static ResourceManager ResourceManager;
         public static FileSystem FileSystem;
         public static PluginManager PluginManager;
+        public static NotificationManager NotificationManager;
+
         public static EbxAssetEntry SelectedAsset;
         public static string SelectedProfile;
         public static string SelectedPack;
         public static ILogger Logger;
 
         public static readonly int Version = 3;
+      
+        public static bool IsEditor = true;
+
+        public static string Version = "";
+        public static readonly int MinorVersion = 1;
 
         public static string ProfileSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty/" + ProfilesLibrary.ProfileName;
         public static string GlobalSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty";

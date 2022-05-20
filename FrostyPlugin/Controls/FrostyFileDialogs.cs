@@ -20,7 +20,6 @@ namespace Frosty.Core.Controls
         {
             key = inKey + "ImportPath";
             DirectoryInfo di = new DirectoryInfo(Config.Get(key, new FileInfo(Assembly.GetExecutingAssembly().FullName).DirectoryName));
-            //DirectoryInfo di = new DirectoryInfo(Config.Get("DialogPaths", key, new FileInfo(Assembly.GetExecutingAssembly().FullName).DirectoryName));
 
             ofd = new OpenFileDialog
             {
@@ -36,7 +35,6 @@ namespace Frosty.Core.Controls
             if (ofd.ShowDialog() == true)
             {
                 Config.Add(key, Path.GetDirectoryName(ofd.FileName));
-                //Config.Add("DialogPaths", key, Path.GetDirectoryName(ofd.FileName));
                 Config.Save();
                 return true;
             }
@@ -58,7 +56,6 @@ namespace Frosty.Core.Controls
         {
             key = inKey + "ExportPath";
             DirectoryInfo di = new DirectoryInfo(Config.Get(key, new FileInfo(Assembly.GetExecutingAssembly().FullName).DirectoryName));
-            //DirectoryInfo di = new DirectoryInfo(Config.Get("DialogPaths", key, new FileInfo(Assembly.GetExecutingAssembly().FullName).DirectoryName));
 
             sfd = new SaveFileDialog
             {
@@ -75,7 +72,6 @@ namespace Frosty.Core.Controls
             if (sfd.ShowDialog() == true)
             {
                 Config.Add(key, Path.GetDirectoryName(sfd.FileName));
-                //Config.Add("DialogPaths", key, Path.GetDirectoryName(sfd.FileName));
                 Config.Save();
                 return true;
             }

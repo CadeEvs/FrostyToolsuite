@@ -7,9 +7,13 @@ using FrostyModManager.Windows;
 using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Cache;
 using System.Reflection;
 using System.Text;
 using System.Windows;
@@ -24,8 +28,6 @@ namespace FrostyModManager
         public static ILogger Logger { get => Frosty.Core.App.Logger; set => Frosty.Core.App.Logger = value; }
         
         public static string SelectedPack { get => Frosty.Core.App.SelectedPack; set => Frosty.Core.App.SelectedPack = value; }
-
-        public static string Version = "";
 
         public static bool LaunchGameImmediately 
         { 
@@ -48,10 +50,12 @@ namespace FrostyModManager
         public App()
         {
             Assembly entryAssembly = Assembly.GetEntryAssembly();
-            Version = entryAssembly.GetName().Version.ToString();
+            Frosty.Core.App.Version = entryAssembly.GetName().Version.ToString();
+
+            Frosty.Core.App.IsEditor = false;
 
             Logger = new FrostyLogger();
-            Logger.Log("Frosty Mod Manager v{0}", Version);
+            Logger.Log("Frosty Mod Manager v{0}", Frosty.Core.App.Version);
 
             FileUnblocker.UnblockDirectory(".\\");
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
@@ -64,11 +68,11 @@ namespace FrostyModManager
             DispatcherUnhandledException += App_DispatcherUnhandledException;
 
 #if FROSTY_DEVELOPER
-            Version += " (Developer)";
+            Frosty.Core.App.Version += " (Developer)";
 #elif FROSTY_ALPHA
-            Version += $" (ALPHA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (ALPHA {Frosty.Core.App.Version})";
 #elif FROSTY_BETA
-            Version += $" (BETA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
         }
 
@@ -104,34 +108,15 @@ namespace FrostyModManager
             return null;
         }
 
-        //private void RefreshConfigurationList()
-        //{
-        //    configs.Clear();
-        //    foreach (string s in Directory.EnumerateFiles("./", "FrostyModManager*.ini"))
-        //    {
-        //        try
-        //        {
-        //            FrostyConfiguration config = new FrostyConfiguration(s);
-        //            configs.Add(config);
-        //        }
-        //        catch (Exception /*ex*/)
-        //        {
-        //            //FrostyMessageBox.Show("Couldn't load profile from '" + s + "': \n\n" + ex.ToString());
-        //        }
-        //    }
-        //}
-
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (!File.Exists($"{Frosty.Core.App.GlobalSettingsPath}/manager_config.json"))
                 Config.UpgradeConfigs();
 
-            //RefreshConfigurationList();
-
             Config.Load();
-            //ini.LoadEntries("DefaultSettings.ini");
 
-            //string defaultConfigname = ini.GetEntry("Init", "DefaultConfiguration", "");
+            if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
+                CheckVersion();
 
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
@@ -145,13 +130,6 @@ namespace FrostyModManager
                     Config.Save();
                 }
             }
-            //foreach (FrostyConfiguration name in configs)
-            //{
-            //    if (name.ProfileName == defaultConfigname)
-            //    {
-            //        defaultConfig = name;
-            //    }
-            //}
 
             // Launches the Frosty Mod Manager is there is a Default Config
             if (defaultConfig != null)
@@ -165,20 +143,6 @@ namespace FrostyModManager
 
                 StartupUri = new Uri("/FrostyModManager;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
             }
-            //if (defaultConfig != null)
-            //{
-            //    App.configFilename = defaultConfig.Filename;
-            //    Config.Load(defaultConfig.Config); // Load game config
-
-            //    // load profiles
-            //    if (!ProfilesLibrary.Initialize(Config.Get<string>("Init", "Profile", "")))
-            //    {
-            //        FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-            //        return;
-            //    }
-
-            //    this.StartupUri = new Uri("/FrostyModManager;component/Windows/MainWindow.xaml", UriKind.Relative);
-            //}
 
             StringBuilder sb = new StringBuilder();
             if (e.Args.Length > 0)
@@ -205,6 +169,34 @@ namespace FrostyModManager
             }
 
             LaunchArgs = sb.ToString().Trim();
+        }
+
+        private void CheckVersion()
+        {
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+            Version localVersion = Assembly.GetEntryAssembly().GetName().Version;
+
+            try
+            {
+                if (UpdateChecker.CheckVersion(checkPrerelease, localVersion))
+                {
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        MessageBoxResult mbResult = FrostyMessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Mod Manager", MessageBoxButton.YesNo);
+                        if (mbResult == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                        }
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                System.Threading.Tasks.Task.Run(() =>
+                {
+                    FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Mod Manager", MessageBoxButton.OK);
+                });
+            }
         }
     }
 }

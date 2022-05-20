@@ -10,7 +10,12 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using Frosty.Core;
 using Frosty.Core.Controls;
+using Frosty.Core.Managers;
 using FrostyCore;
+using System.Text;
+using System.Linq;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace FrostyEditor
 {
@@ -23,23 +28,35 @@ namespace FrostyEditor
         public static ResourceManager ResourceManager { get => Frosty.Core.App.ResourceManager; set => Frosty.Core.App.ResourceManager = value; }
         public static FileSystem FileSystem { get => Frosty.Core.App.FileSystem; set => Frosty.Core.App.FileSystem = value; }
         public static PluginManager PluginManager { get => Frosty.Core.App.PluginManager; set => Frosty.Core.App.PluginManager = value; }
+        public static NotificationManager NotificationManager { get => Frosty.Core.App.NotificationManager; set => Frosty.Core.App.NotificationManager = value; }
+
         public static EbxAssetEntry SelectedAsset { get => Frosty.Core.App.SelectedAsset; set => Frosty.Core.App.SelectedAsset = value; }
         public static ILogger Logger { get => Frosty.Core.App.Logger; set => Frosty.Core.App.Logger = value; }
 
         public static string SelectedPack { get => Frosty.Core.App.SelectedPack; set => Frosty.Core.App.SelectedPack = value; }
 
-        public static string Version = "";
         public static long StartTime;
+
+        public static bool OpenProject {
+            get => openProject;
+            set => openProject = value;
+        }
+
+        public static string LaunchArgs { get; private set; }
+
+        private static bool openProject;
 
         private FrostyConfiguration defaultConfig;
 
         public App()
         {
             Assembly entryAssembly = Assembly.GetEntryAssembly();
-            Version = entryAssembly.GetName().Version.ToString();
+            Frosty.Core.App.Version = entryAssembly.GetName().Version.ToString();
+
+            Environment.CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
 
             Logger = new FrostyLogger();
-            Logger.Log("Frosty Editor v{0}", Version);
+            Logger.Log("Frosty Editor v{0}", Frosty.Core.App.Version);
 
             FileUnblocker.UnblockDirectory(".\\");
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
@@ -48,18 +65,18 @@ namespace FrostyEditor
             PluginManager = new PluginManager(App.Logger, PluginManagerType.Editor);
             ProfilesLibrary.Initialize(PluginManager.Profiles);
 
+            NotificationManager = new NotificationManager();
+
             // for displaying exception box on all unhandled exceptions
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             Exit += Application_Exit;
 
-            string test = FrostyEditor.Properties.Resources.BuildDate;
-
 #if FROSTY_DEVELOPER
-            Version += " (Developer)";
+            Frosty.Core.App.Version += " (Developer)";
 #elif FROSTY_ALPHA
-            Version += $" (ALPHA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (ALPHA {Frosty.Core.App.Version})";
 #elif FROSTY_BETA
-            Version += $" (BETA {Frosty.Core.App.Version})";
+            Frosty.Core.App.Version += $" (BETA {Frosty.Core.App.Version})";
 #endif
         }
 
@@ -126,7 +143,7 @@ namespace FrostyEditor
                 state = state,
                 startTimestamp = App.StartTime,
                 largeImageKey = "frostylogobig",
-                largeImageText = "Frosty Editor v" + App.Version.Replace(" (Developer)", "")
+                largeImageText = "Frosty Editor v" + Frosty.Core.App.Version.Replace(" (Developer)", "")
             };
 
             if (Current.MainWindow is MainWindow)
@@ -172,6 +189,9 @@ namespace FrostyEditor
 
             Config.Load();
 
+            if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
+                CheckVersion();
+
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
             {
@@ -182,6 +202,29 @@ namespace FrostyEditor
                 {
                     Config.Add("UseDefaultProfile", false);
                     Config.Save();
+                }
+            }
+
+            //check args to see if it is loading a project
+            if (e.Args.Length > 0) {
+                string arg = e.Args[0];
+                if (arg.Contains(".fbproject")) {
+                    openProject = true;
+                    LaunchArgs = arg;
+
+                    //get game profile from project file
+                    using (NativeReader reader = new NativeReader(new FileStream(arg, FileMode.Open, FileAccess.Read))) {
+                        if (reader.ReadULong() == 0x00005954534F5246) {
+                            reader.ReadUInt();
+                            string gameProfile = reader.ReadNullTerminatedString();
+                            try { 
+                                defaultConfig = new FrostyConfiguration(gameProfile); 
+                            }
+                            catch { 
+                                FrostyMessageBox.Show("There was an error when trying to load project using the profile: " + gameProfile, "Frosty Editor");
+                            }
+                        }
+                    }
                 }
             }
 
@@ -205,6 +248,33 @@ namespace FrostyEditor
         {
             if (Config.Current != null && Config.Get<bool>("DiscordRPCEnabled", false))
                 DiscordRPC.Discord_Shutdown();
+        }
+
+        private void CheckVersion()
+        {
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+            Version localVersion = Assembly.GetEntryAssembly().GetName().Version;
+
+            try
+            {
+                if (UpdateChecker.CheckVersion(checkPrerelease, localVersion))
+                {
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        MessageBoxResult mbResult = FrostyMessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Editor", MessageBoxButton.YesNo);
+                        if (mbResult == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                        }
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                System.Threading.Tasks.Task.Run(() => {
+                    FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Editor", MessageBoxButton.OK);
+                });
+            }
         }
 
         private static void DiscordReady(DiscordUser user)

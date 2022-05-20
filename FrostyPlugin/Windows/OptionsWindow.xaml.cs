@@ -14,6 +14,8 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using FrostySdk;
+using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 namespace Frosty.Core.Windows
 {
@@ -100,11 +102,37 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool RememberChoice { get; set; } = false;
 
+        [Category("Editor")]
+        [DisplayName("Set as Default Installation")]
+        [Description("Use this installation for .fbproject files.")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool defaultInstallation { get; set; } = false;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("Check Github for Frosty updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prerelease Updates")]
+        [Description("Check Github for Frosty Alpha and Beta updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheckPrerelease { get; set; } = false;
+
         public override void Load()
         {
-            List<string> langs = GetLocalizedLanguages();
-            Language = new CustomComboData<string, string>(langs, langs) {SelectedIndex = langs.IndexOf(Config.Get<string>("Language", "English", ConfigScope.Game))};
-            
+            if (ProfilesLibrary.HasLoadedProfile)
+            {
+                List<string> langs = GetLocalizedLanguages();
+                Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Language", "English", ConfigScope.Game)) };
+            }
+            else
+            {
+                List<string> emptyLangs = new List<string>();
+                Language = new CustomComboData<string, string>(emptyLangs, emptyLangs);
+            }
+
             AutosaveEnabled = Config.Get<bool>("AutosaveEnabled", true);
             AutosavePeriod = Config.Get<int>("AutosavePeriod", 5);
             AutosaveMaxSaves = Config.Get<int>("AutosaveMaxCount", 10);
@@ -118,22 +146,21 @@ namespace Frosty.Core.Windows
             AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", false);
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
 
+            updateCheck = Config.Get<bool>("UpdateCheck", true);
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
-            //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
+            //Checks the registry for the current association instead of loading from config
+            string KeyName = "frostyproject";
+            string OpenWith = Assembly.GetEntryAssembly().Location;
 
-            //AutosaveEnabled = Config.Get<bool>("Autosave", "Enabled", true);
-            //AutosavePeriod = Config.Get<int>("Autosave", "Period", 5);
-            //AutosaveMaxSaves = Config.Get<int>("Autosave", "MaxCount", 10);
-
-            //TextEditorTabSize = Config.Get<int>("TextEditor", "TabSize", 4);
-            //TextEditorIndentOnEnter = Config.Get<bool>("TextEditor", "IndentOnEnter", false);
-
-            //DiscordEnabled = Config.Get<bool>("DiscordRPC", "Enabled", false);
-            //ModSettingsAuthor = Config.Get<string>("ModSettings", "Author", "");
-
-            //AssetDisplayModuleInId = Config.Get<bool>("Asset", "DisplayModuleInId", true);
-            //RememberChoice = Config.Get<bool>("Init", "RememberChoice", false);
+            if (Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName) != null) {
+                string openCommand = (string)Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("");
+                if (openCommand.Contains(OpenWith)) defaultInstallation = true;
+            }
         }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
         public override void Save()
         {
@@ -149,6 +176,9 @@ namespace Frosty.Core.Windows
             Config.Add("DisplayModuleInId", AssetDisplayModuleInId);
             Config.Add("UseDefaultProfile", RememberChoice);
 
+            Config.Add("UpdateCheck", updateCheck);
+            Config.Add("UpdateCheckPrerelease", updateCheckPrerelease);
+
             if (RememberChoice)
                 Config.Add("DefaultProfile", ProfilesLibrary.ProfileName);
             else
@@ -160,18 +190,38 @@ namespace Frosty.Core.Windows
 
             LocalizedStringDatabase.Current.Initialize();
 
-            //Config.Add("Autosave", "Enabled", AutosaveEnabled);
-            //Config.Add("Autosave", "Period", AutosavePeriod);
-            //Config.Add("Autosave", "MaxCount", AutosaveMaxSaves);
+            //Create file association if enabled
+            if (defaultInstallation) {
+                string Extension = ".fbproject";
+                string KeyName = "frostyproject";
+                string OpenWith = Assembly.GetEntryAssembly().Location;
+                string FileDescription = "Frosty Project";
 
-            //Config.Add("TextEditor", "TabSize", TextEditorTabSize);
-            //Config.Add("TextEditor", "IndentOnEnter", TextEditorIndentOnEnter);
+                RegistryKey BaseKey;
+                RegistryKey OpenMethod;
+                RegistryKey Shell;
+                RegistryKey CurrentUser;
 
-            //Config.Add("DiscordRPC", "Enabled", DiscordEnabled);
-            //Config.Add("ModSettings", "Author", ModSettingsAuthor);
-            //Config.Add("Asset", "DisplayModuleInId", AssetDisplayModuleInId);
-            //Config.Add("Init", "RememberChoice", RememberChoice);
-            //Config.Add("Init", "Language", Language.SelectedName);
+                BaseKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + Extension);
+                BaseKey.SetValue("", KeyName);
+
+                OpenMethod = Registry.CurrentUser.CreateSubKey("Software\\Classes\\" + KeyName);
+                OpenMethod.SetValue("", FileDescription);
+                OpenMethod.CreateSubKey("DefaultIcon").SetValue("", "\"" + OpenWith + "\",0");
+                Shell = OpenMethod.CreateSubKey("shell");
+                Shell.CreateSubKey("edit").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+                Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", "\"" + OpenWith + "\"" + " \"%1\"");
+                BaseKey.Close();
+                OpenMethod.Close();
+                Shell.Close();
+
+                CurrentUser = Registry.CurrentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\" + Extension, true);
+                CurrentUser.DeleteSubKey("UserChoice", false);
+                CurrentUser.Close();
+
+                // Tell explorer the file association has been changed
+                SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
+            }
         }
 
         public override bool Validate()
@@ -226,6 +276,18 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public string CommandLineArgs { get; set; } = "";
 
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("Check Github for Frosty updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prerelease Updates")]
+        [Description("Check Github for Frosty Alpha and Beta updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool updateCheckPrerelease { get; set; } = true;
+
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
         //[Description("Automatically collapse mod categories in the Available Mods list on startup.")]
@@ -243,8 +305,8 @@ namespace Frosty.Core.Windows
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
-            //CollapseCategories = Config.Get("CollapseCategories", false);
-            //AppliedModIcons = Config.Get("AppliedModIcons", true);
+            updateCheck = Config.Get<bool>("UpdateCheck", true);
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
         }
 
         public override void Save()
@@ -252,8 +314,8 @@ namespace Frosty.Core.Windows
             Config.Add("UseDefaultProfile", RememberChoice);
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
 
-            //Config.Add("CollapseCategories", CollapseCategories);
-            //Config.Add("AppliedModIcons", AppliedModIcons);
+            Config.Add("UpdateCheck", updateCheck);
+            Config.Add("UpdateCheckPrerelease", updateCheckPrerelease);
 
             if (RememberChoice)
                 Config.Add("DefaultProfile", ProfilesLibrary.ProfileName);
@@ -321,7 +383,6 @@ namespace Frosty.Core.Windows
                     optionData.Save();
 
                 Config.Save();
-                //Config.Save(App.configFilename);
 
                 Close();
             }

@@ -29,65 +29,14 @@ namespace FrostyModManager.Windows
             InitializeComponent();
         }
 
-        private void LaunchConfig(string profile /*Config config, string filename*/)
+        private void LaunchConfig(string profile)
         {
-            //App.configFilename = filename;
-            //Config.Load(config); // Load game config
-
             // load profiles
             if (!ProfilesLibrary.Initialize(profile))
             {
                 FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Mod Manager");
                 Close();
                 return;
-            }
-
-            //if (!ProfilesLibrary.Initialize(Config.Get<string>("Init", "Profile", "")))
-            //{
-            //    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-            //    Close();
-            //    return;
-            //}
-
-            if (ProfilesLibrary.RequiresKey && ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19)
-            {
-                byte[] keyData = null;
-                if (!File.Exists(ProfilesLibrary.CacheName + ".key"))
-                {
-                    // prompt for encryption key
-                    KeyPromptWindow keyPromptWin = new KeyPromptWindow();
-                    if (keyPromptWin.ShowDialog() == false)
-                    {
-                        FrostyMessageBox.Show("Encryption key not entered. Unable to load profile.", "Frosty Editor");
-                        return;
-                    }
-
-                    keyData = keyPromptWin.EncryptionKey;
-                    using (NativeWriter writer = new NativeWriter(new FileStream(ProfilesLibrary.CacheName + ".key", FileMode.Create)))
-                        writer.Write(keyData);
-                }
-                else
-                {
-                    // otherwise just read the key from file
-                    keyData = NativeReader.ReadInStream(new FileStream(ProfilesLibrary.CacheName + ".key", FileMode.Open, FileAccess.Read));
-                }
-
-                // add primary encryption key
-                byte[] key = new byte[0x10];
-                Array.Copy(keyData, key, 0x10);
-                KeyManager.Instance.AddKey("Key1", key);
-
-                if (keyData.Length > 0x10)
-                {
-                    // add additional encryption keys
-                    key = new byte[0x10];
-                    Array.Copy(keyData, 0x10, key, 0, 0x10);
-                    KeyManager.Instance.AddKey("Key2", key);
-
-                    key = new byte[0x4000];
-                    Array.Copy(keyData, 0x20, key, 0, 0x4000);
-                    KeyManager.Instance.AddKey("Key3", key);
-                }
             }
 
             // launch Mod Manager
@@ -103,10 +52,7 @@ namespace FrostyModManager.Windows
             RemoveConfigButton.IsEnabled = false;
             LaunchConfigButton.IsEnabled = false;
 
-            //ini.LoadEntries("DefaultSettings.ini");
-
             string defaultConfigName = Config.Get<string>("DefaultProfile", null);
-            //string defaultConfigName = ini.GetEntry("Init", "DefaultConfiguration", "");
 
             foreach (FrostyConfiguration name in configs)
             {
@@ -135,18 +81,6 @@ namespace FrostyModManager.Windows
                     Config.Save();
                 }
             }
-            //foreach (string s in Directory.EnumerateFiles("./", "FrostyModManager*.ini"))
-            //{
-            //    try
-            //    {
-            //        FrostyConfiguration config = new FrostyConfiguration(s);
-            //        configs.Add(config);
-            //    }
-            //    catch (Exception /*ex*/)
-            //    {
-            //        //FrostyMessageBox.Show("Couldn't load profile from '" + s + "': \n\n" + ex.ToString());
-            //    }
-            //}
 
             ConfigList.ItemsSource = configs;
         }
@@ -194,14 +128,7 @@ namespace FrostyModManager.Windows
             Config.AddGame(fi.Name.Remove(fi.Name.Length - 4), fi.DirectoryName);
             configs.Add(new FrostyConfiguration(fi.Name.Remove(fi.Name.Length - 4)));
             Config.Save();
-            //Config ini = new Config();
-            //ini.AddEntry("Init", "GamePath", fi.DirectoryName);
-            //ini.AddEntry("Init", "Profile", fi.Name.Remove(fi.Name.Length - 4));
-            //string filename = "FrostyModManager " + ini.GetEntry("Init", "Profile", "") + ".ini";
-            //ini.SaveEntries(filename);
 
-            //FrostyConfiguration cfg = new FrostyConfiguration(filename);
-            //configs.Add(cfg);
             ConfigList.Items.Refresh();
         }
 
@@ -226,10 +153,6 @@ namespace FrostyModManager.Windows
                 FrostyConfiguration selectedItem = ConfigList.SelectedItem as FrostyConfiguration;
 
                 Config.RemoveGame(selectedItem.ProfileName);
-                //if (File.Exists(selectedItem.Filename))
-                //{
-                //    File.Delete(selectedItem.Filename);
-                //}
 
                 configs.Remove(selectedItem);
                 ConfigList.Items.Refresh();
@@ -304,14 +227,6 @@ namespace FrostyModManager.Windows
 
                             Config.AddGame(fi.Name.Remove(fi.Name.Length - 4), fi.DirectoryName);
                             configs.Add(new FrostyConfiguration(fi.Name.Remove(fi.Name.Length - 4)));
-                            //Config ini = new Config();
-                            //ini.AddEntry("Init", "GamePath", fi.DirectoryName);
-                            //ini.AddEntry("Init", "Profile", fi.Name.Remove(fi.Name.Length - 4));
-                            //string fileName = "FrostyModManager " + ini.GetEntry("Init", "Profile", "") + ".ini";
-                            //ini.SaveEntries(fileName);
-
-                            //FrostyConfiguration cfg = new FrostyConfiguration(fileName);
-                            //configs.Add(cfg);
 
                             totalCount++;
                         }

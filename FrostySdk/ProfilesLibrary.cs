@@ -94,6 +94,8 @@ namespace FrostySdk
         public static string DefaultMask => effectiveProfile.DefaultMask;
         public static string DefaultTint => effectiveProfile.DefaultTint;
 
+        public static bool HasLoadedProfile => effectiveProfile.ProfileData != null;
+
         public static Dictionary<int, string> SharedBundles => effectiveProfile.SharedBundles;
 
         public static bool IsResTypeIgnored(Managers.ResourceType resType)

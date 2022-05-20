@@ -297,16 +297,6 @@ namespace FrostyModManager
             (App.Logger as FrostyLogger).AddBinding(tb, TextBox.TextProperty);
 
             string gamePath = Config.Get<string>("GamePath", "", ConfigScope.Game);
-            //string gamePath = Config.Get<string>("Init", "GamePath", "");
-            //string gameProfileName = Config.Get<string>("Init", "Profile", "");
-
-            //if (!ProfilesLibrary.Initialize(gameProfileName))
-            //{
-            //    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Mod Manager");
-            //    Closing -= FrostyWindow_Closing;
-            //    Close();
-            //    return;
-            //}
 
             if (!ProfilesLibrary.EnableExecution)
             {
@@ -317,14 +307,12 @@ namespace FrostyModManager
             }
 
             fs = new FileSystem(gamePath);
-            //fs = new FileSystem(Config.Get<string>("Init", "GamePath", ""));
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 fs.AddSource(source.Path, source.SubDirs);
             fs.Initialize();
 
             Config.Save();
-            //Config.Save(App.configFilename);
-            Title = "Frosty Mod Manager - " + App.Version + " (" + ProfilesLibrary.DisplayName + ")";
+            Title = "Frosty Mod Manager - " + Frosty.Core.App.Version + " (" + ProfilesLibrary.DisplayName + ")";
 
             TypeLibrary.Initialize();
             App.PluginManager.Initialize();
@@ -373,10 +361,8 @@ namespace FrostyModManager
             view.GroupDescriptions.Add(groupDescription);
 
             foreach (string packName in Config.EnumerateKeys(ConfigScope.Pack))
-            //foreach (string profileName in Config.EnumerateKeys("Profiles"))
             {
                 string values = Config.Get(packName, "", ConfigScope.Pack);
-                //string values = Config.Get<string>("Profiles", profileName, "");
                 string[] valuesArray = values.Split(new char[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
 
                 FrostyPack pack = new FrostyPack(packName);
@@ -425,7 +411,6 @@ namespace FrostyModManager
             toolsMenuItem.Items.Add(optionsMenuItem);
 
             string selectedProfileName = Config.Get<string>("SelectedPack", "", ConfigScope.Game);
-            //string selectedProfileName = Config.Get<string>("Application", "SelectedProfile", "");
             int selectedIndex = 0;
             if (selectedProfileName != null)
             {
@@ -465,7 +450,6 @@ namespace FrostyModManager
             selectedPack.Refresh();
 
             Config.Add("SelectedPack", selectedPack.Name, ConfigScope.Game);
-            //Config.Add("Application", "SelectedProfile", selectedProfile.Name);
         }
 
         private void removeProfileButton_Click(object sender, RoutedEventArgs e)
@@ -479,11 +463,72 @@ namespace FrostyModManager
             if (FrostyMessageBox.Show("Are you sure you want to delete this pack?", "Frosty Mod Manager", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 Config.Remove(selectedPack.Name, ConfigScope.Pack);
-                //Config.Remove("Profiles", selectedProfile.Name);
                 packs.Remove(selectedPack);
 
                 packsComboBox.Items.Refresh();
                 packsComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private void packRename_Click(object sender, RoutedEventArgs e) {
+
+            AddProfileWindow win = new AddProfileWindow("Rename Pack");
+            win.ShowDialog();
+
+            if (win.DialogResult == true) {
+                string newPackName = win.ProfileName;
+                var oldPack = selectedPack;
+
+                FrostyPack existingPack = packs.Find((FrostyPack a) => {
+                    return a.Name.CompareTo(newPackName) == 0;
+                });
+
+                if (existingPack == null) {
+                    Config.Rename(oldPack.Name, newPackName, ConfigScope.Pack);
+
+                    FrostyPack newPack = new FrostyPack(newPackName);
+                    foreach (var mod in oldPack.AppliedMods) {
+                        newPack.AppliedMods.Add(mod);
+                    }
+
+                    packs.Add(newPack);
+                    packs.Remove(oldPack);
+
+                    packsComboBox.Items.Refresh();
+                    packsComboBox.SelectedItem = newPack;
+                }
+                else FrostyMessageBox.Show("A pack with the same name already exists", "Frosty Mod Manager");
+
+            }
+        }
+
+        private void packDuplicate_Click(object sender, RoutedEventArgs e) {
+
+            AddProfileWindow win = new AddProfileWindow("Duplicate Pack");
+            win.ShowDialog();
+
+            if (win.DialogResult == true) {
+                string newPackName = win.ProfileName;
+                var oldPack = selectedPack;
+
+                FrostyPack existingPack = packs.Find((FrostyPack a) => {
+                    return a.Name.CompareTo(newPackName) == 0;
+                });
+
+                if (existingPack == null) {
+                    Config.Add(newPackName, ConfigScope.Pack);
+
+                    FrostyPack newPack = new FrostyPack(newPackName);
+                    foreach (var mod in oldPack.AppliedMods) {
+                        newPack.AppliedMods.Add(mod);
+                    }
+
+                    packs.Add(newPack);
+
+                    packsComboBox.Items.Refresh();
+                    packsComboBox.SelectedItem = newPack;
+                }
+                else FrostyMessageBox.Show("A pack with the same name already exists", "Frosty Mod Manager");
             }
         }
 
@@ -540,11 +585,9 @@ namespace FrostyModManager
         private void launchButton_Click(object sender, RoutedEventArgs e)
         {
             Config.Save();
-            //Config.Save(App.configFilename);
 
             // initialize
             Frosty.Core.App.FileSystem = new FileSystem(Config.Get<string>("GamePath", "", ConfigScope.Game));
-            //FileSystem fs = new FileSystem(Config.Get<string>("Init", "GamePath", ""));
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);
             Frosty.Core.App.FileSystem.Initialize();
@@ -562,7 +605,6 @@ namespace FrostyModManager
 
             // combine stored args with launch args
             string additionalArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ";
-            //string additionalArgs = Config.Get<string>("Init", "AdditionalArgs", "") + " ";
             additionalArgs += App.LaunchArgs;
 
             // setup ability to cancel the process
@@ -603,7 +645,6 @@ namespace FrostyModManager
 
         private void FrostyWindow_Closing(object sender, CancelEventArgs e) 
             => Config.Save();
-            //=> Config.Save(App.configFilename);
 
         private bool AddPack(string packName)
         {
@@ -621,7 +662,6 @@ namespace FrostyModManager
                 packsComboBox.SelectedItem = pack;
 
                 Config.Add(pack.Name, "", ConfigScope.Pack);
-                //Config.Add("Profiles", profile.Name, "");
 
                 return true;
             }
@@ -819,17 +859,39 @@ namespace FrostyModManager
                             List<string> mods = new List<string>();
                             List<int> format = new List<int>();
                             List<string> archives = new List<string>();
+                            int fbpacks = 0;
 
                             // create decompressor
                             IDecompressor decompressor = null;
                             if (fi.Extension == ".rar") decompressor = new RarDecompressor();
-                            else if (fi.Extension == ".zip") decompressor = new ZipDecompressor();
+                            else if (fi.Extension == ".zip" || fi.Extension == ".fbpack") decompressor = new ZipDecompressor();
                             else if (fi.Extension == ".7z") decompressor = new SevenZipDecompressor();
 
                             // search out fbmods in archive
                             decompressor.OpenArchive(filename);
                             foreach (CompressedFileInfo compressedFi in decompressor.EnumerateFiles())
                             {
+                                
+                                if (compressedFi.Extension == ".fbpack") {
+                                    //create temp file
+                                    DirectoryInfo tempdir = new DirectoryInfo($"temp/");
+                                    FileInfo tempfile = new FileInfo(tempdir + compressedFi.Filename);
+
+                                    tempdir.Create();
+                                    decompressor.DecompressToFile(tempfile.FullName);
+
+                                    //install temp file
+                                    Dispatcher.Invoke(() => {
+                                        InstallMods(new string[] { tempfile.FullName });
+                                    });
+
+                                    //delete temp files
+                                    if (tempfile.Exists) tempfile.Delete();
+                                    if (tempdir.Exists) tempdir.Delete();
+
+                                    fbpacks++;
+                                }
+
                                 if (compressedFi.Extension == ".fbmod")
                                 {
                                     string modFilename = compressedFi.Filename;
@@ -871,7 +933,7 @@ namespace FrostyModManager
                             }
                             decompressor.CloseArchive();
 
-                            if (mods.Count == 0)
+                            if (mods.Count == 0 && fbpacks == 0)
                             {
                                 // no point continuing with this archive
                                 errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Archive contains no installable mods." });
@@ -1241,7 +1303,7 @@ namespace FrostyModManager
             }
         }
 
-        private bool IsCompressed(FileInfo fi) => fi.Extension == ".rar" || fi.Extension == ".zip" || fi.Extension == ".7z";
+        private bool IsCompressed(FileInfo fi) => fi.Extension == ".rar" || fi.Extension == ".zip" || fi.Extension == ".7z" || fi.Extension == ".fbpack";
 
         private void launchOptionsMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -1252,6 +1314,12 @@ namespace FrostyModManager
         private void aboutMenuItem_Click(object sender, RoutedEventArgs e)
         {
             AboutWindow win = new AboutWindow();
+            win.ShowDialog();
+        }
+
+        private void modDataMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ManageModDataWindow win = new ManageModDataWindow();
             win.ShowDialog();
         }
 
@@ -1485,7 +1553,6 @@ namespace FrostyModManager
         private void launchConfigurationWindow_Click(object sender, RoutedEventArgs e)
         {
             Config.Save();
-            //Config.Save(App.configFilename);
 
             Windows.PrelaunchWindow2 SelectConfiguration = new Windows.PrelaunchWindow2();
             App.Current.MainWindow = SelectConfiguration;
@@ -1543,7 +1610,7 @@ namespace FrostyModManager
 
                     PackManifest manifest = new PackManifest()
                     {
-                        managerVersion = App.Version,
+                        managerVersion = Frosty.Core.App.Version,
                         version = manifestVersion,
                         name = selectedPack.Name,
                         mods = mods
@@ -1578,7 +1645,7 @@ namespace FrostyModManager
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "frosty pack (*.zip)|*.zip",
+                Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
                 Title = "Import Pack",
                 Multiselect = false
             };
@@ -1591,7 +1658,7 @@ namespace FrostyModManager
 
         private void packExport_Click(object sender, RoutedEventArgs e)
         {
-            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Pack As", "*.zip (Frosty Pack)|*.zip", "Pack");
+            FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Pack As", "*.fbpack (FBPack)|*.fbpack", "FBPack");
             if (sfd.ShowDialog())
             {
                 if (File.Exists(sfd.FileName))
@@ -1605,7 +1672,7 @@ namespace FrostyModManager
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "frosty pack (*.zip)|*.zip",
+                Filter = "FBPack (*.fbpack, *.zip)|*.fbpack;*.zip",
                 Title = "Import Pack",
                 Multiselect = false
             };

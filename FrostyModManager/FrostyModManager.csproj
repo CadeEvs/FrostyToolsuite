@@ -97,8 +97,8 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="FrostyAppliedMod.cs" />
-    <Compile Include="Windows\KeyPromptWindow.xaml.cs">
-      <DependentUpon>KeyPromptWindow.xaml</DependentUpon>
+    <Compile Include="Windows\ManageModDataWindow.xaml.cs">
+      <DependentUpon>ManageModDataWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\PrelaunchWindow2.xaml.cs">
       <DependentUpon>PrelaunchWindow2.xaml</DependentUpon>
@@ -113,10 +113,6 @@
     <Page Include="Windows\ConfigWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\KeyPromptWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
     </Page>
     <Page Include="Windows\LaunchOptionsWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -166,6 +162,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ManageModDataWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -263,19 +263,17 @@
     <Resource Include="Images\ModImportWarning.png" />
     <Resource Include="Images\ModifyAction.png" />
     <Resource Include="Images\AddAction.png" />
-    <Resource Include="Images\Chunk.png" />
-    <Resource Include="Images\Ebx.png" />
-    <Resource Include="Images\Res.png" />
     <Resource Include="Images\Cross.png" />
     <Resource Include="Images\Tick.png" />
     <Resource Include="BuildDate.txt" />
-    <Resource Include="Images\Legacy.png" />
     <Resource Include="Images\Merge.png" />
     <Resource Include="Images\PrimaryActionModify.png" />
     <Resource Include="Images\PrimaryActionReplace.png" />
     <Resource Include="Images\SecondaryActionAdd.png" />
     <Resource Include="Images\PrimaryActionAdd.png" />
     <Resource Include="Images\PrimaryActionMerge.png" />
+    <Resource Include="Images\Import.png" />
+    <Resource Include="Images\Open.png" />
     <Content Include="ThirdParty\Newtonsoft.Json.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
