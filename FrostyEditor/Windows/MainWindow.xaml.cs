@@ -1,43 +1,38 @@
-﻿using Frosty.Controls;
-using Frosty.ModSupport;
-using FrostyEditor.Windows;
-using FrostySdk;
-using FrostySdk.IO;
-using FrostySdk.Managers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Reflection;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Navigation;
 using System.Windows.Media.Animation;
-using Microsoft.Win32;
-using System.Text;
-using FrostySdk.Ebx;
-using System.Threading;
+using System.Windows.Navigation;
+using Frosty.Controls;
 using Frosty.Core;
-using Frosty.Core.Converters;
-using Frosty.Core.Controls;
-using Frosty.Core.Interfaces;
-using Bookmarks = Frosty.Core.Bookmarks;
-using Frosty.Core.Windows;
-using Frosty.Core.Legacy;
 using Frosty.Core.Commands;
+using Frosty.Core.Controls;
+using Frosty.Core.Converters;
+using Frosty.Core.Interfaces;
+using Frosty.Core.Legacy;
 using Frosty.Core.Mod;
+using Frosty.Core.Windows;
+using Frosty.ModSupport;
 using FrostyCore;
-using System.Threading.Tasks;
+using FrostySdk;
+using FrostySdk.Ebx;
+using FrostySdk.IO;
+using FrostySdk.Managers;
+using Microsoft.Win32;
+using Bookmarks = Frosty.Core.Bookmarks;
 
-namespace FrostyEditor
+namespace FrostyEditor.Windows
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : FrostyWindow, IEditorWindow
+    public partial class MainWindow : IEditorWindow
     {
         public FrostyDataExplorer DataExplorer => dataExplorer;
         public FrostyDataExplorer LegacyExplorer => legacyExplorer;
@@ -122,11 +117,7 @@ namespace FrostyEditor
 
             currentExplorer = dataExplorer;
         }
-
-        private void LoadDefaultTabs()
-        {
-
-        }
+        
         private void LoadDefaultMenuItems()
         {
 
@@ -277,10 +268,7 @@ namespace FrostyEditor
 
         private void explorerTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (explorerTabControl.SelectedItem == dataExplorerTabItem)
-                currentExplorer = dataExplorer;
-            else
-                currentExplorer = legacyExplorer;
+            currentExplorer = Equals(explorerTabControl.SelectedItem, dataExplorerTabItem) ? dataExplorer : legacyExplorer;
         }
 
         private void UpdateWindowTitle()
@@ -295,7 +283,7 @@ namespace FrostyEditor
 
         private void FrostyWindow_Loaded(object sender, EventArgs e)
         {
-            (App.Logger as FrostyLogger).AddBinding(tb, TextBox.TextProperty);
+            (App.Logger as FrostyLogger)?.AddBinding(tb, TextBox.TextProperty);
 
             DirectoryInfo di = new DirectoryInfo("Mods/" + ProfilesLibrary.ProfileName);
             if (!di.Exists)
@@ -332,7 +320,7 @@ namespace FrostyEditor
             tb.ScrollToEnd();
         }
 
-        int lastSaveIndex = 0;
+        private int lastSaveIndex = 0;
         private void AutoSaveTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             if (project.IsDirty)
@@ -358,8 +346,6 @@ namespace FrostyEditor
         {
             this.Close();
         }
-
-        private static ImageSource PropertiesImage = new ImageSourceConverter().ConvertFromString("pack://application:,,,/FrostyEditor;component/Images/Properties.png") as ImageSource;
 
         private void launchButton_Click(object sender, RoutedEventArgs e)
         {
