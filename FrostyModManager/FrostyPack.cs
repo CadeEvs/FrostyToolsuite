@@ -24,7 +24,7 @@ namespace FrostyModManager
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
-        public void AddMod(FrostyMod mod, bool isEnabled = true, string backupFileName = "")
+        public void AddMod(ISuperGamerLeagueGamer mod, bool isEnabled = true, string backupFileName = "")
         {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod != null ? a.Mod == mod : a.ModName == backupFileName);
             if (index != -1)
@@ -52,22 +52,22 @@ namespace FrostyModManager
         public void MoveModUp(FrostyAppliedMod mod)
         {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
-            index--;
 
-            if (index < 0)
+            if (index <= 0)
                 return;
 
-            AppliedMods.RemoveAt(index + 1);
-            AppliedMods.Insert(index, mod);
+            AppliedMods.RemoveAt(index);
+            AppliedMods.Insert(--index, mod);
 
             Config.Add(Name, ToConfigString(), ConfigScope.Pack);
             //Config.Add("Profiles", Name, ToConfigString());
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
-        public void MoveModTop(FrostyAppliedMod mod) {
+        public void MoveModTop(FrostyAppliedMod mod)
+        {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
-            
+
             AppliedMods.RemoveAt(index);
             index = 0;
             AppliedMods.Insert(index, mod);
@@ -80,20 +80,20 @@ namespace FrostyModManager
         public void MoveModDown(FrostyAppliedMod mod)
         {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
-            index++;
 
-            if (index >= AppliedMods.Count)
+            if (index >= AppliedMods.Count - 1)
                 return;
 
-            AppliedMods.RemoveAt(index - 1);
-            AppliedMods.Insert(index, mod);
+            AppliedMods.RemoveAt(index);
+            AppliedMods.Insert(++index, mod);
 
             Config.Add(Name, ToConfigString(), ConfigScope.Pack);
             //Config.Add("Profiles", Name, ToConfigString());
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
-        public void MoveModBottom(FrostyAppliedMod mod) {
+        public void MoveModBottom(FrostyAppliedMod mod)
+        {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
 
             if (index >= AppliedMods.Count)
@@ -102,6 +102,110 @@ namespace FrostyModManager
             AppliedMods.RemoveAt(index);
             index = AppliedMods.Count;
             AppliedMods.Insert(index, mod);
+
+            Config.Add(Name, ToConfigString(), ConfigScope.Pack);
+            //Config.Add("Profiles", Name, ToConfigString());
+            AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
+        }
+
+        public void MoveModsUp(dynamic mods)
+        {
+            List<int> indices = new List<int>(mods.Count);
+            foreach (FrostyAppliedMod mod in mods)
+            {
+                int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
+
+                if (index <= 0)
+                    return;
+
+                indices.Add(index);
+            }
+            indices.Sort();
+
+            for (int i = 0; i < indices.Count; i++)
+            {
+                FrostyAppliedMod mod = AppliedMods[indices[i]];
+                AppliedMods.RemoveAt(indices[i]);
+                AppliedMods.Insert(indices[i] - 1, mod);
+            }
+
+            Config.Add(Name, ToConfigString(), ConfigScope.Pack);
+            //Config.Add("Profiles", Name, ToConfigString());
+            AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
+        }
+
+        public void MoveModsTop(dynamic mods)
+        {
+            List<int> indices = new List<int>(mods.Count);
+            foreach (FrostyAppliedMod mod in mods)
+            {
+                int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
+
+                if (index <= 0)
+                    return;
+
+                indices.Add(index);
+            }
+            indices.Sort();
+
+            for (int i = 0; i < indices.Count; i++)
+            {
+                FrostyAppliedMod mod = AppliedMods[indices[i]];
+                AppliedMods.RemoveAt(indices[i]);
+                AppliedMods.Insert(i, mod);
+            }
+
+            Config.Add(Name, ToConfigString(), ConfigScope.Pack);
+            //Config.Add("Profiles", Name, ToConfigString());
+            AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
+        }
+
+        public void MoveModsDown(dynamic mods)
+        {
+            List<int> indices = new List<int>(mods.Count);
+            foreach (FrostyAppliedMod mod in mods)
+            {
+                int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
+
+                if (index >= AppliedMods.Count - 1)
+                    return;
+
+                indices.Add(index);
+            }
+            indices.Sort();
+
+            for (int i = indices.Count - 1; i >= 0; i--)
+            {
+                FrostyAppliedMod mod = AppliedMods[indices[i]];
+                AppliedMods.RemoveAt(indices[i]);
+                AppliedMods.Insert(indices[i] + 1, mod);
+            }
+
+            Config.Add(Name, ToConfigString(), ConfigScope.Pack);
+            //Config.Add("Profiles", Name, ToConfigString());
+            AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
+        }
+
+        public void MoveModsBottom(dynamic mods)
+        {
+            List<int> indices = new List<int>(mods.Count);
+            foreach (FrostyAppliedMod mod in mods)
+            {
+                int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a == mod);
+
+                if (index >= AppliedMods.Count - 1)
+                    return;
+
+                indices.Add(index);
+            }
+            indices.Sort();
+
+            for (int i = indices.Count - 1; i >= 0; i--)
+            {
+                FrostyAppliedMod mod = AppliedMods[indices[i]];
+                AppliedMods.RemoveAt(indices[i]);
+                AppliedMods.Insert(AppliedMods.Count, mod);
+            }
 
             Config.Add(Name, ToConfigString(), ConfigScope.Pack);
             //Config.Add("Profiles", Name, ToConfigString());
@@ -121,7 +225,7 @@ namespace FrostyModManager
                     else
                         sb.Append(mod.BackupFileName + ":" + mod.IsEnabled + "|");
                 }
-                    
+
                 sb.Remove(sb.Length - 1, 1);
             }
             return sb.ToString();

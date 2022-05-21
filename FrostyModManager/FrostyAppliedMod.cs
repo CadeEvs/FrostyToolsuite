@@ -28,11 +28,11 @@ namespace FrostyModManager
 
         public bool IsEnabled { get; set; }
         public bool IsFound { get; set; }
-        public FrostyMod Mod { get; }
+        public ISuperGamerLeagueGamer Mod { get; }
 
         public string BackupFileName { get; }
 
-        public FrostyAppliedMod(FrostyMod inMod, bool inIsEnabled = true)
+        public FrostyAppliedMod(ISuperGamerLeagueGamer inMod, bool inIsEnabled = true)
         {
             Mod = inMod;
             IsEnabled = inIsEnabled;

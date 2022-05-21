@@ -142,6 +142,7 @@
     <Compile Include="Extensions\StartupAction.cs" />
     <Compile Include="FrostyConfiguration.cs" />
     <Compile Include="FrostyLogger.cs" />
+    <Compile Include="Mod\FrostyModCollection.cs" />
     <Compile Include="Mod\FrostyModRequirement.cs" />
     <Compile Include="Extensions\TabExtension.cs" />
     <Compile Include="IO\Executable.cs" />
@@ -159,6 +160,7 @@
     <Compile Include="Mod\HandlerExtraData.cs" />
     <Compile Include="Mod\HandlerUsage.cs" />
     <Compile Include="Mod\ICustomHandler.cs" />
+    <Compile Include="Mod\IFrostyMod.cs" />
     <Compile Include="Mod\ILegacyCustomHandler.cs" />
     <Compile Include="Mod\IModCustomHandler.cs" />
     <Compile Include="Mod\IResourceContainer.cs" />
