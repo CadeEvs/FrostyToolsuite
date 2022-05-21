@@ -279,6 +279,7 @@ namespace Frosty.Core
             //startupActions.Clear();
             customHandlers.Clear();
             resCustomHandlers.Clear();
+            customAssetHandlers.Clear();
             shaders.Clear();
             userShaders.Clear();
         }

@@ -57,7 +57,7 @@ namespace FrostyEditor.Windows
             InitializeComponent();
 
             explorerTabContent.HeaderControl = explorerTabControl;
-            tabContent.HeaderControl = tabControl;
+            tabContent.HeaderControl = TabControl;
             miscTabContent.HeaderControl = miscTabControl;
 
             UpdateWindowTitle();
@@ -91,11 +91,11 @@ namespace FrostyEditor.Windows
             if(ProfilesLibrary.EnableExecution)
             {
                 CommandBindings.Add(new CommandBinding(launchGameCmd, launchButton_Click));
-                launchButton.IsEnabled = true;
+                LaunchButton.IsEnabled = true;
             }
 
-            if (toolsMenuItem.Items.Count != 0)
-                toolsMenuItem.Items.Add(new Separator());
+            if (ToolsMenuItem.Items.Count != 0)
+                ToolsMenuItem.Items.Add(new Separator());
 
             MenuItem optionsMenuItem = new MenuItem()
             {
@@ -103,7 +103,7 @@ namespace FrostyEditor.Windows
                 Icon = new Image() { Source = new ImageSourceConverter().ConvertFromString("pack://application:,,,/FrostyCore;component/Images/Settings.png") as ImageSource },
             };
             optionsMenuItem.Click += optionsMenuItem_Click;
-            toolsMenuItem.Items.Add(optionsMenuItem);
+            ToolsMenuItem.Items.Add(optionsMenuItem);
 
             Bookmarks.BookmarkDb.ContextChanged += BookmarkDb_ContextChanged;
             BookmarkContextPicker.ItemsSource = Bookmarks.BookmarkDb.Contexts.Values;
@@ -120,7 +120,9 @@ namespace FrostyEditor.Windows
 
         private void ClearPluginExtensions()
         {
-            miscTabControl.Items.Clear();
+            ClearMenuExtensions();
+            ClearTabExtensions();
+            ClearDataExplorerMenuItemExtensions();
         }
         private void LoadPluginExtensions()
         {
@@ -131,32 +133,56 @@ namespace FrostyEditor.Windows
             LoadDataExplorerMenuItemExtensions();
         }
 
+        private void ClearMenuExtensions()
+        {
+            // iterate backwards through top leve menu items
+            for (int i = menu.Items.Count - 1; i >= 0; i--)
+            {
+                MenuItem topLevelItem = menu.Items[i] as MenuItem;
+                if (topLevelItem == null)
+                    continue;
+                
+                // remove top level item if it was added from a plugin
+                if (topLevelItem.Tag is MenuExtension)
+                {
+                    menu.Items.RemoveAt(i);
+                    continue;
+                }
+
+                for (int j = topLevelItem.Items.Count - 1; j >= 0; j--)
+                {
+                    MenuItem item = topLevelItem.Items[j] as MenuItem;
+
+                    // remove item if it was added from a plugin
+                    if (item?.Tag is MenuExtension)
+                    {
+                        topLevelItem.Items.RemoveAt(i);
+                    }
+                }
+            }
+        }
         private void LoadMenuExtensions()
         {
             // Add menu extensions to Editor
-            foreach (var menuExtension in App.PluginManager.MenuExtensions)
+            foreach (MenuExtension menuExtension in App.PluginManager.MenuExtensions)
             {
-                MenuItem foundMenuItem = null;
-                foreach (MenuItem menuItem in menu.Items)
-                { 
-                    // contains top level menu item already
-                    if (menuExtension.TopLevelMenuName.Equals(menuItem.Header as string, StringComparison.OrdinalIgnoreCase))
-                    {
-                        foundMenuItem = menuItem;
-                        break;
-                    }
-                }
-
+                // find top level menu if there is one, and create one if not
+                MenuItem foundMenuItem = menu.Items.Cast<MenuItem>().FirstOrDefault(menuItem => menuExtension.TopLevelMenuName.Equals(menuItem.Header as string, StringComparison.OrdinalIgnoreCase));
                 if (foundMenuItem == null)
                 {
-                    foundMenuItem = new MenuItem() { Header = menuExtension.TopLevelMenuName };
+                    foundMenuItem = new MenuItem()
+                    {
+                        Header = menuExtension.TopLevelMenuName,
+                        Tag = menuExtension
+                    };
                     menu.Items.Add(foundMenuItem);
                 }
-
+                
+                // find sub level menu if there is one, and create one if not
                 if (!string.IsNullOrEmpty(menuExtension.SubLevelMenuName))
                 {
                     MenuItem parentMenuItem = null;
-                    foreach (var menuItem in foundMenuItem.Items)
+                    foreach (object menuItem in foundMenuItem.Items)
                     {
                         if (menuItem is MenuItem item)
                         {
@@ -172,43 +198,81 @@ namespace FrostyEditor.Windows
                     if (parentMenuItem == null)
                     {
                         parentMenuItem = foundMenuItem;
-                        foundMenuItem = new MenuItem { Header = menuExtension.SubLevelMenuName };
+                        foundMenuItem = new MenuItem
+                        {
+                            Header = menuExtension.SubLevelMenuName,
+                            Tag = menuExtension
+                        };
                         parentMenuItem.Items.Add(foundMenuItem);
                     }
                 }
 
+                // create and add menu item to top level menu
                 MenuItem menuExtItem = new MenuItem
                 {
                     Header = menuExtension.MenuItemName,
                     Icon = new Image() { Source = menuExtension.Icon },
-                    Command = menuExtension.MenuItemClicked
+                    Command = menuExtension.MenuItemClicked,
+                    Tag = menuExtension
                 };
                 foundMenuItem.Items.Add(menuExtItem);
             }
         }
+
+        private void ClearDataExplorerMenuItemExtensions()
+        {
+            // iterate backwards through context menu items
+            for (int i = dataExplorer.AssetContextMenu.Items.Count - 1; i >= 0; i--)
+            {
+                MenuItem item = dataExplorer.AssetContextMenu.Items[i] as MenuItem;
+
+                // remove top level item if it was added from a plugin
+                if (item?.Tag is DataExplorerContextMenuExtension)
+                {
+                    dataExplorer.AssetContextMenu.Items.RemoveAt(i);
+                }
+            }
+        }
         private void LoadDataExplorerMenuItemExtensions()
         {
-            foreach (var contextItemExtension in App.PluginManager.DataExplorerContextMenuExtensions)
+            foreach (DataExplorerContextMenuExtension contextItemExtension in App.PluginManager.DataExplorerContextMenuExtensions)
             {
                 MenuItem contextMenuItem = new MenuItem
                 {
                     Header = contextItemExtension.ContextItemName,
                     Icon = new Image() { Source = contextItemExtension.Icon },
-                    Command = contextItemExtension.ContextItemClicked
+                    Command = contextItemExtension.ContextItemClicked,
+                    Tag = contextItemExtension
                 };
                 dataExplorer.AssetContextMenu.Items.Add(contextMenuItem);
             }
         }
+
+        private void ClearTabExtensions()
+        {
+            // iterate backwards through tab items
+            for (int i = miscTabControl.Items.Count - 1; i >= 0; i--)
+            {
+                FrostyTabItem tabItem = miscTabControl.Items[i] as FrostyTabItem;
+
+                // remove top level item if it was added from a plugin
+                if (tabItem?.Tag is TabExtension)
+                {
+                    miscTabControl.Items.RemoveAt(i);
+                }
+            }
+        }
         private void LoadTabExtensions()
         {
-            foreach (var tabExtension in App.PluginManager.TabExtensions)
+            foreach (TabExtension tabExtension in App.PluginManager.TabExtensions)
             {
                 FrostyTabItem tabExtItem = new FrostyTabItem
                 {
                     Header = tabExtension.TabItemName,
                     Content = tabExtension.TabContent,
                     Icon = tabExtension.TabItemIcon,
-                    CloseButtonVisible = false
+                    CloseButtonVisible = false,
+                    Tag = tabExtension
                 };
                 miscTabControl.Items.Add(tabExtItem);
             }
@@ -218,19 +282,19 @@ namespace FrostyEditor.Windows
         {
             UpdateDiscordState();
 
-            FrostyTabItem ti = tabControl.SelectedItem as FrostyTabItem;
+            FrostyTabItem ti = TabControl.SelectedItem as FrostyTabItem;
 
             if (!(ti?.Content is FrostyAssetEditor editor))
                 return;
 
-            editorToolbarItems.ItemsSource = editor.RegisterToolbarItems();
+            EditorToolbarItems.ItemsSource = editor.RegisterToolbarItems();
         }
 
         private void UpdateDiscordState()
         {
             string state = "";
 
-            if (tabControl.SelectedItem is FrostyTabItem ti)
+            if (TabControl.SelectedItem is FrostyTabItem ti)
             {
                 string header = ti.Header as string;
                 string tabId = ti.TabId;
@@ -355,7 +419,7 @@ namespace FrostyEditor.Windows
 
             Random r = new Random();
             string editorModName = $"EditorMod{r.Next(1000, 9999):D4}.fbmod";
-            launchButton.IsEnabled = false;
+            LaunchButton.IsEnabled = false;
 
             // get all mods
             List<string> modPaths = Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "*.fbmod", SearchOption.AllDirectories).Select(Path.GetFileName).ToList();
@@ -418,7 +482,7 @@ namespace FrostyEditor.Windows
             if (editorMod.Exists)
                 editorMod.Delete();
 
-            launchButton.IsEnabled = true;
+            LaunchButton.IsEnabled = true;
             App.Logger.Log("Launch complete");
             App.NotificationManager.Show("Launch complete");
         }
@@ -653,7 +717,7 @@ namespace FrostyEditor.Windows
             if (asset.Type == "EncryptedAsset")
                 return;
 
-            foreach (FrostyTabItem currentTi in tabControl.Items)
+            foreach (FrostyTabItem currentTi in TabControl.Items)
             {
                 if (currentTi.TabId == asset.Name)
                 {
@@ -727,8 +791,8 @@ namespace FrostyEditor.Windows
 
         private void AddTab(FrostyTabItem ti)
         {
-            tabControl.Items.Add(ti);
-            FrostyTabItem welcomeTabItem = tabControl.Items[0] as FrostyTabItem;
+            TabControl.Items.Add(ti);
+            FrostyTabItem welcomeTabItem = TabControl.Items[0] as FrostyTabItem;
             welcomeTabItem.Visibility = Visibility.Collapsed;
         }
 
@@ -736,11 +800,11 @@ namespace FrostyEditor.Windows
         {
             editor.Closed();
             if (ti.IsSelected)
-                editorToolbarItems.ItemsSource = null;
-            tabControl.Items.Remove(ti);
-            if (tabControl.Items.Count == 1)
+                EditorToolbarItems.ItemsSource = null;
+            TabControl.Items.Remove(ti);
+            if (TabControl.Items.Count == 1)
             {
-                FrostyTabItem item = tabControl.Items[0] as FrostyTabItem;
+                FrostyTabItem item = TabControl.Items[0] as FrostyTabItem;
 
                 item.Visibility = Visibility.Visible;
                 item.IsSelected = true;
@@ -752,10 +816,10 @@ namespace FrostyEditor.Windows
             FrostyBaseEditor editor = ti.Content as FrostyBaseEditor;
             editor?.Closed();
 
-            tabControl.Items.Remove(ti);
-            if (tabControl.Items.Count == 1)
+            TabControl.Items.Remove(ti);
+            if (TabControl.Items.Count == 1)
             {
-                FrostyTabItem item = tabControl.Items[0] as FrostyTabItem;
+                FrostyTabItem item = TabControl.Items[0] as FrostyTabItem;
 
                 item.Visibility = Visibility.Visible;
                 item.IsSelected = true;
@@ -764,9 +828,9 @@ namespace FrostyEditor.Windows
 
         private void RemoveAllTabs()
         {
-            while (tabControl.Items.Count > 1)
+            while (TabControl.Items.Count > 1)
             {
-                FrostyTabItem tabItem = tabControl.Items[1] as FrostyTabItem;
+                FrostyTabItem tabItem = TabControl.Items[1] as FrostyTabItem;
                 if (tabItem.Content is FrostyAssetEditor editor)
                     ShutdownEditorAndRemoveTab(editor, tabItem);
                 else
@@ -776,7 +840,7 @@ namespace FrostyEditor.Windows
 
         private void RefreshTabs()
         {
-            foreach (FrostyTabItem item in tabControl.Items)
+            foreach (FrostyTabItem item in TabControl.Items)
             {
                 if (item.Content is FrostyAssetEditor editor)
                 {
@@ -874,9 +938,9 @@ namespace FrostyEditor.Windows
             if (!entry.IsModified)
                 return;
 
-            for (int i = 1; i < tabControl.Items.Count; i++)
+            for (int i = 1; i < TabControl.Items.Count; i++)
             {
-                FrostyTabItem tabItem = tabControl.Items[i] as FrostyTabItem;
+                FrostyTabItem tabItem = TabControl.Items[i] as FrostyTabItem;
                 if (tabItem.TabId == entry.Name)
                 {
                     RemoveTab(tabItem);

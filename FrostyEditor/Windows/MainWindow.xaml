@@ -46,46 +46,46 @@
 
             <Menu x:Name="menu" Height="22" Grid.Column="0" VerticalAlignment="Top">
                 <MenuItem Header="File" Height="22">
-                    <MenuItem x:Name="newModMenuItem" Header="New" Height="22" InputGestureText="Ctrl+N" Click="newModMenuItem_Click">
+                    <MenuItem x:Name="NewModMenuItem" Header="New" Height="22" InputGestureText="Ctrl+N" Click="newModMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/New.png" Opacity="0.5"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem x:Name="openModMenuItem" Header="Open" Height="22" InputGestureText="Ctrl+O" Click="openModMenuItem_Click">
+                    <MenuItem x:Name="OpenModMenuItem" Header="Open" Height="22" InputGestureText="Ctrl+O" Click="openModMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/Open.png" Opacity="0.5"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem x:Name="saveModMenuItem" Header="Save" Height="22" InputGestureText="Ctrl+S" Click="saveModMenuItem_Click">
+                    <MenuItem x:Name="SaveModMenuItem" Header="Save" Height="22" InputGestureText="Ctrl+S" Click="saveModMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/Save.png" Opacity="0.5"/>
                         </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem x:Name="saveAsModMenuItem" Header="Save As" Height="22" InputGestureText="Ctrl+Shift+S" Click="saveAsModMenuItem_Click">
+                    <MenuItem x:Name="SaveAsModMenuItem" Header="Save As" Height="22" InputGestureText="Ctrl+Shift+S" Click="saveAsModMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/SaveAs.png" Opacity="0.5"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem x:Name="exportModMenuItem" Header="Export to Mod" Height="22" Command="{StaticResource exportModMenuItemCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+                    <MenuItem x:Name="ExportModMenuItem" Header="Export to Mod" Height="22" Command="{StaticResource exportModMenuItemCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
                     <Separator/>
-                    <MenuItem x:Name="exitMenuItem" Header="Exit" InputGestureText="Alt+F4" Height="22" Click="exitMenuItem_Click">
+                    <MenuItem x:Name="ExitMenuItem" Header="Exit" InputGestureText="Alt+F4" Height="22" Click="exitMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/Exit.png" Opacity="0.5"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
-                <MenuItem x:Name="toolsMenuItem" Header="Tools" Height="22">
+                <MenuItem x:Name="ToolsMenuItem" Header="Tools" Height="22">
                 </MenuItem>
                 <MenuItem Header="Window" Height="22">
-                    <MenuItem x:Name="closeAllDocumentsMenuItem" Header="Close All Documents" Click="closeAllDocumentsMenuItem_Click">
+                    <MenuItem x:Name="CloseAllDocumentsMenuItem" Header="Close All Documents" Click="closeAllDocumentsMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/CloseAll.png" Opacity="0.5"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
                 <MenuItem Header="Help" Height="22">
-                    <MenuItem x:Name="aboutMenuItem" Header="About Frosty Editor" Click="aboutMenuItem_Click"/>
+                    <MenuItem x:Name="AboutMenuItem" Header="About Frosty Editor" Click="aboutMenuItem_Click"/>
                 </MenuItem>
             </Menu>
         </Grid>
@@ -118,7 +118,7 @@
                     </Border>
                     <!-- Toolbar -->
                     <Border Background="{StaticResource ControlBackground}" Margin="1 0 0 0" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
-                        <ItemsControl x:Name="editorToolbarItems" Margin="2,1,6,1">
+                        <ItemsControl x:Name="EditorToolbarItems" Margin="2,1,6,1">
                             <ItemsControl.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <StackPanel IsItemsHost="True" Orientation="Horizontal">
@@ -150,7 +150,7 @@
                         <Border.Style>
                             <Style TargetType="{x:Type Border}">
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=Items.Count, ElementName=editorToolbarItems}" Value="0">
+                                    <DataTrigger Binding="{Binding Path=Items.Count, ElementName=EditorToolbarItems}" Value="0">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -160,7 +160,7 @@
                     <!-- Launch -->
                     <Border Background="{StaticResource ControlBackground}" Margin="1 0 0 0" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
                         <StackPanel Orientation="Horizontal" Margin="6,2,6,2">
-                            <Button x:Name="launchButton" Margin="0" Click="launchButton_Click" ToolTip="Launch game with current project" IsEnabled="false">
+                            <Button x:Name="LaunchButton" Margin="0" Click="launchButton_Click" ToolTip="Launch game with current project" IsEnabled="false">
                                 <StackPanel Orientation="Horizontal" Margin="4 0 4 0">
                                     <Image Grid.Column="0" Source="../Images/Play.png" Width="16"/>
                                     <TextBlock Grid.Column="1" Text="Launch" VerticalAlignment="Center" Margin="4 0 0 0"/>
@@ -175,7 +175,7 @@
         </Grid>
 
         <Border BorderBrush="{StaticResource ControlBackground}" BorderThickness="2,2,2,0" Grid.Row="2" >
-            <ctrl2:FrostyTabControl x:Name="tabControl" Margin="2,2,2,0" SelectionChanged="tabControl_SelectionChanged">
+            <ctrl2:FrostyTabControl x:Name="TabControl" Margin="2,2,2,0" SelectionChanged="tabControl_SelectionChanged">
                 <ctrl2:FrostyTabControl.Style>
                     <Style TargetType="{x:Type ctrl2:FrostyTabControl}">
                         <Setter Property="Template">
