@@ -1426,6 +1426,8 @@ namespace FrostyModManager
                                             handler = App.PluginManager.GetCustomHandler((uint)resource.Handler);
                                         else if (resource.Type == ModResourceType.Res)
                                             handler = App.PluginManager.GetCustomHandler((ResourceType)(resource as ResResource).ResType);
+                                        else if (resource.Type == ModResourceType.FsFile)
+                                            handler = (ICustomActionHandler)App.PluginManager.GetCustomAssetHandler("fs");
 
                                         if (handler.Usage == HandlerUsage.Merge) {
                                             foreach (string actionString in handler.GetResourceActions(resource.Name, mod.GetResourceData(resource))) {

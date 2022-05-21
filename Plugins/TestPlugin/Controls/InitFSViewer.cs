@@ -1,5 +1,7 @@
 ﻿using Frosty.Core;
 using Frosty.Core.Controls;
+using FrostySdk;
+using FrostySdk.IO;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
@@ -14,17 +16,18 @@ namespace TestPlugin.Controls
     [TemplatePart(Name = PART_ListBox, Type = typeof(ListBox))]
     [TemplatePart(Name = PART_Contents, Type = typeof(TextBox))]
     [TemplatePart(Name = PART_DataExplorer, Type = typeof(FrostyDataExplorer))]
+    [TemplatePart(Name = PART_RevertMenuItem, Type = typeof(MenuItem))]
     public class InitFSViewer : FrostyBaseEditor
     {
         private const string PART_ListBox = "PART_ListBox";
         private const string PART_Contents = "PART_Contents";
         private const string PART_DataExplorer = "PART_DataExplorer";
+        private const string PART_RevertMenuItem = "PART_RevertMenuItem";
 
         private ListBox listBox;
         private TextBox contentsBox;
         private FrostyDataExplorer dataExplorer;
-
-        private List<FsFileEntry> entries;
+        private MenuItem revertMenuItem;
 
         private bool firstLoad = true;
 
@@ -43,23 +46,69 @@ namespace TestPlugin.Controls
 
             listBox = GetTemplateChild(PART_ListBox) as ListBox;
             contentsBox = GetTemplateChild(PART_Contents) as TextBox;
+            contentsBox.TextChanged += ContentsBox_TextChanged;
             dataExplorer = GetTemplateChild(PART_DataExplorer) as FrostyDataExplorer;
+            revertMenuItem = GetTemplateChild(PART_RevertMenuItem) as MenuItem;
 
             dataExplorer.SelectionChanged += DataExplorer_SelectionChanged;
             listBox.SelectionChanged += ListBox_SelectionChanged;
+            revertMenuItem.Click += RevertMenuItem_Click;
 
             Loaded += InitFSViewer_Loaded;
+        }
+
+        private void RevertMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            FsFileEntry entry = dataExplorer.SelectedAsset as FsFileEntry;
+            App.AssetManager.RevertAsset(entry);
+        }
+
+        private void ContentsBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            FsFileEntry entry = dataExplorer.SelectedAsset as FsFileEntry;
+
+            Stream stream = App.AssetManager.GetCustomAsset("fs", entry);
+
+            string originalValue = "";
+            if (stream != null)
+            {
+                using (TextReader reader = new StreamReader(stream))
+                    originalValue = reader.ReadToEnd();
+            }
+
+            if (!contentsBox.Text.Equals(originalValue))
+            {
+                DbObject file = new DbObject();
+                file.AddValue("name", entry.Name);
+
+                MemoryStream ms = new MemoryStream();
+                using (TextWriter writer = new StreamWriter(ms))
+                    writer.Write(contentsBox.Text);
+                file.AddValue("payload", ms.ToArray());
+                ms.Dispose();
+
+                DbObject fileStub = new DbObject();
+                fileStub.AddValue("$file", file);
+
+                using (DbWriter writer = new DbWriter(new MemoryStream()))
+                {
+                    writer.Write(fileStub);
+                    App.AssetManager.ModifyCustomAsset("fs", entry.Name, writer.ToByteArray());
+                }
+            }
+
+            dataExplorer.RefreshItems();
         }
 
         private void DataExplorer_SelectionChanged(object sender, RoutedEventArgs e)
         {
             FsFileEntry entry = dataExplorer.SelectedAsset as FsFileEntry;
 
-            if (entry != null)
-            {
-                byte[] buf = App.FileSystem.GetFileFromMemoryFs(entry.Name);
+            Stream ms = App.AssetManager.GetCustomAsset("fs", entry);
 
-                using (TextReader reader = new StreamReader(new MemoryStream(buf)))
+            if (ms != null)
+            {
+                using (TextReader reader = new StreamReader(ms))
                     contentsBox.Text = reader.ReadToEnd();
             }
             else

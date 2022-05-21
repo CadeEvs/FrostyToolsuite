@@ -5,7 +5,7 @@ using FrostySdk.IO;
 namespace Frosty.Core.Mod
 {
     // internally used for handling legacy asset changes.
-    internal interface ILegacyCustomActionHandler : IModCustomActionHandler
+    public interface ICustomAssetCustomActionHandler : IModCustomActionHandler
     {
         void SaveToMod(FrostyModWriter writer);
         bool SaveToProject(NativeWriter writer);

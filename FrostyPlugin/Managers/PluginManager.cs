@@ -162,6 +162,8 @@ namespace Frosty.Core
         /// <returns>An enum defining which manager is being loaded right now..</returns>
         public PluginManagerType ManagerType => managerType;
 
+        public IEnumerable<string> CustomAssetHandlers => customAssetHandlers.Keys;
+
         private Dictionary<string, AssetDefinition> definitions = new Dictionary<string, AssetDefinition>();
         private List<MenuExtension> menuExtensions = new List<MenuExtension>();
         private List<TabExtension> tabExtensions = new List<TabExtension>();
@@ -176,6 +178,7 @@ namespace Frosty.Core
         private List<ExecutionAction> executionActions = new List<ExecutionAction>();
         private List<StartupAction> startupActions = new List<StartupAction>();
         private Dictionary<uint, Type> customHandlers = new Dictionary<uint, Type>();
+        private Dictionary<string, Type> customAssetHandlers = new Dictionary<string, Type>();
         private Dictionary<ResourceType, Type> resCustomHandlers = new Dictionary<ResourceType, Type>();
         private Dictionary<string, ShaderDefinition[]> shaders = new Dictionary<string, ShaderDefinition[]>();
         private List<string> userShaders = new List<string>();
@@ -389,6 +392,13 @@ namespace Frosty.Core
             return (ICustomActionHandler)Activator.CreateInstance(resCustomHandlers[resType]);
         }
 
+        public ICustomAssetCustomActionHandler GetCustomAssetHandler(string type)
+        {
+            if (!customAssetHandlers.ContainsKey(type))
+                return null;
+            return (ICustomAssetCustomActionHandler)Activator.CreateInstance(customAssetHandlers[type]);
+        }
+
         /// <summary>
         /// Returns the shader bytecode of the shader specified by the name and shader type.
         /// </summary>
@@ -585,6 +595,10 @@ namespace Frosty.Core
                         else if (attr.HandlerType == CustomHandlerType.Res)
                         {
                             resCustomHandlers.Add(attr.ResType, attr.HandlerClassType);
+                        }
+                        else if (attr.HandlerType == CustomHandlerType.CustomAsset)
+                        {
+                            customAssetHandlers.Add(attr.CustomAssetType, attr.HandlerClassType);
                         }
                     }
                     else if (tmpAttr is RegisterUserShaderAttribute registerUserShaderAttribute)

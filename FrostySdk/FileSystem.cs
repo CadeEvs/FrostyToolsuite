@@ -322,6 +322,124 @@ namespace FrostySdk
             }
         }
 
+        public void WriteInitFs(string source, string dest, Dictionary<string, DbObject> modifiedFsFiles)
+        {
+            FileInfo baseFi = new FileInfo(source);
+            if (baseFi.Exists)
+            {
+                byte[] key = KeyManager.Instance.GetKey("Key1");
+                Dictionary<string, DbObject> fsFiles = new Dictionary<string, DbObject>();
+
+                using (DbReader reader = new DbReader(new FileStream(source, FileMode.Open, FileAccess.Read), CreateDeobfuscator()))
+                {
+                    DbObject initfs = reader.ReadDbObject();
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
+                     || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
+                        )
+                    {
+                        byte[] buffer = initfs.GetValue<byte[]>("encrypted");
+                        if (buffer != null)
+                        {
+                            if (key == null)
+                                return;
+
+                            // need to decrypt the encrypted block
+                            using (Aes aes = Aes.Create())
+                            {
+                                aes.Key = key;
+                                aes.IV = key;
+
+                                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+                                using (MemoryStream decryptStream = new MemoryStream(buffer))
+                                {
+                                    using (CryptoStream cryptoStream = new CryptoStream(decryptStream, decryptor, CryptoStreamMode.Read))
+                                        cryptoStream.Read(buffer, 0, buffer.Length);
+                                }
+                                decryptor.Dispose();
+                            }
+
+                            // now read in newly decrypted initfs
+                            using (DbReader newReader = new DbReader(new MemoryStream(buffer), CreateDeobfuscator()))
+                                initfs = newReader.ReadDbObject();
+                        }
+                    }
+
+                    // iterate and store files in the memory fs
+                    if (initfs != null)
+                    {
+                        foreach (DbObject fileStub in initfs)
+                        {
+                            DbObject file = fileStub.GetValue<DbObject>("$file");
+                            string name = file.GetValue<string>("name");
+
+                            if (!fsFiles.ContainsKey(name))
+                                fsFiles.Add(name, fileStub);
+                        }
+                    }
+                }
+
+                //if (memoryFs.ContainsKey("__fsinternal__"))
+                //{
+                //    DbObject obj = null;
+                //    using (DbReader reader = new DbReader(new MemoryStream(memoryFs["__fsinternal__"]), null))
+                //        obj = reader.ReadDbObject();
+
+                //    memoryFs.Remove("__fsinternal__");
+                //    if (obj.GetValue<bool>("inheritContent"))
+                //        LoadInitfs(key, patched: false);
+                //}
+
+                foreach (KeyValuePair<string, DbObject> kv in modifiedFsFiles)
+                {
+                    if (fsFiles.ContainsKey(kv.Key))
+                    {
+                        fsFiles[kv.Key] = kv.Value;
+                    }
+                }
+
+                using (DbWriter writer = new DbWriter(new FileStream(dest, FileMode.Create, FileAccess.Write), true))
+                {
+                    DbObject initFs = new DbObject(false);
+
+                    foreach (KeyValuePair<string, DbObject> kv in fsFiles)
+                        initFs.Add(kv.Value);
+
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
+                     || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
+                        )
+                    {
+                        MemoryStream ms = new MemoryStream();
+                        using (DbWriter writer2 = new DbWriter(ms))
+                            writer2.Write(initFs);
+
+                        byte[] buffer = ms.ToArray();
+                        ms.Dispose();
+
+                        using (Aes aes = Aes.Create())
+                        {
+                            aes.Key = key;
+                            aes.IV = key;
+
+                            ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+                            using (MemoryStream encryptStream = new MemoryStream())
+                            {
+                                using (CryptoStream cryptoStream = new CryptoStream(encryptStream, encryptor, CryptoStreamMode.Write))
+                                {
+                                    cryptoStream.Write(buffer, 0, buffer.Length);
+                                }
+
+                                initFs = new DbObject();
+                                initFs.AddValue("encrypted", encryptStream.ToArray());
+                            }
+                            encryptor.Dispose();
+                        }
+                    }
+
+                    writer.Write(initFs);
+                }
+            }
+        }
+
         private void ProcessLayouts()
         {
             string baseLayoutPath = ResolvePath("native_data/layout.toc");

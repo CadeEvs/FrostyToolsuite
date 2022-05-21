@@ -430,12 +430,19 @@ namespace Frosty.Core
                 sizePosition = writer.Position;
                 writer.Write(0xDEADBEEF);
 
-                count = 0;
-                ILegacyCustomActionHandler legacyHandler = new LegacyCustomActionHandler();
+                count = 1;
+                ICustomAssetCustomActionHandler legacyHandler = new LegacyCustomActionHandler();
                 legacyHandler.SaveToProject(writer);
 
+                foreach (string type in App.PluginManager.CustomAssetHandlers)
+                {
+                    ICustomAssetCustomActionHandler customHandler = App.PluginManager.GetCustomAssetHandler(type);
+                    customHandler.SaveToProject(writer);
+                    count++;
+                }
+
                 writer.Position = sizePosition;
-                writer.Write(1);
+                writer.Write(count);
                 writer.Position = writer.Length;
 
                 if (updateDirtyState)
@@ -1016,8 +1023,8 @@ namespace Frosty.Core
                 {
                     string typeString = reader.ReadNullTerminatedString();
 
-                    ILegacyCustomActionHandler actionHandler = new LegacyCustomActionHandler();
-                    actionHandler.LoadFromProject(version, reader, typeString);
+                ICustomAssetCustomActionHandler actionHandler = new LegacyCustomActionHandler();
+                actionHandler.LoadFromProject(version, reader, typeString);
 
                     // @hack: fixes an issue where v11 projects incorrectly wrote a null custom handler
                     if (version < 12)

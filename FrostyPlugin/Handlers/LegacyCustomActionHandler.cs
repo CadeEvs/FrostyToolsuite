@@ -11,7 +11,7 @@ using System.IO;
 
 namespace Frosty.Core.Handlers
 {
-    public sealed class LegacyCustomActionHandler : ILegacyCustomActionHandler
+    public sealed class LegacyCustomActionHandler : ICustomAssetCustomActionHandler
     {
         public HandlerUsage Usage => HandlerUsage.Merge;
 

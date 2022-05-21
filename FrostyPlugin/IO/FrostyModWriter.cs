@@ -349,8 +349,15 @@ namespace Frosty.Core.IO
             }
 
             // legacy custom action handler
-            ILegacyCustomActionHandler tmpHandler = new LegacyCustomActionHandler();
+            ICustomAssetCustomActionHandler tmpHandler = new LegacyCustomActionHandler();
             tmpHandler.SaveToMod(this);
+
+            // custom assets
+            foreach (string type in App.PluginManager.CustomAssetHandlers)
+            {
+                ICustomAssetCustomActionHandler customHandler = App.PluginManager.GetCustomAssetHandler(type);
+                customHandler.SaveToMod(this);
+            }
 
             // write resources
             Write(resources.Count);
