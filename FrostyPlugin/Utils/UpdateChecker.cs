@@ -48,35 +48,23 @@ namespace Frosty.Core
 #endif
 
             // check if local version isn't the latest
-            bool requiresUpdate = false;
             if (localVersion.CompareTo(release.Version) < 0)
-            {
-                if (isLocalPrerelease)
-                {
-                    string version = release.Version.ToString();
-                    int preVersion = int.Parse(version.Substring(version.Length - 1));
-
-                    // check if local beta/alpha version isn't the latest
-                    if (Frosty.Core.App.Version < preVersion)
-                    {
-                        requiresUpdate = true;
-                    }
-                }
-                else
-                {
-                    requiresUpdate = true;
-                }
-            }
-
-            if (requiresUpdate)
             {
                 return true;
             }
-            else
+            else if (isLocalPrerelease)
             {
-                return false;
-            }
-        }
+                string version = release.Version.ToString();
+                int preVersion = int.Parse(version.Substring(version.Length - 1));
 
+                // check if local beta/alpha version isn't the latest
+                if (Frosty.Core.App.Version < preVersion)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
