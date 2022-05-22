@@ -604,15 +604,15 @@ namespace Frosty.Core
 
             gameProfile = reader.ReadNullTerminatedString();
 
+            // clear all modifications
+            if (ProfilesLibrary.HasLoadedProfile)
+            {
+                App.AssetManager.Reset();
+            }
+            
             // load profile if one isn't already loaded or if it doesn't match the last project profile
             if (ProfilesLibrary.Profile == null || gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
             {
-                // clear all modifications
-                if (ProfilesLibrary.HasLoadedProfile)
-                {
-                    App.AssetManager.Reset();
-                }
-
                 // clear out all global managers
                 App.AssetManager = null;
                 App.ResourceManager = null;
