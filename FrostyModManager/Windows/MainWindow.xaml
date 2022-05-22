@@ -198,7 +198,7 @@
                                 </Button>
                                 <!-- Import Button -->
                                 <Button x:Name="importPackButton" Width="20" Height="20" Margin="4,0,0,0" ToolTip="Import Pack" Click="importPackButton_Click">
-                                    <Image Source="/FrostyModManager;component/Images/Import.png"/>
+                                    <Image Source="/FrostyModManager;component/Images/AddMod.png"/>
                                 </Button>
                             </StackPanel>
                         </Border>

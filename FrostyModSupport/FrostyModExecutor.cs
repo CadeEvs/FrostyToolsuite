@@ -702,7 +702,7 @@ namespace Frosty.ModSupport
                                 FrostyModCollection fcollection = new FrostyModCollection(fi.FullName);
                                 if (fcollection.IsValid)
                                 {
-                                    b = $"{modPaths[i].ToLower()}:{fcollection.ModDetails.Version} '{fcollection.ModDetails.Title}' '{fcollection.ModDetails.Category}' '{fmod.ModDetails.Link}";
+                                    b = $"{modPaths[i].ToLower()}:{fcollection.ModDetails.Version} '{fcollection.ModDetails.Title}' '{fcollection.ModDetails.Category}' '{fcollection.ModDetails.Link}";
                                 }
                                 else
                                 {
@@ -1781,6 +1781,7 @@ namespace Frosty.ModSupport
                                 version = fcollection.ModDetails.Version;
                                 name = fcollection.ModDetails.Title;
                                 category = fcollection.ModDetails.Category;
+                                link = fcollection.ModDetails.Link;
                             }
                             else
                             {
