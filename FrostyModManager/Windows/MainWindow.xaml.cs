@@ -1733,7 +1733,7 @@ namespace FrostyModManager
 
         private void collectionExport_Click(object sender, RoutedEventArgs e)
         {
-            var ew = new Windows.CollectionSettingsWindow(availableMods);
+            var ew = new Windows.CollectionSettingsWindow(selectedPack.AppliedMods);
             ew.ShowDialog();
         }
 

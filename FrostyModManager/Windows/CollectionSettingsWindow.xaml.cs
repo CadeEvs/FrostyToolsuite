@@ -33,21 +33,11 @@ namespace FrostyModManager.Windows
             "User Interface"
         };
 
-        public CollectionSettingsWindow(List<ISuperGamerLeagueGamer> mods)
+        public CollectionSettingsWindow(List<FrostyAppliedMod> mods)
         {
             InitializeComponent();
 
-            availableMods = new List<FrostyAppliedMod>();
-            for (int i = 0; i < mods.Count; i++)
-            {
-                if (mods[i] is FrostyModCollection)
-                {
-                    foreach (FrostyMod mod in (mods[i] as FrostyModCollection).Mods)
-                        availableMods.Add(new FrostyAppliedMod(mod, false));
-                }
-                else
-                    availableMods.Add(new FrostyAppliedMod(mods[i] as FrostyMod, false));
-            }
+            availableMods = mods;
 
             Loaded += ModSettingsWindow_Loaded;
         }
@@ -55,8 +45,6 @@ namespace FrostyModManager.Windows
         private void ModSettingsWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
             modCategoryComboBox.ItemsSource = categories;
-
-            availableModsList.ItemsSource = availableMods;
 
             if (modCategoryComboBox.SelectedIndex == 0)
             {
@@ -90,15 +78,12 @@ namespace FrostyModManager.Windows
                 return;
             }
 
-            List<string> paths = new List<string>(availableMods.Count);
             for (int i = 0; i < availableMods.Count; i++)
             {
                 if (availableMods[i].IsEnabled)
-                {
                     appliedMods.Add(availableMods[i].Mod as FrostyMod);
-                    paths.Add(availableMods[i].Mod.Filename);
-                }
             }
+
             CollectionManifest details = new CollectionManifest()
             {
                 title = modTitleTextBox.Text,
@@ -118,11 +103,15 @@ namespace FrostyModManager.Windows
                     {
                         FrostyModCollection collection = new FrostyModCollection(details, appliedMods);
                         collection.ModDetails.SetIcon(iconImageButton.GetImage());
-                        // TODO: add screenshots for collections
-                        //collection.ModDetails.AddScreenshot(ssImageButton1.GetImage());
-                        //collection.ModDetails.AddScreenshot(ssImageButton2.GetImage());
-                        //collection.ModDetails.AddScreenshot(ssImageButton3.GetImage());
-                        //collection.ModDetails.AddScreenshot(ssImageButton4.GetImage());
+                        
+                        if (ssImageButton1.GetImage() != null)
+                            collection.ModDetails.AddScreenshot(ssImageButton1.GetImage());
+                        if (ssImageButton2.GetImage() != null)
+                            collection.ModDetails.AddScreenshot(ssImageButton2.GetImage());
+                        if (ssImageButton3.GetImage() != null)
+                            collection.ModDetails.AddScreenshot(ssImageButton3.GetImage());
+                        if (ssImageButton4.GetImage() != null)
+                            collection.ModDetails.AddScreenshot(ssImageButton4.GetImage());
 
                         ZipArchiveEntry manifestEntry = archive.CreateEntry(collection.Filename);
                         using (Stream stream = manifestEntry.Open())
@@ -140,10 +129,10 @@ namespace FrostyModManager.Windows
                         archive.Dispose();
                     }
                 });
+                
+                DialogResult = true;
+                Close();
             }
-
-            DialogResult = true;
-            Close();
         }
 
         private bool FrostyImageButton_OnValidate(object sender, FileInfo fi, BitmapImage bimage)
@@ -181,77 +170,6 @@ namespace FrostyModManager.Windows
                 modCategoryTextBox.Text = modCategoryComboBox.SelectedItem.ToString();
                 modCategoryTextBox.IsEnabled = false;
             }
-        }
-
-        private void enabledCheckBox_Checked(object sender, System.Windows.RoutedEventArgs e)
-        {
-        }
-
-        private void enabledCheckBox_Unchecked(object sender, System.Windows.RoutedEventArgs e)
-        {
-        }
-
-        private void downButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            FrostyAppliedMod mod = availableModsList.SelectedItem as FrostyAppliedMod;
-
-            int index = availableMods.FindIndex((FrostyAppliedMod a) => a == mod);
-
-            if (index >= availableMods.Count - 1)
-                return;
-
-            availableMods.RemoveAt(index);
-            availableMods.Insert(++index, mod);
-
-            availableModsList.Items.Refresh();
-
-            if (availableModsList.SelectedIndex > 0)
-                upButton.IsEnabled = true;
-            else
-                upButton.IsEnabled = false;
-
-            if (availableModsList.SelectedIndex <= availableMods.Count - 1)
-                downButton.IsEnabled = true;
-            else
-                downButton.IsEnabled = false;
-        }
-
-        private void upButton_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            FrostyAppliedMod mod = availableModsList.SelectedItem as FrostyAppliedMod;
-
-            int index = availableMods.FindIndex((FrostyAppliedMod a) => a == mod);
-
-            if (index <= 0)
-                return;
-
-            availableMods.RemoveAt(index);
-            availableMods.Insert(--index, mod);
-
-            availableModsList.Items.Refresh();
-
-            if (availableModsList.SelectedIndex > 0)
-                upButton.IsEnabled = true;
-            else
-                upButton.IsEnabled = false;
-
-            if (availableModsList.SelectedIndex <= availableMods.Count - 1)
-                downButton.IsEnabled = true;
-            else
-                downButton.IsEnabled = false;
-        }
-
-        private void availableModsList_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            if (availableModsList.SelectedIndex > 0)
-                upButton.IsEnabled = true;
-            else
-                upButton.IsEnabled = false;
-
-            if (availableModsList.SelectedIndex <= availableMods.Count - 1)
-                downButton.IsEnabled = true;
-            else
-                downButton.IsEnabled = false;
         }
     }
 }

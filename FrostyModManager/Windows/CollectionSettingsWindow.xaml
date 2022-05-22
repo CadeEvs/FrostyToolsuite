@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:FrostyModManager.Windows"
         xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
-        Title="Export Collection" Height="530" Width="600"
+        Title="Export Collection" Height="500" Width="600"
         WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
 
     <Window.Resources>
@@ -61,39 +61,14 @@
                 </Grid>
 
                 <Grid DockPanel.Dock="Top" Margin="5">
-                    <DockPanel LastChildFill="True" Height="200">
-                        <StackPanel VerticalAlignment="Center">
-                            <ctrl:FrostyImageButton x:Name="iconImageButton" Title="ICON" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
-                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,20,6,0">
-                                <!-- Down Button -->
-                                <Button x:Name="downButton" Margin="4,0,0,0" IsEnabled="False" Click="downButton_Click" ToolTip="Move mod down in list &#x0a;Shift click to move down 5 spaces &#x0a;Ctrl Shift click to move to bottom">
-                                    <Image Source="/FrostyModManager;component/Images/Down.png" Margin="0,0,2,0"/>
-                                </Button>
-                                <!-- Up Button -->
-                                <Button x:Name="upButton" IsEnabled="False" Click="upButton_Click" ToolTip="Move mod up in list &#x0a;Shift click to move up 5 spaces &#x0a;Ctrl Shift click to move to top">
-                                    <Image Source="/FrostyModManager;component/Images/Up.png" Margin="0,0,2,0"/>
-                                </Button>
-                            </StackPanel>
-                        </StackPanel>
-
-                        <ListBox x:Name="availableModsList" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="availableModsList_SelectionChanged">
-                            <ListBox.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="16"/>
-                                            <ColumnDefinition Width="24"/>
-                                            <ColumnDefinition Width="*"/>
-                                        </Grid.ColumnDefinitions>
-
-                                        <CheckBox x:Name="enabledCheckBox" Grid.Column="0" VerticalAlignment="Center" IsChecked="{Binding Path=IsEnabled}" IsEnabled="{Binding Path=IsFound}" Unchecked="enabledCheckBox_Unchecked" Checked="enabledCheckBox_Checked"/>
-                                        <Image Grid.Column="1" Source="{Binding Path=ModIcon}" Margin="8,0,0,0" Width="16" RenderOptions.BitmapScalingMode="Fant"/>
-                                        <TextBlock Grid.Column="2" Text="{Binding Path=ModName}" Margin="8,0,0,0" VerticalAlignment="Center"/>
-                                    </Grid>
-                                </DataTemplate>
-                            </ListBox.ItemTemplate>
-                        </ListBox>
-                    </DockPanel>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ctrl:FrostyImageButton x:Name="iconImageButton" Title="ICON" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <Grid Height="88" Width="88" Margin="0,0,16,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton1" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton2" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton3" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton4" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0"/>
+                    </StackPanel>
                 </Grid>
 
                 <TextBox x:Name="modDescriptionTextBox" Margin="5" BorderThickness="1" AcceptsReturn="True" AcceptsTab="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
