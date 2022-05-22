@@ -115,6 +115,12 @@ namespace Frosty.Core
         public IEnumerable<MenuExtension> MenuExtensions => menuExtensions;
 
         /// <summary>
+        /// Retreives a collection of toolbar extensions that have been loaded from plugins.
+        /// </summary>
+        /// <returns>A collection of toolbar extensions.</returns>
+        public IEnumerable<ToolbarExtension> ToolbarExtensions => toolbarExtensions;
+        
+        /// <summary>
         /// Retreives a collection of menu extensions that have been loaded from plugins.
         /// </summary>
         /// <returns>A collection of menu extensions.</returns>
@@ -164,26 +170,28 @@ namespace Frosty.Core
 
         public IEnumerable<string> CustomAssetHandlers => customAssetHandlers.Keys;
 
-        private Dictionary<string, AssetDefinition> definitions = new Dictionary<string, AssetDefinition>();
-        private List<MenuExtension> menuExtensions = new List<MenuExtension>();
-        private List<TabExtension> tabExtensions = new List<TabExtension>();
-        private List<DataExplorerContextMenuExtension> contextMenuItemExtensions = new List<DataExplorerContextMenuExtension>();
-        private Dictionary<string, Type> globalTypEditors = new Dictionary<string, Type>();
-        private Dictionary<string, Type> typeOverrides = new Dictionary<string, Type>();
-        private List<Type> optionsExtensions = new List<Type>();
-        private List<string> thirdPartyDlls = new List<string>();
-        private List<Profile> profiles = new List<Profile>();
-        private List<Plugin> plugins = new List<Plugin>();
-        private List<Plugin> loadedPlugins = new List<Plugin>();
-        private List<ExecutionAction> executionActions = new List<ExecutionAction>();
-        private List<StartupAction> startupActions = new List<StartupAction>();
-        private Dictionary<uint, Type> customHandlers = new Dictionary<uint, Type>();
-        private Dictionary<string, Type> customAssetHandlers = new Dictionary<string, Type>();
-        private Dictionary<ResourceType, Type> resCustomHandlers = new Dictionary<ResourceType, Type>();
-        private Dictionary<string, ShaderDefinition[]> shaders = new Dictionary<string, ShaderDefinition[]>();
-        private List<string> userShaders = new List<string>();
+        private readonly Dictionary<string, AssetDefinition> definitions = new Dictionary<string, AssetDefinition>();
+        private readonly List<MenuExtension> menuExtensions = new List<MenuExtension>();
+        private readonly List<ToolbarExtension> toolbarExtensions = new List<ToolbarExtension>();
+        private readonly List<TabExtension> tabExtensions = new List<TabExtension>();
+        private readonly List<DataExplorerContextMenuExtension> contextMenuItemExtensions = new List<DataExplorerContextMenuExtension>();
+        private readonly Dictionary<string, Type> globalTypEditors = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> typeOverrides = new Dictionary<string, Type>();
+        private readonly List<Type> optionsExtensions = new List<Type>();
+        private readonly List<string> thirdPartyDlls = new List<string>();
+        private readonly List<Profile> profiles = new List<Profile>();
+        private readonly List<Plugin> plugins = new List<Plugin>();
+        private readonly List<Plugin> loadedPlugins = new List<Plugin>();
+        private readonly List<ExecutionAction> executionActions = new List<ExecutionAction>();
+        private readonly List<StartupAction> startupActions = new List<StartupAction>();
+        private readonly Dictionary<uint, Type> customHandlers = new Dictionary<uint, Type>();
+        private readonly Dictionary<string, Type> customAssetHandlers = new Dictionary<string, Type>();
+        private readonly Dictionary<ResourceType, Type> resCustomHandlers = new Dictionary<ResourceType, Type>();
+        private readonly Dictionary<string, ShaderDefinition[]> shaders = new Dictionary<string, ShaderDefinition[]>();
+        private readonly List<string> userShaders = new List<string>();
+        
         private Type localizedStringDatabaseType;
-        private PluginManagerType managerType;
+        private readonly PluginManagerType managerType;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PluginManager"/> class with the specified logger and context.
@@ -266,7 +274,9 @@ namespace Frosty.Core
         public void Clear()
         {
             definitions.Clear();
+            
             menuExtensions.Clear();
+            toolbarExtensions.Clear();
             tabExtensions.Clear();
             contextMenuItemExtensions.Clear();
             //globalTypEditors.Clear();
@@ -468,7 +478,7 @@ namespace Frosty.Core
         // loads all the necessary definitions from a plugin based on the exported attributes.
         private void LoadDefinitionsFromAssembly(PluginLoadType loadType, Assembly assembly)
         {
-            foreach (var tmpAttr in assembly.GetCustomAttributes())
+            foreach (Attribute tmpAttr in assembly.GetCustomAttributes())
             {
                 if (managerType == PluginManagerType.ModManager && !(tmpAttr is RegisterCustomHandlerAttribute) && !(tmpAttr is RegisterExecutionAction) && !(tmpAttr is RegisterOptionsExtensionAttribute))
                     continue;
@@ -500,7 +510,7 @@ namespace Frosty.Core
                         if (assetType != null)
                         {
                             AssetDefinition definition = (AssetDefinition)Activator.CreateInstance(attr1.AssetDefinitionType);
-                            foreach (var subType in TypeLibrary.GetDerivedTypes(assetType))
+                            foreach (Type subType in TypeLibrary.GetDerivedTypes(assetType))
                             {
                                 string subName = subType.Name.ToLower();
                                 if (!definitions.ContainsKey(subName))
@@ -532,6 +542,12 @@ namespace Frosty.Core
                         if (!attr2.MenuExtensionType.IsSubclassOf(typeof(MenuExtension)))
                             throw new Exception("Menu extensions must extend from MenuExtensions base class");
                         menuExtensions.Add((MenuExtension)Activator.CreateInstance(attr2.MenuExtensionType));
+                    }
+                    else if (tmpAttr is RegisterToolbarExtensionAttribute attr3)
+                    {
+                        if (!attr3.ToolbarExtensionType.IsSubclassOf(typeof(ToolbarExtension)))
+                            throw new Exception("Toolbar extensions must extend from MenuExtensions base class");
+                        toolbarExtensions.Add((ToolbarExtension)Activator.CreateInstance(attr3.ToolbarExtensionType));
                     }
                     else if (tmpAttr is RegisterOptionsExtensionAttribute attr5)
                     {

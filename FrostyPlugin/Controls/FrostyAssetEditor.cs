@@ -19,13 +19,16 @@ namespace Frosty.Core.Controls
         public ImageSource Icon { get; private set; }
         public RelayCommand Command { get; private set; }
 
-        public ToolbarItem(string text, string tooltip, string icon, RelayCommand inCommand)
+        public bool IsAddedByPlugin { get; private set; }
+        
+        public ToolbarItem(string text, string tooltip, string icon, RelayCommand inCommand, bool isAddedByPlugin = false)
         {
             Text = text;
             ToolTip = tooltip;
             if (!string.IsNullOrEmpty(icon))
                 Icon = new ImageSourceConverter().ConvertFromString("pack://application:,,,/FrostyEditor;component/" + icon) as ImageSource;
             Command = inCommand;
+            IsAddedByPlugin = isAddedByPlugin;
         }
     }
 

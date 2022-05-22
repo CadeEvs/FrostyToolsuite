@@ -116,7 +116,7 @@
                             <!--<Border Width="1" Background="#D0D0D0" Margin="8,3,2,3"/>-->
                         </StackPanel>
                     </Border>
-                    <!-- Toolbar -->
+                    <!-- Editor Toolbar -->
                     <Border Background="{StaticResource ControlBackground}" Margin="1 0 0 0" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
                         <ItemsControl x:Name="EditorToolbarItems" Margin="2,1,6,1">
                             <ItemsControl.ItemsPanel>
@@ -151,6 +151,47 @@
                             <Style TargetType="{x:Type Border}">
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Path=Items.Count, ElementName=EditorToolbarItems}" Value="0">
+                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                    </Border>
+                    <!-- Asset Toolbar -->
+                    <Border Background="{StaticResource ControlBackground}" Margin="1 0 0 0" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
+                        <ItemsControl x:Name="AssetEditorToolbarItems" Margin="2,1,6,1">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel IsItemsHost="True" Orientation="Horizontal">
+                                        <!-- Toolbar bindings go here -->
+                                    </StackPanel>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Margin="4,0,0,0" Height="20" ToolTip="{Binding Path=ToolTip}" Command="{Binding Path=Command}">
+                                        <StackPanel x:Name="panel" Margin="4 0 4 0" Orientation="Horizontal">
+                                            <Image x:Name="icon" Source="{Binding Path=Icon}" Width="16"/>
+                                            <TextBlock x:Name="text" Margin="4,0,0,0" Text="{Binding Path=Text}"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding Path=Icon}" Value="{x:Null}">
+                                            <Setter Property="Visibility" TargetName="icon" Value="Collapsed"/>
+                                            <Setter Property="Margin" TargetName="text" Value="0"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=Text}" Value="">
+                                            <Setter Property="Margin" TargetName="text" Value="0"/>
+                                            <Setter Property="Margin" TargetName="panel" Value="0"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Border.Style>
+                            <Style TargetType="{x:Type Border}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=Items.Count, ElementName=AssetEditorToolbarItems}" Value="0">
                                         <Setter Property="Visibility" Value="Collapsed"/>
                                     </DataTrigger>
                                 </Style.Triggers>

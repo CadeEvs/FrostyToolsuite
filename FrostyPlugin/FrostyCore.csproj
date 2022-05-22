@@ -131,6 +131,7 @@
     <Compile Include="Attributes\RegisterStartupActionAttribute.cs" />
     <Compile Include="Attributes\RegisterTabExtensionAttribute.cs" />
     <Compile Include="Attributes\RegisterThirdPartyDllAttribute.cs" />
+    <Compile Include="Attributes\RegisterToolbarExtensionAttribute.cs" />
     <Compile Include="Attributes\RegisterTypeOverrideAttribute.cs" />
     <Compile Include="Attributes\RegisterUserShaderAttribute.cs" />
     <Compile Include="Controls\FrostyExceptionBox.cs" />
@@ -141,6 +142,7 @@
     <Compile Include="Extensions\DataExplorerContextMenuExtension.cs" />
     <Compile Include="Extensions\ExecutionAction.cs" />
     <Compile Include="Extensions\StartupAction.cs" />
+    <Compile Include="Extensions\ToolbarExtension.cs" />
     <Compile Include="FrostyConfiguration.cs" />
     <Compile Include="FrostyLogger.cs" />
     <Compile Include="Managers\NotificationManager.cs" />
@@ -176,6 +178,9 @@
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
     <Compile Include="Utils\UpdateChecker.cs" />
+    <Compile Include="Windows\FrostyProfileSelectWindow.xaml.cs">
+      <DependentUpon>FrostyProfileSelectWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\FrostyProfileTaskWindow.xaml.cs">
       <DependentUpon>FrostyProfileTaskWindow.xaml</DependentUpon>
     </Compile>
@@ -302,6 +307,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Windows\FrostyProfileSelectWindow.xaml" />
     <Page Include="Windows\FrostyProfileTaskWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -118,8 +118,10 @@ namespace FrostyEditor.Windows
             currentExplorer = dataExplorer;
         }
 
+        #region PluginExtensions
         private void ClearPluginExtensions()
         {
+            ClearToolbarExtensions();
             ClearMenuExtensions();
             ClearTabExtensions();
             ClearDataExplorerMenuItemExtensions();
@@ -128,11 +130,22 @@ namespace FrostyEditor.Windows
         {
             InitGameSpecificMenus();
 
+            LoadToolbarExtensions();
             LoadMenuExtensions();
             LoadTabExtensions();
             LoadDataExplorerMenuItemExtensions();
         }
 
+        private void ClearToolbarExtensions()
+        {
+            EditorToolbarItems.Items.Clear();
+        }
+        private void LoadToolbarExtensions()
+        {
+            IEnumerable<ToolbarItem> toolbarItems = App.PluginManager.ToolbarExtensions.Select(toolbarExtension => new ToolbarItem(toolbarExtension.Name, "", null, toolbarExtension.ToolbarItemClicked, true));
+            EditorToolbarItems.ItemsSource = toolbarItems;
+        }
+        
         private void ClearMenuExtensions()
         {
             // iterate backwards through top leve menu items
@@ -277,6 +290,7 @@ namespace FrostyEditor.Windows
                 miscTabControl.Items.Add(tabExtItem);
             }
         }
+        #endregion
 
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -287,7 +301,7 @@ namespace FrostyEditor.Windows
             if (!(ti?.Content is FrostyAssetEditor editor))
                 return;
 
-            EditorToolbarItems.ItemsSource = editor.RegisterToolbarItems();
+            AssetEditorToolbarItems.ItemsSource = editor.RegisterToolbarItems();
         }
 
         private void UpdateDiscordState()
@@ -800,7 +814,7 @@ namespace FrostyEditor.Windows
         {
             editor.Closed();
             if (ti.IsSelected)
-                EditorToolbarItems.ItemsSource = null;
+                AssetEditorToolbarItems.ItemsSource = null;
             TabControl.Items.Remove(ti);
             if (TabControl.Items.Count == 1)
             {
