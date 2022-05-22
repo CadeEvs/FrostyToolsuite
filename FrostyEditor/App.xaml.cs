@@ -111,13 +111,7 @@ namespace FrostyEditor
                 FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
                 return Assembly.LoadFile(fi.DirectoryName + "/ThirdParty/" + dllname + ".dll");
             }
-            
-            if (dllname.Equals("EbxClasses"))
-            {
-                FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
-                return Assembly.LoadFile(fi.DirectoryName + "/Profiles/" + ProfilesLibrary.SDKFilename + ".dll");
-            }
-            
+
             if (PluginManager != null)
             {
                 if (PluginManager.IsThirdPartyDll(dllname))

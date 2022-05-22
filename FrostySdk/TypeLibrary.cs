@@ -661,8 +661,15 @@ namespace FrostySdk
                 }
 
                 // now try to load SDK
+                
                 if (File.Exists("Profiles/" + ProfilesLibrary.SDKFilename + ".dll"))
-                    existingAssembly = Assembly.Load(new AssemblyName(ModuleName));
+                {
+                    // TODO: @techdebt do further testing to see if old sdk assembly gets garbage collected, this could cause bad issues down the line
+                    FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
+                    existingAssembly = Assembly.LoadFile(fi.DirectoryName + "/Profiles/" + ProfilesLibrary.SDKFilename + ".dll");
+                    
+                    //existingAssembly = Assembly.Load(new AssemblyName(ModuleName));
+                }
             }
 
             AssemblyName name = new AssemblyName(ModuleName);
@@ -670,6 +677,13 @@ namespace FrostySdk
             moduleBuilder = assemblyBuilder.DefineDynamicModule(ModuleName);
         }
 
+        public static void Clear()
+        {
+            assemblyBuilder = null;
+            moduleBuilder = null;
+            existingAssembly = null;
+        }
+        
         public static uint GetSdkVersion()
         {
             if (existingAssembly == null)
