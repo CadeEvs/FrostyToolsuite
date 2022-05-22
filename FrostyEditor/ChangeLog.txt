@@ -45,6 +45,16 @@ Plugin Changes
 - Added Startup Action extension
 - Added ExecutionAction extension
 
+v1.0.6 (Beta 3)
+--------
+- Added version checking functionality
+- Added missing SoundEditor plugin
+
+Technical Changes
+- Fixed compression loading issue
+- Fixed character crash issue (#52)
+- Fixed localization issue (#55)
+
 v1.0.6 (Beta 2)
 --------
 - Modified Mod Manager loading process so mods no longer get removed from packs when the file cannot be found
