@@ -40,21 +40,14 @@ namespace Frosty.Core
                 ? GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases")
                 : GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases/latest");
 
-            bool isLocalPrerelease = false;
-#if FROSTY_ALPHA
-                isLocalPrerelease = true;
-#elif FROSTY_BETA
-                isLocalPrerelease = true;
-#endif
-
             // check if local version isn't the latest
             if (localVersion.CompareTo(release.Version) < 0)
             {
                 return true;
             }
-            else if (isLocalPrerelease)
+            else if (checkPrerelease)
             {
-                string version = release.Version.ToString();
+                string version = release.Tag.ToString();
                 int preVersion = int.Parse(version.Substring(version.Length - 1));
 
                 // check if local beta/alpha version isn't the latest
