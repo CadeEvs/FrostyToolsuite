@@ -217,7 +217,6 @@ namespace FsLocalizationPlugin
                         if (index == -1)
                         {
                             App.Logger.LogWarning("Character not supported: " + b + " from string: " + key.ToString("X8"));
-                            /*throw new Exception("Character not supported: " + b + " from string: " + str);*/
                             continue;
                         }
 
