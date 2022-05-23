@@ -516,6 +516,14 @@ namespace FrostyEditor.Windows
                     SelectProfile(selectedProfileName);
                     
                     NewProject();
+                    
+                    // update UI
+                    LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+
+                    LoadPluginExtensions();
+
+                    dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
+                    legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
                 }
             }
             else
