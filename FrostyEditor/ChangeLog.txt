@@ -20,6 +20,7 @@
 - Added BoxedValueRef editing functionality
 - Added a new Type Editor for Event/Property/Link Connections in the Property Grid
 - Added pack zipping and loading
+- Added collections
 - Moved location of the Editor and Explorer menu items (Moved from Tools to View)
 - Moved to json format for Frosty Editor and Mod Manager configs
 - Moved config files to local folder under AppData for global access between builds
@@ -47,6 +48,7 @@ Plugin Changes
 
 v1.0.6 (Beta 3)
 --------
+- Added collections
 - Added version checking functionality
 - Added missing SoundEditor plugin
 
