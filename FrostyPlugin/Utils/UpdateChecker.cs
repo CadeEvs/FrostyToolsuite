@@ -23,7 +23,7 @@ namespace Frosty.Core
 
     public static class UpdateChecker
     {
-        private static Release GetLatestRelease(string url)
+        private static Release GetLatestRelease(string url, bool checkPrerelease)
         {
             WebClient client = new WebClient()
             {
@@ -31,14 +31,16 @@ namespace Frosty.Core
             };
             client.Headers.Add(HttpRequestHeader.UserAgent, "request");
 
-            return JsonConvert.DeserializeObject<List<Release>>(client.DownloadString(url))[0];
+            return checkPrerelease
+                ? JsonConvert.DeserializeObject<List<Release>>(client.DownloadString(url))[0]
+                : JsonConvert.DeserializeObject<Release>(client.DownloadString(url));
         }
 
         public static bool CheckVersion(bool checkPrerelease, Version localVersion)
         {
             Release release = checkPrerelease
-                ? GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases")
-                : GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases/latest");
+                ? GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases", checkPrerelease)
+                : GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases/latest", checkPrerelease);
 
             // check if local version isn't the latest
             if (localVersion.CompareTo(release.Version) < 0)
