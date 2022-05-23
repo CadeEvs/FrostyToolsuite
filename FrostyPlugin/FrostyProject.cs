@@ -94,22 +94,6 @@ namespace Frosty.Core
             modSettings.ClearDirtyFlag();
         }
 
-        public void LoadProfile(string profile)
-        {
-            // load profiles
-            if (!ProfilesLibrary.Initialize(profile))
-            {
-                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Core");
-                return;
-            }
-
-            //App.InitDiscordRPC();
-            //App.UpdateDiscordRPC("Initializing");
-
-            // open profile task window
-            FrostyProfileTaskWindow.Show(Application.Current.MainWindow);
-        }
-
         public bool Load(string inFilename)
         {
             filename = inFilename;
@@ -613,21 +597,10 @@ namespace Frosty.Core
             // load profile if one isn't already loaded or if it doesn't match the last project profile
             if (ProfilesLibrary.Profile == null || gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
             {
-                // clear out all global managers
-                App.AssetManager = null;
-                App.ResourceManager = null;
-                App.FileSystem = null;
-
-                App.PluginManager.Clear();
-
-                TypeLibrary.Clear();
-
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
+                App.ClearProfileData();
 
                 requiresNewProfile = true;
-                LoadProfile(gameProfile);
+                App.LoadProfile(gameProfile);
             }
 
             FrostyTaskWindow.Show("Loading Project", "", (task) =>

@@ -508,50 +508,66 @@ namespace FrostyEditor.Windows
 
         private void newModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            FrostyProfileSelectWindow win = new FrostyProfileSelectWindow();
-            if (win.ShowDialog() == true)
+            if (!ProfilesLibrary.HasLoadedProfile)
             {
-                autoSaveTimer?.Stop();
-
-                if (project.IsDirty)
+                string selectedProfileName = FrostyProfileSelectWindow.Show();
+                if (!string.IsNullOrEmpty(selectedProfileName))
                 {
-                    MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
-                    if (result == MessageBoxResult.Cancel)
-                        return;
+                    SelectProfile(selectedProfileName);
+                }
+            }
 
-                    if (result == MessageBoxResult.Yes)
+            NewProject();
+        }
+
+        private static void SelectProfile(string profile)
+        {
+            Frosty.Core.App.ClearProfileData();
+            Frosty.Core.App.LoadProfile(profile);
+        }
+        
+        private void NewProject()
+        {
+            autoSaveTimer?.Stop();
+
+            if (project.IsDirty)
+            {
+                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
+                if (result == MessageBoxResult.Cancel)
+                    return;
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    if (SaveProject(false))
                     {
-                        if (SaveProject(false))
-                        {
-                            FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
-                            App.Logger.Log("Project saved to {0}", project.Filename);
-                        }
+                        FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
+                        App.Logger.Log("Project saved to {0}", project.Filename);
                     }
                 }
-
-                // close all open tabs
-                RemoveAllTabs();
-
-                // clear all modifications
-                App.AssetManager.Reset();
-                dataExplorer.RefreshAll();
-                legacyExplorer.RefreshAll();
-
-                // create a new blank project
-                project = new FrostyProject();
-
-                App.Logger.Log("New project started");
-                App.NotificationManager.Show("New project started");
-
-                UpdateWindowTitle();
-                UpdateDiscordState();
-
-                // reset show only modified flag
-                dataExplorer.ShowOnlyModified = false;
-                legacyExplorer.ShowOnlyModified = false;
-
-                autoSaveTimer?.Start();
             }
+
+            // close all open tabs
+            RemoveAllTabs();
+
+            // clear all modifications
+            App.AssetManager.Reset();
+            dataExplorer.RefreshAll();
+            legacyExplorer.RefreshAll();
+
+            // create a new blank project
+            project = new FrostyProject();
+
+            App.Logger.Log("New project started");
+            App.NotificationManager.Show("New project started");
+
+            UpdateWindowTitle();
+            UpdateDiscordState();
+
+            // reset show only modified flag
+            dataExplorer.ShowOnlyModified = false;
+            legacyExplorer.ShowOnlyModified = false;
+
+            autoSaveTimer?.Start();
         }
 
         private void openModMenuItem_Click(object sender, RoutedEventArgs e)

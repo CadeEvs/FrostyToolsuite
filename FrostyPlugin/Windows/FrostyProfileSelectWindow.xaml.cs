@@ -1,12 +1,18 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using Frosty.Controls;
+using FrostySdk;
+using Microsoft.Win32;
 
 namespace Frosty.Core.Windows
 {
     public partial class FrostyProfileSelectWindow
     {
         private List<FrostyConfiguration> configurations = new List<FrostyConfiguration>();
+        private string selectedProfileName;
         
         public FrostyProfileSelectWindow()
         {
@@ -15,6 +21,9 @@ namespace Frosty.Core.Windows
 
         private void ProfileSelectWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            // TODO: @techdebt only call this once or when needed
+            ScanGames();
+
             RefreshConfigurationList();
         }
         
@@ -36,6 +45,105 @@ namespace Frosty.Core.Windows
             }
 
             ConfigurationListView.ItemsSource = configurations;
+        }
+
+        private void SelectConfiguration()
+        {
+            if (ConfigurationListView.SelectedIndex == -1)
+                return;
+
+            if (ConfigurationListView.SelectedItem is FrostyConfiguration configuration)
+            {
+                selectedProfileName = configuration.ProfileName;
+                Close();
+            }
+        }
+        
+        private async void ScanGames()
+        {
+            await Task.Run((() =>
+            {
+                using (RegistryKey lmKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node"))
+                {
+                    int totalCount = 0;
+
+                    IterateSubKeys(lmKey, ref totalCount);
+                }
+            }));
+        }
+        
+        private void IterateSubKeys(RegistryKey subKey, ref int totalCount)
+        {
+            foreach (string subKeyName in subKey.GetSubKeyNames())
+            {
+                try
+                {
+                    IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount);
+                }
+                catch (System.Security.SecurityException)
+                {
+                    // do nothing
+                }
+            }
+
+            foreach (string subKeyValue in subKey.GetValueNames())
+            {
+                if (subKeyValue.IndexOf("Install Dir", StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    string installDir = subKey.GetValue("Install Dir") as string;
+                    if (string.IsNullOrEmpty(installDir))
+                        continue;
+                    if (!Directory.Exists(installDir))
+                        continue;
+
+                    foreach (string filename in Directory.EnumerateFiles(installDir, "*.exe"))
+                    {
+                        FileInfo fi = new FileInfo(filename);
+                        string nameWithoutExt = fi.Name.Replace(fi.Extension, "");
+
+                        if (ProfilesLibrary.HasProfile(nameWithoutExt))
+                        {
+                            foreach (FrostyConfiguration config in configurations)
+                            {
+                                if (config.ProfileName == fi.Name.Remove(fi.Name.Length - 4))
+                                    return;
+                            }
+
+                            Config.AddGame(fi.Name.Remove(fi.Name.Length - 4), fi.DirectoryName);
+                            configurations.Add(new FrostyConfiguration(fi.Name.Remove(fi.Name.Length - 4)));
+
+                            totalCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        public static string Show(bool hasLoadedProfile = false)
+        {
+            string profileName = "";
+            
+            FrostyProfileSelectWindow win = new FrostyProfileSelectWindow();
+            win.ShowDialog();
+            
+            profileName = win.selectedProfileName;
+
+            return profileName;
+        }
+
+        private void RefreshButton_OnClicked(object sender, RoutedEventArgs e)
+        {
+            ScanGames();
+        }
+        
+        private void AddConfigurationButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            // TODO: add
+        }
+
+        private void SelectConfigurationButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            SelectConfiguration();
         }
     }
 }

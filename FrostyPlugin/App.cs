@@ -5,6 +5,8 @@ using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using System;
 using System.Windows;
+using Frosty.Controls;
+using Frosty.Core.Windows;
 
 namespace Frosty.Core
 {
@@ -31,5 +33,33 @@ namespace Frosty.Core
         public static string GlobalSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty";
 
         public static IEditorWindow EditorWindow => Application.Current.MainWindow as IEditorWindow;
+
+        public static void ClearProfileData()
+        {
+            // clear out all global managers
+            AssetManager = null;
+            ResourceManager = null;
+            FileSystem = null;
+
+            PluginManager.Clear();
+
+            TypeLibrary.Clear();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+        public static void LoadProfile(string profile)
+        {
+            // load profiles
+            if (!ProfilesLibrary.Initialize(profile))
+            {
+                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Core");
+                return;
+            }
+            
+            // open profile task window
+            FrostyProfileTaskWindow.Show(Application.Current.MainWindow);
+        }
     }
 }

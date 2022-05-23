@@ -6,7 +6,7 @@
                            xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            mc:Ignorable="d"
-                           Title="New Project" Height="600" Width="800" Loaded="ProfileSelectWindow_Loaded"
+                           Title="Select Game" Height="300" Width="400" Loaded="ProfileSelectWindow_Loaded"
                            ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
     
     <Grid>
@@ -16,26 +16,29 @@
         </Grid.RowDefinitions>
         
         <Grid>
-            <ListBox x:Name="ConfigurationListView" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+            <ListBox x:Name="ConfigurationListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <WrapPanel IsItemsHost="true" Orientation="Vertical"/>
+                        <WrapPanel IsItemsHost="true" Orientation="Horizontal"/>
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
            
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Image Source="{Binding Path=Thumbnail}" Width="100" Height="100"/>
+                        <Image Source="{Binding Path=Thumbnail}" Width="40" Height="40"/>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
         
-        <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
-            <Button x:Name="AddConfigButton" Content="Add" HorizontalAlignment="Right" Padding="12,0" Margin="0,6,66,6"/>
-            <Button x:Name="SelectConfigButton" Content="Select" HorizontalAlignment="Right" Padding="12,0" Margin="0,6,6,6"/>
-
-            <Button Content="Refresh" HorizontalAlignment="Left" Padding="12,0" Margin="6,6,0,6"/>
+        <Grid Grid.Row="1">
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Content="Refresh" Padding="12,0" Margin="6,6,0,6" Click="RefreshButton_OnClicked"/>
+                <Button x:Name="AddConfigurationButton" Content="Add" Padding="12,0" Margin="6,6,0,6" Click="AddConfigurationButton_OnClick"/>
+                <Button x:Name="SelectConfigurationButton" Content="Select" Padding="12,0" Margin="6,6,6,6" Click="SelectConfigurationButton_OnClick"/>
+            </StackPanel>
+            
+            <Button Content="Cancel" HorizontalAlignment="Left" Padding="12,0" Margin="6,6,0,6"/>
         </Grid>
     </Grid>
 </ctrl:FrostyDockableWindow>
