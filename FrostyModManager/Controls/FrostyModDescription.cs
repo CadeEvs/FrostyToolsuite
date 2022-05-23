@@ -55,10 +55,10 @@ namespace FrostyModManager.Controls
         #region -- Properties --
 
         #region -- Mod --
-        public static readonly DependencyProperty ModProperty = DependencyProperty.Register("Mod", typeof(ISuperGamerLeagueGamer), typeof(FrostyModDescription), new FrameworkPropertyMetadata(null));
-        public ISuperGamerLeagueGamer Mod
+        public static readonly DependencyProperty ModProperty = DependencyProperty.Register("Mod", typeof(IFrostyMod), typeof(FrostyModDescription), new FrameworkPropertyMetadata(null));
+        public IFrostyMod Mod
         {
-            get => (ISuperGamerLeagueGamer)GetValue(ModProperty);
+            get => (IFrostyMod)GetValue(ModProperty);
             set => SetValue(ModProperty, value);
         }
         #endregion

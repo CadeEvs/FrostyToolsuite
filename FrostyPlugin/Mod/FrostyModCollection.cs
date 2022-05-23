@@ -20,7 +20,7 @@ namespace Frosty.Core.Mod
         public List<string> mods { get; set; }
         public List<string> modVersions { get; set; }
     }
-    public sealed class FrostyModCollection : ISuperGamerLeagueGamer
+    public sealed class FrostyModCollection : IFrostyMod
     {
         public FrostyModDetails ModDetails { get; }
         public IEnumerable<string> Warnings

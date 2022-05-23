@@ -53,7 +53,7 @@ namespace FrostyModManager
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            ISuperGamerLeagueGamer mod = (ISuperGamerLeagueGamer)value;
+            IFrostyMod mod = (IFrostyMod)value;
             if (!mod.HasWarnings)
                 return mod.ModDetails.Description;
 
@@ -276,7 +276,7 @@ namespace FrostyModManager
     /// </summary>
     public partial class MainWindow : FrostyWindow
     {
-        private List<ISuperGamerLeagueGamer> availableMods = new List<ISuperGamerLeagueGamer>();
+        private List<IFrostyMod> availableMods = new List<IFrostyMod>();
         private List<FrostyPack> packs = new List<FrostyPack>();
         private FrostyPack selectedPack;
         private FileSystem fs;
@@ -398,7 +398,7 @@ namespace FrostyModManager
                     string backupFileName = modEnabledPair[0];
                     bool isEnabled = bool.Parse(modEnabledPair[1]);
 
-                    ISuperGamerLeagueGamer mod = availableMods.Find((ISuperGamerLeagueGamer a) => a.Filename == modEnabledPair[0]);
+                    IFrostyMod mod = availableMods.Find((IFrostyMod a) => a.Filename == modEnabledPair[0]);
                     pack.AddMod(mod, isEnabled, backupFileName);
                 }
             }
@@ -659,7 +659,7 @@ namespace FrostyModManager
 
         private void uninstallModButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (ISuperGamerLeagueGamer mod in availableModsList.SelectedItems)
+            foreach (IFrostyMod mod in availableModsList.SelectedItems)
             {
                 FileInfo fi = new FileInfo(mod.Path);
 
@@ -770,7 +770,7 @@ namespace FrostyModManager
 
             foreach (var mod in collection.Mods)
             {
-                int index = availableMods.FindIndex((ISuperGamerLeagueGamer a) => a.Filename == mod.Filename);
+                int index = availableMods.FindIndex((IFrostyMod a) => a.Filename == mod.Filename);
                 if (index != -1)
                     availableMods.RemoveAt(index);
             }
@@ -788,7 +788,7 @@ namespace FrostyModManager
             if ((ListView)e.OriginalSource != availableModsList)
                 availableModsList.SelectedIndex = -1;
 
-            ISuperGamerLeagueGamer mod = ((ListView)e.OriginalSource).SelectedItem as ISuperGamerLeagueGamer;
+            IFrostyMod mod = ((ListView)e.OriginalSource).SelectedItem as IFrostyMod;
             if (mod == null)
             {
                 uninstallModButton.IsEnabled = false;
@@ -841,7 +841,7 @@ namespace FrostyModManager
 
         private void InstallMods(string[] filenames)
         {
-            ISuperGamerLeagueGamer lastInstalledMod = null;
+            IFrostyMod lastInstalledMod = null;
             List<ImportErrorInfo> errors = new List<ImportErrorInfo>();
 
             PackManifest packManifest = null;
@@ -963,7 +963,7 @@ namespace FrostyModManager
                                 }
 
                                 // check for existing mod of same name
-                                FrostyMod existingMod = availableMods.Find((ISuperGamerLeagueGamer a) => { return a.Filename.ToLower().CompareTo(mod.ToLower()) == 0; }) as FrostyMod;
+                                FrostyMod existingMod = availableMods.Find((IFrostyMod a) => { return a.Filename.ToLower().CompareTo(mod.ToLower()) == 0; }) as FrostyMod;
                                 if (existingMod != null)
                                 {
                                     availableMods.Remove(existingMod);
@@ -1252,7 +1252,7 @@ namespace FrostyModManager
 
                             // check for existing mod of same name
                             {
-                                FrostyMod existingMod = availableMods.Find((ISuperGamerLeagueGamer a) => a.Filename.ToLower().CompareTo(fi.Name.ToLower()) == 0) as FrostyMod;
+                                FrostyMod existingMod = availableMods.Find((IFrostyMod a) => a.Filename.ToLower().CompareTo(fi.Name.ToLower()) == 0) as FrostyMod;
                                 if (existingMod != null)
                                 {
                                     availableMods.Remove(existingMod);
@@ -1309,7 +1309,7 @@ namespace FrostyModManager
                 {
                     foreach (string modName in packManifest.mods)
                     {
-                        FrostyMod mod = availableMods.Find((ISuperGamerLeagueGamer a) =>
+                        FrostyMod mod = availableMods.Find((IFrostyMod a) =>
                         {
                             return a.Filename.CompareTo(modName) == 0;
                         }) as FrostyMod;
@@ -1364,7 +1364,7 @@ namespace FrostyModManager
             if (availableModsList.SelectedIndex == -1)
                 return;
 
-            ISuperGamerLeagueGamer selectedMod = availableModsList.SelectedItem as ISuperGamerLeagueGamer;
+            IFrostyMod selectedMod = availableModsList.SelectedItem as IFrostyMod;
             selectedPack.AddMod(selectedMod);
             appliedModsList.Items.Refresh();
 
@@ -1745,7 +1745,7 @@ namespace FrostyModManager
 
             availableModsList.SelectedIndex = -1;
 
-            ISuperGamerLeagueGamer selectedMod = collectionModsList.SelectedItem as ISuperGamerLeagueGamer;
+            IFrostyMod selectedMod = collectionModsList.SelectedItem as IFrostyMod;
             selectedPack.AddMod(selectedMod);
             appliedModsList.Items.Refresh();
 

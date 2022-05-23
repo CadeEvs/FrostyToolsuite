@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Frosty.Core.Mod
 {
-    public interface ISuperGamerLeagueGamer
+    public interface IFrostyMod
     {
         FrostyModDetails ModDetails { get; }
         IEnumerable<string> Warnings { get; }

@@ -24,7 +24,7 @@ namespace FrostyModManager
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
-        public void AddMod(ISuperGamerLeagueGamer mod, bool isEnabled = true, string backupFileName = "")
+        public void AddMod(IFrostyMod mod, bool isEnabled = true, string backupFileName = "")
         {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod != null ? a.Mod == mod : a.ModName == backupFileName);
             if (index != -1)
