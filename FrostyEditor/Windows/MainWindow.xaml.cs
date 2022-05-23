@@ -93,10 +93,7 @@ namespace FrostyEditor.Windows
                 CommandBindings.Add(new CommandBinding(launchGameCmd, launchButton_Click));
                 LaunchButton.IsEnabled = true;
             }
-
-            if (ToolsMenuItem.Items.Count != 0)
-                ToolsMenuItem.Items.Add(new Separator());
-
+            
             MenuItem optionsMenuItem = new MenuItem()
             {
                 Header = "Options",
@@ -104,6 +101,7 @@ namespace FrostyEditor.Windows
             };
             optionsMenuItem.Click += optionsMenuItem_Click;
             ToolsMenuItem.Items.Add(optionsMenuItem);
+            ToolsMenuItem.Items.Add(new Separator());
 
             Bookmarks.BookmarkDb.ContextChanged += BookmarkDb_ContextChanged;
             BookmarkContextPicker.ItemsSource = Bookmarks.BookmarkDb.Contexts.Values;
@@ -510,46 +508,50 @@ namespace FrostyEditor.Windows
 
         private void newModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            autoSaveTimer?.Stop();
-
-            if (project.IsDirty)
+            FrostyProfileSelectWindow win = new FrostyProfileSelectWindow();
+            if (win.ShowDialog() == true)
             {
-                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
-                if (result == MessageBoxResult.Cancel)
-                    return;
+                autoSaveTimer?.Stop();
 
-                if (result == MessageBoxResult.Yes)
+                if (project.IsDirty)
                 {
-                    if (SaveProject(false))
+                    MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
+                    if (result == MessageBoxResult.Cancel)
+                        return;
+
+                    if (result == MessageBoxResult.Yes)
                     {
-                        FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
-                        App.Logger.Log("Project saved to {0}", project.Filename);
+                        if (SaveProject(false))
+                        {
+                            FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
+                            App.Logger.Log("Project saved to {0}", project.Filename);
+                        }
                     }
                 }
+
+                // close all open tabs
+                RemoveAllTabs();
+
+                // clear all modifications
+                App.AssetManager.Reset();
+                dataExplorer.RefreshAll();
+                legacyExplorer.RefreshAll();
+
+                // create a new blank project
+                project = new FrostyProject();
+
+                App.Logger.Log("New project started");
+                App.NotificationManager.Show("New project started");
+
+                UpdateWindowTitle();
+                UpdateDiscordState();
+
+                // reset show only modified flag
+                dataExplorer.ShowOnlyModified = false;
+                legacyExplorer.ShowOnlyModified = false;
+
+                autoSaveTimer?.Start();
             }
-
-            // close all open tabs
-            RemoveAllTabs();
-
-            // clear all modifications
-            App.AssetManager.Reset();
-            dataExplorer.RefreshAll();
-            legacyExplorer.RefreshAll();
-
-            // create a new blank project
-            project = new FrostyProject();
-
-            App.Logger.Log("New project started");
-            App.NotificationManager.Show("New project started");
-
-            UpdateWindowTitle();
-            UpdateDiscordState();
-
-            // reset show only modified flag
-            dataExplorer.ShowOnlyModified = false;
-            legacyExplorer.ShowOnlyModified = false;
-
-            autoSaveTimer?.Start();
         }
 
         private void openModMenuItem_Click(object sender, RoutedEventArgs e)
