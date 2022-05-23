@@ -6,7 +6,7 @@ using Frosty.Core.IO;
 
 namespace Frosty.Core.Mod
 {
-    public sealed class FrostyMod : IResourceContainer
+    public sealed class FrostyMod : IFrostyMod, IResourceContainer
     {
         /*
           Mod Format Versions:

@@ -1,0 +1,87 @@
+﻿<ctrl:FrostyDockableWindow x:Class="FrostyModManager.Windows.CollectionSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FrostyModManager.Windows"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        mc:Ignorable="d"
+        Title="Export Collection" Height="500" Width="600"
+        WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
+
+    <Window.Resources>
+        <Style x:Key="TextBoxValidate" TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBoxBase}}">
+            <Style.Triggers>
+                <Trigger Property="Text" Value="">
+                    <Setter Property="BorderBrush" Value="Red"></Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="38"/>
+        </Grid.RowDefinitions>
+
+        <Grid Background="{StaticResource ListBackground}">
+            <DockPanel LastChildFill="True">
+                <Grid DockPanel.Dock="Top" Margin="5">
+                    <StackPanel>
+                        <DockPanel LastChildFill="True">
+                            <Label Content="Title " FontFamily="Global User Interface" Width="75"/>
+                            <TextBox x:Name="modTitleTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
+                        </DockPanel>
+                        <DockPanel LastChildFill="True">
+                            <Label Content="Author " FontFamily="Global User Interface" Width="75"/>
+                            <TextBox x:Name="modAuthorTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
+                        </DockPanel>
+                        <DockPanel LastChildFill="True">
+                            <Label Content="Version " FontFamily="Global User Interface" Width="75"/>
+                            <TextBox Grid.Column="1" x:Name="modVersionTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
+                        </DockPanel>
+                        <DockPanel LastChildFill="True">
+                            <Label Content="Category " FontFamily="Global User Interface" Width="75"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="0.5*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox Grid.Column="0" x:Name="modCategoryComboBox" Margin="1,1,0,1" SelectionChanged="modCategoryComboBox_SelectionChanged"/>
+                                <TextBox Grid.Column="1" x:Name="modCategoryTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
+                            </Grid>
+                        </DockPanel>
+                        <DockPanel LastChildFill="True">
+                            <Label Content="Link " FontFamily="Global User Interface" Width="75"/>
+                            <TextBox x:Name="modLinkTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Grid>
+
+                <Grid DockPanel.Dock="Top" Margin="5">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <ctrl:FrostyImageButton x:Name="iconImageButton" Title="ICON" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <Grid Height="88" Width="88" Margin="0,0,16,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton1" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton2" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton3" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
+                        <ctrl:FrostyImageButton x:Name="ssImageButton4" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0"/>
+                    </StackPanel>
+                </Grid>
+
+                <TextBox x:Name="modDescriptionTextBox" Margin="5" BorderThickness="1" AcceptsReturn="True" AcceptsTab="True" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/>
+            </DockPanel>
+        </Grid>
+
+        <Border Grid.Row="1">
+            <Grid Margin="8">
+                <DockPanel LastChildFill="False">
+                    <Button x:Name="cancelButton" Content="Cancel" DockPanel.Dock="Left" Width="75" Click="cancelButton_Click"/>
+                    <Button x:Name="saveButton" Content="Save" DockPanel.Dock="Right" Width="75" Click="saveButton_Click"/>
+                </DockPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ctrl:FrostyDockableWindow>
