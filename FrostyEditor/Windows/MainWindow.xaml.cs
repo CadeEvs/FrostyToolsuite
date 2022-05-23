@@ -514,10 +514,14 @@ namespace FrostyEditor.Windows
                 if (!string.IsNullOrEmpty(selectedProfileName))
                 {
                     SelectProfile(selectedProfileName);
+                    
+                    NewProject();
                 }
             }
-
-            NewProject();
+            else
+            {
+                NewProject();
+            }
         }
 
         private static void SelectProfile(string profile)

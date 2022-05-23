@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Frosty.Controls;
 using FrostySdk;
 using Microsoft.Win32;
@@ -11,7 +13,7 @@ namespace Frosty.Core.Windows
 {
     public partial class FrostyProfileSelectWindow
     {
-        private List<FrostyConfiguration> configurations = new List<FrostyConfiguration>();
+        private readonly List<FrostyConfiguration> configurations = new List<FrostyConfiguration>();
         private string selectedProfileName;
         
         public FrostyProfileSelectWindow()
@@ -138,12 +140,67 @@ namespace Frosty.Core.Windows
         
         private void AddConfigurationButton_OnClick(object sender, RoutedEventArgs e)
         {
-            // TODO: add
+            OpenFileDialog ofd = new OpenFileDialog
+            {
+                Filter = "*.exe (Game Executable)|*.exe",
+                Title = "Choose Game Executable"
+            };
+
+            if (ofd.ShowDialog() == false)
+            {
+                FrostyMessageBox.Show("No game executable chosen.", "Frosty Core");
+                return;
+            }
+
+            FileInfo fi = new FileInfo(ofd.FileName);
+
+            // try to load game profile 
+            if (!ProfilesLibrary.HasProfile(fi.Name.Remove(fi.Name.Length - 4)))
+            {
+                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Core");
+                return;
+            }
+
+            // make sure config doesnt already exist
+            foreach (FrostyConfiguration config in configurations)
+            {
+                if (config.ProfileName == fi.Name.Remove(fi.Name.Length - 4))
+                {
+                    FrostyMessageBox.Show("That game already has a configuration.");
+                    return;
+                }
+            }
+
+            // create
+            Config.AddGame(fi.Name.Remove(fi.Name.Length - 4), fi.DirectoryName);
+            configurations.Add(new FrostyConfiguration(fi.Name.Remove(fi.Name.Length - 4)));
+            Config.Save();
+
+            ConfigurationListView.Items.Refresh();
         }
 
         private void SelectConfigurationButton_OnClick(object sender, RoutedEventArgs e)
         {
             SelectConfiguration();
+        }
+
+        private void CancelButton_OnClick(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
+        private void ConfigurationListView_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            SelectConfiguration();
+        }
+
+        private void ConfigurationListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (ConfigurationListView.SelectedItem is FrostyConfiguration configuration)
+            {
+                ProfileNameTextBlock.Text = configuration.GameName;
+                ProfilePathTextBlock.Text = configuration.GamePath;
+            }
         }
     }
 }
