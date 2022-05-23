@@ -216,7 +216,13 @@ namespace FrostyEditor
 
         private void CheckVersion()
         {
+#if FROSTY_ALPHA
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+#elif FROSTY_BETA
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+#else
             bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+#endif
             Version localVersion = Assembly.GetEntryAssembly().GetName().Version;
 
             try

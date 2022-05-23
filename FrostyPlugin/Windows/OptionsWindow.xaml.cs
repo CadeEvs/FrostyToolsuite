@@ -285,7 +285,8 @@ namespace Frosty.Core.Windows
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
             updateCheck = Config.Get<bool>("UpdateCheck", true);
-            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+
+            updateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
