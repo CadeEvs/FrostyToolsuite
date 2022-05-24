@@ -80,8 +80,8 @@ namespace FrostyModManager.Windows
 
             for (int i = 0; i < availableMods.Count; i++)
             {
-                if (availableMods[i].IsEnabled)
-                    appliedMods.Add(availableMods[i].Mod as FrostyMod);
+                if (availableMods[i].IsEnabled && availableMods[i].Mod is FrostyMod fmod)
+                    appliedMods.Add(fmod);
             }
 
             CollectionManifest details = new CollectionManifest()
@@ -124,6 +124,10 @@ namespace FrostyModManager.Windows
                         foreach (FrostyMod mod in appliedMods)
                         {
                             archive.CreateEntryFromFile(mod.Path, mod.Filename);
+                            if (!mod.NewFormat)
+                            {
+                                archive.CreateEntryFromFile(mod.Path.Replace(".fbmod", "_01.archive"), mod.Filename.Replace(".fbmod", "_01.archive"));
+                            }
                         }
 
                         archive.Dispose();

@@ -399,6 +399,17 @@ namespace FrostyModManager
                     bool isEnabled = bool.Parse(modEnabledPair[1]);
 
                     IFrostyMod mod = availableMods.Find((IFrostyMod a) => a.Filename == modEnabledPair[0]);
+                    if (mod == null)
+                    {
+                        List<IFrostyMod> collections = availableMods.FindAll((IFrostyMod a) => a is FrostyModCollection);
+                        foreach (FrostyModCollection collection in collections)
+                        {
+                            mod = collection.Mods.Find((FrostyMod a) => a.Filename == modEnabledPair[0]);
+                            if (mod != null)
+                                break;
+                        }
+                    }
+
                     pack.AddMod(mod, isEnabled, backupFileName);
                 }
             }
@@ -494,7 +505,7 @@ namespace FrostyModManager
 
                 DirectoryInfo di = new DirectoryInfo(fs.BasePath + "ModData\\" + selectedPack.Name);
                 if (di.Exists)
-                    di.Delete();
+                    di.Delete(true);
 
 
                 packsComboBox.Items.Refresh();
@@ -643,7 +654,7 @@ namespace FrostyModManager
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "(All supported formats)|*.fbmod;*.rar;*.zip;*.7z;*.daimod;*.fbcollection" + "|*.fbmod (Frostbite Mod)|*.fbmod" + "|*.rar (Rar File)|*.rar" + "|*.zip (Zip File)|*.zip" + "|*.7z (7z File)|*.7z" + "|*.daimod (DragonAge Mod)|*.daimod" + "|*.fbcollection (Fb Collection)|*.fbcollection",
+                Filter = "(All supported formats)|*.fbmod;*.rar;*.zip;*.7z;*.daimod" + "|*.fbmod (Frostbite Mod)|*.fbmod" + "|*.rar (Rar File)|*.rar" + "|*.zip (Zip File)|*.zip" + "|*.7z (7z File)|*.7z" + "|*.daimod (DragonAge Mod)|*.daimod",
                 Title = "Install Mod",
                 Multiselect = true
             };
@@ -676,8 +687,7 @@ namespace FrostyModManager
 
                 File.Delete(fi.FullName);
 
-                // TODO: delete collection mods option maybe
-                if (mod is FrostyModCollection && Config.Get<bool>("DELETECOLLECTIONMODS", false))
+                if (mod is FrostyModCollection && Config.Get<bool>("DeleteCollectionMods", true))
                 {
                     foreach (FrostyMod cmod in ((FrostyModCollection)mod).Mods)
                     {
@@ -1627,7 +1637,7 @@ namespace FrostyModManager
                 return;
             }
 
-            availableModsList.Items.Filter = new Predicate<object>((object a) => ((FrostyMod)a).ModDetails.Title.ToLower().Contains(availableModsFilterTextBox.Text.ToLower()));
+            availableModsList.Items.Filter = new Predicate<object>((object a) => ((IFrostyMod)a).ModDetails.Title.ToLower().Contains(availableModsFilterTextBox.Text.ToLower()));
         }
 
         private void PART_ShowOnlyReplacementsCheckBox_Checked(object sender, RoutedEventArgs e)

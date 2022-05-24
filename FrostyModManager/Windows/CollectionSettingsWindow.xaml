@@ -55,7 +55,7 @@
                         </DockPanel>
                         <DockPanel LastChildFill="True">
                             <Label Content="Link " FontFamily="Global User Interface" Width="75"/>
-                            <TextBox x:Name="modLinkTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" Style="{StaticResource TextBoxValidate}"/>
+                            <TextBox x:Name="modLinkTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1"/>
                         </DockPanel>
                     </StackPanel>
                 </Grid>
