@@ -46,6 +46,16 @@ Plugin Changes
 - Added Startup Action extension
 - Added ExecutionAction extension
 
+v1.0.6 (Beta 4)
+--------
+- Added ability to add legacy mods to collections (#73)
+- Fixed comparing mods.txt file when generating ModData (#73)
+- Fixed launching legacy mods (#73)
+- Fixed filtering available mods with collections (#73)
+- Fixed removing packs (#73)
+- Fixed crash when pressing the "Apply Mod(s)" button (#76)
+- Fixed update checking release versions
+
 v1.0.6 (Beta 3)
 --------
 - Added collections
