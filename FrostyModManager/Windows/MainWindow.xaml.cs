@@ -1762,5 +1762,22 @@ namespace FrostyModManager
             // focus on tab item
             appliedModsTabItem.IsSelected = true;
         }
+
+        private void ScrollViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            if (sender is ListBox && !e.Handled)
+            {
+                e.Handled = true;
+                var eventArg = new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta);
+                eventArg.RoutedEvent = UIElement.MouseWheelEvent;
+                eventArg.Source = sender;
+                var parent = ((Control)sender).Parent as UIElement;
+                parent.RaiseEvent(eventArg);
+            }
+        }
+
+        private void collectionModsList_LostFocus(object sender, RoutedEventArgs e) {
+            ((ListView)sender).UnselectAll();
+        }
     }
 }
