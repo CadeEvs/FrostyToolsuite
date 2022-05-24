@@ -433,7 +433,7 @@
 
                                                                     <Expander x:Name="modsExpander" IsExpanded="False">
                                                                         <Border BorderThickness="1" BorderBrush="#454545" Margin="16, 0, -97, 2">
-                                                                            <ListView x:Name="collectionModsList" ItemsSource="{Binding Path=Mods}" MouseDoubleClick="collectionModsList_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                                                            <ListView x:Name="collectionModsList" ItemsSource="{Binding Path=Mods}" MouseDoubleClick="collectionModsList_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel">
                                                                                 <ListView.View>
                                                                                     <GridView ScrollViewer.CanContentScroll="False">
                                                                                         <GridView.ColumnHeaderContainerStyle>
