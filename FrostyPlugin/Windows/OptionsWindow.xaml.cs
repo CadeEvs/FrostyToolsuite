@@ -227,7 +227,7 @@ namespace Frosty.Core.Windows
         public string CommandLineArgs { get; set; } = "";
 
         [Category("Manager")]
-        [DisplayName("Remember Profile Choice")]
+        [DisplayName("Delete Mods with Collection")]
         [Description("If true, deleting a collection will also delete the mods inside of it.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool DeleteCollectionMods { get; set; } = false;

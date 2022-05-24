@@ -49,7 +49,7 @@ namespace Frosty.Core.Mod
         public string Filename { get; }
         public string Path { get; }
         public List<FrostyMod> Mods { get; }
-        public bool IsValid { get; }
+        public bool IsValid { get; } = false;
 
         private static readonly uint magic = 0x46434F4C;
         private static readonly uint version = 1;
@@ -70,7 +70,7 @@ namespace Frosty.Core.Mod
             {
                 uint inMagic = reader.ReadUInt();
                 if (inMagic != magic)
-                    throw new FileFormatException();
+                    return;
 
                 uint inVersion = reader.ReadUInt();
 
