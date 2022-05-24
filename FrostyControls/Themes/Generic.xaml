@@ -155,6 +155,7 @@
     <!-- TextBox -->
     <Style x:Key="{x:Type TextBoxBase}" TargetType="{x:Type TextBoxBase}" BasedOn="{x:Null}">
         <Setter Property="BorderThickness" Value="0"/>
+        <Setter Property="BorderBrush" Value="{StaticResource ControlBackground}"/>
         <Setter Property="Background" Value="{StaticResource WindowBackground}"/>
         <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
         <Setter Property="CaretBrush" Value="{StaticResource FontColor}"/>
