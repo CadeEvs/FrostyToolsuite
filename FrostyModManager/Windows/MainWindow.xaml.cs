@@ -1627,7 +1627,7 @@ namespace FrostyModManager
                 return;
             }
 
-            availableModsList.Items.Filter = new Predicate<object>((object a) => ((FrostyMod)a).ModDetails.Title.ToLower().Contains(availableModsFilterTextBox.Text.ToLower()));
+            availableModsList.Items.Filter = new Predicate<object>((object a) => ((IFrostyMod)a).ModDetails.Title.ToLower().Contains(availableModsFilterTextBox.Text.ToLower()));
         }
 
         private void PART_ShowOnlyReplacementsCheckBox_Checked(object sender, RoutedEventArgs e)
