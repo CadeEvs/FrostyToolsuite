@@ -100,6 +100,24 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool RememberChoice { get; set; } = false;
 
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("Check Github for Frosty updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool UpdateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prerelease Updates")]
+        [Description("Check Github for Frosty Alpha and Beta updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+#if FROSTY_ALPHA
+        public bool UpdateCheckPrerelease { get; set; } = true;
+#elif FROSTY_BETA
+        public bool UpdateCheckPrerelease { get; set; } = true;
+#else
+        public bool UpdateCheckPrerelease { get; set; } = false;
+#endif
+
         public override void Load()
         {
             List<string> langs = GetLocalizedLanguages();
@@ -118,6 +136,8 @@ namespace Frosty.Core.Windows
             AssetDisplayModuleInId = Config.Get<bool>("DisplayModuleInId", false);
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
 
+            UpdateCheck = Config.Get<bool>("UpdateCheck", true);
+            UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
@@ -148,6 +168,9 @@ namespace Frosty.Core.Windows
             Config.Add("ModAuthor", ModSettingsAuthor);
             Config.Add("DisplayModuleInId", AssetDisplayModuleInId);
             Config.Add("UseDefaultProfile", RememberChoice);
+
+            Config.Add("UpdateCheck", UpdateCheck);
+            Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             if (RememberChoice)
                 Config.Add("DefaultProfile", ProfilesLibrary.ProfileName);
@@ -232,6 +255,24 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool DeleteCollectionMods { get; set; } = true;
 
+        [Category("Update Checking")]
+        [DisplayName("Check for Updates")]
+        [Description("Check Github for Frosty updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool UpdateCheck { get; set; } = true;
+
+        [Category("Update Checking")]
+        [DisplayName("Check for Prerelease Updates")]
+        [Description("Check Github for Frosty Alpha and Beta updates on startup")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+#if FROSTY_ALPHA
+        public bool UpdateCheckPrerelease { get; set; } = true;
+#elif FROSTY_BETA
+        public bool UpdateCheckPrerelease { get; set; } = true;
+#else
+        public bool UpdateCheckPrerelease { get; set; } = false;
+#endif
+
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
         //[Description("Automatically collapse mod categories in the Available Mods list on startup.")]
@@ -248,7 +289,11 @@ namespace Frosty.Core.Windows
         {
             RememberChoice = Config.Get<bool>("UseDefaultProfile", false);
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
-            DeleteCollectionMods = Config.Get<bool>("DeleteCollectionMods", false);
+            DeleteCollectionMods = Config.Get<bool>("DeleteCollectionMods", true);
+
+            UpdateCheck = Config.Get<bool>("UpdateCheck", true);
+
+            UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
@@ -259,6 +304,9 @@ namespace Frosty.Core.Windows
             Config.Add("UseDefaultProfile", RememberChoice);
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
             Config.Add("DeleteCollectionMods", DeleteCollectionMods);
+
+            Config.Add("UpdateCheck", UpdateCheck);
+            Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
