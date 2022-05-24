@@ -11,6 +11,10 @@ using FrostySdk.IO;
 using Frosty.Core;
 using Frosty.Core.Controls;
 using FrostyCore;
+using System.Text;
+using System.Linq;
+using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace FrostyEditor
 {
@@ -172,6 +176,9 @@ namespace FrostyEditor
 
             Config.Load();
 
+            if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
+                CheckVersion();
+
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
             {
@@ -205,6 +212,39 @@ namespace FrostyEditor
         {
             if (Config.Current != null && Config.Get<bool>("DiscordRPCEnabled", false))
                 DiscordRPC.Discord_Shutdown();
+        }
+
+        private void CheckVersion()
+        {
+#if FROSTY_ALPHA
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+#elif FROSTY_BETA
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", true);
+#else
+            bool checkPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+#endif
+            Version localVersion = Assembly.GetEntryAssembly().GetName().Version;
+
+            try
+            {
+                if (UpdateChecker.CheckVersion(checkPrerelease, localVersion))
+                {
+                    System.Threading.Tasks.Task.Run(() =>
+                    {
+                        MessageBoxResult mbResult = FrostyMessageBox.Show("You are using an outdated version of Frosty." + Environment.NewLine + "Would you like to download the latest version?", "Frosty Editor", MessageBoxButton.YesNo);
+                        if (mbResult == MessageBoxResult.Yes)
+                        {
+                            System.Diagnostics.Process.Start("https://github.com/CadeEvs/FrostyToolsuite/releases/latest");
+                        }
+                    });
+                }
+            }
+            catch (Exception e)
+            {
+                System.Threading.Tasks.Task.Run(() => {
+                    FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Editor", MessageBoxButton.OK);
+                });
+            }
         }
 
         private static void DiscordReady(DiscordUser user)
