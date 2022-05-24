@@ -230,7 +230,7 @@ namespace Frosty.Core.Windows
         [DisplayName("Delete Mods with Collection")]
         [Description("If true, deleting a collection will also delete the mods inside of it.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
-        public bool DeleteCollectionMods { get; set; } = false;
+        public bool DeleteCollectionMods { get; set; } = true;
 
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
