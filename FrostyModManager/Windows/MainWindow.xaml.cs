@@ -1384,7 +1384,7 @@ namespace FrostyModManager
 
         private void addModButton_Click(object sender, RoutedEventArgs e)
         {
-            foreach (FrostyMod mod in availableModsList.SelectedItems)
+            foreach (IFrostyMod mod in availableModsList.SelectedItems)
                 selectedPack.AddMod(mod);
 
             appliedModsList.Items.Refresh();
