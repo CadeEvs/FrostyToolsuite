@@ -687,7 +687,6 @@ namespace FrostyModManager
 
                 File.Delete(fi.FullName);
 
-                // TODO: delete collection mods option maybe
                 if (mod is FrostyModCollection && Config.Get<bool>("DeleteCollectionMods", true))
                 {
                     foreach (FrostyMod cmod in ((FrostyModCollection)mod).Mods)
