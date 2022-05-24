@@ -399,6 +399,17 @@ namespace FrostyModManager
                     bool isEnabled = bool.Parse(modEnabledPair[1]);
 
                     IFrostyMod mod = availableMods.Find((IFrostyMod a) => a.Filename == modEnabledPair[0]);
+                    if (mod == null)
+                    {
+                        List<IFrostyMod> collections = availableMods.FindAll((IFrostyMod a) => a is FrostyModCollection);
+                        foreach (FrostyModCollection collection in collections)
+                        {
+                            mod = collection.Mods.Find((FrostyMod a) => a.Filename == modEnabledPair[0]);
+                            if (mod != null)
+                                break;
+                        }
+                    }
+
                     pack.AddMod(mod, isEnabled, backupFileName);
                 }
             }
@@ -677,7 +688,7 @@ namespace FrostyModManager
                 File.Delete(fi.FullName);
 
                 // TODO: delete collection mods option maybe
-                if (mod is FrostyModCollection && Config.Get<bool>("DELETECOLLECTIONMODS", false))
+                if (mod is FrostyModCollection && Config.Get<bool>("DeleteCollectionMods", false))
                 {
                     foreach (FrostyMod cmod in ((FrostyModCollection)mod).Mods)
                     {
@@ -1627,7 +1638,7 @@ namespace FrostyModManager
                 return;
             }
 
-            availableModsList.Items.Filter = new Predicate<object>((object a) => ((FrostyMod)a).ModDetails.Title.ToLower().Contains(availableModsFilterTextBox.Text.ToLower()));
+            availableModsList.Items.Filter = new Predicate<object>((object a) => ((IFrostyMod)a).ModDetails.Title.ToLower().Contains(availableModsFilterTextBox.Text.ToLower()));
         }
 
         private void PART_ShowOnlyReplacementsCheckBox_Checked(object sender, RoutedEventArgs e)
