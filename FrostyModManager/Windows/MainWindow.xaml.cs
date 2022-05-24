@@ -1767,7 +1767,7 @@ namespace FrostyModManager
         }
 
         private void collectionModsList_LostFocus(object sender, RoutedEventArgs e) {
-            ((ListView)sender).SelectedItems.Clear();
+            ((ListView)sender).UnselectAll();
         }
     }
 }
