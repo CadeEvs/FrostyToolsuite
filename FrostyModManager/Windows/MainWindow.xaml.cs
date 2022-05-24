@@ -494,7 +494,7 @@ namespace FrostyModManager
 
                 DirectoryInfo di = new DirectoryInfo(fs.BasePath + "ModData\\" + selectedPack.Name);
                 if (di.Exists)
-                    di.Delete();
+                    di.Delete(true);
 
 
                 packsComboBox.Items.Refresh();
