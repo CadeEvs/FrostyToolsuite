@@ -654,7 +654,7 @@ namespace FrostyModManager
         {
             OpenFileDialog ofd = new OpenFileDialog
             {
-                Filter = "(All supported formats)|*.fbmod;*.rar;*.zip;*.7z;*.daimod;*.fbcollection" + "|*.fbmod (Frostbite Mod)|*.fbmod" + "|*.rar (Rar File)|*.rar" + "|*.zip (Zip File)|*.zip" + "|*.7z (7z File)|*.7z" + "|*.daimod (DragonAge Mod)|*.daimod" + "|*.fbcollection (Fb Collection)|*.fbcollection",
+                Filter = "(All supported formats)|*.fbmod;*.rar;*.zip;*.7z;*.daimod" + "|*.fbmod (Frostbite Mod)|*.fbmod" + "|*.rar (Rar File)|*.rar" + "|*.zip (Zip File)|*.zip" + "|*.7z (7z File)|*.7z" + "|*.daimod (DragonAge Mod)|*.daimod",
                 Title = "Install Mod",
                 Multiselect = true
             };
