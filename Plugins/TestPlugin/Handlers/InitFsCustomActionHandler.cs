@@ -107,7 +107,7 @@ namespace TestPlugin.Handlers
             writer.Write(0xDEADBEEF);
 
             int count = 0;
-            using (DbWriter bdWriter = new DbWriter(writer.BaseStream))
+            using (DbWriter bdWriter = new DbWriter(writer.BaseStream, leaveOpen: true))
             {
                 foreach (FsFileEntry fsEntry in App.AssetManager.EnumerateCustomAssets("fs", true))
                 {
