@@ -54,12 +54,19 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool UpdateCheckPrerelease { get; set; } = false;
 
+        [Category("Applying")]
+        [Description("The thread count that should be used when applying mods. By default is set to the number of processors on the machine")]
+        [EbxFieldMeta(EbxFieldType.Int32)]
+        public int ApplyingThreadCount { get; set; } = Environment.ProcessorCount;
+        
         public override void Load()
         {
             base.Load();
             
             UpdateCheck = Config.Get<bool>("UpdateCheck", true);
             UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+
+            ApplyingThreadCount = Config.Get<int>("ApplyingThreadCount", Environment.ProcessorCount);
         }
 
         public override void Save()
@@ -68,6 +75,8 @@ namespace Frosty.Core.Windows
             
             Config.Add("UpdateCheck", UpdateCheck);
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
+            
+            Config.Add("ApplyingThreadCount", ApplyingThreadCount);
         }
     }
     

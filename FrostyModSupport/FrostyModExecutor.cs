@@ -1280,7 +1280,7 @@ namespace Frosty.ModSupport
 
                 // set max threads to processor amount (stop hitching)
                 ThreadPool.GetMaxThreads(out int workerThreads, out int completionPortThreads);
-                ThreadPool.SetMaxThreads(Environment.ProcessorCount, completionPortThreads);
+                ThreadPool.SetMaxThreads(Config.Get("ApplyingThreadCount", Environment.ProcessorCount), completionPortThreads);
 
                 // modify tocs and sbs
                 cancelToken.ThrowIfCancellationRequested();
