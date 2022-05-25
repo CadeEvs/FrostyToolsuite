@@ -23,6 +23,8 @@ namespace Frosty.Core.Windows
 
         private void ProfileSelectWindow_Loaded(object sender, RoutedEventArgs e)
         {
+            RefreshConfigurationList();
+            
             // TODO: @techdebt only call this once or when needed
             ScanGames();
 
