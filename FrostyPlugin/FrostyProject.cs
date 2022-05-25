@@ -1001,8 +1001,14 @@ namespace Frosty.Core
                 {
                     string typeString = reader.ReadNullTerminatedString();
 
-                ICustomAssetCustomActionHandler actionHandler = new LegacyCustomActionHandler();
-                actionHandler.LoadFromProject(version, reader, typeString);
+                    ICustomAssetCustomActionHandler actionHandler = new LegacyCustomActionHandler();
+                    actionHandler.LoadFromProject(version, reader, typeString);
+
+                    foreach (var test in App.PluginManager.CustomAssetHandlers)
+                    {
+                        actionHandler = App.PluginManager.GetCustomAssetHandler(test);
+                        actionHandler.LoadFromProject(version, reader, typeString);
+                    }
 
                     // @hack: fixes an issue where v11 projects incorrectly wrote a null custom handler
                     if (version < 12)
