@@ -156,17 +156,6 @@ namespace Frosty.Core.Windows
                     File.Move(sbDataName, ".\\Caches\\" + fi.Name.Replace(".cache", "_sbdata.cas"));
             }
 
-            // cleanup any outstanding editor mods (in case of crash)
-            if (App.IsEditor)
-            {
-                FileInfo exeInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
-                foreach (string file in Directory.EnumerateFiles(exeInfo.DirectoryName, "EditorMod*"))
-                {
-                    File.Delete(file);
-                }
-                    
-            }
-
             AssetManagerImportResult result = new AssetManagerImportResult();
             // load data from game or cache
             await LoadData(KeyManager.Instance.GetKey("Key1"), result);
@@ -198,6 +187,17 @@ namespace Frosty.Core.Windows
             App.Logger.Log("Initialization complete");
             App.NotificationManager.Show("Initialization complete");
 
+            // cleanup any outstanding editor mods (in case of crash)
+            if (Frosty.Core.App.IsEditor)
+            {
+                FileInfo exeInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
+                foreach (string file in Directory.EnumerateFiles(exeInfo.DirectoryName, $"Mods/{ProfilesLibrary.ProfileName}/EditorMod*"))
+                {
+                    File.Delete(file);
+                }
+                    
+            }
+            
             Close();
 
             if (App.IsEditor && result.InvalidatedDueToPatch)
