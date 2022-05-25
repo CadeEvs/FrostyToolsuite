@@ -55,7 +55,14 @@ namespace TestPlugin.Managers
         {
             if (entry != null)
             {
-                byte[] buf = App.FileSystem.GetFileFromMemoryFs(entry.Name);
+                byte[] buf = null;
+                if (entry.ModifiedEntry != null)
+                {
+                    DbObject dbObject = entry.ModifiedEntry.DataObject as DbObject;
+                    buf = dbObject.GetValue<DbObject>("$file").GetValue<byte[]>("payload");
+                }
+                else
+                    buf = App.FileSystem.GetFileFromMemoryFs(entry.Name);
 
                 return new MemoryStream(buf);
             }

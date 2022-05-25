@@ -81,11 +81,13 @@ namespace TestPlugin.Controls
                 DbObject file = new DbObject();
                 file.AddValue("name", entry.Name);
 
-                MemoryStream ms = new MemoryStream();
-                using (TextWriter writer = new StreamWriter(ms))
-                    writer.Write(contentsBox.Text);
-                file.AddValue("payload", ms.ToArray());
-                ms.Dispose();
+                using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+                {
+                    for (int i = 0; i < contentsBox.Text.Length; i++)
+                        writer.Write((byte)contentsBox.Text[i]);
+
+                    file.AddValue("payload", writer.ToByteArray());
+                }
 
                 DbObject fileStub = new DbObject();
                 fileStub.AddValue("$file", file);
