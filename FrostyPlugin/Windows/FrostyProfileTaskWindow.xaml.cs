@@ -253,6 +253,11 @@ namespace Frosty.Core.Windows
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManager));
                 }
 
+                // ensure mods folder is created
+                DirectoryInfo di = new DirectoryInfo("Mods/" + ProfilesLibrary.ProfileName);
+                if (!di.Exists)
+                    Directory.CreateDirectory(di.FullName);
+                
                 App.AssetManager.SetLogger(TaskLogger);
 
                 App.AssetManager.Initialize(true, result);

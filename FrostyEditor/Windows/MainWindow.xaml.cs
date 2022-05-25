@@ -88,12 +88,8 @@ namespace FrostyEditor.Windows
             CommandBindings.Add(new CommandBinding(removeBookmarkCmd, BookmarkRemoveButton_Click));
             CommandBindings.Add(new CommandBinding(focusAssetFilterCmd, (s, e) => dataExplorer.FocusFilter()));
 
-            if(ProfilesLibrary.EnableExecution)
-            {
-                CommandBindings.Add(new CommandBinding(launchGameCmd, launchButton_Click));
-                LaunchButton.IsEnabled = true;
-            }
-            
+            CommandBindings.Add(new CommandBinding(launchGameCmd, launchButton_Click));
+
             MenuItem optionsMenuItem = new MenuItem()
             {
                 Header = "Options",
@@ -363,10 +359,6 @@ namespace FrostyEditor.Windows
         {
             (App.Logger as FrostyLogger)?.AddBinding(tb, TextBox.TextProperty);
 
-            DirectoryInfo di = new DirectoryInfo("Mods/" + ProfilesLibrary.ProfileName);
-            if (!di.Exists)
-                Directory.CreateDirectory(di.FullName);
-
             // kick off autosave timer
             bool enabled = Config.Get<bool>("AutosaveEnabled", true);
             if (enabled)
@@ -524,13 +516,7 @@ namespace FrostyEditor.Windows
                     
                     NewProject();
                     
-                    // update UI
-                    LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
-
-                    LoadPluginExtensions();
-
-                    dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
-                    legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
+                    UpdateUI(true);
                 }
             }
             else
@@ -543,6 +529,29 @@ namespace FrostyEditor.Windows
         {
             Frosty.Core.App.ClearProfileData();
             Frosty.Core.App.LoadProfile(profile);
+        }
+
+        private void UpdateUI(bool newProject = false)
+        {
+            if (project.RequiresNewProfile || newProject)
+            {
+                LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+
+                LoadPluginExtensions();
+
+                dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
+                legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
+            }
+            else
+            {
+                dataExplorer.RefreshItems();
+                legacyExplorer.RefreshItems();
+            }
+            
+            if(ProfilesLibrary.EnableExecution)
+            {
+                LaunchButton.IsEnabled = true;
+            }
         }
         
         private void NewProject()
@@ -689,21 +698,7 @@ namespace FrostyEditor.Windows
 
                 project = newProject;
 
-                // update UI
-                if (project.RequiresNewProfile)
-                {
-                    LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
-
-                    LoadPluginExtensions();
-
-                    dataExplorer.ItemsSource = App.AssetManager.EnumerateEbx();
-                    legacyExplorer.ItemsSource = App.AssetManager.EnumerateCustomAssets("legacy");
-                }
-                else
-                {
-                    dataExplorer.RefreshItems();
-                    legacyExplorer.RefreshItems();
-                }
+                UpdateUI();
 
                 legacyExplorer.ShowOnlyModified = false;
                 legacyExplorer.ShowOnlyModified = true;
