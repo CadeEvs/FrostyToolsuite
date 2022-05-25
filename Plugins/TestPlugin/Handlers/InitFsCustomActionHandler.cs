@@ -113,6 +113,7 @@ namespace TestPlugin.Handlers
                 {
                     bdWriter.Write(fsEntry.ModifiedEntry.DataObject as DbObject);
                     count++;
+                    fsEntry.IsDirty = false;
                 }
             }
 
