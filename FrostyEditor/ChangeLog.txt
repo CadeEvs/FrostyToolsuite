@@ -46,6 +46,11 @@ Plugin Changes
 - Added Startup Action extension
 - Added ExecutionAction extension
 
+v1.0.6 (Beta 5)
+--------
+- Fixed crash when select description tab of collection
+- Added "ModDb" support when setting links during mod export process
+
 v1.0.6 (Beta 4)
 --------
 - Added ability to add legacy mods to collections (#73)
