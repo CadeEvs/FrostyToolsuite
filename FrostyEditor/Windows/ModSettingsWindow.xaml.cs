@@ -5,6 +5,7 @@ using Frosty.Core;
 using Frosty.Core.Mod;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace FrostyEditor.Windows
 {
@@ -77,7 +78,9 @@ namespace FrostyEditor.Windows
                 return;
             }
 
-            if (modPageLinkTextBox.Text != "" && (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute) || !modPageLinkTextBox.Text.Contains("nexusmods.com")))
+            string[] approvedDomains = { "nexusmods.com", "moddb.com" };
+
+            if (modPageLinkTextBox.Text != "" && (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute) || !approvedDomains.Any(modPageLinkTextBox.Text.Contains)))
             {
                 FrostyMessageBox.Show("Link needs to be valid", "Frosty Editor");
                 return;
