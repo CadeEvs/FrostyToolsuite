@@ -421,7 +421,7 @@
 
                                     <ctrl:FrostyWatermarkTextBox Grid.Row="1" x:Name="availableModsFilterTextBox" WatermarkText="Filter" BorderThickness="1" Margin="1,1,1,0" VerticalContentAlignment="Center" KeyUp="availableModsFilter_KeyUp" LostFocus="availableModsFilter_LostFocus"/>
 
-                                    <ListView x:Name="availableModsList" Grid.Row="2" MouseDoubleClick="availableModsList_MouseDoubleClick" SelectionChanged="availableModsList_SelectionChanged">
+                                    <ListView x:Name="availableModsList" Grid.Row="2" MouseDoubleClick="availableModsList_MouseDoubleClick" SelectionChanged="availableModsList_SelectionChanged" FocusManager.IsFocusScope="True">
                                         <ListView.View>
                                             <GridView ScrollViewer.CanContentScroll="False">
 
