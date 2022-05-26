@@ -55,10 +55,10 @@ namespace FrostyModManager.Controls
         #region -- Properties --
 
         #region -- Mod --
-        public static readonly DependencyProperty ModProperty = DependencyProperty.Register("Mod", typeof(FrostyMod), typeof(FrostyModDescription), new FrameworkPropertyMetadata(null));
-        public FrostyMod Mod
+        public static readonly DependencyProperty ModProperty = DependencyProperty.Register("Mod", typeof(IFrostyMod), typeof(FrostyModDescription), new FrameworkPropertyMetadata(null));
+        public IFrostyMod Mod
         {
-            get => (FrostyMod)GetValue(ModProperty);
+            get => (IFrostyMod)GetValue(ModProperty);
             set => SetValue(ModProperty, value);
         }
         #endregion
@@ -118,67 +118,82 @@ namespace FrostyModManager.Controls
                 }
 
                 List<AffectedFileInfo> affectedFiles = new List<AffectedFileInfo>();
-                FrostyMod localMod = Mod;
-
-                await Task.Run(() =>
+                FrostyMod[] localMods;
+                if (Mod is FrostyModCollection)
                 {
-                    if (localMod.NewFormat)
+                    localMods = (Mod as FrostyModCollection).Mods.ToArray();
+                }
+                else
+                {
+                    localMods = new FrostyMod[1];
+                    localMods[0] = Mod as FrostyMod;
+                }
+
+                foreach (FrostyMod localMod in localMods)
+                {
+                    if (localMod != null)
                     {
-                        foreach (BaseModResource resource in localMod.Resources)
+                        await Task.Run(() =>
                         {
-                            if (resource.Type == ModResourceType.Embedded)
-                                continue;
-
-                            string resType = resource.Type.ToString().ToUpper();
-                            string resourceName = resource.Name;
-
-                            if (resource.UserData != "")
+                            if (localMod.NewFormat)
                             {
-                                string[] arr = resource.UserData.Split(';');
-                                resType = arr[0].ToUpper();
-                                resourceName = arr[1];
-                            }
-                            affectedFiles.Add(new AffectedFileInfo(resourceName, resType, resource.IsAdded, resource.IsModified));
-                        }
-                    }
-                    else
-                    {
-                        // affected files
-                        DbObject modObj = null;
-                        using (DbReader reader = new DbReader(new FileStream(localMod.Path, FileMode.Open, FileAccess.Read), null))
-                            modObj = reader.ReadDbObject();
-
-                        int resourceId = -1;
-                        foreach (DbObject resource in modObj.GetValue<DbObject>("resources"))
-                        {
-                            resourceId++;
-
-                            string resourceType = resource.GetValue<string>("type");
-                            if (resourceType == "embedded")
-                                continue;
-
-                            string name = resource.GetValue<string>("name");
-
-                            bool isModify = false;
-                            bool isAdded = false;
-
-                            foreach (DbObject action in modObj.GetValue<DbObject>("actions"))
-                            {
-                                if (action.GetValue<int>("resourceId") == resourceId)
+                                foreach (BaseModResource resource in localMod.Resources)
                                 {
-                                    string type = action.GetValue<string>("type");
-                                    switch (type)
+                                    if (resource.Type == ModResourceType.Embedded)
+                                        continue;
+
+                                    string resType = resource.Type.ToString().ToUpper();
+                                    string resourceName = resource.Name;
+
+                                    if (resource.UserData != "")
                                     {
-                                        case "modify": isModify = true; break;
-                                        case "add": isAdded = true; break;
+                                        string[] arr = resource.UserData.Split(';');
+                                        resType = arr[0].ToUpper();
+                                        resourceName = arr[1];
                                     }
+                                    affectedFiles.Add(new AffectedFileInfo(resourceName, resType, resource.IsAdded, resource.IsModified));
                                 }
                             }
+                            else
+                            {
+                                // affected files
+                                DbObject modObj = null;
+                                using (DbReader reader = new DbReader(new FileStream(localMod.Path, FileMode.Open, FileAccess.Read), null))
+                                    modObj = reader.ReadDbObject();
 
-                            affectedFiles.Add(new AffectedFileInfo(name, resource.GetValue<string>("type").ToUpper(), isAdded, isModify));
-                        }
+                                int resourceId = -1;
+                                foreach (DbObject resource in modObj.GetValue<DbObject>("resources"))
+                                {
+                                    resourceId++;
+
+                                    string resourceType = resource.GetValue<string>("type");
+                                    if (resourceType == "embedded")
+                                        continue;
+
+                                    string name = resource.GetValue<string>("name");
+
+                                    bool isModify = false;
+                                    bool isAdded = false;
+
+                                    foreach (DbObject action in modObj.GetValue<DbObject>("actions"))
+                                    {
+                                        if (action.GetValue<int>("resourceId") == resourceId)
+                                        {
+                                            string type = action.GetValue<string>("type");
+                                            switch (type)
+                                            {
+                                                case "modify": isModify = true; break;
+                                                case "add": isAdded = true; break;
+                                            }
+                                        }
+                                    }
+
+                                    affectedFiles.Add(new AffectedFileInfo(name, resource.GetValue<string>("type").ToUpper(), isAdded, isModify));
+                                }
+                            }
+                        });
                     }
-                });
+                }
 
                 loadingText.Visibility = Visibility.Collapsed;
                 modFilesListBox.ItemsSource = affectedFiles;

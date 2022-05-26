@@ -36,10 +36,10 @@
                                                                 </Path.RenderTransform>
                                                             </Path>
                                                         </Border>
-                                                        
+
                                                         <ContentPresenter Margin="4 0 0 0"/>
                                                     </StackPanel>
-                                                    
+
                                                     <ControlTemplate.Triggers>
                                                         <Trigger Property="IsChecked" Value="True">
                                                             <Setter Property="RenderTransform" TargetName="ExpandPath">
@@ -52,10 +52,10 @@
                                                 </ControlTemplate>
                                             </ToggleButton.Template>
                                         </ToggleButton>
-                                        
+
                                         <ContentPresenter x:Name="ExpandSite" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" DockPanel.Dock="Bottom" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Visibility="Collapsed" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                                     </DockPanel>
-                                    
+
                                     <ControlTemplate.Triggers>
                                         <Trigger Property="IsExpanded" Value="True">
                                             <Setter Property="Visibility" TargetName="ExpandSite" Value="Visible"/>
@@ -72,6 +72,66 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="ExpanderHeader" TargetType="{x:Type Grid}">
+            <Setter Property="Height" Value="22" />
+            <Setter Property="Margin" Value="21,0,0,0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+        </Style>
+
+        <Style x:Key="ExpanderDownHeaderStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Padding="{TemplateBinding Padding}">
+                            <Grid Background="Transparent" SnapsToDevicePixels="False">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="16"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Image x:Name="icon" Source="/FrostyModManager;component/Images/Plus.png" Margin="-2,10,0,14" Width="12" Cursor="Hand"/>
+                                <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" Margin="4,0,0,0" RecognizesAccessKey="True" SnapsToDevicePixels="True" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Source" TargetName="icon" Value="/FrostyModManager;component/Images/Minus.png"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type Expander}">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Expander}">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="3" SnapsToDevicePixels="true">
+                            <DockPanel>
+                                <ToggleButton x:Name="HeaderSite" ContentTemplate="{TemplateBinding HeaderTemplate}" ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}" Content="{TemplateBinding Header}" DockPanel.Dock="Top" Foreground="{TemplateBinding Foreground}" FontWeight="{TemplateBinding FontWeight}" FontStyle="{TemplateBinding FontStyle}" FontStretch="{TemplateBinding FontStretch}" FontSize="{TemplateBinding FontSize}" FontFamily="{TemplateBinding FontFamily}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Margin="1" MinWidth="0" MinHeight="0" Padding="{TemplateBinding Padding}" Style="{StaticResource ExpanderDownHeaderStyle}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                <ContentPresenter x:Name="ExpandSite" DockPanel.Dock="Bottom" Focusable="false" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Visibility="Collapsed" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="true">
+                                <Setter Property="Visibility" TargetName="ExpandSite" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="Gray"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </ctrl:FrostyWindow.Resources>
 
     <Grid Background="{StaticResource ListBackground}">
@@ -79,7 +139,7 @@
             <RowDefinition Height="112*"/>
             <RowDefinition Height="557*"/>
         </Grid.RowDefinitions>
-        
+
         <Grid Grid.RowSpan="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="22"/>
@@ -97,11 +157,12 @@
                         <MenuItem x:Name="packExport" Header="Export" Click="packExport_Click"/>
                         <MenuItem x:Name="packImport" Header="Import" Click="packImport_Click"/>
                     </MenuItem>
+                    <MenuItem x:Name="collectionExport" Header="Create Collection" Click="collectionExport_Click"/>
                     <MenuItem x:Name="launchConfigurationWindow" Header="Select Game" Click="launchConfigurationWindow_Click"/>
                     <MenuItem x:Name="exitMenuItem" Header="Exit" Click="exitMenuItem_Click"/>
                 </MenuItem>
                 <MenuItem x:Name="toolsMenuItem" Header="Tools" Height="22">
-                    <MenuItem x:Name="manageModData" Header="Manage ModData" Click="modDataMenuItem_Click"/>
+                <MenuItem x:Name="manageModData" Header="Manage ModData" Click="modDataMenuItem_Click"/>
                 </MenuItem>
                 <MenuItem Header="Help" Height="22">
                     <MenuItem x:Name="aboutMenuItem" Header="About Frosty Mod Manager" Click="aboutMenuItem_Click"/>
@@ -139,7 +200,7 @@
                                     <Image Source="/FrostyModManager;component/Images/Minus.png"/>
                                 </Button>
                                 <!-- Import Button -->
-                                <Button x:Name="importPackButton" Width="20" Height="20" Margin="4,0,0,0" ToolTip="Import Pack" Click="importPackButton_Click">
+                                <Button x:Name="importPackButton" Width="20" Height="20" Margin="4,0,0,0" ToolTip="Import Pack" Click="packImport_Click">
                                     <Image Source="/FrostyModManager;component/Images/Import.png"/>
                                 </Button>
                             </StackPanel>
@@ -363,47 +424,120 @@
 
                                     <ctrl:FrostyWatermarkTextBox Grid.Row="1" x:Name="availableModsFilterTextBox" WatermarkText="Filter" BorderThickness="1" Margin="1,1,1,0" VerticalContentAlignment="Center" KeyUp="availableModsFilter_KeyUp" LostFocus="availableModsFilter_LostFocus"/>
 
-                                    <ListView x:Name="availableModsList" Grid.Row="2" MouseDoubleClick="availableModsList_MouseDoubleClick" SelectionChanged="availableModsList_SelectionChanged">
+                                    <ListView x:Name="availableModsList" Grid.Row="2" MouseDoubleClick="availableModsList_MouseDoubleClick" SelectionChanged="availableModsList_SelectionChanged" FocusManager.IsFocusScope="True">
                                         <ListView.View>
                                             <GridView ScrollViewer.CanContentScroll="False">
                                                 <GridView.Columns>
-                                                    <GridViewColumn Header="Title">
+                                                    <GridViewColumn Header="Title" Width="410">
                                                         <GridViewColumn.CellTemplate>
                                                             <DataTemplate>
-                                                                <Grid Height="40" Margin="0,0,16,0">
-                                                                    <Grid.ColumnDefinitions>
-                                                                        <ColumnDefinition Width="32"/>
-                                                                        <ColumnDefinition/>
-                                                                    </Grid.ColumnDefinitions>
-                                                                    
-                                                                    <Grid Grid.Column="0">
-                                                                        <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32" RenderOptions.BitmapScalingMode="Fant"/>
-                                                                        <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
-                                                                    </Grid>
-                                                                    <Grid Grid.Column="1" VerticalAlignment="Center">
-                                                                        <Grid.RowDefinitions>
-                                                                            <RowDefinition Height="16"/>
-                                                                            <RowDefinition Height="16"/>
-                                                                        </Grid.RowDefinitions>
-                                                                        
-                                                                        <TextBlock Grid.Row="0" Text="{Binding Path=ModDetails.Title}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" Margin="8,0,0,0"/>
-                                                                        <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#808080">
-                                                                            <TextBlock.Text>
-                                                                                <Binding Path="ModDetails.Author" StringFormat="by {0}"/>
-                                                                            </TextBlock.Text>
-                                                                        </TextBlock>
+                                                                <Grid Margin="0,0,16,0">
+                                                                    <Expander x:Name="modsExpander" IsExpanded="False">
+                                                                        <Border BorderThickness="1" BorderBrush="#454545" Margin="16, 0, -97, 2">
+                                                                            <ListView x:Name="collectionModsList" ItemsSource="{Binding Path=Mods}" MouseDoubleClick="collectionModsList_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" LostFocus="collectionModsList_LostFocus">
+                                                                                <ListView.View>
+                                                                                    <GridView ScrollViewer.CanContentScroll="False">
+                                                                                        <GridView.ColumnHeaderContainerStyle>
+                                                                                            <Style TargetType="{x:Type GridViewColumnHeader}" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
+                                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                                            </Style>
+                                                                                        </GridView.ColumnHeaderContainerStyle>
+                                                                                        <GridView.Columns>
+                                                                                            <GridViewColumn Header="Title" Width="382">
+                                                                                                <GridViewColumn.CellTemplate>
+                                                                                                    <DataTemplate>
+                                                                                                        <Grid Height="40" Margin="-2,0,16,0">
+                                                                                                            <Grid.ColumnDefinitions>
+                                                                                                                <ColumnDefinition Width="32"/>
+                                                                                                                <ColumnDefinition/>
+                                                                                                            </Grid.ColumnDefinitions>
+
+                                                                                                            <Grid Grid.Column="0">
+                                                                                                                <Image x:Name="collectionModIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32" RenderOptions.BitmapScalingMode="Fant"/>
+                                                                                                                <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
+                                                                                                            </Grid>
+                                                                                                            <Grid Grid.Column="1" VerticalAlignment="Center">
+                                                                                                                <Grid.RowDefinitions>
+                                                                                                                    <RowDefinition Height="16"/>
+                                                                                                                    <RowDefinition Height="16"/>
+                                                                                                                </Grid.RowDefinitions>
+
+                                                                                                                <TextBlock Grid.Row="0" Text="{Binding Path=ModDetails.Title}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" Margin="8,0,0,0"/>
+                                                                                                                <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#808080">
+                                                                                                                    <TextBlock.Text>
+                                                                                                                        <Binding Path="ModDetails.Author" StringFormat="by {0}"/>
+                                                                                                                    </TextBlock.Text>
+                                                                                                                </TextBlock>
+                                                                                                            </Grid>
+                                                                                                        </Grid>
+
+                                                                                                        <DataTemplate.Triggers>
+                                                                                                            <DataTrigger Binding="{Binding Path=ModDetails.Icon}" Value="{x:Null}">
+                                                                                                                <Setter Property="Source" TargetName="collectionModIcon" Value="/FrostyModManager;component/Images/DefaultModIcon.png"/>
+                                                                                                            </DataTrigger>
+                                                                                                        </DataTemplate.Triggers>
+                                                                                                    </DataTemplate>
+                                                                                                </GridViewColumn.CellTemplate>
+                                                                                            </GridViewColumn>
+                                                                                            <GridViewColumn Header="Version" Width="74">
+                                                                                                <GridViewColumn.CellTemplate>
+                                                                                                    <DataTemplate>
+                                                                                                        <Grid Height="32">
+                                                                                                            <TextBlock Text="{Binding Path=ModDetails.Version}" MinWidth="75" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                                                                                        </Grid>
+                                                                                                    </DataTemplate>
+                                                                                                </GridViewColumn.CellTemplate>
+                                                                                            </GridViewColumn>
+                                                                                        </GridView.Columns>
+                                                                                    </GridView>
+                                                                                </ListView.View>
+                                                                                <ListView.GroupStyle>
+                                                                                    <GroupStyle ContainerStyle="{StaticResource ContainerStyle}"/>
+                                                                                </ListView.GroupStyle>
+                                                                            </ListView>
+                                                                        </Border>
+                                                                    </Expander>
+                                                                    <Grid x:Name="expanderHeaderGrid" Height="40" Style="{StaticResource ResourceKey=ExpanderHeader}">
+                                                                        <Grid.ColumnDefinitions>
+                                                                            <ColumnDefinition Width="32"/>
+                                                                            <ColumnDefinition/>
+                                                                        </Grid.ColumnDefinitions>
+
+                                                                        <Grid Grid.Column="0">
+                                                                            <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32" RenderOptions.BitmapScalingMode="Fant"/>
+                                                                            <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
+                                                                        </Grid>
+                                                                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                                                                            <Grid.RowDefinitions>
+                                                                                <RowDefinition Height="16"/>
+                                                                                <RowDefinition Height="16"/>
+                                                                            </Grid.RowDefinitions>
+
+                                                                            <TextBlock Grid.Row="0" Text="{Binding Path=ModDetails.Title}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" Margin="8,0,0,0"/>
+                                                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#808080">
+                                                                                <TextBlock.Text>
+                                                                                    <Binding Path="ModDetails.Author" StringFormat="by {0}"/>
+                                                                                </TextBlock.Text>
+                                                                            </TextBlock>
+                                                                        </Grid>
                                                                     </Grid>
                                                                 </Grid>
-                                                                
+
                                                                 <DataTemplate.Triggers>
                                                                     <DataTrigger Binding="{Binding Path=ModDetails.Icon}" Value="{x:Null}">
                                                                         <Setter Property="Source" TargetName="modIcon" Value="/FrostyModManager;component/Images/DefaultModIcon.png"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Path=Mods}" Value="{x:Null}">
+                                                                        <Setter Property="Visibility" TargetName="modsExpander" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Path=Mods}" Value="{x:Null}">
+                                                                        <Setter TargetName="expanderHeaderGrid" Property="Margin" Value="0,0,0,0"/>
                                                                     </DataTrigger>
                                                                 </DataTemplate.Triggers>
                                                             </DataTemplate>
                                                         </GridViewColumn.CellTemplate>
                                                     </GridViewColumn>
-                                                    <GridViewColumn Header="Version">
+                                                    <GridViewColumn Header="Version" Width="75">
                                                         <GridViewColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <Grid Height="32">
@@ -649,7 +783,7 @@
                                         </DockPanel>
                                     </Border>
 
-                                    <ListBox x:Name="appliedModsList" Grid.Row="1" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="appliedModsList_SelectionChanged">
+                                    <ListBox x:Name="appliedModsList" Grid.Row="1" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="appliedModsList_SelectionChanged" SelectionMode="Extended">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid>
@@ -710,7 +844,7 @@
                                                         </Grid>
                                                         <TextBlock Text="{Binding Path=Name}" FontFamily="Consolas" VerticalAlignment="Center"/>
                                                     </StackPanel>
-                                                    
+
                                                     <!-- Custom Names for Types with long Names -->
                                                     <DataTemplate.Triggers>
                                                         <DataTrigger Binding="{Binding Path=Type}" Value="CHUNK">
