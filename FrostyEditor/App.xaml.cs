@@ -133,7 +133,7 @@ namespace FrostyEditor
 
             DiscordRichPresence discordPresence = new DiscordRichPresence
             {
-                details = ProfilesLibrary.DisplayName.Replace("™", ""),
+                details = ProfilesLibrary.DisplayName?.Replace("™", ""),
                 state = state,
                 startTimestamp = App.StartTime,
                 largeImageKey = "frostylogobig",
