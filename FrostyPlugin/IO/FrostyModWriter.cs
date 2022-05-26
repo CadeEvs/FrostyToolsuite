@@ -266,6 +266,7 @@ namespace Frosty.Core.IO
             WriteNullTerminatedString(settings.Category);
             WriteNullTerminatedString(settings.Version);
             WriteNullTerminatedString(settings.Description);
+            WriteNullTerminatedString(settings.Link);
 
             AddResource(new EmbeddedResource("Icon", settings.Icon, manifest));
             for (int i = 0; i < 4; i++)
