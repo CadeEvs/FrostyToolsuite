@@ -198,6 +198,11 @@ namespace Frosty.Core.Windows
 
         private void ConfigurationListView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            if (SelectGameTextBlock.IsVisible)
+            {
+                SelectGameTextBlock.Visibility = Visibility.Collapsed;
+            }
+            
             if (ConfigurationListView.SelectedItem is FrostyConfiguration configuration)
             {
                 ProfileNameTextBlock.Text = configuration.GameName;

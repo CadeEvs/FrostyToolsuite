@@ -6,24 +6,28 @@
                            xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            mc:Ignorable="d"
-                           Title="Select Game" Height="250" Width="400" Loaded="ProfileSelectWindow_Loaded"
+                           Title="Load Profile" Height="250" Width="400" Loaded="ProfileSelectWindow_Loaded"
                            ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="2"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="38"/>
         </Grid.RowDefinitions>
         
         <Grid Background="{StaticResource ListBackground}">
-            <StackPanel Margin="8, 8, 8, 0">
+            <StackPanel x:Name="GameInfoStackPanel" Margin="8">
                 <TextBlock x:Name="ProfileNameTextBlock" Foreground="{StaticResource FontColor}" FontSize="14" FontWeight="Medium"/>
                 <TextBlock x:Name="ProfilePathTextBlock" Foreground="{StaticResource FontColor}" FontSize="10"/>
             </StackPanel>
+            <TextBlock x:Name="SelectGameTextBlock" Text="Select Game" Foreground="{StaticResource FontColor}" FontSize="14" FontWeight="Medium" HorizontalAlignment="Center" VerticalAlignment="Center"/>
         </Grid>
         
-        <Grid Grid.Row="1">
+        <Border Grid.Row="1" Background="{StaticResource ControlBackground}"/>
+        
+        <Grid Grid.Row="2">
             <ListBox x:Name="ConfigurationListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="ConfigurationListView_OnSelectionChanged" MouseDoubleClick="ConfigurationListView_OnMouseDoubleClick">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -39,7 +43,7 @@
             </ListBox>
         </Grid>
         
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Content="Refresh" Padding="12,0" Margin="6,6,0,6" Click="RefreshButton_OnClicked"/>
                 <Button x:Name="AddConfigurationButton" Content="Add" Padding="12,0" Margin="6,6,0,6" Click="AddConfigurationButton_OnClick"/>
