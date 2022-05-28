@@ -2004,8 +2004,12 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
 
                 // finally copy in the left over patch data
-                fs.WriteInitFs(fs.BasePath + patchPath + "/initfs_win32", modPath + patchPath + "/initfs_win32", modifiedFs);
-
+                //fs.WriteInitFs(fs.BasePath + patchPath + "/initfs_win32", modPath + patchPath + "/initfs_win32", modifiedFs);
+                
+                // @todo: this is a temporary revert to fix launching on GW2 and older profiles
+                CopyFileIfRequired(fs.BasePath + patchPath + "/initfs_win32", modPath + patchPath + "/initfs_win32");
+                
+                
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                 {
                     // modify layout.toc for any new superbundles added
