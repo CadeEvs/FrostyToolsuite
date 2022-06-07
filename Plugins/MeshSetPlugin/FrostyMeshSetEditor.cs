@@ -1751,7 +1751,7 @@ namespace MeshSetPlugin
                 if (sectionName.Contains(':'))
                 {
                     // remove the lod portion of the name
-                    sectionName = sectionName.Remove(0, sectionName.IndexOf(':') + 1);
+                    sectionName = sectionName.Remove(sectionName.IndexOf(':'));
                 }
 
                 int idx = meshSections.FindIndex((a) => a.Name == sectionName);
