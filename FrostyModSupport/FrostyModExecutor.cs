@@ -2406,6 +2406,8 @@ namespace Frosty.ModSupport
                 foreach (string catalog in fs.Catalogs)
                 {
                     string basePatchCatalog = fs.ResolvePath("native_patch/" + catalog);
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //woo patch folder
+                        basePatchCatalog = fs.ResolvePath("native_data/" + catalog);
                     string modDataCatalog = $"{modPath}/{catalog}";
 
                     if (Directory.Exists(modDataCatalog))
