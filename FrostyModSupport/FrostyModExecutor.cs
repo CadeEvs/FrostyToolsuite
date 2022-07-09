@@ -497,7 +497,7 @@ namespace Frosty.ModSupport
                                     entry.RangeStart = chunkEntry.RangeStart;
                                     entry.RangeEnd = chunkEntry.RangeEnd;
 
-                                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                                     {
                                         if (fs.GetManifestChunk(chunkEntry.Id) != null)
                                         {
@@ -569,7 +569,7 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                             {
                                 var chunkEntry = am.GetChunkEntry(guid);
                                 var entry = modifiedChunks[guid];
@@ -643,10 +643,8 @@ namespace Frosty.ModSupport
             string patchPath = "Patch";
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                 patchPath = "Update\\Patch\\Data";
-#if FROSTY_DEVELOPER
-            else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville)
+            else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfn and bfv dont have a patch directory
                 patchPath = "Data";
-#endif
 
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20)
             {
@@ -743,7 +741,7 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Initializing resources");
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 {
                     foreach (string catalogName in fs.Catalogs)
                     {
@@ -1057,7 +1055,7 @@ namespace Frosty.ModSupport
                                                     buffer = reader.ReadBytes((int)entry.Size);
                                                 }
 
-                                                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                                                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                                                 {
                                                     if (entry.LogicalOffset != 0)
                                                     {
@@ -1384,7 +1382,7 @@ namespace Frosty.ModSupport
                                             buffer = reader.ReadBytes((int)entry.Size);
                                         }
 
-                                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                                         {
                                             if (entry.LogicalOffset != 0)
                                             {
@@ -1530,11 +1528,28 @@ namespace Frosty.ModSupport
                         // create mod path
                         Directory.CreateDirectory(modPath);
 
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                         {
                             if (!Directory.Exists(modPath + "Data"))
                                 Directory.CreateDirectory(modPath + "Data");
                             cmdArgs.Add(new SymLinkStruct(modPath + "Data/Win32", fs.BasePath + "Data/Win32", true));
+                        }
+                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfv doesnt have a patch directory so we need to rebuild the data folder structure instead
+                        {
+                            if (!Directory.Exists(modPath + "Data"))
+                                Directory.CreateDirectory(modPath + "Data");
+
+                            foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
+                            {
+                                FileInfo casFi = new FileInfo(casFilename);
+                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+                                string tempPath = Path.Combine(destPath, casFi.Name);
+
+                                if (!Directory.Exists(destPath))
+                                    Directory.CreateDirectory(destPath);
+
+                                cmdArgs.Add(new SymLinkStruct(tempPath, casFi.FullName, false));
+                            }
                         }
                         else
                         {
@@ -1589,6 +1604,10 @@ namespace Frosty.ModSupport
                 foreach (string catalog in fs.Catalogs)
                 {
                     string path = fs.ResolvePath("native_patch/" + catalog + "/cas.cat");
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //again, no patch directory. fun.
+                    {
+                        path = fs.ResolvePath("native_data/" + catalog + "/cas.cat");
+                    }
                     if (!File.Exists(path))
                         continue;
 
@@ -1777,7 +1796,7 @@ namespace Frosty.ModSupport
                     using (DbWriter writer = new DbWriter(new FileStream(modPath + patchPath + "/layout.toc", FileMode.Create), true))
                         writer.Write(layout);
                 }
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 {
                     List<ManifestBundleAction> actions = new List<ManifestBundleAction>();
                     ManualResetEvent doneEvent = new ManualResetEvent(false);
@@ -1987,7 +2006,7 @@ namespace Frosty.ModSupport
                                 writer.Write(reader.ReadBytes(0x23C));
                                 writer.Write(0x00);
                                 writer.Write(0x00);
-                                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                                 {
                                     writer.Write(0x00);
                                     writer.Write(0x00);
@@ -2041,7 +2060,7 @@ namespace Frosty.ModSupport
                         layout = reader.ReadDbObject();
 
                     // write out new manifest
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                     {
                         DbObject manifest = layout.GetValue<DbObject>("manifest");
                         ManifestFileRef fileRef = (ManifestFileRef)manifest.GetValue<int>("file");
@@ -2062,7 +2081,10 @@ namespace Frosty.ModSupport
                         manifest.SetValue("size", tmpBuf.Length);
                         manifest.SetValue("offset", 0);
                         manifest.SetValue("sha1", sha1);
-                        manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, true, casIndex));
+                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //more patch directory shenanigans
+                            manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, false, casIndex));
+                        else
+                            manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, true, casIndex));
                     }
 
                     // add any new superbundles
@@ -2080,7 +2102,7 @@ namespace Frosty.ModSupport
                     }
 
                     string layoutLocation = modPath + patchPath + "/layout.toc";
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                         layoutLocation = modPath + "Data/layout.toc";
 
                     using (DbWriter writer = new DbWriter(new FileStream(layoutLocation, FileMode.Create), true))
@@ -2093,7 +2115,7 @@ namespace Frosty.ModSupport
                     CopyFileIfRequired(fs.BasePath + patchPath + "/../package.mft", modPath + patchPath + "/../package.mft");
                 }
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 {
                     // copy from old data to new data
                     CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modPath + "Data/chunkmanifest");
@@ -2238,7 +2260,14 @@ namespace Frosty.ModSupport
                         casEntry.FileInfo.offset = (uint)currentCasStream.Position;
                         casEntry.FileInfo.size = info.Data.Length;
                     }
-                    casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                    {
+                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, false, casIndex);
+                    }
+                    else
+                    {
+                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
+                    }
                 }
 
                 currentCasStream.Write(info.Data, 0, info.Data.Length);
@@ -2355,7 +2384,7 @@ namespace Frosty.ModSupport
                     {
                         writer.Write(numEntries);
                         writer.Write(numPatchEntries);
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                         {
                             writer.Write(encEntries.Count);
                             writer.Write(0x00);
@@ -2400,11 +2429,11 @@ namespace Frosty.ModSupport
         private bool IsSamePatch(string modPath)
         {
             string baseLayoutPath = fs.ResolvePath("native_patch/layout.toc");
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 baseLayoutPath = fs.ResolvePath("native_data/layout.toc");
 
             string modLayoutPath = modPath + "/layout.toc";
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 modLayoutPath = Directory.GetParent(modPath).FullName + "/Data/layout.toc";
                 //modLayoutPath = modPath + "../Data/layout.toc";
 

@@ -646,7 +646,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("BFVSDK");
-                writer.Write(CreateBanner("bfV"));
+                writer.Write(CreateBanner("bfv"));
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_N");
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_SRM");
@@ -964,7 +964,7 @@ namespace FrostyCmd
                 writer.Write(0); // ignored res types
 
                 // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly, EAC)
-                ProfileFlags pf = new ProfileFlags(0, 4, 0, 1, 1);
+                ProfileFlags pf = new ProfileFlags(0, 4, 0, 0, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
