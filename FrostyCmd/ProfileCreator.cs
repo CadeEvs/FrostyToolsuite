@@ -646,7 +646,7 @@ namespace FrostyCmd
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("BFVSDK");
-                writer.Write(CreateBanner("bfV"));
+                writer.Write(CreateBanner("bfv"));
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_N");
                 writer.WriteObfuscatedString("Shaders/Systems/Debug_SRM");
