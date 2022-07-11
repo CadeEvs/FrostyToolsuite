@@ -1522,6 +1522,8 @@ namespace MeshSetPlugin.Resources
         private List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
         private List<LinearTransform> partTransforms = new List<LinearTransform>();
 
+        private byte[] unknownbfv;
+
         public MeshSet()
         {
         }
@@ -1620,7 +1622,7 @@ namespace MeshSetPlugin.Resources
             reader.Pad(16);
 
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
-                reader.ReadBytes(16);
+                unknownbfv = reader.ReadBytes(16);
 
             // lods
             int z = 0;
@@ -1858,6 +1860,8 @@ namespace MeshSetPlugin.Resources
             }
 
             writer.WritePadding(16);
+
+            writer.Write(unknownbfv);
 
             Debug.Assert(writer.Position == HeaderSize);
 
