@@ -331,7 +331,6 @@ namespace Frosty.ModSupport
 
                             long startPos = writer.Position;
 
-                            writer.Write(0x9D798ED5, Endian.Big);
                             if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5) //bfv changed the bundle magic for some reason
                                 writer.Write(0x9D798ED5, Endian.Big);
                             else
