@@ -516,7 +516,7 @@ namespace Frosty.ModSupport
                                                     long logicalOffset = entry.LogicalOffset;
                                                     uint size = 0;
 
-                                                    while (logicalOffset > 0)
+                                                    while (true)
                                                     {
                                                         int decompressedSize = reader.ReadInt(Endian.Big);
                                                         ushort compressionType = reader.ReadUShort();
@@ -530,6 +530,8 @@ namespace Frosty.ModSupport
                                                             decompressedSize &= 0x00FFFFFF;
 
                                                         logicalOffset -= decompressedSize;
+                                                        if (logicalOffset < 0)
+                                                            break;
 
                                                         compressionType = (ushort)(compressionType & 0x7F);
                                                         if (compressionType == 0x00)
@@ -2119,7 +2121,8 @@ namespace Frosty.ModSupport
                 {
                     // copy from old data to new data
                     CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modPath + "Data/chunkmanifest");
-                    fs.WriteInitFs(fs.BasePath + "Data/initfs_Win32", modPath + "Data/initfs_Win32", modifiedFs);
+                    //fs.WriteInitFs(fs.BasePath + "Data/initfs_Win32", modPath + "Data/initfs_Win32", modifiedFs);
+                    CopyFileIfRequired(fs.BasePath + "Data/initfs_Win32", modPath + "Data/initfs_Win32");
                 }
 
                 // create the frosty mod list file
