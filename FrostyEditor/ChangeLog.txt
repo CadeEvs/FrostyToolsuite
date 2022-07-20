@@ -48,8 +48,14 @@ Plugin Changes
 
 v1.0.6 (Beta 5)
 --------
-- Fixed crash when select description tab of collection
 - Added "ModDb" support when setting links during mod export process
+- Fixed crash when selecting description tab of collection
+- Fixed issues with Battlefield 1 mesh importing (#89)
+- Updated naming scheme for Flatten Hierarchy
+- Updated Mod Manager window width to account for Collections (#85)
+
+Technical Changes
+- Fixed RangeStart calculation for manifest chunks (#94)
 
 v1.0.6 (Beta 4)
 --------
