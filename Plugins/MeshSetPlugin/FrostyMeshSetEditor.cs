@@ -697,7 +697,7 @@ namespace MeshSetPlugin
                 {
                     FbxNode actor = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                     if (flattenHierarchy)
-                        actor.Name = lod.String03 + ":" + section.Name;
+                        actor.Name = $"{section.Name}:{lod.String03.Insert(lod.String03.Length - 1, ".00")}";
                     meshNode.AddChild(actor);
 
                     if ((lod.Type == MeshType.MeshType_Skinned || lod.Type == MeshType.MeshType_Composite) && boneNodes.Count > 0)
@@ -1605,8 +1605,7 @@ namespace MeshSetPlugin
                     {
                         if (nodeName.Contains(":"))
                         {
-                            // flat hierarchy, contains lod:section names
-                            nodeName = nodeName.Remove(nodeName.IndexOf(':'));
+                            // flat hierarchy, contains section:lod names
                             nodeName = nodeName.Substring(nodeName.Length - 1);
                             int lodIndex = -1;
 
@@ -1751,7 +1750,7 @@ namespace MeshSetPlugin
                 if (sectionName.Contains(':'))
                 {
                     // remove the lod portion of the name
-                    sectionName = sectionName.Remove(0, sectionName.IndexOf(':') + 1);
+                    sectionName = sectionName.Remove(sectionName.IndexOf(':'));
                 }
 
                 int idx = meshSections.FindIndex((a) => a.Name == sectionName);
@@ -1993,7 +1992,7 @@ namespace MeshSetPlugin
                     }
 
                     // MEC/BF1/SWBF2/BFV/Anthem/FIFA19/FIFA20/BFN/SWS
-                    else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield1 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
+                    else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
                              ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                     {
                         // ushort/uint, can handle long lists so just put all bones into sections

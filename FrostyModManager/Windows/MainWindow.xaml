@@ -8,7 +8,7 @@
         xmlns:localctrl="clr-namespace:FrostyModManager.Controls"
         xmlns:conv="clr-namespace:Frosty.Core.Converters;assembly=FrostyCore"
         mc:Ignorable="d"
-        Title="Frosty Mod Manager" Height="750" Width="1000"
+        Title="Frosty Mod Manager" Height="750" Width="1050"
         Icon="/FrostyModManager;component/AppIcon.ico"
         FrostyLoaded="FrostyWindow_FrostyLoaded" Closing="FrostyWindow_Closing" AllowDrop="True" Drop="FrostyWindow_Drop">
 
