@@ -810,6 +810,8 @@
                                                             <TextBlock x:Name="PART_TextBlock" VerticalAlignment="Center" Text="Select Class" Margin="4,0,0,0" Foreground="{StaticResource FontColor}" Opacity="0.5" FontFamily="MS Reference Sans Serif"/>
                                                         </Border>
 
+                                                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" Margin="1,1,1,2" WatermarkText="Filter" BorderThickness="1"/>
+
                                                         <ScrollViewer x:Name="DropDownScrollViewer" MaxHeight="198">
                                                             <Grid x:Name="grid" RenderOptions.ClearTypeHint="Enabled" HorizontalAlignment="Stretch">
                                                                 <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
