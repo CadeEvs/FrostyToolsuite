@@ -125,10 +125,17 @@ namespace TexturePlugin
             if (renderer != null)
             {
                 ulong resRid = ((dynamic)RootObject).Resource;
-                textureAsset = App.AssetManager.GetResAs<Texture>(App.AssetManager.GetResEntry(resRid));
-                textureIsSRGB = textureAsset.PixelFormat.Contains("SRGB") || ((textureAsset.Flags & TextureFlags.SrgbGamma) != 0);
-
-                renderer.Screen = new TextureScreen(textureAsset);
+                try 
+                {
+                    textureAsset = App.AssetManager.GetResAs<Texture>(App.AssetManager.GetResEntry(resRid));
+                    textureIsSRGB = textureAsset.PixelFormat.Contains("SRGB") || ((textureAsset.Flags & TextureFlags.SrgbGamma) != 0);
+                    renderer.Screen = new TextureScreen(textureAsset);
+                }
+                catch 
+                {
+                    renderer.Screen = new TextureScreen();
+                    return;
+                }
             }
 
             textureFormatText = GetTemplateChild(PART_TextureFormat) as TextBlock;
