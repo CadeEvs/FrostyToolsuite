@@ -515,7 +515,7 @@ namespace Frosty.ModSupport
                                                     long logicalOffset = entry.LogicalOffset;
                                                     uint size = 0;
 
-                                                    while (logicalOffset > 0)
+                                                    while (true)
                                                     {
                                                         int decompressedSize = reader.ReadInt(Endian.Big);
                                                         ushort compressionType = reader.ReadUShort();
@@ -529,6 +529,8 @@ namespace Frosty.ModSupport
                                                             decompressedSize &= 0x00FFFFFF;
 
                                                         logicalOffset -= decompressedSize;
+                                                        if(logicalOffset < 0)
+                                                            break;
 
                                                         compressionType = (ushort)(compressionType & 0x7F);
                                                         if (compressionType == 0x00)

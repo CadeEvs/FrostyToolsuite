@@ -38,7 +38,9 @@ namespace MeshSetPlugin
 
         public MeshExportScale Scale { get; set; }
 
+        [DisplayName("Flatten Hierarchy (Blender)")]
         public bool FlattenHierarchy { get; set; }
+        [DisplayName("Export Additional Meshes")]
         public bool ExportAdditionalMeshes { get; set; }
     }
 
