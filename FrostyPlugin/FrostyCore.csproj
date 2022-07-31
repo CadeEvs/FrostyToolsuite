@@ -134,6 +134,7 @@
     <Compile Include="Attributes\RegisterToolbarExtensionAttribute.cs" />
     <Compile Include="Attributes\RegisterTypeOverrideAttribute.cs" />
     <Compile Include="Attributes\RegisterUserShaderAttribute.cs" />
+    <Compile Include="Controls\FrostyBaseAssetEditor.cs" />
     <Compile Include="Controls\FrostyExceptionBox.cs" />
     <Compile Include="Controls\FrostyNotification.cs" />
     <Compile Include="Controls\VirtualizingTilePanel.cs" />
@@ -146,6 +147,7 @@
     <Compile Include="FrostyConfiguration.cs" />
     <Compile Include="FrostyLogger.cs" />
     <Compile Include="Managers\NotificationManager.cs" />
+    <Compile Include="Managers\UndoManager.cs" />
     <Compile Include="Misc\FrostyTimer.cs">
       <SubType>Component</SubType>
     </Compile>

@@ -587,20 +587,22 @@ namespace Frosty.Core
                 return false;
 
             gameProfile = reader.ReadNullTerminatedString();
-
-            // clear all modifications
-            if (ProfilesLibrary.HasLoadedProfile)
-            {
-                App.AssetManager.Reset();
-            }
-            
-            // load profile if one isn't already loaded or if it doesn't match the last project profile
-            if (ProfilesLibrary.Profile == null || gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
+            // load profile if one isn't already loaded
+            if (!ProfilesLibrary.HasLoadedProfile)
             {
                 App.ClearProfileData();
 
                 requiresNewProfile = true;
                 App.LoadProfile(gameProfile);
+            }
+            else
+            {
+                // only load project if it's using the same profile as the one loaded
+                if (gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
+                    return false;
+                
+                // if it is the same project, reset and revert all of the current assets
+                App.AssetManager.Reset();
             }
 
             FrostyTaskWindow.Show("Loading Project", "", (task) =>
