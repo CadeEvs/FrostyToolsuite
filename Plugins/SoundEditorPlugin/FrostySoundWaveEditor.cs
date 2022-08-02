@@ -433,6 +433,7 @@ namespace SoundEditorPlugin
                             }
 
                             target.Render(visual);
+                            target.Freeze();
                             track.WaveForm = target;
                         }
                     }
