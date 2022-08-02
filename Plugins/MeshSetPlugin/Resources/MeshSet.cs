@@ -1861,7 +1861,8 @@ namespace MeshSetPlugin.Resources
 
             writer.WritePadding(16);
 
-            writer.Write(unknownbfv);
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                writer.Write(unknownbfv);
 
             Debug.Assert(writer.Position == HeaderSize);
 
