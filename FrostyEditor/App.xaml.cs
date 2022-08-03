@@ -205,20 +205,6 @@ namespace FrostyEditor
                 if (arg.Contains(".fbproject")) {
                     openProject = true;
                     LaunchArgs = arg;
-
-                    //get game profile from project file
-                    using (NativeReader reader = new NativeReader(new FileStream(arg, FileMode.Open, FileAccess.Read))) {
-                        if (reader.ReadULong() == 0x00005954534F5246) {
-                            reader.ReadUInt();
-                            string gameProfile = reader.ReadNullTerminatedString();
-                            try { 
-                                defaultConfig = new FrostyConfiguration(gameProfile); 
-                            }
-                            catch { 
-                                FrostyMessageBox.Show("There was an error when trying to load project using the profile: " + gameProfile, "Frosty Editor");
-                            }
-                        }
-                    }
                 }
             }
 
