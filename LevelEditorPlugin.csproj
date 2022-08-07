@@ -129,37 +129,37 @@
 
   <ItemGroup>
     <Reference Include="FrostyControls">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyControls.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyControls.dll</HintPath>
     </Reference>
     <Reference Include="FrostyCore">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyCore.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyCore.dll</HintPath>
     </Reference>
     <Reference Include="FrostyHash">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyHash.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyHash.dll</HintPath>
     </Reference>
     <Reference Include="FrostySdk">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostySdk.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostySdk.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Newtonsoft.Json">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="EbxClasses">
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\StarWarsIISDK.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Direct3D11">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.Direct3D11.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.Direct3D11.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.DXGI">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.DXGI.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.DXGI.dll</HintPath>
     </Reference>
     <Reference Include="SharpDX.Mathematics">
-      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.Mathematics.dll</HintPath>
-    </Reference>
-    <Reference Include="EbxClasses">
-      <HintPath>..\FrostyToolsuite\FrostySdk\Profiles\StarWarsIISDK.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.Mathematics.dll</HintPath>
     </Reference>
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
