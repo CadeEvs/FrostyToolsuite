@@ -623,7 +623,6 @@ namespace Frosty.Core
                         if (registerUserShaderAttribute != null)
                         {
                             userShaders.Add(registerUserShaderAttribute.XmlDescriptor + "," + registerUserShaderAttribute.ShaderName);
-                            continue;
                         }
                     }
                     else if (tmpAttr is RegisterCustomAssetManagerAttribute attr12)
