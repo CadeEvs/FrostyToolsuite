@@ -656,8 +656,7 @@ namespace LevelEditorPlugin.Editors
 
         public void ProcessDrop(IDataObject draggedData, Point dropPoint)
         {
-#if MASS_EFFECT
-            if (draggedData.GetDataPresent(typeof(UIWidgetDropData)))
+            if (draggedData.GetDataPresent(typeof(SchematicsDropData)))
             {
                 var data = draggedData.GetData(typeof(SchematicsDropData)) as SchematicsDropData;
                 var dataType = data.DataType.GetCustomAttribute<Entities.EntityBindingAttribute>().DataType;
@@ -700,9 +699,7 @@ namespace LevelEditorPlugin.Editors
                         }));
                 }
             }
-            else
-#endif
-            if (draggedData.GetDataPresent(typeof(DataExplorerDropData)))
+            else if (draggedData.GetDataPresent(typeof(DataExplorerDropData)))
             {
                 var dropData = (DataExplorerDropData)draggedData.GetData(typeof(DataExplorerDropData));
                 var asset = App.AssetManager.GetEbx(dropData.Entry);
