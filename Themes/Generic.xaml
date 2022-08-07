@@ -1,0 +1,30 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:XamlGeneratedNamespace"
+    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:fdev="FrostyDeveloper">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyCore;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Controls/AssetEntryDisplayCard.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Controls/DockPanel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Controls/TrackEditors.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Controls/Editors/ColorPickerEditor.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/InstancesViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/LayersViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/PropertiesViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/SchematicsViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/TerrainLayersViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/ComponentsViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/TimelineViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/InterfaceViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/ViewModels/ToolboxViewModel.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/LogicEditor.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Editors/SpatialEditor.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+</ResourceDictionary>

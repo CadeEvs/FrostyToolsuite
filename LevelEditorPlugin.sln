@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32505.173
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LevelEditorPlugin", "LevelEditorPlugin.csproj", "{ED805027-7A1F-4CAB-8EE5-20754F84532E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		MassEffect - Debug|x64 = MassEffect - Debug|x64
+		MassEffect - Release|x64 = MassEffect - Release|x64
+		SWBF2 - Debug|x64 = SWBF2 - Debug|x64
+		SWBF2 - Release|x64 = SWBF2 - Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.MassEffect - Debug|x64.ActiveCfg = MassEffect - Debug|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.MassEffect - Debug|x64.Build.0 = MassEffect - Debug|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.MassEffect - Release|x64.ActiveCfg = MassEffect - Release|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.MassEffect - Release|x64.Build.0 = MassEffect - Release|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Debug|x64.ActiveCfg = SWBF2 - Debug|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Debug|x64.Build.0 = SWBF2 - Debug|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Release|x64.ActiveCfg = SWBF2 - Release|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Release|x64.Build.0 = SWBF2 - Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {31D01343-0D2A-44E0-BDDE-7A34EEA43A31}
+	EndGlobalSection
+EndGlobal

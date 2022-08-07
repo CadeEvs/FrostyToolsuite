@@ -1,0 +1,119 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+                    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                    xmlns:editors="clr-namespace:LevelEditorPlugin.Editors"
+                    xmlns:z="clr-namespace:LevelEditorPlugin.Controls"
+                    xmlns:conv="clr-namespace:LevelEditorPlugin.Converters">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Common.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <!-- SpatialEditor -->
+    <Style TargetType="{x:Type editors:SpatialEditor}"  BasedOn="{StaticResource BaseEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type editors:SpatialEditor}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition x:Name="leftColumn" Width="{Binding Path=Size, ElementName=leftDockPanel, Mode=TwoWay}"/>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="4*"/>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition x:Name="rightColumn" Width="{Binding Path=Size, ElementName=rightDockPanel, Mode=TwoWay}"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border x:Name="leftContent" Grid.Column="0" Background="{StaticResource ControlBackground}">
+                            <Grid Margin="2" Background="{StaticResource ListBackground}">
+
+                                <z:DockPanel x:Name="leftDockPanel" DockManager="{Binding Path=DockManager, RelativeSource={RelativeSource TemplatedParent}}" DockLocation="Left"/>
+
+                            </Grid>
+                        </Border>
+
+                        <GridSplitter x:Name="leftGridSplitter" Grid.Column="1" Background="{StaticResource ControlBackground}" VerticalAlignment="Stretch" Width="2" ResizeDirection="Columns" HorizontalAlignment="Center" ShowsPreview="True" />
+
+                        <Border BorderThickness="0" x:Name="mainBorder" Grid.Column="2" BorderBrush="{StaticResource ControlBackground}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="3*"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition x:Name="bottomRow" Height="{Binding Path=Size, ElementName=bottomDockPanel, Mode=TwoWay}"/>
+                                </Grid.RowDefinitions>
+
+                                <ctrl:FrostyDockablePanel x:Name="middleContent" Title="" TitleBarVisible="False" BorderVisible="False">
+                                    <Border BorderThickness="0 2 0 2" BorderBrush="{StaticResource ControlBackground}">
+                                        <Grid>
+                                            <core:FrostyViewport x:Name="PART_Renderer"/>
+                                            <Rectangle x:Name="PART_ThumbnailBorder" HorizontalAlignment="Center" VerticalAlignment="Center" Width="256" Height="256" Stroke="Red" StrokeThickness="1" StrokeDashArray="8,4" Visibility="Collapsed"/>
+                                        </Grid>
+                                    </Border>
+                                </ctrl:FrostyDockablePanel>
+
+                                <GridSplitter x:Name="bottomGridSplitter" Grid.Row="1" Background="{StaticResource ControlBackground}" VerticalAlignment="Center" Height="2" ResizeDirection="Rows" HorizontalAlignment="Stretch" ShowsPreview="True" />
+
+                                <Border x:Name="bottomContent" Grid.Row="2" Background="{StaticResource ControlBackground}">
+                                    <Grid Margin="0" Background="{StaticResource ListBackground}">
+
+                                        <z:DockPanel x:Name="bottomDockPanel" DockManager="{Binding Path=DockManager, RelativeSource={RelativeSource TemplatedParent}}" DockLocation="Bottom" SupportsBottomContent="False"/>
+
+                                    </Grid>
+                                </Border>
+
+                            </Grid>
+                        </Border>
+
+                        <GridSplitter x:Name="rightGridSplitter" Grid.Column="3" Background="{StaticResource ControlBackground}" VerticalAlignment="Stretch" Width="2" ResizeDirection="Columns" HorizontalAlignment="Center" ShowsPreview="True" />
+
+                        <Border x:Name="rightContent" Grid.Column="4" Background="{StaticResource ControlBackground}">
+                            <Grid Margin="2" Background="{StaticResource ListBackground}">
+
+                                <z:DockPanel x:Name="rightDockPanel" DockManager="{Binding Path=DockManager, RelativeSource={RelativeSource TemplatedParent}}" DockLocation="Right"/>
+
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=leftDockPanel, Path=HasItems}" Value="False">
+                            <Setter TargetName="leftContent" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="leftGridSplitter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="mainBorder" Property="Grid.Column" Value="0"/>
+                            <Setter TargetName="mainBorder" Property="Grid.ColumnSpan" Value="3"/>
+                            <Setter TargetName="mainBorder" Property="BorderThickness" Value="2,0,0,0"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ElementName=rightDockPanel, Path=HasItems}" Value="False">
+                            <Setter TargetName="rightContent" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="rightGridSplitter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="mainBorder" Property="Grid.ColumnSpan" Value="3"/>
+                            <Setter TargetName="mainBorder" Property="BorderThickness" Value="0,0,2,0"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ElementName=bottomDockPanel, Path=HasItems}" Value="False">
+                            <Setter TargetName="bottomContent" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="bottomGridSplitter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="middleContent" Property="Grid.RowSpan" Value="3"/>
+                        </DataTrigger>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding ElementName=leftDockPanel, Path=HasItems}" Value="False"/>
+                                <Condition Binding="{Binding ElementName=rightDockPanel, Path=HasItems}" Value="False"/>
+                            </MultiDataTrigger.Conditions>
+                            <MultiDataTrigger.Setters>
+                                <Setter TargetName="leftContent" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="leftGridSplitter" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="rightContent" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="rightGridSplitter" Property="Visibility" Value="Collapsed"/>
+                                <Setter TargetName="mainBorder" Property="Grid.Column" Value="0"/>
+                                <Setter TargetName="mainBorder" Property="Grid.ColumnSpan" Value="5"/>
+                                <Setter TargetName="mainBorder" Property="BorderThickness" Value="2,0,2,0"/>
+                            </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

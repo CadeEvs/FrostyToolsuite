@@ -1,0 +1,44 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                    xmlns:z="clr-namespace:LevelEditorPlugin.Controls"
+                    xmlns:editors="clr-namespace:LevelEditorPlugin.Editors">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+    
+    <DataTemplate DataType="{x:Type editors:InstancesViewModel}">
+        <ctrl:FrostyDockablePanel TitleBarVisible="False" BorderVisible="False">
+            <Border BorderThickness="0 2 0 0" BorderBrush="{StaticResource ControlBackground}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition Height="20"/>
+                    </Grid.RowDefinitions>
+
+                    <z:ScrollingListBox x:Name="PART_InstancesListView" ItemsSource="{Binding Path=Instances}" SelectedItem="{Binding Path=SelectedEntity, Mode=TwoWay}">
+                        <z:ScrollingListBox.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.InputBindings>
+                                        <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding Path=DataContext.EntityDoubleClickedCommand, RelativeSource={RelativeSource AncestorType={x:Type ListBox}}}" CommandParameter="{Binding Path=DataContext, RelativeSource={RelativeSource AncestorType={x:Type ListBoxItem}}}"/>
+                                    </StackPanel.InputBindings>
+
+                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding Path=IsVisible}" Margin="0 0 4 0"/>
+                                    <TextBlock Text="{Binding Path=DisplayName}" VerticalAlignment="Center"/>
+                                    <TextBlock Text=" in " VerticalAlignment="Center" Opacity="0.5"/>
+                                    <TextBlock Text="{Binding Path=Layer.LayerName}" VerticalAlignment="Center"  Opacity="0.5"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </z:ScrollingListBox.ItemTemplate>
+                    </z:ScrollingListBox>
+
+                    <TextBlock Grid.Row="1" Text="{Binding Path=Instances.Count}" Foreground="{StaticResource FontColor}" VerticalAlignment="Center" Margin="0 0 4 0" HorizontalAlignment="Right"/>
+
+                </Grid>
+            </Border>
+        </ctrl:FrostyDockablePanel>
+    </DataTemplate>
+    
+</ResourceDictionary>

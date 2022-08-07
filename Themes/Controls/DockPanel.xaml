@@ -1,0 +1,67 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                    xmlns:local="clr-namespace:LevelEditorPlugin.Controls">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Common.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+   
+    <Style TargetType="{x:Type local:DockPanel}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:DockPanel}">
+                    <Grid Background="{StaticResource ControlBackground}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <Border x:Name="topContent" Grid.Row="0" Background="{StaticResource ControlBackground}">
+                            <Grid Background="{StaticResource ListBackground}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="33"/>
+                                    <RowDefinition Height="3*"/>
+                                </Grid.RowDefinitions>
+                                <ctrl:FrostyTabControl x:Name="PART_TopTabControl" Style="{StaticResource tabControlStyle}" Foreground="{StaticResource FontColor}" ItemsSource="{Binding Path=TopItems, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ctrl:FrostyDetachedTabControl Grid.Row="1" x:Name="PART_TopTabContent" Foreground="{StaticResource FontColor}"/>
+                            </Grid>
+                        </Border>
+
+                        <GridSplitter x:Name="splitter" Background="Transparent" HorizontalAlignment="Stretch" Height="2" ResizeDirection="Rows" VerticalAlignment="Center" Grid.Row="1" />
+                        
+                        <Border x:Name="bottomContent" Grid.Row="2" Background="{StaticResource ControlBackground}">
+                            <Grid Background="{StaticResource ListBackground}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="33"/>
+                                    <RowDefinition Height="3*"/>
+                                </Grid.RowDefinitions>
+                                <ctrl:FrostyTabControl x:Name="PART_BottomTabControl" Style="{StaticResource tabControlStyle}" Foreground="{StaticResource FontColor}" ItemsSource="{Binding Path=BottomItems, RelativeSource={RelativeSource TemplatedParent}}" />
+                                <ctrl:FrostyDetachedTabControl Grid.Row="1" x:Name="PART_BottomTabContent" Foreground="{StaticResource FontColor}"/>
+                            </Grid>
+                        </Border>
+
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=PART_TopTabControl, Path=Items.Count}" Value="0">
+                            <Setter TargetName="topContent" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="topContent" Property="Margin" Value="0,0,0,0"/>
+                            <Setter TargetName="splitter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="bottomContent" Property="Grid.Row" Value="0"/>
+                            <Setter TargetName="bottomContent" Property="Grid.RowSpan" Value="3"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ElementName=PART_BottomTabControl, Path=Items.Count}" Value="0">
+                            <Setter TargetName="bottomContent" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="topContent" Property="Margin" Value="0,0,0,0"/>
+                            <Setter TargetName="splitter" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="topContent" Property="Grid.RowSpan" Value="3"/>
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

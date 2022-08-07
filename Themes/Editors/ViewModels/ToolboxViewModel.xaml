@@ -1,0 +1,61 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                    xmlns:editors="clr-namespace:LevelEditorPlugin.Editors"
+                    xmlns:z="clr-namespace:LevelEditorPlugin.Controls">
+
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/LevelEditorPlugin;component/Themes/Common.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <HierarchicalDataTemplate ItemsSource="{Binding Path=Children}" DataType="{x:Type editors:ToolboxFolderItem}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="19"/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+
+            <Rectangle x:Name="imageRect" Fill="White" Width="16" Height="16" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="3 0 0 0">
+                <Rectangle.OpacityMask>
+                    <ImageBrush ImageSource="/FrostyEditor;component/Images/CloseFolder.png"/>
+                </Rectangle.OpacityMask>
+            </Rectangle>
+            <TextBlock Grid.Column="1" Text="{Binding Path=Name}" VerticalAlignment="Center" Margin="8 0 0 0"/>
+            
+        </Grid>
+        <HierarchicalDataTemplate.Triggers>
+            <DataTrigger Binding="{Binding Path=IsExpanded}" Value="True">
+                <Setter TargetName="imageRect" Property="OpacityMask">
+                    <Setter.Value>
+                        <ImageBrush ImageSource="/FrostyEditor;component/Images/OpenFolder.png"/>
+                    </Setter.Value>
+                </Setter>
+            </DataTrigger>
+        </HierarchicalDataTemplate.Triggers>
+    </HierarchicalDataTemplate>
+    
+    <DataTemplate DataType="{x:Type editors:ToolboxTypeItem}">
+        <TextBlock Text="{Binding Path=Name}" VerticalAlignment="Center"/>
+    </DataTemplate>
+    
+    <DataTemplate DataType="{x:Type editors:SchematicsToolboxViewModel}">
+        <ctrl:FrostyDockablePanel TitleBarVisible="False" BorderVisible="False">
+
+            <Border BorderThickness="0 2 0 0" BorderBrush="{StaticResource ControlBackground}">
+                <TreeView ItemsSource="{Binding Path=Types}" editors:LevelEditorAttachedBehaviors.SelectedItemChangedCommand="{Binding Path=SelectedTypeChangedCommand}" editors:DragDropExtension.IsDragDropSource="True">
+                    <TreeView.ItemContainerStyle>
+                        <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource StrechedTreeViewItemStyle}">
+                            <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="TreeViewItem.IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}"/>
+                            <Setter Property="TreeViewItem.IsSelected" Value="{Binding Path=IsSelected, Mode=TwoWay}"/>
+                        </Style>
+                    </TreeView.ItemContainerStyle>
+                </TreeView>
+            </Border>
+            
+        </ctrl:FrostyDockablePanel>
+    </DataTemplate>
+
+</ResourceDictionary>

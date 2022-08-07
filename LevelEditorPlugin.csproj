@@ -1,0 +1,268 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+  <PropertyGroup>
+    <Configurations>MassEffect - Debug;MassEffect - Release;SWBF2 - Debug;SWBF2 - Release</Configurations>
+    <Platforms>x64</Platforms>
+    <TargetFrameworks>net48</TargetFrameworks>
+    <AssemblyTitle>LevelEditorPlugin</AssemblyTitle>
+    <Product>LevelEditorPlugin</Product>
+    <Copyright>Copyright ©  2020</Copyright>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <UseWPF>true</UseWPF>
+    <OutputType>Library</OutputType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MassEffect - Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Developer\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;MASS_EFFECT</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release - Alpha|x64' ">
+    <OutputPath>bin\Release\Alpha\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release - Beta|x64'">
+    <OutputPath>bin\Release\Beta\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MassEffect - Release|x64'">
+    <OutputPath>bin\Release\Final\</OutputPath>
+    <DefineConstants>TRACE;MASS_EFFECT</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='SWBF2 - Release|x64'">
+    <OutputPath>bin\Release\Final\</OutputPath>
+    <DefineConstants>TRACE;SWBF2</DefineConstants>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='MassEffect - Debug|net48|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='MassEffect - Release|net48|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='SWBF2 - Release|net48|x64'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='SWBF2 - Debug|net48|x64'">
+    <OutputPath>bin\Developer\Debug\</OutputPath>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;SWBF2</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release - Final|net48|x64'">
+    <DefineConstants>TRACE;MASS_EFFECT</DefineConstants>
+    <OutputPath>bin\Release\Final\</OutputPath>
+  </PropertyGroup>
+   
+  <ItemGroup>
+    <None Remove="Images\BeamBlueprintFileType.png" />
+    <None Remove="Images\Bottom.png" />
+    <None Remove="Images\BottomLeft.png" />
+    <None Remove="Images\BottomRight.png" />
+    <None Remove="Images\CaptureThumbnail.png" />
+    <None Remove="Images\ClearLayout.png" />
+    <None Remove="Images\Components.png" />
+    <None Remove="Images\ConnectorOrder.png" />
+    <None Remove="Images\Delay.png" />
+    <None Remove="Images\Float.png" />
+    <None Remove="Images\GameObjectBlueprintFileType.png" />
+    <None Remove="Images\GameView.png" />
+    <None Remove="Images\HoleMask.png" />
+    <None Remove="Images\Input.png" />
+    <None Remove="Images\Instances.png" />
+    <None Remove="Images\Interface.png" />
+    <None Remove="Images\Layers.png" />
+    <None Remove="Images\LevelDataIcon.png" />
+    <None Remove="Images\ObjectBlueprintFileType.png" />
+    <None Remove="Images\PowerBlueprintFileType.png" />
+    <None Remove="Images\ProjectileBlueprintFileType.png" />
+    <None Remove="Images\Properties.png" />
+    <None Remove="Images\Schematics.png" />
+    <None Remove="Images\SoldierBlueprintFileType.png" />
+    <None Remove="Images\Terrain.png" />
+    <None Remove="Images\ThumbnailSafezone.png" />
+    <None Remove="Images\Timeline.png" />
+    <None Remove="Images\Toolbox.png" />
+    <None Remove="Images\TopLeft.png" />
+    <None Remove="Images\TopRight.png" />
+    <None Remove="Images\Tracks\AntTrack.png" />
+    <None Remove="Images\Tracks\BoolTrack.png" />
+    <None Remove="Images\Tracks\CameraTrack.png" />
+    <None Remove="Images\Tracks\ColorTrack.png" />
+    <None Remove="Images\Tracks\ConversationTrack.png" />
+    <None Remove="Images\Tracks\DirectorTrack.png" />
+    <None Remove="Images\Tracks\DofTrack.png" />
+    <None Remove="Images\Tracks\EntityTrack.png" />
+    <None Remove="Images\Tracks\EventTrack.png" />
+    <None Remove="Images\Tracks\FaceEmotionTrack.png" />
+    <None Remove="Images\Tracks\FadeTrack.png" />
+    <None Remove="Images\Tracks\FloatTrack.png" />
+    <None Remove="Images\Tracks\LayerTrack.png" />
+    <None Remove="Images\Tracks\LookAtTrack.png" />
+    <None Remove="Images\Tracks\PathTrack.png" />
+    <None Remove="Images\Tracks\TransformTrack.png" />
+    <None Remove="Images\Tracks\Vec2Track.png" />
+    <None Remove="Images\Tracks\Vec3Track.png" />
+    <None Remove="Images\Tracks\Vec4Track.png" />
+    <None Remove="Images\Types\DetachedSubWorldFileType.png" />
+    <None Remove="Images\Types\EffectBlueprintFileType.png" />
+    <None Remove="Images\Types\LayerDataFileType.png" />
+    <None Remove="Images\Types\LensFlareBlueprintFileType.png" />
+    <None Remove="Images\Types\LevelDataFileType.png" />
+    <None Remove="Images\Types\SubWorldFileType.png" />
+    <None Remove="Images\Types\VehicleBlueprintFileType.png" />
+    <None Remove="Images\Types\VisualEnvironmentFileType.png" />
+    <None Remove="Images\UIWidgetFileType.png" />
+    <None Remove="Images\Unchecked.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FrostyControls">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyControls.dll</HintPath>
+    </Reference>
+    <Reference Include="FrostyCore">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyCore.dll</HintPath>
+    </Reference>
+    <Reference Include="FrostyHash">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyHash.dll</HintPath>
+    </Reference>
+    <Reference Include="FrostySdk">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostySdk.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="SharpDX">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Direct3D11">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.DXGI">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpDX.Mathematics">
+      <HintPath>..\FrostyToolsuite\FrostyEditor\ThirdParty\SharpDX.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="EbxClasses">
+      <HintPath>..\FrostyToolsuite\FrostySdk\Profiles\StarWarsIISDK.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System.Xaml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Images\Bottom.png" />
+    <Resource Include="Images\Components.png" />
+    <Resource Include="Images\GameView.png" />
+    <Resource Include="Images\Input.png" />
+    <Resource Include="Images\Interface.png" />
+    <Resource Include="Images\Timeline.png" />
+    <Resource Include="Images\Toolbox.png" />
+    <Resource Include="Images\Tracks\AntTrack.png" />
+    <Resource Include="Images\Tracks\BoolTrack.png" />
+    <Resource Include="Images\Tracks\CameraTrack.png" />
+    <Resource Include="Images\Tracks\ColorTrack.png" />
+    <Resource Include="Images\Tracks\ConversationTrack.png" />
+    <Resource Include="Images\Tracks\DirectorTrack.png" />
+    <Resource Include="Images\Tracks\DofTrack.png" />
+    <Resource Include="Images\Tracks\EntityTrack.png" />
+    <Resource Include="Images\Tracks\EventTrack.png" />
+    <Resource Include="Images\Tracks\FaceEmotionTrack.png" />
+    <Resource Include="Images\Tracks\FadeTrack.png" />
+    <Resource Include="Images\Tracks\FloatTrack.png" />
+    <Resource Include="Images\Tracks\LayerTrack.png" />
+    <Resource Include="Images\Tracks\LookAtTrack.png" />
+    <Resource Include="Images\Tracks\PathTrack.png" />
+    <Resource Include="Images\Tracks\TransformTrack.png" />
+    <Resource Include="Images\Tracks\Vec2Track.png" />
+    <Resource Include="Images\Tracks\Vec3Track.png" />
+    <Resource Include="Images\Tracks\Vec4Track.png" />
+    <Resource Include="Images\Types\BeamBlueprintFileType.png" />
+    <Resource Include="Images\BottomLeft.png" />
+    <Resource Include="Images\BottomRight.png" />
+    <Resource Include="Images\CaptureThumbnail.png" />
+    <Resource Include="Images\ClearLayout.png" />
+    <Resource Include="Images\ConnectorOrder.png" />
+    <Resource Include="Images\Delay.png" />
+    <Resource Include="Images\Float.png" />
+    <Resource Include="Images\Types\DetachedSubWorldFileType.png" />
+    <Resource Include="Images\Types\EffectBlueprintFileType.png" />
+    <Resource Include="Images\Types\GameObjectBlueprintFileType.png" />
+    <Resource Include="Images\HoleMask.png" />
+    <Resource Include="Images\Instances.png" />
+    <Resource Include="Images\Types\LayerDataFileType.png" />
+    <Resource Include="Images\Types\LensFlareBlueprintFileType.png" />
+    <Resource Include="Images\Types\LevelDataFileType.png" />
+    <Resource Include="Images\Types\ObjectBlueprintFileType.png" />
+    <Resource Include="Images\Types\PowerBlueprintFileType.png" />
+    <Resource Include="Images\Types\ProjectileBlueprintFileType.png" />
+    <Resource Include="Images\Schematics.png" />
+    <Resource Include="Images\Layers.png" />
+    <Resource Include="Images\LevelDataIcon.png" />
+    <Resource Include="Images\Properties.png" />
+    <Resource Include="Images\Types\SoldierBlueprintFileType.png" />
+    <Resource Include="Images\Terrain.png" />
+    <Resource Include="Images\ThumbnailSafezone.png" />
+    <Resource Include="Images\TopLeft.png" />
+    <Resource Include="Images\TopRight.png" />
+    <Resource Include="Images\Types\SubWorldFileType.png" />
+    <Resource Include="Images\Types\UIWidgetFileType.png" />
+    <Resource Include="Images\Types\VehicleBlueprintFileType.png" />
+    <Resource Include="Images\Types\VisualEnvironmentFileType.png" />
+    <Resource Include="Images\Unchecked.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="xcopy /Y $(TargetPath) C:\Frostbite\FrostyToolsSuite\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Plugins\" />
+  </Target>
+
+</Project>
