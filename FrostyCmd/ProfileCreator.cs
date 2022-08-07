@@ -556,6 +556,7 @@ namespace FrostyCmd
                     "win32/sound/music/loading/sw02_music_loading_bundleasset:db988158-79d3-489b-96d8-970deca60c67",
                     "win32/loadingscreens_bundle",
                     "win32/gameplay/bundles/sharedbundles/common/weapons/sharedbundleweapons_common",
+                    "win32/persistence/wsmppersistence",
                 };
 
                 uint[] ignoredResTypes = new uint[]
