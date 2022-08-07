@@ -219,6 +219,12 @@ namespace LevelEditorPlugin.Managers
                 }
             }
 
+            FileInfo fi = new FileInfo(LayoutsFilename);
+            if (!fi.Directory.Exists)
+            {
+                Directory.CreateDirectory(fi.DirectoryName);
+            }
+            
             using (StreamWriter streamWriter = new StreamWriter(LayoutsFilename))
             {
                 streamWriter.WriteLine(JsonConvert.SerializeObject(layouts, Formatting.Indented));
