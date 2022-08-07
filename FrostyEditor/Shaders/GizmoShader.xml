@@ -1,0 +1,25 @@
+<shader profile="*">
+	<permutations>
+		<permutation>
+			<vertexshader>
+				<vertexlayout>
+					<layoutelement usage="Pos" format="Float3"/>
+					<layoutelement usage="Normal" format="Float3"/>
+					<layoutelement usage="TexCoord0" format="Float2"/>
+				</vertexlayout>
+			</vertexshader>
+			<pixelshader>
+				<parameters>
+					<parameter name="SelectIndex" type="Float4" defaultValue="0,0,0,0"/>
+				</parameters>
+				<textures>
+					<texture name="Texture" type="2d" defaultValue="Resources/Textures/DefaultDiffuse.dds"/>
+					<texture name="SelectMask" type="2d" defaultValue="Resources/Textures/DefaultDiffuse.dds"/>
+				</textures>
+				<samplers>
+					<sampler filter="Anisotropic"/>
+				</samplers>
+			</pixelshader>
+		</permutation>
+	</permutations>
+</shader>

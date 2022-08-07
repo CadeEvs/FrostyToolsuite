@@ -1,0 +1,21 @@
+<shader profile="*">
+	<permutations>
+		<permutation>
+			<vertexshader>
+				<vertexlayout>
+					<layoutelement usage="Pos" format="Float3"/>
+					<layoutelement usage="Normal" format="Float3"/>
+				</vertexlayout>
+			</vertexshader>
+			<pixelshader>
+				<parameters>
+					<parameter name="Color" type="Float4" defaultValue="1,0,0,1"/>
+				</parameters>
+				<textures>
+				</textures>
+				<samplers>
+				</samplers>
+			</pixelshader>
+		</permutation>
+	</permutations>
+</shader>

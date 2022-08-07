@@ -288,7 +288,22 @@
     <Resource Include="Credits.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Meshes\Flag.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Meshes\Sprite.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Meshes\TranslateGizmo.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\DefaultLayer.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Textures\DefaultLightProbe.dds" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Resources\Textures\DefaultSprite.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Textures\Grid.DDS" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Shaders\character_jersey_shader.hlsl" />
     <None Include="Shaders\character_jersey_shader.xml" CopyToOutputDirectory="PreserveNewest" />
@@ -303,6 +318,57 @@
       <SubType>Designer</SubType>
     </None>
     <Resource Include="Shaders\ShaderTemplate.txt" />
+    <Content Include="Resources\Textures\Sprites\Conversation.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\Sprites\DirectionalLight.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\Sprites\GameObject.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\Sprites\Location.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\Sprites\PointLight.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\Sprites\RectLight.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\Sprites\SpotLight.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\TranslateGizmo.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Textures\TranslateGizmoSelected.dds">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\GizmoShader.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\GizmoShader.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\LevelShader.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\LevelShader.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\SpriteShader.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\SpriteShader.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\TerrainShader.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Shaders\TerrainShader.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="ThirdParty\GFSDK_SSAO_D3D11.win64.dll" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="ThirdParty\GFSDK_ShadowLib_DX11.win64.dll" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="ThirdParty\GFSDK_Txaa.win64.dll" CopyToOutputDirectory="PreserveNewest" />
@@ -375,6 +441,20 @@
     <PackageReference Include="SharpDX.XAudio2" Version="4.2.0">
       <IncludeAssets>compile</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Shaders\GizmoShader.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ClCompile>
+    <ClCompile Include="Shaders\LevelShader.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ClCompile>
+    <ClCompile Include="Shaders\SpriteShader.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ClCompile>
+    <ClCompile Include="Shaders\TerrainShader.hlsl">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
