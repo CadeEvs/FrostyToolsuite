@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using FrostySdk.Ebx;
+using TimeSpan = System.TimeSpan;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -153,7 +155,7 @@ namespace LevelEditorPlugin.Entities
                 });
 
                 List<ConnectionDesc> tmpEvents = new List<ConnectionDesc>();
-                foreach (var track in tracks)
+                foreach (TimelineTrack track in tracks)
                 {
                     tmpEvents.AddRange(track.Events);
                 }
@@ -182,7 +184,7 @@ namespace LevelEditorPlugin.Entities
                 });
 
                 List<ConnectionDesc> tmpProperties = new List<ConnectionDesc>();
-                foreach (var track in tracks)
+                foreach (TimelineTrack track in tracks)
                 {
                     tmpProperties.AddRange(track.Properties);
                 }
@@ -225,15 +227,15 @@ namespace LevelEditorPlugin.Entities
 			: base(inData, inParent)
 		{
             SetFlags(EntityFlags.HasLogic);
-            var timelineData = Data.TimelineData.GetObjectAs<FrostySdk.Ebx.TimelineData>();
-            foreach (var objPointer in timelineData.Children)
+            TimelineData timelineData = Data.TimelineData.GetObjectAs<FrostySdk.Ebx.TimelineData>();
+            foreach (PointerRef objPointer in timelineData.Children)
             {
-                var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-                var track = CreateEntity(objectData);
+                GameObjectData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+                Entity track = CreateEntity(objectData);
 
                 if (track != null)
                 {
-                    var timelineTrack = track as TimelineTrack;
+                    TimelineTrack timelineTrack = track as TimelineTrack;
                     timelineTrack.InitializeForSchematics(this);
 
                     tracks.Add(timelineTrack);
@@ -270,7 +272,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void Destroy()
         {
-            foreach (var track in tracks)
+            foreach (TimelineTrack track in tracks)
             {
                 track.Destroy();
             }    
@@ -280,12 +282,12 @@ namespace LevelEditorPlugin.Entities
 
         public Entity FindEntity(Guid instanceGuid)
         {
-            foreach (var track in tracks)
+            foreach (TimelineTrack track in tracks)
             {
                 if (track.InstanceGuid == instanceGuid)
                     return track;
 
-                var entity = track.FindEntity(instanceGuid);
+                Entity entity = track.FindEntity(instanceGuid);
                 if (entity != null)
                     return entity;
             }
@@ -295,7 +297,7 @@ namespace LevelEditorPlugin.Entities
 
         public void Update(float elapsedTime)
         {
-            foreach (var track in tracks)
+            foreach (TimelineTrack track in tracks)
             {
                 track.Update(elapsedTime);
             }

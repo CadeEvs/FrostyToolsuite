@@ -74,7 +74,7 @@ namespace LevelEditorPlugin.Editors
 
             CommandToInvoke = new RelayCommand((o) =>
             {
-                var toolbarItem = o as DockingToolbarItem;
+                DockingToolbarItem toolbarItem = o as DockingToolbarItem;
                 bool visible = dockManager.IsItemVisible(uniqueId);
 
                 if (visible || toolbarItem.DockChanged)
@@ -222,7 +222,7 @@ namespace LevelEditorPlugin.Editors
             ItemsSource = newValues as IEnumerable;
             NotifyPropertyChanged("ItemsSource");
 
-            var itemsList = ItemsSource as IList;
+            IList itemsList = ItemsSource as IList;
             if (itemsList != null)
             {
                 SelectedItem = (itemsList.Count > 0) ? itemsList[0] : null;
@@ -311,7 +311,7 @@ namespace LevelEditorPlugin.Editors
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            var foundTemplate = templates.Find(dt => (Type)dt.DataType == item.GetType());
+            DataTemplate foundTemplate = templates.Find(dt => (Type)dt.DataType == item.GetType());
             if (foundTemplate == null)
                 return templates[0];
             return foundTemplate;

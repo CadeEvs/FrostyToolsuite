@@ -38,7 +38,7 @@ namespace LevelEditorPlugin.Entities
         {
 			if (propertyHash == rotationProperty.NameHash)
             {
-				var value = rotationProperty.Value;
+				Vec3 value = rotationProperty.Value;
 				Matrix m = Matrix.RotationX(value.x) * Matrix.RotationY(value.y) * Matrix.RotationZ(value.z);
 				transformProperty.Value = MakeLinearTransform(m);
 				return;

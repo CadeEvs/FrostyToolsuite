@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using FrostySdk.Ebx;
 using LevelEditorPlugin.Converters;
 using LevelEditorPlugin.Editors;
 using LevelEditorPlugin.Managers;
+using Asset = LevelEditorPlugin.Assets.Asset;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -62,30 +64,30 @@ namespace LevelEditorPlugin.Entities
             fileGuid = parent.FileGuid;
             instanceGuid = Guid.Parse(data.__InstanceGuid.ToString());
 
-            foreach (var field in data.Fields)
+            foreach (DataField field in data.Fields)
             {
-                var property = new Property<object>(this, field.Id, null, field.Name);
+                Property<object> property = new Property<object>(this, field.Id, null, field.Name);
             }
-            foreach (var evt in data.InputEvents)
+            foreach (DynamicEvent evt in data.InputEvents)
             {
-                var theEvent = new Event<OutputEvent>(this, evt.Id);
+                Event<OutputEvent> theEvent = new Event<OutputEvent>(this, evt.Id);
             }
-            foreach (var evt in data.OutputEvents)
+            foreach (DynamicEvent evt in data.OutputEvents)
             {
-                var theEvent = new Event<InputEvent>(this, evt.Id);
+                Event<InputEvent> theEvent = new Event<InputEvent>(this, evt.Id);
             }
         }
 
         public void BeginSimulation()
         {
-            foreach (var property in properties)
+            foreach (IProperty property in properties)
             {
-                var field = data.Fields.Find(f => f.Id == property.NameHash);
+                DataField field = data.Fields.Find(f => f.Id == property.NameHash);
                 if (field.ValueRef.Type != FrostySdk.IO.PointerRefType.Null)
                 {
                     if (field.ValueRef.Type != FrostySdk.IO.PointerRefType.Internal)
                     {
-                        var assetValue = LoadedAssetManager.Instance.LoadAsset<Assets.Asset>(this, field.ValueRef);
+                        Asset assetValue = LoadedAssetManager.Instance.LoadAsset<Assets.Asset>(this, field.ValueRef);
                         property.Value = assetValue;
                         loadedAssets.Add(assetValue);
                     }
@@ -103,7 +105,7 @@ namespace LevelEditorPlugin.Entities
 
         public void EndSimulation()
         {
-            foreach (var asset in loadedAssets)
+            foreach (Asset asset in loadedAssets)
             {
                 LoadedAssetManager.Instance.UnloadAsset(asset);
             }
@@ -115,7 +117,7 @@ namespace LevelEditorPlugin.Entities
             {
                 if (queuedEvents.Count > 0)
                 {
-                    var action = queuedEvents.Dequeue();
+                    Action action = queuedEvents.Dequeue();
                     action.Invoke();
                 }
             }
@@ -127,7 +129,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddPropertyConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var property = GetProperty(srcPort);
+            IProperty property = GetProperty(srcPort);
             if (property != null)
             {
                 property.AddConnection(dstObject, dstPort);
@@ -136,7 +138,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddEventConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var evt = GetEvent(srcPort);
+            IEvent evt = GetEvent(srcPort);
             if (evt != null)
             {
                 evt.AddConnection(dstObject, dstPort);
@@ -145,7 +147,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddLinkConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var link = GetLink(srcPort);
+            ILink link = GetLink(srcPort);
             if (link != null)
             {
                 link.AddConnection(dstObject, dstPort);
@@ -169,7 +171,7 @@ namespace LevelEditorPlugin.Entities
 
         public void OnEvent(int eventHash)
         {
-            var evt = GetEvent(eventHash);
+            IEvent evt = GetEvent(eventHash);
             if (evt == null)
                 return;
 
@@ -186,7 +188,7 @@ namespace LevelEditorPlugin.Entities
 
         public virtual void OnPropertyChanged(int propertyHash)
         {
-            var property = GetProperty(propertyHash);
+            IProperty property = GetProperty(propertyHash);
             if (property != null)
             {
                 OnInterfaceOutputPropertyChanged?.Invoke(this, new InterfaceOutputPropertyChangedEventArgs(propertyHash, property.Value));
@@ -211,7 +213,7 @@ namespace LevelEditorPlugin.Entities
             {
                 queuedEvents.Enqueue(() =>
                 {
-                    var property = GetProperty(propertyHash);
+                    IProperty property = GetProperty(propertyHash);
                     if (property != null)
                     {
                         try

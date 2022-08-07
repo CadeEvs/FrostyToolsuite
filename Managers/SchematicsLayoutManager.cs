@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
+using FrostySdk.Managers;
 
 namespace LevelEditorPlugin.Managers
 {
@@ -185,9 +186,9 @@ namespace LevelEditorPlugin.Managers
 
         public void PrintLayouts(ILogger logger)
         {
-            foreach (var guid in layouts.Keys)
+            foreach (Guid guid in layouts.Keys)
             {
-                var entry = App.AssetManager.GetEbxEntry(guid);
+                EbxAssetEntry entry = App.AssetManager.GetEbxEntry(guid);
                 logger.Log(entry.Name);
             }
         }

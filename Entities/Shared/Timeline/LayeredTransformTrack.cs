@@ -1,6 +1,7 @@
 using FrostySdk;
 using LevelEditorPlugin.Editors;
 using System.Collections.Generic;
+using FrostySdk.Ebx;
 using SharpDX;
 using LinearTransform = FrostySdk.Ebx.LinearTransform;
 
@@ -22,10 +23,10 @@ namespace LevelEditorPlugin.Entities
 		public LayeredTransformTrack(FrostySdk.Ebx.LayeredTransformTrackData inData, Entity inParent)
 			: base(inData, inParent)
 		{
-			foreach (var objPointer in Data.LayerTracks)
+			foreach (PointerRef objPointer in Data.LayerTracks)
 			{
-				var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.TransformLayerData>();
-				var track = CreateEntity(objectData);
+				TransformLayerData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.TransformLayerData>();
+				Entity track = CreateEntity(objectData);
 
 				if (track != null)
 				{
@@ -49,7 +50,7 @@ namespace LevelEditorPlugin.Entities
         public override void Update(float elapsedTime)
         {
 			currentValue = Matrix.Identity;
-            foreach (var track in tracks)
+            foreach (TimelineTrack track in tracks)
             {
 				track.Update(elapsedTime);
 				currentValue = currentValue * (track as TransformLayer).CurrentValue;

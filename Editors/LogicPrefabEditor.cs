@@ -64,7 +64,7 @@ namespace LevelEditorPlugin.Editors
 
         public override List<ToolbarItem> RegisterToolbarItems()
         {
-            var items = base.RegisterToolbarItems();
+            List<ToolbarItem> items = base.RegisterToolbarItems();
             items.Add(new DockingToolbarItem("", "Show/Hide interface tab", "Images/Interface.png", new RelayCommand((o) => ViewModel.DockManager.AddItem(((DockingToolbarItem)o).Location, new InterfaceViewModel(this))), ViewModel.DockManager, "UID_LevelEditor_Interface"));
             items.Add(new DividerToolbarItem());
             items.Add(new ToggleToolbarItem("", "Enter/Exit simulation", "LevelEditorPlugin/Images/GameView.png", false, new RelayCommand((o) => { IsInGameView = !IsInGameView; (o as ToggleToolbarItem).IsToggled = IsInGameView; OnIsInGameViewChanged(); })));

@@ -87,12 +87,12 @@ namespace LevelEditorPlugin.Editors
 
         public static void SetWindowExTransparent(IntPtr hwnd)
         {
-            var extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
+            int extendedStyle = GetWindowLong(hwnd, GWL_EXSTYLE);
             SetWindowLong(hwnd, GWL_EXSTYLE, extendedStyle | WS_EX_TRANSPARENT);
         }
         public static Point GetMousePosition()
         {
-            var w32Mouse = new Win32Point();
+            Win32Point w32Mouse = new Win32Point();
             GetCursorPos(ref w32Mouse);
 
             return new Point(w32Mouse.X, w32Mouse.Y);
@@ -103,10 +103,10 @@ namespace LevelEditorPlugin.Editors
             if (e.NewValue == e.OldValue)
                 return;
 
-            var ctrl = d as Control;
+            Control ctrl = d as Control;
             if (ctrl != null)
             {
-                var dragDropSourceProvider = ctrl.DataContext as IDragDropSourceProvider;
+                IDragDropSourceProvider dragDropSourceProvider = ctrl.DataContext as IDragDropSourceProvider;
                 if (dragDropSourceProvider != null)
                 {
                     ctrl.MouseMove += (o, args) =>
@@ -137,7 +137,7 @@ namespace LevelEditorPlugin.Editors
                                     win.ShowActivated = false;
                                     win.SourceInitialized += (obj, a) =>
                                     {
-                                        var hwnd = new WindowInteropHelper(obj as Window).Handle;
+                                        IntPtr hwnd = new WindowInteropHelper(obj as Window).Handle;
                                         SetWindowExTransparent(hwnd);
                                     };
                                     win.Show();
@@ -167,10 +167,10 @@ namespace LevelEditorPlugin.Editors
             if (e.NewValue == e.OldValue)
                 return;
 
-            var ctrl = d as Control;
+            Control ctrl = d as Control;
             if (ctrl != null)
             {
-                var dragDropTargetProvider = ctrl.DataContext as IDragDropTargetProvider;
+                IDragDropTargetProvider dragDropTargetProvider = ctrl.DataContext as IDragDropTargetProvider;
                 if (dragDropTargetProvider == null)
                 {
                     dragDropTargetProvider = ctrl.TemplatedParent as IDragDropTargetProvider;
@@ -216,10 +216,10 @@ namespace LevelEditorPlugin.Editors
             if (e.NewValue == e.OldValue)
                 return;
 
-            var dataExplorer = d as FrostyDataExplorer;
+            FrostyDataExplorer dataExplorer = d as FrostyDataExplorer;
             if (dataExplorer != null)
             {
-                var listView = ReflectionUtils.GetPrivateField(typeof(FrostyDataExplorer), App.EditorWindow.DataExplorer, "assetListView") as ListView;
+                ListView listView = ReflectionUtils.GetPrivateField(typeof(FrostyDataExplorer), App.EditorWindow.DataExplorer, "assetListView") as ListView;
                 listView.MouseMove += (o, args) =>
                 {
                     if (args.LeftButton == MouseButtonState.Pressed && listView.SelectedItem != null)
@@ -247,7 +247,7 @@ namespace LevelEditorPlugin.Editors
                                 win.ShowActivated = false;
                                 win.SourceInitialized += (obj, a) =>
                                 {
-                                    var hwnd = new WindowInteropHelper(obj as Window).Handle;
+                                    IntPtr hwnd = new WindowInteropHelper(obj as Window).Handle;
                                     SetWindowExTransparent(hwnd);
                                 };
                                 win.Show();
@@ -411,15 +411,15 @@ namespace LevelEditorPlugin.Editors
         public SchematicsToolboxViewModel()
         {
             List<ToolboxFolderItem> modules = new List<ToolboxFolderItem>();
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes().Where(t => IsTypeValid(t)))
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => IsTypeValid(t)))
             {
-                var attr = type.GetCustomAttribute<EntityBindingAttribute>();
-                var dataType = attr.DataType;
-                var metaAttr = dataType.GetCustomAttribute<EbxClassMetaAttribute>();
+                EntityBindingAttribute attr = type.GetCustomAttribute<EntityBindingAttribute>();
+                Type dataType = attr.DataType;
+                EbxClassMetaAttribute metaAttr = dataType.GetCustomAttribute<EbxClassMetaAttribute>();
 
                 if (metaAttr != null)
                 {
-                    var folderItem = modules.Find(m => m.Name == metaAttr.Namespace);
+                    ToolboxFolderItem folderItem = modules.Find(m => m.Name == metaAttr.Namespace);
                     if (folderItem == null)
                     {
                         folderItem = new ToolboxFolderItem(metaAttr.Namespace);
@@ -441,7 +441,7 @@ namespace LevelEditorPlugin.Editors
                 return false;
 
             dataToDrag = new SchematicsDropData() { DataType = selectedType.Type };
-            var attr = selectedType.Type.GetCustomAttribute<EntityBindingAttribute>();
+            EntityBindingAttribute attr = selectedType.Type.GetCustomAttribute<EntityBindingAttribute>();
 
             Entity tmpEntity = (Entity)Activator.CreateInstance(selectedType.Type, new object[] { Activator.CreateInstance(attr.DataType), null });
             optionalVisual = new Controls.SchematicsPreviewControl(tmpEntity as ILogicEntity);

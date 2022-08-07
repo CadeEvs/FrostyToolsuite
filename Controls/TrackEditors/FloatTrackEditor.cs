@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using FrostySdk.Ebx;
+using FloatTrack = LevelEditorPlugin.Entities.FloatTrack;
+using TimelineEntity = LevelEditorPlugin.Entities.TimelineEntity;
 
 namespace LevelEditorPlugin.Controls.TrackEditors
 {
@@ -32,8 +35,8 @@ namespace LevelEditorPlugin.Controls.TrackEditors
             minValue = float.MaxValue;
             maxValue = float.MinValue;
 
-            var trackData = DataContext as Entities.FloatTrack;
-            var curveData = trackData.Data.CurveData.GetObjectAs<FrostySdk.Ebx.CurveData>();
+            FloatTrack trackData = DataContext as Entities.FloatTrack;
+            CurveData curveData = trackData.Data.CurveData.GetObjectAs<FrostySdk.Ebx.CurveData>();
 
             if (curveData.CurveType == FrostySdk.Ebx.CurveType.CurveType_One || curveData.CurveType == FrostySdk.Ebx.CurveType.CurveType_Zero)
             {
@@ -80,8 +83,8 @@ namespace LevelEditorPlugin.Controls.TrackEditors
         {
             base.OnRender(drawingContext);
 
-            var trackData = DataContext as Entities.FloatTrack;
-            var timeline = trackData.Timeline;
+            FloatTrack trackData = DataContext as Entities.FloatTrack;
+            TimelineEntity timeline = trackData.Timeline;
             if (timeline == null)
                 return;
 
@@ -150,10 +153,10 @@ namespace LevelEditorPlugin.Controls.TrackEditors
             }
             else if (curveData.CurveType == FrostySdk.Ebx.CurveType.CurveType_Complex)
             {
-                var lineGeometry = new PathGeometry();
+                PathGeometry lineGeometry = new PathGeometry();
                 for (int i = 1; i < points.Count; i++)
                 {
-                    var lineFigure = new PathFigure();
+                    PathFigure lineFigure = new PathFigure();
                     lineFigure.StartPoint = points[i - 1];
 
                     double aox = curveData.OutTanX[i - 1];
@@ -168,7 +171,7 @@ namespace LevelEditorPlugin.Controls.TrackEditors
                     bix = Reposition(points[i].X - (bix * 10), width);
                     biy = Reposition(points[i].Y - (biy * 10), height, true);
 
-                    var segment = new BezierSegment(new Point(aox + 5, aoy + 5), new Point(bix + 5, biy + 5), points[i], true);
+                    BezierSegment segment = new BezierSegment(new Point(aox + 5, aoy + 5), new Point(bix + 5, biy + 5), points[i], true);
 
                     lineFigure.Segments.Add(segment);
                     lineGeometry.Figures.Add(lineFigure);

@@ -3,6 +3,7 @@ using LevelEditorPlugin.Editors;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using FrostySdk.Ebx;
 using LinearTransform = FrostySdk.Ebx.LinearTransform;
 
 namespace LevelEditorPlugin.Entities
@@ -25,7 +26,7 @@ namespace LevelEditorPlugin.Entities
 				outEvents.Add(new ConnectionDesc("Start", Direction.In));
 				outEvents.Add(new ConnectionDesc("Stop", Direction.In));
 				outEvents.Add(new ConnectionDesc("OnFinished", Direction.Out));
-				foreach (var sequenceEvent in Data.Events)
+				foreach (SequenceEventData sequenceEvent in Data.Events)
 				{
 					string name = sequenceEvent.Event.Name;
 					if (outEvents.Find(e => e.Name.Equals(name)).Name != name)
@@ -41,9 +42,9 @@ namespace LevelEditorPlugin.Entities
 			get
             {
 				List<ConnectionDesc> outProperties = new List<ConnectionDesc>();
-				foreach (var trackRef in Data.PropertyTracks)
+				foreach (PointerRef trackRef in Data.PropertyTracks)
 				{
-					var track = trackRef.GetObjectAs<FrostySdk.Ebx.PropertyTrackData>();
+					PropertyTrackData track = trackRef.GetObjectAs<FrostySdk.Ebx.PropertyTrackData>();
 					if (track != null)
 					{
 						outProperties.Add(new ConnectionDesc(FrostySdk.Utils.GetString(track.Id), Direction.Out));
@@ -106,9 +107,9 @@ namespace LevelEditorPlugin.Entities
 			if (sequenceStarted)
 			{
 				long elapsedTime = timer.ElapsedMilliseconds;
-				foreach (var trackRef in Data.PropertyTracks)
+				foreach (PointerRef trackRef in Data.PropertyTracks)
 				{
-					var track = trackRef.GetObjectAs<FrostySdk.Ebx.PropertyTrackData>();
+					PropertyTrackData track = trackRef.GetObjectAs<FrostySdk.Ebx.PropertyTrackData>();
 					int index = -1;
 
 					for (int i = 0; i < track.Times.Count; i++)
@@ -121,7 +122,7 @@ namespace LevelEditorPlugin.Entities
 
 					if (track is FrostySdk.Ebx.FloatPropertyTrackData)
 					{
-						var floatTrack = track as FrostySdk.Ebx.FloatPropertyTrackData;
+						FloatPropertyTrackData floatTrack = track as FrostySdk.Ebx.FloatPropertyTrackData;
 						float currentValue = 0.0f;
 
 						if (index + 1 >= track.Times.Count)
@@ -158,7 +159,7 @@ namespace LevelEditorPlugin.Entities
 					}
 					else if (track is FrostySdk.Ebx.TransformPropertyTrackData)
 					{
-						var transformTrack = track as FrostySdk.Ebx.TransformPropertyTrackData;
+						TransformPropertyTrackData transformTrack = track as FrostySdk.Ebx.TransformPropertyTrackData;
 						LinearTransform currentValue = new LinearTransform();
 
 						if (index + 1 >= track.Times.Count)
@@ -203,7 +204,7 @@ namespace LevelEditorPlugin.Entities
 					}
 				}
 
-				foreach (var sequenceEvent in Data.Events)
+				foreach (SequenceEventData sequenceEvent in Data.Events)
 				{
 					if (prevTime < sequenceEvent.Time && elapsedTime >= sequenceEvent.Time)
 					{
@@ -226,23 +227,23 @@ namespace LevelEditorPlugin.Entities
             base.OnDataModified();
 
 			outputProperties.Clear();
-			foreach (var trackRef in Data.PropertyTracks)
+			foreach (PointerRef trackRef in Data.PropertyTracks)
 			{
-				var track = trackRef.GetObjectAs<FrostySdk.Ebx.PropertyTrackData>();
+				PropertyTrackData track = trackRef.GetObjectAs<FrostySdk.Ebx.PropertyTrackData>();
 				if (track is FrostySdk.Ebx.FloatPropertyTrackData)
 				{
-					var propTrack = new Property<float>(this, track.Id);
+					Property<float> propTrack = new Property<float>(this, track.Id);
 					outputProperties.Add(track.Id, propTrack);
 				}
 				else if (track is FrostySdk.Ebx.TransformPropertyTrackData)
 				{
-					var propTrack = new Property<LinearTransform>(this, track.Id);
+					Property<LinearTransform> propTrack = new Property<LinearTransform>(this, track.Id);
 					outputProperties.Add(track.Id, propTrack);
 				}
 			}
 
 			outputEvents.Clear();
-			foreach (var sequenceEvent in Data.Events)
+			foreach (SequenceEventData sequenceEvent in Data.Events)
 			{
 				if (!outputEvents.ContainsKey(sequenceEvent.Event.Id))
 				{

@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -118,7 +119,7 @@ namespace LevelEditorPlugin.Editors
             {
                 for (int i = 0; i < terrainEntity.Terrain.Data.TerrainLayers.Count; i++)
                 {
-                    var layer = terrainEntity.Terrain.Data.TerrainLayers[i];
+                    PointerRef layer = terrainEntity.Terrain.Data.TerrainLayers[i];
                     terrainLayers.Add(new TerrainLayer(layer.GetObjectAs<FrostySdk.Ebx.TerrainLayerData>(), i));
                 }
 
@@ -134,7 +135,7 @@ namespace LevelEditorPlugin.Editors
                 if (SelectedHoleIndex != -1)
                     terrainLayers[SelectedHoleIndex].SelectedHoleMaskPreview = false;
 
-                var layer = o as TerrainLayer;
+                TerrainLayer layer = o as TerrainLayer;
                 if (SelectedHoleIndex == layer.Index)
                 {
                     SelectedHoleIndex = -1;

@@ -3,6 +3,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using LevelEditorPlugin.Assets;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -39,7 +41,7 @@ namespace LevelEditorPlugin.Entities
 
         public override IProperty GetProperty(int nameHash)
         {
-			var property = properties.Find(p => p.NameHash == nameHash);
+			IProperty property = properties.Find(p => p.NameHash == nameHash);
 			if (property == null)
 			{
 				property = new Property<object>(this, nameHash);
@@ -70,16 +72,16 @@ namespace LevelEditorPlugin.Entities
 					dataType = dataValue.GetType();
 				}
 
-				var propertyInfos = dataType.GetProperties();
-				foreach (var property in outProperties)
+				PropertyInfo[] propertyInfos = dataType.GetProperties();
+				foreach (IProperty property in outProperties)
 				{
-					var pi = propertyInfos.FirstOrDefault(p => property.NameHash == Frosty.Hash.Fnv1.HashString(p.Name));
+					PropertyInfo pi = propertyInfos.FirstOrDefault(p => property.NameHash == Frosty.Hash.Fnv1.HashString(p.Name));
 					if (pi != null)
 					{
 						object propValue = pi.GetValue(dataValue);
 						if (pi.PropertyType == typeof(FrostySdk.Ebx.PointerRef))
 						{
-							var asset = LoadedAssetManager.Instance.LoadAsset<Assets.Asset>(this, (FrostySdk.Ebx.PointerRef)propValue);
+							Asset asset = LoadedAssetManager.Instance.LoadAsset<Assets.Asset>(this, (FrostySdk.Ebx.PointerRef)propValue);
 							loadedAssets.Add(asset);
 							propValue = asset;
 						}
@@ -94,7 +96,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void Destroy()
         {
-			foreach (var asset in loadedAssets)
+			foreach (Asset asset in loadedAssets)
 			{
 				LoadedAssetManager.Instance.UnloadAsset(asset);
 			}

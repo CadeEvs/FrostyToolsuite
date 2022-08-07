@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FrostySdk.Ebx;
+using FrostySdk.Managers;
 
 namespace LevelEditorPlugin.Extensions
 {
@@ -19,21 +21,21 @@ namespace LevelEditorPlugin.Extensions
         {
             using (NativeWriter writer = new NativeWriter(new FileStream("BlueprintAnalysis.csv", FileMode.Create)))
             {
-                foreach (var entry in App.AssetManager.EnumerateEbx())
+                foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx())
                 {
                     if (TypeLibrary.IsSubClassOf(entry.Type, "Blueprint"))
                     {
-                        var asset = App.AssetManager.GetEbx(entry);
-                        var blueprint = asset.RootObject as FrostySdk.Ebx.Blueprint;
+                        EbxAsset asset = App.AssetManager.GetEbx(entry);
+                        Blueprint blueprint = asset.RootObject as FrostySdk.Ebx.Blueprint;
 
                         if (blueprint is FrostySdk.Ebx.LogicPrefabBlueprint)
                         {
-                            var prefabBlueprint = blueprint as FrostySdk.Ebx.PrefabBlueprint;
-                            foreach (var objRef in prefabBlueprint.Objects)
+                            PrefabBlueprint prefabBlueprint = blueprint as FrostySdk.Ebx.PrefabBlueprint;
+                            foreach (PointerRef objRef in prefabBlueprint.Objects)
                             {
                                 if (objRef.Internal != null)
                                 {
-                                    var entityData = (FrostySdk.Ebx.GameObjectData)objRef.Internal;
+                                    GameObjectData entityData = (FrostySdk.Ebx.GameObjectData)objRef.Internal;
                                     int flags = (int)(entityData.Flags >> 25);
 
                                     int tmp = (int)(entityData.Flags & 0x1FFFFFF);
@@ -61,21 +63,21 @@ namespace LevelEditorPlugin.Extensions
                                     {
                                     }
 
-                                    foreach (var propConnection in prefabBlueprint.PropertyConnections)
+                                    foreach (PropertyConnection propConnection in prefabBlueprint.PropertyConnections)
                                     {
                                         if (propConnection.Source.Internal == entityData) inputPropertyCount = 1;
                                         if (propConnection.Target.Internal == entityData) outputPropertyCount = 1;
                                         if (propConnection.Source.External.ClassGuid == entityData.__InstanceGuid.ExportedGuid) inputPropertyCount = 1;
                                         if (propConnection.Target.External.ClassGuid == entityData.__InstanceGuid.ExportedGuid) outputPropertyCount = 1;
                                     }
-                                    foreach (var eventConnection in prefabBlueprint.EventConnections)
+                                    foreach (EventConnection eventConnection in prefabBlueprint.EventConnections)
                                     {
                                         if (eventConnection.Source.Internal == entityData) inputEventCount = 1;
                                         if (eventConnection.Target.Internal == entityData) outputEventCount = 1;
                                         if (eventConnection.Source.External.ClassGuid == entityData.__InstanceGuid.ExportedGuid) inputEventCount = 1;
                                         if (eventConnection.Target.External.ClassGuid == entityData.__InstanceGuid.ExportedGuid) outputEventCount = 1;
                                     }
-                                    foreach (var linkConnection in prefabBlueprint.LinkConnections)
+                                    foreach (LinkConnection linkConnection in prefabBlueprint.LinkConnections)
                                     {
                                         if (linkConnection.Source.Internal == entityData) inputLinkCount = 1;
                                         if (linkConnection.Target.Internal == entityData) outputLinkCount = 1;

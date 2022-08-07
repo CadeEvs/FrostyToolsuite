@@ -4,6 +4,8 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LevelEditorPlugin.Entities;
+using LevelEditorPlugin.Layers;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -58,8 +60,8 @@ namespace LevelEditorPlugin.Editors
         {
             entity = inEntity;
 
-            var componentEntity = entity as Entities.IComponentEntity;
-            foreach (var child in componentEntity.Components)
+            IComponentEntity componentEntity = entity as Entities.IComponentEntity;
+            foreach (Entity child in componentEntity.Components)
             {
                 if (child is Entities.IComponentEntity)
                 {
@@ -96,8 +98,8 @@ namespace LevelEditorPlugin.Editors
         {
             owner = inOwner;
 
-            var layer = owner.RootLayer;
-            var rootEntity = layer.Entities[0];
+            SceneLayer layer = owner.RootLayer;
+            Entity rootEntity = layer.Entities[0];
 
             components.Add(new ComponentWrapper(rootEntity));
             RecursiveSetSelectionChanged(components[0]);
@@ -106,7 +108,7 @@ namespace LevelEditorPlugin.Editors
         private void RecursiveSetSelectionChanged(ComponentWrapper wrapper)
         {
             wrapper.SelectionChanged += SelectedComponentChanged;
-            foreach (var child in wrapper.Children)
+            foreach (ComponentWrapper child in wrapper.Children)
                 RecursiveSetSelectionChanged(child);
         }
 

@@ -1,5 +1,6 @@
 using LevelEditorPlugin.Editors;
 using System.Collections.Generic;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -18,7 +19,7 @@ namespace LevelEditorPlugin.Entities
 
 		public void SpawnComponents()
 		{
-            foreach (var objPointer in Data.Components)
+            foreach (PointerRef objPointer in Data.Components)
             {
                 if (objPointer.Type == FrostySdk.IO.PointerRefType.External)
                 {
@@ -27,15 +28,15 @@ namespace LevelEditorPlugin.Entities
                     System.Diagnostics.Debug.Assert(false);
                 }
 
-                var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-                var component = CreateEntity(objectData);
+                GameObjectData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+                Entity component = CreateEntity(objectData);
 
                 if (component != null)
                 {
                     components.Add(component);
                     if (component is Component)
                     {
-                        var gameComponent = component as Component;
+                        Component gameComponent = component as Component;
                         gameComponent.SpawnComponents();
                     }
                 }
@@ -44,7 +45,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void Destroy()
         {
-			foreach (var component in components)
+			foreach (Entity component in components)
 			{
 				component.Destroy();
 			}

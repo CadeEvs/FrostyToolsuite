@@ -21,6 +21,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using LevelEditorPlugin.Entities;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -38,10 +39,10 @@ namespace LevelEditorPlugin.Editors
         {
             if (pr.Type == PointerRefType.External)
             {
-                var asset = LoadedAssetManager.Instance.GetEbxAsset(pr);
+                EbxAsset asset = LoadedAssetManager.Instance.GetEbxAsset(pr);
                 Debug.Assert(asset != null, "Asset was not previously loaded via the LoadedAssetManager");
 
-                var obj = asset.GetObject(pr.External.ClassGuid);
+                dynamic obj = asset.GetObject(pr.External.ClassGuid);
                 Debug.Assert(!(obj is Asset), "GetObjectAs should not be used on Assets");
 
                 if (IsTypeValid(obj.GetType(), typeof(T)))
@@ -63,7 +64,7 @@ namespace LevelEditorPlugin.Editors
 
             else if (pr.Type == PointerRefType.Internal)
             {
-                var container = pr.Internal as FrostySdk.Ebx.DataContainer;
+                DataContainer container = pr.Internal as FrostySdk.Ebx.DataContainer;
                 if (container.__InstanceGuid.IsExported)
                     return container.__InstanceGuid.ExportedGuid;
 
@@ -77,7 +78,7 @@ namespace LevelEditorPlugin.Editors
         {
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda)
             {
-                var extension = Type.GetType("LevelEditorPlugin.UtilsExtension");
+                Type extension = Type.GetType("LevelEditorPlugin.UtilsExtension");
                 if (extension != null)
                 {
                     return (bool)extension.GetMethod("IsFieldProperty", BindingFlags.Static | BindingFlags.Public).Invoke(null, new object[] { fieldName });
@@ -238,7 +239,7 @@ namespace LevelEditorPlugin.Editors
                 };
 
                 world = new EntityWorld();
-                var refObj = new Entities.WorldReferenceObject(Asset.FileGuid, RootObject as WorldData, asset, world);
+                WorldReferenceObject refObj = new Entities.WorldReferenceObject(Asset.FileGuid, RootObject as WorldData, asset, world);
 
                 rootLayer = refObj.GetLayer();
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SharpDX;
 using System.ComponentModel;
 using System.Windows.Data;
+using FrostySdk.Ebx;
 using LevelEditorPlugin.Editors;
 
 namespace LevelEditorPlugin.Entities
@@ -48,7 +49,7 @@ namespace LevelEditorPlugin.Entities
         }
         public string ConvertToString(object value, bool includeType)
         {
-            var vec = value as FrostySdk.Ebx.Vec2;
+            Vec2 vec = value as FrostySdk.Ebx.Vec2;
             return $"{((includeType) ? "Vec2 " : "")}({vec.x},{vec.y})";
         }
     }
@@ -67,7 +68,7 @@ namespace LevelEditorPlugin.Entities
         }
         public string ConvertToString(object value, bool includeType)
         {
-            var vec = value as FrostySdk.Ebx.Vec3;
+            Vec3 vec = value as FrostySdk.Ebx.Vec3;
             return $"{((includeType) ? "Vec3 " : "")}({vec.x},{vec.y},{vec.z})";
         }
     }
@@ -89,7 +90,7 @@ namespace LevelEditorPlugin.Entities
         }
         public string ConvertToString(object value, bool includeType)
         {
-            var lt = value as FrostySdk.Ebx.LinearTransform;
+            LinearTransform lt = value as FrostySdk.Ebx.LinearTransform;
             return $"{((includeType) ? "LinearTransform " : "")}({vec3ValueConverter.ConvertToString(lt.right, false)},{vec3ValueConverter.ConvertToString(lt.up, false)},{vec3ValueConverter.ConvertToString(lt.forward, false)},{vec3ValueConverter.ConvertToString(lt.trans, false)})";
         }
     }
@@ -116,9 +117,9 @@ namespace LevelEditorPlugin.Entities
             string strValue = dataField.Value;
             string[] arr = strValue.Split(new[] { ' ' }, 2);
 
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterface("IObjectStringConverter") != null))
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterface("IObjectStringConverter") != null))
             {
-                var typeProvider = type.GetCustomAttribute<TypeProviderAttribute>();
+                TypeProviderAttribute typeProvider = type.GetCustomAttribute<TypeProviderAttribute>();
                 if (typeProvider == null)
                     continue;
 
@@ -153,7 +154,7 @@ namespace LevelEditorPlugin.Entities
                         ValueRef = dataField.ValueRef
                     };
 
-                    var interfaceDesc = blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
+                    InterfaceDescriptorData interfaceDesc = blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
                     interfaceDesc.Fields.Add(dataField);
 
                     // Replace the source field with our new source field
@@ -390,9 +391,9 @@ namespace LevelEditorPlugin.Entities
 
             if (entityTypes.Count == 0)
             {
-                foreach (var type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<EntityBindingAttribute>() != null))
+                foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<EntityBindingAttribute>() != null))
                 {
-                    var attr = type.GetCustomAttribute<EntityBindingAttribute>();
+                    EntityBindingAttribute attr = type.GetCustomAttribute<EntityBindingAttribute>();
                     entityTypes.Add(attr.DataType, type);
                 }
             }
@@ -417,7 +418,7 @@ namespace LevelEditorPlugin.Entities
         }
         public static Entity CreateEntity(FrostySdk.Ebx.GameObjectData objectData, Guid blueprintGuid, EntityWorld inWorld)
         {
-            var entity = CreateEntity(objectData, null, inWorld);
+            Entity entity = CreateEntity(objectData, null, inWorld);
             entity.fileGuid = blueprintGuid;
             return entity;
         }

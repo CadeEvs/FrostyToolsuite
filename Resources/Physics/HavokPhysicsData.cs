@@ -11,6 +11,7 @@ using System.IO;
 using FrostySdk;
 using Frosty.Core.Mod;
 using Frosty.Core.IO;
+using LevelEditorPlugin.Resources.Hkx;
 
 namespace LevelEditorPlugin.Resources
 {
@@ -735,7 +736,7 @@ namespace LevelEditorPlugin.Resources
             public override void SaveInternal(NativeWriter writer)
             {
                 writer.Write(modifiedTransforms.Count);
-                foreach (var kvp in modifiedTransforms)
+                foreach (KeyValuePair<int, Matrix> kvp in modifiedTransforms)
                 {
                     writer.Write(kvp.Key);
 
@@ -991,12 +992,12 @@ namespace LevelEditorPlugin.Resources
 
                 // write 64bit
                 {
-                    foreach (var obj in (inst64.Objects[0] as Hkx.HavokPhysicsContainer).Objects)
+                    foreach (hkBaseClass obj in (inst64.Objects[0] as Hkx.HavokPhysicsContainer).Objects)
                     {
                         // reset the static compound shape data tree, this is a hack and is sure to come with some
                         // performance implications, but it works for now.
 
-                        var staticCompoundShape = obj as Hkx.hknpStaticCompoundShape;
+                        hknpStaticCompoundShape staticCompoundShape = obj as Hkx.hknpStaticCompoundShape;
                         if (staticCompoundShape.ShapeData != null)
                         {
                             writer.Position = staticCompoundShape.ShapeData.ArrayOffset;
@@ -1008,12 +1009,12 @@ namespace LevelEditorPlugin.Resources
                         }
 
                         int index = 0;
-                        foreach (var instance in (obj as Hkx.hknpStaticCompoundShape).Instances)
+                        foreach (hknpStaticCompoundShape.hknpInstance instance in (obj as Hkx.hknpStaticCompoundShape).Instances)
                         {
                             Matrix transform;
                             if (modifiedData.GetTransform(index, out transform))
                             {
-                                var shape = instance.shape as Hkx.hknpShape;
+                                hknpShape shape = instance.shape as Hkx.hknpShape;
                                 if (shape != null && (shape.unknown & 0x10) != 0)
                                 {
                                     transform = Matrix.Scaling(-1, 1, 1) * transform;
@@ -1071,9 +1072,9 @@ namespace LevelEditorPlugin.Resources
             if (modifiedData.GetTransform(index, out outTransform))
                 return outTransform;
 
-            var preScale = Matrix.Identity;
-            var instance = RootShape.Instances[(int)index];
-            var shape = instance.shape as Hkx.hknpShape;
+            Matrix preScale = Matrix.Identity;
+            hknpStaticCompoundShape.hknpInstance instance = RootShape.Instances[(int)index];
+            hknpShape shape = instance.shape as Hkx.hknpShape;
 
             if (shape != null && (shape.unknown & 0x10) != 0)
             {
@@ -1090,7 +1091,7 @@ namespace LevelEditorPlugin.Resources
 
         public string GetPhysicsShapeType(int index)
         {
-            var instance = RootShape.Instances[index];
+            hknpStaticCompoundShape.hknpInstance instance = RootShape.Instances[index];
             return instance.shape.GetType().Name;
         }
 
@@ -1153,7 +1154,7 @@ namespace LevelEditorPlugin.Resources
 
         public object Load(object existing, byte[] newData)
         {
-            var newPhysicsData = ModifiedResource.Read(newData) as HavokPhysicsData.HavokPhysicsDataModifiedResource;
+            HavokPhysicsData.HavokPhysicsDataModifiedResource newPhysicsData = ModifiedResource.Read(newData) as HavokPhysicsData.HavokPhysicsDataModifiedResource;
             return newPhysicsData;
         }
 

@@ -19,7 +19,7 @@ namespace LevelEditorPlugin.Converters
 
             if (value is DataField)
             {
-                var dataField = (DataField)value;
+                DataField dataField = (DataField)value;
                 string strValue = dataField.Value;
                 arr = strValue.Split(new[] { ' ' }, 2);
             }
@@ -29,9 +29,9 @@ namespace LevelEditorPlugin.Converters
             }
 
             IObjectStringConverter valueConverter = null;
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterface("IObjectStringConverter") != null))
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterface("IObjectStringConverter") != null))
             {
-                var typeProvider = type.GetCustomAttribute<TypeProviderAttribute>();
+                TypeProviderAttribute typeProvider = type.GetCustomAttribute<TypeProviderAttribute>();
                 if (typeProvider == null)
                     continue;
 
@@ -57,9 +57,9 @@ namespace LevelEditorPlugin.Converters
             IObjectStringConverter valueConverter = null;
             if (value != null)
             {
-                foreach (var type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterface("IObjectStringConverter") != null))
+                foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetInterface("IObjectStringConverter") != null))
                 {
-                    var typeProvider = type.GetCustomAttribute<TypeProviderAttribute>();
+                    TypeProviderAttribute typeProvider = type.GetCustomAttribute<TypeProviderAttribute>();
                     if (typeProvider == null)
                         continue;
 

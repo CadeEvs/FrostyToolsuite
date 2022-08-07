@@ -321,7 +321,7 @@ namespace LevelEditorPlugin.Resources
 
             loadNodes(reader, id, ref index, rootNodeId, treeCoverage);
 
-            foreach (var subTile in subtiles)
+            foreach (TerrainMaskTreeNode.Subtile subTile in subtiles)
             {
                 if (subTile.terrainLayerIndex + 1 > maxLayerCount)
                     maxLayerCount = (uint)(subTile.terrainLayerIndex + 1);

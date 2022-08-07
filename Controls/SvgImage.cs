@@ -63,7 +63,7 @@ namespace LevelEditorPlugin.Controls
             Size size = new Size(0, 0);
             if (Data != null && Data.Geometries != null)
             {
-                foreach (var geom in Data.Geometries)
+                foreach (SvgImageData.SvgGeometry geom in Data.Geometries)
                 {
                     Size tmp = GetStretchedRenderSize(Stretch.Uniform, geom.Stroke.Thickness, constraint, geom.Geometry.Bounds);
                     size.Width = (tmp.Width > size.Width) ? tmp.Width : size.Width;

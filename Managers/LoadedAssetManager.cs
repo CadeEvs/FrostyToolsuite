@@ -43,7 +43,7 @@ namespace LevelEditorPlugin.Managers
 
         public T LoadAsset<T>(Guid assetFileGuid) where T : Asset
         {
-            var entry = App.AssetManager.GetEbxEntry(assetFileGuid);
+            EbxAssetEntry entry = App.AssetManager.GetEbxEntry(assetFileGuid);
             if (entry == null)
                 return default(T);
             return LoadAsset<T>(new EbxImportReference() { FileGuid = entry.Guid, ClassGuid = Guid.Empty });
@@ -103,7 +103,7 @@ namespace LevelEditorPlugin.Managers
 
         public T LoadAsset<T>(string assetPath) where T : Asset
         {
-            var entry = App.AssetManager.GetEbxEntry(assetPath);
+            EbxAssetEntry entry = App.AssetManager.GetEbxEntry(assetPath);
             if (entry == null)
                 return default(T);
             return LoadAsset<T>(new EbxImportReference() { FileGuid = entry.Guid, ClassGuid = Guid.Empty });
@@ -134,7 +134,7 @@ namespace LevelEditorPlugin.Managers
                     return default(T);
                 }
 
-                var loadedAssetInfo = new LoadedAssetInfo() { LoadedAsset = loadedAsset, EbxAsset = ebxAsset };
+                LoadedAssetInfo loadedAssetInfo = new LoadedAssetInfo() { LoadedAsset = loadedAsset, EbxAsset = ebxAsset };
                 loadedAssets.Add(importRefr, loadedAssetInfo);   
             }
 
@@ -186,7 +186,7 @@ namespace LevelEditorPlugin.Managers
             if (!loadedAssets.ContainsKey(importRefr))
                 return;
 
-            var entry = App.AssetManager.GetEbxEntry(asset.FileGuid);
+            EbxAssetEntry entry = App.AssetManager.GetEbxEntry(asset.FileGuid);
             EbxAsset ebxAsset = loadedEbx[importRefr.FileGuid].EbxAsset;
             PopState(entry, loadedEbx[importRefr.FileGuid], ebxAsset);
         }
@@ -232,9 +232,9 @@ namespace LevelEditorPlugin.Managers
         {
             if (assetTypes.Count == 0)
             {
-                foreach (var type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<AssetBindingAttribute>() != null))
+                foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<AssetBindingAttribute>() != null))
                 {
-                    foreach (var attr in type.GetCustomAttributes<AssetBindingAttribute>())
+                    foreach (AssetBindingAttribute attr in type.GetCustomAttributes<AssetBindingAttribute>())
                     {
                         if (assetTypes.ContainsKey(attr.DataType))
                         {

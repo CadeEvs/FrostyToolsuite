@@ -212,24 +212,24 @@ namespace LevelEditorPlugin.Editors
             owner.OnInterfaceOutputEventTriggered += InterfaceOutputEventTriggered;
             if (owner.Interface != null)
             {
-                foreach (var dataField in owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Target || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
+                foreach (DataField dataField in owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Target || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
                 {
                     interfaceVars.Add(new InputPropertyViewModel(dataField, new RelayCommand(OnPushPropertyCommand)));
                 }
 
-                foreach (var evt in owner.Interface.Data.InputEvents)
+                foreach (DynamicEvent evt in owner.Interface.Data.InputEvents)
                 {
                     interfaceVars.Add(new InputEventViewModel(evt, new RelayCommand(OnPushEventCommand)));
                 }
 
                 // @todo: input links
 
-                foreach (var dataField in owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Source || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
+                foreach (DataField dataField in owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Source || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
                 {
                     interfaceVars.Add(new OutputPropertyViewModel(dataField));
                 }
 
-                foreach (var evt in owner.Interface.Data.OutputEvents)
+                foreach (DynamicEvent evt in owner.Interface.Data.OutputEvents)
                 {
                     interfaceVars.Add(new OutputEventViewModel(evt));
                 }
@@ -240,33 +240,33 @@ namespace LevelEditorPlugin.Editors
 
         private void InterfaceOutputEventTriggered(object sender, InterfaceOutputEventTriggeredEventArgs e)
         {
-            var value = interfaceVars.FirstOrDefault(i => (i is OutputEventViewModel) && (i as OutputEventViewModel).Hash == e.EventHash);
+            object value = interfaceVars.FirstOrDefault(i => (i is OutputEventViewModel) && (i as OutputEventViewModel).Hash == e.EventHash);
             if (value != null)
             {
-                var outputEvent = value as OutputEventViewModel;
+                OutputEventViewModel outputEvent = value as OutputEventViewModel;
                 outputEvent.Triggered = true;
             }
         }
 
         private void InterfaceOutputPropertyChanged(object sender, InterfaceOutputPropertyChangedEventArgs e)
         {
-            var value = interfaceVars.FirstOrDefault(i => (i is OutputPropertyViewModel) && (i as OutputPropertyViewModel).Hash == e.PropertyHash);
+            object value = interfaceVars.FirstOrDefault(i => (i is OutputPropertyViewModel) && (i as OutputPropertyViewModel).Hash == e.PropertyHash);
             if (value != null)
             {
-                var outputProperty = value as OutputPropertyViewModel;
+                OutputPropertyViewModel outputProperty = value as OutputPropertyViewModel;
                 outputProperty.Value = (string)new DataFieldToValueConverter().ConvertBack(e.NewValue, typeof(string), null, null);
             }
         }
 
         private void OnPushPropertyCommand(object o)
         {
-            var property = o as InputPropertyViewModel;
+            InputPropertyViewModel property = o as InputPropertyViewModel;
             owner.InterfacePropertyPushed(property.Hash, property.Value);
         }
 
         private void OnPushEventCommand(object o)
         {
-            var evt = o as InputEventViewModel;
+            InputEventViewModel evt = o as InputEventViewModel;
             owner.InterfaceEventPushed(evt.Hash);
         }
 

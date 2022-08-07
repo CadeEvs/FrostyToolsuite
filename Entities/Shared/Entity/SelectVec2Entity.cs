@@ -33,7 +33,7 @@ namespace LevelEditorPlugin.Entities
 			for (int i = 0; i < inData.Inputs.Count; i++)
 			{
 				int selectEvent = Frosty.Hash.Fnv1.HashString($"Select{i} {inData.Inputs[i]}");
-				var property = new Property<Vec2>(this, Frosty.Hash.Fnv1.HashString($"In{i} {inData.Inputs[i]}"));
+				Property<Vec2> property = new Property<Vec2>(this, Frosty.Hash.Fnv1.HashString($"In{i} {inData.Inputs[i]}"));
 
 				inputProperties.Add(property);
 				selectEvents.Add(new Event<InputEvent>(this, selectEvent));

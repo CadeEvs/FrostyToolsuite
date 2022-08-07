@@ -31,7 +31,7 @@ namespace LevelEditorPlugin.Entities
         public override void CreateRenderProxy(List<RenderProxy> proxies, RenderCreateState state)
         {
             Terrain.LoadResource(state);
-            foreach (var chunk in Terrain.TerrainData.TerrainChunks)
+            foreach (TerrainChunkRenderable chunk in Terrain.TerrainData.TerrainChunks)
                 proxies.Add(new TerrainRenderProxy(state, this, chunk));
 
             SetFlags(EntityFlags.RenderProxyGenerated);

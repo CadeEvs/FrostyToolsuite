@@ -20,6 +20,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using Frosty.Core.Managers;
+using DisplayNameAttribute = FrostySdk.Attributes.DisplayNameAttribute;
 using PointerRef = FrostySdk.Ebx.PointerRef;
 
 namespace LevelEditorPlugin.Editors
@@ -32,7 +33,7 @@ namespace LevelEditorPlugin.Editors
             get
             {
                 IList tmpList = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(ListType));
-                foreach (var pr in DataList)
+                foreach (PointerRef pr in DataList)
                 {
                     tmpList.Add(pr.GetObjectAs<object>());
                 }
@@ -88,18 +89,18 @@ namespace LevelEditorPlugin.Editors
             if (e.NewValue == null)
                 return;
 
-            var propertyGrid = d as Frosty.Core.Controls.FrostyPropertyGrid;
+            FrostyPropertyGrid propertyGrid = d as Frosty.Core.Controls.FrostyPropertyGrid;
 
-            var fieldInfo = propertyGrid.GetType().GetField("items", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var items = (ObservableCollection<Frosty.Core.Controls.FrostyPropertyGridItemData>)fieldInfo.GetValue(propertyGrid);
-            var args = e.NewValue as PropertyGridRefreshArgs;
+            FieldInfo fieldInfo = propertyGrid.GetType().GetField("items", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            ObservableCollection<FrostyPropertyGridItemData> items = (ObservableCollection<Frosty.Core.Controls.FrostyPropertyGridItemData>)fieldInfo.GetValue(propertyGrid);
+            PropertyGridRefreshArgs args = e.NewValue as PropertyGridRefreshArgs;
 
-            foreach (var item in items)
+            foreach (FrostyPropertyGridItemData item in items)
             {
                 if (item.DisplayName.Equals("Properties"))
                     continue;
 
-                foreach (var subItem in item.Children)
+                foreach (FrostyPropertyGridItemData subItem in item.Children)
                 {
                     UpdateChildItems(subItem, args.PathToCheck, args.Data, args.SuppressCallbacks);
                 }
@@ -109,12 +110,12 @@ namespace LevelEditorPlugin.Editors
         {
             if (item.HasItems)
             {
-                foreach (var subItem in item.Children)
+                foreach (FrostyPropertyGridItemData subItem in item.Children)
                 {
-                    var pi = data.GetType().GetProperty(item.Name);
+                    PropertyInfo pi = data.GetType().GetProperty(item.Name);
                     object subData = pi.GetValue(data);
 
-                    var valueConverter = item.GetType().GetField("_valueConverter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(item) as IValueConverter;
+                    IValueConverter valueConverter = item.GetType().GetField("_valueConverter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(item) as IValueConverter;
                     if (valueConverter != null)
                         subData = valueConverter.Convert(subData, null, null, System.Globalization.CultureInfo.CurrentCulture);
 
@@ -134,7 +135,7 @@ namespace LevelEditorPlugin.Editors
                 {
                     if (pathToCheck == null || item.Path == pathToCheck)
                     {
-                        var pi = data.GetType().GetProperty(item.Name);
+                        PropertyInfo pi = data.GetType().GetProperty(item.Name);
                         object subData = item.Binding.GetValue();
 
                         if (pi != null)
@@ -142,7 +143,7 @@ namespace LevelEditorPlugin.Editors
                             subData = pi.GetValue(data);
                         }
 
-                        var valueConverter = item.GetType().GetField("_valueConverter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(item) as IValueConverter;
+                        IValueConverter valueConverter = item.GetType().GetField("_valueConverter", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(item) as IValueConverter;
                         if (valueConverter != null)
                             subData = valueConverter.Convert(subData, null, null, System.Globalization.CultureInfo.CurrentCulture);
 
@@ -202,7 +203,7 @@ namespace LevelEditorPlugin.Editors
                 index = ((ArrayItemValueBinding)item.Binding).index;
             }
 
-            var binding = item.Binding;
+            IValueBinding binding = item.Binding;
             if (binding != null)
             {
                 binding.SetValue(value);
@@ -258,21 +259,21 @@ namespace LevelEditorPlugin.Editors
             if (e.NewValue == null)
                 return;
 
-            var overrideValues = e.NewValue as IEnumerable<PropertyValue>;
+            IEnumerable<PropertyValue> overrideValues = e.NewValue as IEnumerable<PropertyValue>;
             if (overrideValues.Count() == 0)
                 return;
 
-            var propertyGrid = d as FrostyPropertyGrid;
-            var fieldInfo = propertyGrid.GetType().GetField("items", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var items = (ObservableCollection<FrostyPropertyGridItemData>)fieldInfo.GetValue(propertyGrid);
-            var categoryItem = new FrostyPropertyGridItemData(PropertiesCategory) { IsCategory = true };
+            FrostyPropertyGrid propertyGrid = d as FrostyPropertyGrid;
+            FieldInfo fieldInfo = propertyGrid.GetType().GetField("items", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            ObservableCollection<FrostyPropertyGridItemData> items = (ObservableCollection<FrostyPropertyGridItemData>)fieldInfo.GetValue(propertyGrid);
+            FrostyPropertyGridItemData categoryItem = new FrostyPropertyGridItemData(PropertiesCategory) { IsCategory = true };
 
             categoryItem.Modified += (o, ev) => { propertyGrid.GetType().GetMethod("SubItem_Modified", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(propertyGrid, new[] { o, ev }); };
             categoryItem.PreModified += (o, ev) => { propertyGrid.GetType().GetMethod("SubItem_PreModified", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).Invoke(propertyGrid, new[] { o, ev }); };
 
-            foreach (var overrideValue in overrideValues)
+            foreach (PropertyValue overrideValue in overrideValues)
             {
-                var pgid = new FrostyPropertyGridItemData(overrideValue.Name, overrideValue.Name, overrideValue.Value, "", categoryItem);
+                FrostyPropertyGridItemData pgid = new FrostyPropertyGridItemData(overrideValue.Name, overrideValue.Name, overrideValue.Value, "", categoryItem);
                 categoryItem.Children.Add(pgid);
             }
 
@@ -300,32 +301,32 @@ namespace LevelEditorPlugin.Editors
                 return;
 
             Type objectType = e.NewValue.GetType();
-            var propertyGrid = d as FrostyPropertyGrid;
+            FrostyPropertyGrid propertyGrid = d as FrostyPropertyGrid;
             List<FrostyPropertyGridItemData> childItems = new List<FrostyPropertyGridItemData>();
-            var categoryItem = new FrostyPropertyGridItemData(MockDataCategory) { IsCategory = true };
+            FrostyPropertyGridItemData categoryItem = new FrostyPropertyGridItemData(MockDataCategory) { IsCategory = true };
 
             if (objectType == typeof(WrappedListMockData))
             {
-                var listData = e.NewValue as WrappedListMockData;
-                var pgid = new FrostyPropertyGridItemData("Items", "Items", listData.DataList, "", categoryItem);
+                WrappedListMockData listData = e.NewValue as WrappedListMockData;
+                FrostyPropertyGridItemData pgid = new FrostyPropertyGridItemData("Items", "Items", listData.DataList, "", categoryItem);
 
                 pgid.Attributes.Add(new EbxFieldMetaAttribute(FrostySdk.IO.EbxFieldType.Array, listData.ListType.Name, FrostySdk.IO.EbxFieldType.Pointer));
                 childItems.Add(pgid);
             }
             else
             {
-                var pis = objectType.GetProperties();
+                PropertyInfo[] pis = objectType.GetProperties();
                 if (pis.Length == 0)
                     return;
 
                 Array.Sort(pis, new PropertyComparer());
 
-                foreach (var pi in pis)
+                foreach (PropertyInfo pi in pis)
                 {
-                    var displayNameAttr = pi.GetCustomAttribute<FrostySdk.Attributes.DisplayNameAttribute>();
+                    DisplayNameAttribute displayNameAttr = pi.GetCustomAttribute<FrostySdk.Attributes.DisplayNameAttribute>();
                     string displayName = (displayNameAttr != null) ? displayNameAttr.Name : pi.Name;
 
-                    var pgid = new FrostyPropertyGridItemData(displayName, pi.Name, pi.GetValue(e.NewValue), "", categoryItem);
+                    FrostyPropertyGridItemData pgid = new FrostyPropertyGridItemData(displayName, pi.Name, pi.GetValue(e.NewValue), "", categoryItem);
                     pgid.Binding = new PropertyValueBinding(pi, e.NewValue);
                     pgid.Attributes.AddRange(pi.GetCustomAttributes<Attribute>());
 
@@ -335,13 +336,13 @@ namespace LevelEditorPlugin.Editors
 
             if (childItems.Count > 0)
             {
-                var fieldInfo = propertyGrid.GetType().GetField("items", BindingFlags.NonPublic | BindingFlags.Instance);
-                var items = (ObservableCollection<FrostyPropertyGridItemData>)fieldInfo.GetValue(propertyGrid);
+                FieldInfo fieldInfo = propertyGrid.GetType().GetField("items", BindingFlags.NonPublic | BindingFlags.Instance);
+                ObservableCollection<FrostyPropertyGridItemData> items = (ObservableCollection<FrostyPropertyGridItemData>)fieldInfo.GetValue(propertyGrid);
 
                 categoryItem.Modified += (o, ev) => { propertyGrid.GetType().GetMethod("SubItem_Modified", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(propertyGrid, new[] { o, ev }); };
                 categoryItem.PreModified += (o, ev) => { propertyGrid.GetType().GetMethod("SubItem_PreModified", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(propertyGrid, new[] { o, ev }); };
 
-                foreach (var childItem in childItems)
+                foreach (FrostyPropertyGridItemData childItem in childItems)
                 {
                     categoryItem.Children.Add(childItem);
                 }
@@ -481,10 +482,10 @@ namespace LevelEditorPlugin.Editors
 
         private void PropertyGridModified(object args)
         {
-            var e = args as ItemModifiedEventArgs;
+            ItemModifiedEventArgs e = args as ItemModifiedEventArgs;
 
-            var modifiedArgs = e.ModifiedArgs;
-            var binding = e.Item.Binding;
+            ItemModifiedTypeArgs modifiedArgs = e.ModifiedArgs;
+            IValueBinding binding = e.Item.Binding;
             string pathToCheck = e.Item.Path;
             object oldValue = e.OldValue;
 
@@ -498,7 +499,7 @@ namespace LevelEditorPlugin.Editors
                         case ItemModifiedTypes.Insert:
                         {
                             // remove array element
-                            var list = binding.GetValue() as IList;
+                            IList list = binding.GetValue() as IList;
                             list.RemoveAt(e.ModifiedArgs.Index);
                             break;
                         }
@@ -506,7 +507,7 @@ namespace LevelEditorPlugin.Editors
                         case ItemModifiedTypes.Remove:
                         {
                             // add array item
-                            var list = binding.GetValue() as IList;
+                            IList list = binding.GetValue() as IList;
                             list.Insert(e.ModifiedArgs.Index, e.OldValue);
                             break;
                         }
@@ -514,8 +515,8 @@ namespace LevelEditorPlugin.Editors
                         case ItemModifiedTypes.Clear:
                         {
                             // add all items back
-                            var list = binding.GetValue() as IList;
-                            var oldList = e.OldValue as IList;
+                            IList list = binding.GetValue() as IList;
+                            IList oldList = e.OldValue as IList;
 
                             for (int i = 0; i < oldList.Count; i++)
                             {
@@ -549,11 +550,11 @@ namespace LevelEditorPlugin.Editors
             if (e.Item.Parent.DisplayName == PropertyGridExtension.PropertiesCategory)
             {
                 // find and update the property value
-                var propertyValue = selectedEntity.GetPropertyValues().Find(pv => pv.Name.Equals(e.Item.Name));
+                PropertyValue propertyValue = selectedEntity.GetPropertyValues().Find(pv => pv.Name.Equals(e.Item.Name));
                 propertyValue.SetValue(e.NewValue);
 
                 // find the owner of the property values for this entity and update
-                var parent = selectedEntity.FindAncestor<SubWorldReferenceObject>();
+                SubWorldReferenceObject parent = selectedEntity.FindAncestor<SubWorldReferenceObject>();
                 LoadedAssetManager.Instance.UpdateAsset(parent.Blueprint);
             }
             else if (e.Item.Parent.DisplayName == PropertyGridExtension.MockDataCategory)

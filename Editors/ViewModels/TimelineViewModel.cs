@@ -14,6 +14,8 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using LevelEditorPlugin.Entities;
+using LevelEditorPlugin.Layers;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -47,7 +49,7 @@ namespace LevelEditorPlugin.Editors
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var timeline = value as Entities.TimelineEntity;
+            TimelineEntity timeline = value as Entities.TimelineEntity;
             if (timeline != null)
             {
                 string strValue = timeline.Data.__Id;
@@ -118,7 +120,7 @@ namespace LevelEditorPlugin.Editors
                 icon = IconCache.Instance.GetIcon(track.Icon);
             }
 
-            foreach (var childTrack in track.Tracks)
+            foreach (TimelineTrack childTrack in track.Tracks)
             {
                 tracks.Add(new TrackWrapper(childTrack, layerEntity));
             }
@@ -187,7 +189,7 @@ namespace LevelEditorPlugin.Editors
             track.SelectionChanged += (o, e) => { IsSelected = track.IsSelected; };
             isExpanded = track.IsExpanded;
 
-            foreach (var childTrack in track.Tracks)
+            foreach (TrackWrapper childTrack in track.Tracks)
             {
                 dataTracks.Add(new TrackDataWrapper(childTrack));
             }
@@ -321,7 +323,7 @@ namespace LevelEditorPlugin.Editors
 
         public void Initialize(object obj)
         {
-            var layer = (owner as IEditorProvider).RootLayer;
+            SceneLayer layer = (owner as IEditorProvider).RootLayer;
             if (owner is SpatialEditor)
             {
                 layer = (owner as SpatialEditor).SelectedLayer;
@@ -369,7 +371,7 @@ namespace LevelEditorPlugin.Editors
             wrapper.SelectionChanged += SelectedTrackChanged;
             wrapper.SelectEntityInScene += SelectEntityInScene;
 
-            foreach (var child in wrapper.Tracks)
+            foreach (TrackWrapper child in wrapper.Tracks)
                 RecursiveSetSelectionChanged(child);
         }
 
@@ -407,11 +409,11 @@ namespace LevelEditorPlugin.Editors
                 List<TrackWrapper> newTracks = new List<TrackWrapper>();
                 List<TrackDataWrapper> newDataTracks = new List<TrackDataWrapper>();
 
-                var refEntity = selectedLayer.Entity as Entities.ReferenceObject;
-                foreach (var track in selectedTimeline.Tracks)
+                ReferenceObject refEntity = selectedLayer.Entity as Entities.ReferenceObject;
+                foreach (TimelineTrack track in selectedTimeline.Tracks)
                 {
-                    var trackWrapper = new TrackWrapper(track, refEntity);
-                    var dataWrapper = new TrackDataWrapper(trackWrapper);
+                    TrackWrapper trackWrapper = new TrackWrapper(track, refEntity);
+                    TrackDataWrapper dataWrapper = new TrackDataWrapper(trackWrapper);
 
                     RecursiveSetSelectionChanged(trackWrapper);
 

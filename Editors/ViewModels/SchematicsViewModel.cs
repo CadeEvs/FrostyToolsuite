@@ -23,6 +23,10 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Frosty.Core.Managers;
+using FrostySdk.Ebx;
+using LevelEditorPlugin.Entities;
+using Entity = LevelEditorPlugin.Entities.Entity;
+using Window = System.Windows.Window;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -91,8 +95,8 @@ namespace LevelEditorPlugin.Editors
 
             private void SimulationThread(object state)
             {
-                var dispatcherReady = new TaskCompletionSource<Dispatcher>();
-                var dispatcherThread = new Thread(() =>
+                TaskCompletionSource<Dispatcher> dispatcherReady = new TaskCompletionSource<Dispatcher>();
+                Thread dispatcherThread = new Thread(() =>
                 {
                     dispatcherReady.SetResult(Dispatcher.CurrentDispatcher);
                     Dispatcher.Run();
@@ -171,7 +175,7 @@ namespace LevelEditorPlugin.Editors
 
         public void Initialize()
         {
-            foreach (var entity in Entities)
+            foreach (Entity entity in Entities)
             {
                 if (entity is Entities.ReferenceObject)
                 {
@@ -264,7 +268,7 @@ namespace LevelEditorPlugin.Editors
 
         private static void OnLoadedCommandChanged(DependencyObject depObj, DependencyPropertyChangedEventArgs e)
         {
-            var frameworkElement = depObj as FrameworkElement;
+            FrameworkElement frameworkElement = depObj as FrameworkElement;
             if (frameworkElement != null && e.NewValue is ICommand)
             {
                 frameworkElement.Loaded
@@ -287,7 +291,7 @@ namespace LevelEditorPlugin.Editors
 
         private static void OnUnloadedCommandChanged(DependencyObject depObj, DependencyPropertyChangedEventArgs e)
         {
-            var frameworkElement = depObj as FrameworkElement;
+            FrameworkElement frameworkElement = depObj as FrameworkElement;
             if (frameworkElement != null && e.NewValue is ICommand)
             {
                 frameworkElement.Unloaded
@@ -310,16 +314,16 @@ namespace LevelEditorPlugin.Editors
 
         private static void OnHideCommandChanged(DependencyObject depObj, DependencyPropertyChangedEventArgs e)
         {
-            var frameworkElement = depObj as FrameworkElement;
+            FrameworkElement frameworkElement = depObj as FrameworkElement;
             if (frameworkElement != null && e.NewValue is ICommand)
             {
-                var parent = VisualTreeHelper.GetParent(frameworkElement);
+                DependencyObject parent = VisualTreeHelper.GetParent(frameworkElement);
                 while (parent != null && !(parent is Window))
                     parent = VisualTreeHelper.GetParent(parent);
 
                 if (parent != null)
                 {
-                    var window = parent as Window;
+                    Window window = parent as Window;
                     window.IsVisibleChanged += (o, args) =>
                     {
                         if (!(o as Window).IsVisible)
@@ -341,16 +345,16 @@ namespace LevelEditorPlugin.Editors
 
         private static void OnShowCommandChanged(DependencyObject depObj, DependencyPropertyChangedEventArgs e)
         {
-            var frameworkElement = depObj as FrameworkElement;
+            FrameworkElement frameworkElement = depObj as FrameworkElement;
             if (frameworkElement != null && e.NewValue is ICommand)
             {
-                var parent = VisualTreeHelper.GetParent(frameworkElement);
+                DependencyObject parent = VisualTreeHelper.GetParent(frameworkElement);
                 while (parent != null && !(parent is Window))
                     parent = VisualTreeHelper.GetParent(parent);
 
                 if (parent != null)
                 {
-                    var window = parent as Window;
+                    Window window = parent as Window;
                     window.IsVisibleChanged += (o, args) =>
                     {
                         if ((o as Window).IsVisible)
@@ -380,12 +384,12 @@ namespace LevelEditorPlugin.Editors
         }
         private static void OnSelectedItemChangedCommandChanged(DependencyObject depObj, DependencyPropertyChangedEventArgs e)
         {
-            var frameworkElement = depObj as FrameworkElement;
+            FrameworkElement frameworkElement = depObj as FrameworkElement;
             if (frameworkElement != null && e.NewValue is ICommand)
             {
                 if (frameworkElement is TreeView)
                 {
-                    var treeView = frameworkElement as TreeView;
+                    TreeView treeView = frameworkElement as TreeView;
                     treeView.SelectedItemChanged += (o, args) =>
                     {
                         (e.NewValue as ICommand).Execute(args.NewValue);
@@ -521,14 +525,14 @@ namespace LevelEditorPlugin.Editors
 
                     if (layer.Entity is Entities.LogicPrefabReferenceObject)
                     {
-                        var logicPrefabEntity = layer.Entity as Entities.LogicPrefabReferenceObject;
+                        LogicPrefabReferenceObject logicPrefabEntity = layer.Entity as Entities.LogicPrefabReferenceObject;
                         blueprint = logicPrefabEntity.Blueprint.Data;
                         blueprintGuid = logicPrefabEntity.Blueprint.FileGuid;
                         interfaceDescriptor = logicPrefabEntity.InterfaceDescriptor;
                     }
                     else
                     {
-                        var refObjEntity = layer.Entity as Entities.ReferenceObject;
+                        ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
                         blueprint = refObjEntity.Blueprint.Data;
                         blueprintGuid = refObjEntity.Blueprint.FileGuid;
                         interfaceDescriptor = refObjEntity.InterfaceDescriptor;
@@ -544,19 +548,19 @@ namespace LevelEditorPlugin.Editors
                         BlueprintGuid = blueprintGuid,
                         World = layer.Entity.World
                     };
-                    foreach (var entity in entities)
+                    foreach (Entity entity in entities)
                     {
                         schematicsData.Entities.Add(entity);
                     }
-                    foreach (var connection in blueprint.LinkConnections)
+                    foreach (LinkConnection connection in blueprint.LinkConnections)
                     {
                         schematicsData.LinkConnections.Add(connection);
                     }
-                    foreach (var connection in blueprint.EventConnections)
+                    foreach (EventConnection connection in blueprint.EventConnections)
                     {
                         schematicsData.EventConnections.Add(connection);
                     }
-                    foreach (var connection in blueprint.PropertyConnections)
+                    foreach (PropertyConnection connection in blueprint.PropertyConnections)
                     {
                         if (!Utils.IsFieldProperty(connection.SourceField))
                         {
@@ -646,7 +650,7 @@ namespace LevelEditorPlugin.Editors
 
             if (draggedData.GetDataPresent(typeof(DataExplorerDropData)))
             {
-                var dropData = (DataExplorerDropData)draggedData.GetData(typeof(DataExplorerDropData));
+                DataExplorerDropData dropData = (DataExplorerDropData)draggedData.GetData(typeof(DataExplorerDropData));
                 if (TypeLibrary.IsSubClassOf(dropData.Entry.Type, "LogicPrefabBlueprint"))
                     return true;
             }
@@ -658,17 +662,17 @@ namespace LevelEditorPlugin.Editors
         {
             if (draggedData.GetDataPresent(typeof(SchematicsDropData)))
             {
-                var data = draggedData.GetData(typeof(SchematicsDropData)) as SchematicsDropData;
-                var dataType = data.DataType.GetCustomAttribute<Entities.EntityBindingAttribute>().DataType;
+                SchematicsDropData data = draggedData.GetData(typeof(SchematicsDropData)) as SchematicsDropData;
+                Type dataType = data.DataType.GetCustomAttribute<Entities.EntityBindingAttribute>().DataType;
 
-                var entity = (Entities.Entity)Activator.CreateInstance(data.DataType, new object[] { CreateEntityData(dataType), null });
+                Entity entity = (Entities.Entity)Activator.CreateInstance(data.DataType, new object[] { CreateEntityData(dataType), null });
                 if (entity != null)
                 {
                     entity.SetDefaultValues();
                     entity.UserData = dropPoint;
 
                     // add entity to blueprint
-                    var refObjEntity = layer.Entity as Entities.ReferenceObject;
+                    ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
 
                     UndoManager.Instance.CommitUndo(new GenericUndoUnit("Add Schematics Node",
                         (o) =>
@@ -701,13 +705,13 @@ namespace LevelEditorPlugin.Editors
             }
             else if (draggedData.GetDataPresent(typeof(DataExplorerDropData)))
             {
-                var dropData = (DataExplorerDropData)draggedData.GetData(typeof(DataExplorerDropData));
-                var asset = App.AssetManager.GetEbx(dropData.Entry);
+                DataExplorerDropData dropData = (DataExplorerDropData)draggedData.GetData(typeof(DataExplorerDropData));
+                EbxAsset asset = App.AssetManager.GetEbx(dropData.Entry);
 
-                var entityData = (FrostySdk.Ebx.LogicReferenceObjectData)CreateEntityData(typeof(FrostySdk.Ebx.LogicPrefabReferenceObjectData));
+                LogicReferenceObjectData entityData = (FrostySdk.Ebx.LogicReferenceObjectData)CreateEntityData(typeof(FrostySdk.Ebx.LogicPrefabReferenceObjectData));
                 entityData.Blueprint = new FrostySdk.Ebx.PointerRef(new FrostySdk.IO.EbxImportReference() { FileGuid = dropData.Entry.Guid, ClassGuid = asset.RootInstanceGuid });
 
-                var entity = (Entities.LogicPrefabReferenceObject)Activator.CreateInstance(typeof(Entities.LogicPrefabReferenceObject), new object[] { entityData, null });
+                LogicPrefabReferenceObject entity = (Entities.LogicPrefabReferenceObject)Activator.CreateInstance(typeof(Entities.LogicPrefabReferenceObject), new object[] { entityData, null });
 
                 if (entity != null)
                 {
@@ -715,7 +719,7 @@ namespace LevelEditorPlugin.Editors
                     entity.UserData = dropPoint;
 
                     // add entity to blueprint
-                    var refObjEntity = layer.Entity as Entities.ReferenceObject;
+                    ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
 
                     UndoManager.Instance.CommitUndo(new GenericUndoUnit("Add UIWidget",
                         (o) =>
@@ -762,12 +766,12 @@ namespace LevelEditorPlugin.Editors
                 {
                     if (layer.Entity is Entities.LogicPrefabReferenceObject)
                     {
-                        var logicPrefabEntity = layer.Entity as Entities.LogicPrefabReferenceObject;
+                        LogicPrefabReferenceObject logicPrefabEntity = layer.Entity as Entities.LogicPrefabReferenceObject;
                         SelectedObjectChanged?.Invoke(this, new SelectedObjectChangedEventArgs(logicPrefabEntity.Blueprint.Data, null));
                     }
                     else if (layer.Entity is Entities.ReferenceObject)
                     {
-                        var refObjEntity = layer.Entity as Entities.ReferenceObject;
+                        ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
                         SelectedObjectChanged?.Invoke(this, new SelectedObjectChangedEventArgs(refObjEntity.Blueprint.Data, null));
                     }
                 }
@@ -783,8 +787,8 @@ namespace LevelEditorPlugin.Editors
 
         private void ConnectionAdded(object obj)
         {
-            var e = obj as WireAddedEventArgs;
-            var refObjEntity = layer.Entity as Entities.ReferenceObject;
+            WireAddedEventArgs e = obj as WireAddedEventArgs;
+            ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
             
             object source = (e.SourceEntity != null) ? (e.SourceEntity as Entities.Entity).GetRawData() : refObjEntity.InterfaceDescriptor.Data;
             object target = (e.TargetEntity != null) ? (e.TargetEntity as Entities.Entity).GetRawData() : refObjEntity.InterfaceDescriptor.Data;
@@ -792,7 +796,7 @@ namespace LevelEditorPlugin.Editors
             if (e.ConnectionType == 0)
             {
                 // Links
-                var connection = new FrostySdk.Ebx.LinkConnection()
+                LinkConnection connection = new FrostySdk.Ebx.LinkConnection()
                 {
                     Source = new FrostySdk.Ebx.PointerRef(source),
                     SourceFieldId = e.SourceId,
@@ -805,7 +809,7 @@ namespace LevelEditorPlugin.Editors
             else if (e.ConnectionType == 1)
             {
                 // Events
-                var connection = new FrostySdk.Ebx.EventConnection()
+                EventConnection connection = new FrostySdk.Ebx.EventConnection()
                 {
                     Source = new FrostySdk.Ebx.PointerRef(source),
                     SourceEvent = new FrostySdk.Ebx.EventSpec() { Id = e.SourceId },
@@ -834,7 +838,7 @@ namespace LevelEditorPlugin.Editors
             else
             {
                 // Properties
-                var connection = new FrostySdk.Ebx.PropertyConnection()
+                PropertyConnection connection = new FrostySdk.Ebx.PropertyConnection()
                 {
                     Source = new FrostySdk.Ebx.PointerRef(source),
                     SourceFieldId = e.SourceId,
@@ -909,7 +913,7 @@ namespace LevelEditorPlugin.Editors
 
         private void NodeModified(object obj)
         {
-            var e = obj as NodeModifiedEventArgs;
+            NodeModifiedEventArgs e = obj as NodeModifiedEventArgs;
 
             // @todo
         }
@@ -921,7 +925,7 @@ namespace LevelEditorPlugin.Editors
 
         private void PropertyGridDataModified(object obj)
         {
-            var args = obj as PropertyGridModifiedEventArgs;
+            PropertyGridModifiedEventArgs args = obj as PropertyGridModifiedEventArgs;
             if (args.IsUndoAction)
             {
                 LoadedAssetManager.Instance.UndoUpdate((layer.Entity as Entities.ReferenceObject).Blueprint);

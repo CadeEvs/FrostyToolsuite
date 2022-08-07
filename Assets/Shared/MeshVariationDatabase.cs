@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FrostySdk.IO;
 
 namespace LevelEditorPlugin.Assets
 {
@@ -28,9 +29,9 @@ namespace LevelEditorPlugin.Assets
 
             if (variationNameCache.Count == 0)
             {
-                foreach (var ebxEntry in App.AssetManager.EnumerateEbx("ObjectVariation"))
+                foreach (EbxAssetEntry ebxEntry in App.AssetManager.EnumerateEbx("ObjectVariation"))
                 {
-                    var ebxAsset = App.AssetManager.GetEbx(ebxEntry);
+                    EbxAsset ebxAsset = App.AssetManager.GetEbx(ebxEntry);
                     ObjectVariation variation = ebxAsset.RootObject as ObjectVariation;
 
                     variationNameCache.Add(variation.NameHash, new FrostySdk.IO.EbxImportReference() { FileGuid = ebxEntry.Guid, ClassGuid = ebxAsset.RootInstanceGuid });

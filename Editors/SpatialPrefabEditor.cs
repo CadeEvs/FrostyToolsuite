@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using LevelEditorPlugin.Entities;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -128,7 +129,7 @@ namespace LevelEditorPlugin.Editors
                 };
 
                 world = new EntityWorld();
-                var refObj = (Entities.SpatialPrefabReferenceObject)Entities.Entity.CreateEntity(objectData, Asset.FileGuid, world);
+                SpatialPrefabReferenceObject refObj = (Entities.SpatialPrefabReferenceObject)Entities.Entity.CreateEntity(objectData, Asset.FileGuid, world);
 
                 rootLayer = refObj.GetLayer();
 

@@ -88,7 +88,7 @@ namespace LevelEditorPlugin.Resources
 
         public void WriteStrings(NativeWriter writer)
         {
-            foreach (var ptr in strings.Keys)
+            foreach (RelocPtr ptr in strings.Keys)
             {
                 ptr.DataOffset = writer.Position;
                 writer.WriteFixedSizedString(strings[ptr], strings[ptr].Length);
@@ -117,7 +117,7 @@ namespace LevelEditorPlugin.Resources
 
         private RelocPtr FindRelocPtr(string type, object obj)
         {
-            foreach (var ptr in relocPtrs)
+            foreach (RelocPtr ptr in relocPtrs)
             {
                 if (ptr.Type == type && ptr.Data.Equals(obj))
                     return ptr;

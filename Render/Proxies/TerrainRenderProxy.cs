@@ -97,7 +97,7 @@ namespace LevelEditorPlugin.Render.Proxies
 
         public override void Update(RenderCreateState state)
         {
-            var terrainEntity = OwnerEntity as TerrainEntity;
+            TerrainEntity terrainEntity = OwnerEntity as TerrainEntity;
             SetPreviewLayers(state, terrainEntity.PreviewLayerIndex, terrainEntity.PreviewHoleIndex);
         }
 

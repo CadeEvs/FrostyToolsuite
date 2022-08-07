@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LevelEditorPlugin.Entities;
 using SharpDX;
 
 namespace LevelEditorPlugin.Layers
@@ -47,10 +48,10 @@ namespace LevelEditorPlugin.Layers
                 {
                     isVisible = value;
 
-                    foreach (var layer in ChildLayers)
+                    foreach (SceneLayer layer in ChildLayers)
                         layer.IsVisible = isVisible;
 
-                    foreach (var entity in Entities)
+                    foreach (Entity entity in Entities)
                         entity.SetVisibility(isVisible);
 
                     NotifyPropertyChanged();
@@ -130,7 +131,7 @@ namespace LevelEditorPlugin.Layers
                 entities.AddRange(Entities.Where(e => (e is Entities.ISpatialEntity || e is Entities.ISpatialReferenceEntity) && !(e is Entities.INotRealSpatialEntity)));
             }
 
-            foreach (var layer in ChildLayers)
+            foreach (SceneLayer layer in ChildLayers)
                 layer.CollectEntities(entities);
         }
 
@@ -140,7 +141,7 @@ namespace LevelEditorPlugin.Layers
             entities.AddRange(Entities.Where(e => e is Entities.ILogicEntity));
             entities.AddRange(ChildLayers.Where(l => l.Entity is Entities.SubWorldReferenceObject).Select(l => l.Entity));
 
-            foreach (var layer in ChildLayers)
+            foreach (SceneLayer layer in ChildLayers)
             {
                 if (layer.Entity is Entities.LayerReferenceObject)
                     layer.CollectLogicEntities(entities);
@@ -151,7 +152,7 @@ namespace LevelEditorPlugin.Layers
         public void CollectComponentEntities(List<Entities.Entity> entities)
         {
             entities.AddRange(Entities.Where(e => e is Entities.IComponentEntity));
-            foreach (var layer in ChildLayers)
+            foreach (SceneLayer layer in ChildLayers)
             {
                 if (layer.Entity is Entities.LayerReferenceObject)
                 {
@@ -164,7 +165,7 @@ namespace LevelEditorPlugin.Layers
         public void CollectTimelines(List<Entities.Entity> timelines)
         {
             timelines.AddRange(Entities.Where(e => e is Entities.TimelineEntity));
-            foreach (var layer in ChildLayers)
+            foreach (SceneLayer layer in ChildLayers)
             {
                 if (layer.Entity is Entities.LayerReferenceObject)
                 {
@@ -176,13 +177,13 @@ namespace LevelEditorPlugin.Layers
         public void CollectLayers(List<SceneLayer> layers)
         {
             layers.AddRange(ChildLayers);
-            foreach (var layer in ChildLayers)
+            foreach (SceneLayer layer in ChildLayers)
                 layer.CollectLayers(layers);
         }
 
         private void AddComponents(Entities.IComponentEntity componentEntity)
         {
-            foreach (var component in componentEntity.Components)
+            foreach (Entity component in componentEntity.Components)
             {
                 Entities.Add(component);
                 if (component is Entities.IComponentEntity)

@@ -75,7 +75,7 @@ namespace LevelEditorPlugin.Entities
             string layerName = Path.GetFileName(blueprint.Name);
             Layers.SceneLayer layer = new Layers.SceneLayer(this, layerName, new SharpDX.Color4(0.0f, 0.5f, 0.0f, 1.0f));
 
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ILayerEntity)
                 {

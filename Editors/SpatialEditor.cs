@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Shapes;
+using LevelEditorPlugin.Layers;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -82,7 +83,7 @@ namespace LevelEditorPlugin.Editors
             if (newSelection != selectedEntity)
             {
                 // Select the root world if nothing else is selected
-                var tmpSelection = newSelection;
+                Entity tmpSelection = newSelection;
                 if (tmpSelection == null)
                     tmpSelection = editingWorld;
 
@@ -102,7 +103,7 @@ namespace LevelEditorPlugin.Editors
         {
             if (newSelection != selectedLayer)
             {
-                var oldSelection = selectedLayer;
+                SceneLayer oldSelection = selectedLayer;
                 selectedLayer = newSelection;
 
                 SelectedLayerChanged?.Invoke(this, new SelectedLayerChangedEventArgs(newSelection, oldSelection));
@@ -142,7 +143,7 @@ namespace LevelEditorPlugin.Editors
             Layers.SceneLayer layer = new Layers.SceneLayer(editingWorld, layerName, new SharpDX.Color(0.0f, 0.5f, 0.0f, 1.0f));
 
             List<Entity> entities = (List<Entity>)editingWorld.GetType().GetField("entities", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(editingWorld);
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ILayerEntity)
                 {

@@ -40,7 +40,7 @@ namespace LevelEditorPlugin.Entities
 
                     if (RootEntity is IComponentEntity)
                     {
-                        var componentEntity = RootEntity as IComponentEntity;
+                        IComponentEntity componentEntity = RootEntity as IComponentEntity;
                         componentEntity.SpawnComponents();
                     }
                 }

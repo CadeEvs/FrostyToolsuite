@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using FrostySdk.Attributes;
 
 namespace LevelEditorPlugin.Extensions
 {
@@ -18,45 +19,45 @@ namespace LevelEditorPlugin.Extensions
         {
             string outPath = "Source\\Classes\\" + FrostySdk.ProfilesLibrary.ProfileName;
 
-            var types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.EntityData))).ToList();
+            List<Type> types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.EntityData))).ToList();
             while (types.Count > 0)
             {
-                var type = types[0];
+                Type type = types[0];
                 RecursivelyCreateEntityBoilerplate(type, types, outPath);
             }
 
             types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.SpatialEntityData))).ToList();
             while (types.Count > 0)
             {
-                var type = types[0];
+                Type type = types[0];
                 RecursivelyCreateSpatialEntityBoilerplate(type, types, outPath);
             }
 
             types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.ReferenceObjectData))).ToList();
             while (types.Count > 0)
             {
-                var type = types[0];
+                Type type = types[0];
                 RecursivelyCreateSpatialReferenceEntityBoilerplate(type, types, outPath);
             }
 
             types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.BaseShapeData))).ToList();
             while (types.Count > 0)
             {
-                var type = types[0];
+                Type type = types[0];
                 RecursivelyCreateShapeBoilerplate(type, types, outPath);
             }
 
             types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.ComponentData))).ToList();
             while (types.Count > 0)
             {
-                var type = types[0];
+                Type type = types[0];
                 RecursivelyCreateComponentBoilerplate(type, types, outPath);
             }
 
             types = FrostySdk.TypeLibrary.GetConcreteTypes().Where(t => t.IsSubclassOf(typeof(FrostySdk.Ebx.TimelineTrackData))).ToList();
             while (types.Count > 0)
             {
-                var type = types[0];
+                Type type = types[0];
                 RecursivelyCreateTimelineTrackBoilerplate(type, types, outPath);
             }
 
@@ -91,7 +92,7 @@ namespace LevelEditorPlugin.Extensions
             }
 
             string code = CreateEntityBoilerplate(type);
-            var attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
+            EbxClassMetaAttribute attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
             string newPath = outPath + $"/Logic/{attr.Namespace}/{entityName}.cs";
 
             FileInfo fi = new FileInfo(newPath);
@@ -135,7 +136,7 @@ namespace LevelEditorPlugin.Extensions
             }
 
             string code = CreateSpatialEntityBoilerplate(type);
-            var attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
+            EbxClassMetaAttribute attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
             string newPath = outPath + $"/Spatial/{attr.Namespace}/{entityName}.cs";
 
             FileInfo fi = new FileInfo(newPath);
@@ -167,7 +168,7 @@ namespace LevelEditorPlugin.Extensions
             }
 
             string code = CreateSpatialReferenceEntityBoilerplate(type);
-            var attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
+            EbxClassMetaAttribute attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
             string newPath = outPath + $"/Reference/{attr.Namespace}/{entityName}.cs";
 
             FileInfo fi = new FileInfo(newPath);
@@ -211,7 +212,7 @@ namespace LevelEditorPlugin.Extensions
             }
 
             string code = CreateShapeBoilerplate(type);
-            var attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
+            EbxClassMetaAttribute attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
             string newPath = outPath + $"/Shapes/{attr.Namespace}/{entityName}.cs";
 
             FileInfo fi = new FileInfo(newPath);
@@ -255,7 +256,7 @@ namespace LevelEditorPlugin.Extensions
             }
 
             string code = CreateComponentBoilerplate(type);
-            var attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
+            EbxClassMetaAttribute attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
             string newPath = outPath + $"/Components/{attr.Namespace}/{entityName}.cs";
 
             FileInfo fi = new FileInfo(newPath);
@@ -299,7 +300,7 @@ namespace LevelEditorPlugin.Extensions
             }
 
             string code = CreateTimelineTrackBoilerplate(type);
-            var attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
+            EbxClassMetaAttribute attr = type.GetCustomAttribute<FrostySdk.Attributes.EbxClassMetaAttribute>();
             string newPath = outPath + $"/Tracks/{attr.Namespace}/{entityName}.cs";
 
             FileInfo fi = new FileInfo(newPath);

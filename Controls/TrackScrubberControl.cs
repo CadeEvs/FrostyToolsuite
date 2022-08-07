@@ -63,11 +63,11 @@ namespace LevelEditorPlugin.Controls
 
         private static void OnCurrentTimeChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            var ctrl = o as TrackScrubberControl;
+            TrackScrubberControl ctrl = o as TrackScrubberControl;
             double width = ctrl.ActualWidth - 18;
 
             double currentPos = ((ctrl.CurrentTime - ctrl.StartTime) / (ctrl.EndTime - ctrl.StartTime)) * width;
-            var transform = ctrl.playbackLine.Transform as TranslateTransform;
+            TranslateTransform transform = ctrl.playbackLine.Transform as TranslateTransform;
 
             transform.X = currentPos + 9;
         }

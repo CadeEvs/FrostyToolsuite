@@ -2,7 +2,8 @@ using FrostySdk;
 using LevelEditorPlugin.Managers;
 using System.Collections.Generic;
 using System.IO;
-using LevelEditorPlugin.Assets;
+using FrostySdk.Ebx;
+using SchematicChannelAsset = LevelEditorPlugin.Assets.SchematicChannelAsset;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -17,7 +18,7 @@ namespace LevelEditorPlugin.Entities
 			get
 			{
 				List<ConnectionDesc> outLinks = new List<ConnectionDesc>();
-				foreach (var link in schematicChannelAsset.Data.Links)
+				foreach (LinkChannel link in schematicChannelAsset.Data.Links)
 				{
 					string name = Utils.GetString(link.Id);
 					outLinks.Add(new ConnectionDesc() { Name = name, Direction = Direction.In });
@@ -31,7 +32,7 @@ namespace LevelEditorPlugin.Entities
 			get
             {
 				List<ConnectionDesc> outProperties = new List<ConnectionDesc>();
-				foreach (var prop in schematicChannelAsset.Data.Properties)
+				foreach (PropertyChannel prop in schematicChannelAsset.Data.Properties)
 				{
 					string name = Utils.GetString(prop.Id);
 					outProperties.Add(new ConnectionDesc() { Name = name, Direction = Direction.In });
@@ -71,7 +72,7 @@ namespace LevelEditorPlugin.Entities
 
         public override IEvent GetEvent(int nameHash)
         {
-            var evt = base.GetEvent(nameHash);
+            IEvent evt = base.GetEvent(nameHash);
 			if (evt == null)
 			{
 				evt = new Event<OutputEvent>(this, nameHash);
@@ -81,7 +82,7 @@ namespace LevelEditorPlugin.Entities
 
         public override IProperty GetProperty(int nameHash)
         {
-			var property = base.GetProperty(nameHash);
+			IProperty property = base.GetProperty(nameHash);
 			if (property == null)
             {
 				property = new Property<object>(this, nameHash);

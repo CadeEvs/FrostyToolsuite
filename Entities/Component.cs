@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Frosty.Core.Managers;
 using Frosty.Core.Viewport;
+using FrostySdk.Ebx;
 using LevelEditorPlugin.Editors;
 using LevelEditorPlugin.Managers;
 using LevelEditorPlugin.Render.Proxies;
@@ -21,7 +22,7 @@ namespace LevelEditorPlugin.Entities
             set
             {
                 requiresTransformUpdate = value;
-                foreach (var entity in Components)
+                foreach (Entity entity in Components)
                     entity.RequiresTransformUpdate = value;
             }
         }
@@ -87,7 +88,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void CreateRenderProxy(List<RenderProxy> proxies, RenderCreateState state)
         {
-            foreach (var entity in Components)
+            foreach (Entity entity in Components)
             {
                 entity.CreateRenderProxy(proxies, state);
             }
@@ -96,7 +97,7 @@ namespace LevelEditorPlugin.Entities
         public override void SetOwner(Entity newOwner)
         {
             base.SetOwner(newOwner);
-            foreach (var entity in Components)
+            foreach (Entity entity in Components)
                 entity.SetOwner(newOwner);
         }
 
@@ -105,7 +106,7 @@ namespace LevelEditorPlugin.Entities
             if (newVisibility != isVisible)
             {
                 isVisible = newVisibility;
-                foreach (var entity in Components)
+                foreach (Entity entity in Components)
                     entity.SetVisibility(newVisibility);
             }
         }
@@ -142,7 +143,7 @@ namespace LevelEditorPlugin.Entities
 
         public void SpawnComponents()
         {
-            foreach (var objPointer in Data.Components)
+            foreach (PointerRef objPointer in Data.Components)
             {
                 if (objPointer.Type == FrostySdk.IO.PointerRefType.External)
                 {
@@ -151,15 +152,15 @@ namespace LevelEditorPlugin.Entities
                     System.Diagnostics.Debug.Assert(false);
                 }
 
-                var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-                var component = CreateEntity(objectData);
+                GameObjectData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+                Entity component = CreateEntity(objectData);
 
                 if (component != null)
                 {
                     components.Add(component);
                     if (component is Component)
                     {
-                        var gameComponent = component as Component;
+                        Component gameComponent = component as Component;
                         gameComponent.SpawnComponents();
                     }
                 }
@@ -185,7 +186,7 @@ namespace LevelEditorPlugin.Entities
 
         public virtual void AddPropertyConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var property = GetProperty(srcPort);
+            IProperty property = GetProperty(srcPort);
             if (property == null)
             {
                 property = new Property<object>(this, srcPort);
@@ -196,7 +197,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddEventConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var evt = GetEvent(srcPort);
+            IEvent evt = GetEvent(srcPort);
             if (evt == null)
             {
                 evt = new Event<OutputEvent>(this, srcPort);
@@ -207,7 +208,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddLinkConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var link = GetLink(srcPort);
+            ILink link = GetLink(srcPort);
             if (link == null)
             {
                 link = new Link<object>(this, srcPort);
@@ -245,7 +246,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void Destroy()
         {
-            foreach (var component in components)
+            foreach (Entity component in components)
                 component.Destroy();
         }
     }

@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using LevelEditorPlugin.Entities;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -114,7 +115,7 @@ namespace LevelEditorPlugin.Editors
                 };
 
                 world = new EntityWorld();
-                var refObj = (Entities.ReferenceObject)Entities.Entity.CreateEntity(objectData, Asset.FileGuid, world);
+                ReferenceObject refObj = (Entities.ReferenceObject)Entities.Entity.CreateEntity(objectData, Asset.FileGuid, world);
 
                 editingWorld = refObj;
                 rootLayer = MakeFakeLayer();

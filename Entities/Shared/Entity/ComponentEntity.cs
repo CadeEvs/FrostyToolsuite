@@ -1,6 +1,7 @@
 using Frosty.Core.Viewport;
 using LevelEditorPlugin.Editors;
 using System.Collections.Generic;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -14,7 +15,7 @@ namespace LevelEditorPlugin.Entities
 			set
 			{
 				requiresTransformUpdate = value;
-				foreach (var component in Components)
+				foreach (Entity component in Components)
                 {
 					component.RequiresTransformUpdate = value;
                 }
@@ -55,7 +56,7 @@ namespace LevelEditorPlugin.Entities
 
 		public override void CreateRenderProxy(List<Render.Proxies.RenderProxy> proxies, RenderCreateState state)
 		{
-			foreach (var component in Components)
+			foreach (Entity component in Components)
 			{
 				component.CreateRenderProxy(proxies, state);
 			}
@@ -64,7 +65,7 @@ namespace LevelEditorPlugin.Entities
 		public override void SetOwner(Entity newOwner)
 		{
 			base.SetOwner(newOwner);
-			foreach (var entity in Components)
+			foreach (Entity entity in Components)
 				entity.SetOwner(newOwner);
 		}
 
@@ -73,14 +74,14 @@ namespace LevelEditorPlugin.Entities
 			if (newVisibility != isVisible)
 			{
 				isVisible = newVisibility;
-				foreach (var entity in Components)
+				foreach (Entity entity in Components)
 					entity.SetVisibility(newVisibility);
 			}
 		}
 
 		public void SpawnComponents()
 		{
-			foreach (var objPointer in Data.Components)
+			foreach (PointerRef objPointer in Data.Components)
 			{
 				if (objPointer.Type == FrostySdk.IO.PointerRefType.External)
 				{
@@ -89,15 +90,15 @@ namespace LevelEditorPlugin.Entities
 					System.Diagnostics.Debug.Assert(false);
 				}
 
-				var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-				var component = CreateEntity(objectData);
+				GameObjectData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+				Entity component = CreateEntity(objectData);
 
 				if (component != null)
 				{
 					components.Add(component);
 					if (component is Component)
 					{
-						var gameComponent = component as Component;
+						Component gameComponent = component as Component;
 						gameComponent.SpawnComponents();
 					}
 				}
@@ -106,7 +107,7 @@ namespace LevelEditorPlugin.Entities
 
 		public override void Destroy()
 		{
-			foreach (var component in components)
+			foreach (Entity component in components)
 				component.Destroy();
 
 			base.Destroy();

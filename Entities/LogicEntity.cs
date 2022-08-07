@@ -122,7 +122,7 @@ namespace LevelEditorPlugin.Entities
                     else
                     {
                         // push if this is a source
-                        foreach (var connection in outConnections)
+                        foreach (IProperty connection in outConnections)
                         {
                             connection.Value = value;
                         }
@@ -172,16 +172,16 @@ namespace LevelEditorPlugin.Entities
             currentValue = originalValue;
             isUnset = true;
 
-            var properties = (List<IProperty>)Library.Reflection.ReflectionUtils.GetPrivateField(owner.GetType(), owner, "properties");
+            List<IProperty> properties = (List<IProperty>)Library.Reflection.ReflectionUtils.GetPrivateField(owner.GetType(), owner, "properties");
             properties.Add(this);
         }
 
         public void AddConnection(ISchematicsType from, int fromPort)
         {
-            var property = from.GetProperty(fromPort);
+            IProperty property = from.GetProperty(fromPort);
             if (property != null)
             {
-                var properties = (List<IProperty>)Library.Reflection.ReflectionUtils.GetPrivateField(property.GetType(), property, "outConnections");
+                List<IProperty> properties = (List<IProperty>)Library.Reflection.ReflectionUtils.GetPrivateField(property.GetType(), property, "outConnections");
                 properties.Add(this);
 
                 inConnections.Add(property);
@@ -190,8 +190,8 @@ namespace LevelEditorPlugin.Entities
 
         protected bool Compare(object a, object b)
         {
-            var tmpA = a;
-            var tmpB = b;
+            object tmpA = a;
+            object tmpB = b;
 
             //if (tmpA == null) tmpA = default(T);
             //if (tmpB == null) tmpB = default(T);
@@ -215,8 +215,8 @@ namespace LevelEditorPlugin.Entities
         {
             if (inValue == null)
             {
-                var valueType = typeof(T);
-                var attr = valueType.GetCustomAttribute<EbxClassMetaAttribute>();
+                Type valueType = typeof(T);
+                EbxClassMetaAttribute attr = valueType.GetCustomAttribute<EbxClassMetaAttribute>();
                 if (attr != null && attr.Type == FrostySdk.IO.EbxFieldType.Struct)
                 {
                     inValue = (T)Activator.CreateInstance(valueType);
@@ -281,7 +281,7 @@ namespace LevelEditorPlugin.Entities
                         else
                         {
                             // push if this is a source
-                            foreach (var connection in outConnections)
+                            foreach (ILink connection in outConnections)
                             {
                                 connection.Value = value;
                             }
@@ -337,16 +337,16 @@ namespace LevelEditorPlugin.Entities
             currentValue = originalValue;
             isUnset = true;
 
-            var links = (List<ILink>)Library.Reflection.ReflectionUtils.GetPrivateField(owner.GetType(), owner, "links");
+            List<ILink> links = (List<ILink>)Library.Reflection.ReflectionUtils.GetPrivateField(owner.GetType(), owner, "links");
             links.Add(this);
         }
 
         public void AddConnection(ISchematicsType from, int fromPort)
         {
-            var link = from.GetLink(fromPort);
+            ILink link = from.GetLink(fromPort);
             if (link != null)
             {
-                var links = (List<ILink>)Library.Reflection.ReflectionUtils.GetPrivateField(link.GetType(), link, "outConnections");
+                List<ILink> links = (List<ILink>)Library.Reflection.ReflectionUtils.GetPrivateField(link.GetType(), link, "outConnections");
                 links.Add(this);
 
                 inConnections.Add(link);
@@ -355,8 +355,8 @@ namespace LevelEditorPlugin.Entities
 
         protected bool Compare(object a, object b)
         {
-            var tmpA = a;
-            var tmpB = b;
+            object tmpA = a;
+            object tmpB = b;
 
             //if (tmpA == null) tmpA = default(T);
             //if (tmpB == null) tmpB = default(T);
@@ -391,7 +391,7 @@ namespace LevelEditorPlugin.Entities
             else
             {
                 // push if this is a source
-                foreach (var connection in outConnections)
+                foreach (ILink connection in outConnections)
                 {
                     connection.Value = element;
                 }
@@ -437,13 +437,13 @@ namespace LevelEditorPlugin.Entities
             nameHash = inNameHash;
             debugName = string.IsNullOrEmpty(inOptionalName) ? inNameHash.ToString("x8") : inOptionalName;
 
-            var events = (List<IEvent>)Library.Reflection.ReflectionUtils.GetPrivateField(owner.GetType(), owner, "events");
+            List<IEvent> events = (List<IEvent>)Library.Reflection.ReflectionUtils.GetPrivateField(owner.GetType(), owner, "events");
             events.Add(this);
         }
 
         public void AddConnection(ISchematicsType from, int fromPort)
         {
-            var evt = from.GetEvent(fromPort);
+            IEvent evt = from.GetEvent(fromPort);
             if (evt != null)
             {
                 connections.Add(evt);
@@ -453,7 +453,7 @@ namespace LevelEditorPlugin.Entities
         public void Execute()
         {
             setOnFrame = owner.World.SimulationFrameCount;
-            foreach (var evt in connections)
+            foreach (IEvent evt in connections)
             {
                 evt.Owner.OnEvent(evt.NameHash);
             }
@@ -585,7 +585,7 @@ namespace LevelEditorPlugin.Entities
         {
             if (eventToTrigger != 0)
             {
-                var evt = GetEvent(eventToTrigger);
+                IEvent evt = GetEvent(eventToTrigger);
                 if (evt != null)
                 {
                     evt.Execute();
@@ -600,7 +600,7 @@ namespace LevelEditorPlugin.Entities
 
         public virtual void AddPropertyConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var property = GetProperty(srcPort);
+            IProperty property = GetProperty(srcPort);
             if (property == null)
             {
                 property = new Property<object>(this, srcPort);
@@ -611,7 +611,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddEventConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var evt = GetEvent(srcPort);
+            IEvent evt = GetEvent(srcPort);
             if (evt == null)
             {
                 evt = new Event<OutputEvent>(this, srcPort);
@@ -622,7 +622,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddLinkConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var link = GetLink(srcPort);
+            ILink link = GetLink(srcPort);
             if (link == null)
             {
                 link = new Link<object>(this, srcPort);
@@ -665,7 +665,7 @@ namespace LevelEditorPlugin.Entities
 
         protected void CallEvent(int eventHash)
         {
-            var evt = GetEvent(eventHash);
+            IEvent evt = GetEvent(eventHash);
             if (evt == null)
                 return;
 

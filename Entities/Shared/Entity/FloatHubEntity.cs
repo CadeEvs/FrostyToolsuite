@@ -36,7 +36,7 @@ namespace LevelEditorPlugin.Entities
 			SetFlags(EntityFlags.HasLogic);
 			for (int i = 0; i < Data.InputCount; i++)
 			{
-				var property = new Property<float>(this, Frosty.Hash.Fnv1.HashString($"In{i}"), 0.0f);
+				Property<float> property = new Property<float>(this, Frosty.Hash.Fnv1.HashString($"In{i}"), 0.0f);
 				inputProperties.Add(property);
 			}
 

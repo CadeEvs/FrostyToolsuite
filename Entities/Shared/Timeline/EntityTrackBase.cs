@@ -1,6 +1,7 @@
 using LevelEditorPlugin.Editors;
 using System.Collections.Generic;
 using System.Linq;
+using FrostySdk.Ebx;
 using SharpDX;
 
 namespace LevelEditorPlugin.Entities
@@ -20,7 +21,7 @@ namespace LevelEditorPlugin.Entities
 			{
 				List<ConnectionDesc> outEvents = new List<ConnectionDesc>();
 				outEvents.AddRange(base.Events);
-				foreach (var track in tracks)
+				foreach (TimelineTrack track in tracks)
 				{
 					outEvents.AddRange(track.Events);
 				}
@@ -33,7 +34,7 @@ namespace LevelEditorPlugin.Entities
 			{
 				List<ConnectionDesc> outProperties = new List<ConnectionDesc>();
 				outProperties.AddRange(base.Properties);
-				foreach (var track in tracks)
+				foreach (TimelineTrack track in tracks)
                 {
 					outProperties.AddRange(track.Properties);
                 }
@@ -54,10 +55,10 @@ namespace LevelEditorPlugin.Entities
 		public EntityTrackBase(FrostySdk.Ebx.EntityTrackBaseData inData, Entity inParent)
 			: base(inData, inParent)
 		{
-			foreach (var objPointer in Data.Children)
+			foreach (PointerRef objPointer in Data.Children)
 			{
-				var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-				var track = CreateEntity(objectData);
+				GameObjectData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+				Entity track = CreateEntity(objectData);
 
 				if (track != null)
 				{
@@ -74,7 +75,7 @@ namespace LevelEditorPlugin.Entities
 
 			if (entityLink.Value != null)
 			{
-				var entity = entityLink.Value;
+				Entity entity = entityLink.Value;
 				trackName = (entity is ITimelineCustomTrackName) ? (entity as ITimelineCustomTrackName).DisplayName : entity.DisplayName;
 			}
 
@@ -96,14 +97,14 @@ namespace LevelEditorPlugin.Entities
 			if (entityLink.Value == null)
 				return;
 
-			foreach (var track in tracks)
+			foreach (TimelineTrack track in tracks)
             {
 				track.Update(elapsedTime);
 				if (track is LayeredTransformTrack)
 				{
-					var transformTrack = track as LayeredTransformTrack;
+					LayeredTransformTrack transformTrack = track as LayeredTransformTrack;
 
-					var spatialEntity = entityLink.Value as ITransformEntity;
+					ITransformEntity spatialEntity = entityLink.Value as ITransformEntity;
 					if (spatialEntity != null)
 					{
 						Matrix currentTransform = (Matrix)transformTrack.CurrentValue;
@@ -121,11 +122,11 @@ namespace LevelEditorPlugin.Entities
 				}
 				else if (track is PropertyTrackBase)
                 {
-					var propertyTrack = track as PropertyTrackBase;
+					PropertyTrackBase propertyTrack = track as PropertyTrackBase;
 					ISchematicsType schematicEntity = entityLink.Value as ISchematicsType;
 					if (schematicEntity != null)
 					{
-						var property = schematicEntity.GetProperty(propertyTrack.Data.TargetPinId);
+						IProperty property = schematicEntity.GetProperty(propertyTrack.Data.TargetPinId);
 						if (property != null)
 						{
 							property.Value = propertyTrack.CurrentValue;
@@ -146,7 +147,7 @@ namespace LevelEditorPlugin.Entities
 
 		public virtual void AddPropertyConnection(int srcPort, ISchematicsType dstObject, int dstPort)
 		{
-			var property = GetProperty(srcPort);
+			IProperty property = GetProperty(srcPort);
 			if (property == null)
 			{
 				property = new Property<object>(this, srcPort);
@@ -156,7 +157,7 @@ namespace LevelEditorPlugin.Entities
 
 		public virtual void AddEventConnection(int srcPort, ISchematicsType dstObject, int dstPort)
 		{
-			var evt = GetEvent(srcPort);
+			IEvent evt = GetEvent(srcPort);
 			if (evt == null)
 			{
 				evt = new Event<OutputEvent>(this, srcPort);
@@ -166,7 +167,7 @@ namespace LevelEditorPlugin.Entities
 
 		public virtual void AddLinkConnection(int srcPort, ISchematicsType dstObject, int dstPort)
 		{
-			var link = GetLink(srcPort);
+			ILink link = GetLink(srcPort);
 			if (link == null)
 			{
 				link = new Link<object>(this, srcPort);

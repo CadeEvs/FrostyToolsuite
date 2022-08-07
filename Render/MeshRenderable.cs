@@ -216,7 +216,7 @@ namespace LevelEditorPlugin.Render
                 ? SharpDX.DXGI.Format.R16_UInt
                 : SharpDX.DXGI.Format.R32_UInt;
 
-            foreach (var section in lod.Sections)
+            foreach (MeshSetSection section in lod.Sections)
             {
                 if (!lod.IsSectionRenderable(section))
                     continue;
@@ -240,17 +240,17 @@ namespace LevelEditorPlugin.Render
 
         public bool HitTest(Matrix transform, Ray hitTestRay, out Vector3 hitLocation)
         {
-            foreach (var section in Sections)
+            foreach (MeshSectionRenderable section in Sections)
             {
                 for (int i = 0; i < section.PrimitiveCount; i++)
                 {
-                    var vertex1 = section.HitProxyVertices[hitProxyIndices[section.StartIndex + ((i * 3) + 0)]];
-                    var vertex2 = section.HitProxyVertices[hitProxyIndices[section.StartIndex + ((i * 3) + 1)]];
-                    var vertex3 = section.HitProxyVertices[hitProxyIndices[section.StartIndex + ((i * 3) + 2)]];
+                    Vector3 vertex1 = section.HitProxyVertices[hitProxyIndices[section.StartIndex + ((i * 3) + 0)]];
+                    Vector3 vertex2 = section.HitProxyVertices[hitProxyIndices[section.StartIndex + ((i * 3) + 1)]];
+                    Vector3 vertex3 = section.HitProxyVertices[hitProxyIndices[section.StartIndex + ((i * 3) + 2)]];
                     vertex1 = Vector3.TransformCoordinate(vertex1, transform);
                     vertex2 = Vector3.TransformCoordinate(vertex2, transform);
                     vertex3 = Vector3.TransformCoordinate(vertex3, transform);
-                    var intersects = hitTestRay.Intersects(ref vertex1, ref vertex2, ref vertex3, out hitLocation);
+                    bool intersects = hitTestRay.Intersects(ref vertex1, ref vertex2, ref vertex3, out hitLocation);
                     if (intersects)
                     {
                         return true;
@@ -264,7 +264,7 @@ namespace LevelEditorPlugin.Render
 
         public void Dispose()
         {
-            foreach (var section in Sections)
+            foreach (MeshSectionRenderable section in Sections)
                 section.Dispose();
 
             indexBuffer.Dispose();
@@ -273,7 +273,7 @@ namespace LevelEditorPlugin.Render
         public override void Render(D3D11.DeviceContext context, MeshRenderPath renderPath)
         {
             context.InputAssembler.SetIndexBuffer(indexBuffer, indexBufferFormat, 0);
-            foreach (var section in Sections)
+            foreach (MeshSectionRenderable section in Sections)
                 section.Render(context, renderPath);
         }
     }
@@ -296,7 +296,7 @@ namespace LevelEditorPlugin.Render
             CullScreenArea = lodGroup.CullScreenArea;
 
             bool isHitProxyLod = true;
-            foreach (var lod in meshSet.Lods)
+            foreach (MeshSetLod lod in meshSet.Lods)
             {
                 MeshLodRenderable renderLod = new MeshLodRenderable(state, lod, isHitProxyLod);
                 Lods.Add(renderLod);
@@ -319,7 +319,7 @@ namespace LevelEditorPlugin.Render
 
         public void Dispose()
         {
-            foreach (var lod in Lods)
+            foreach (MeshLodRenderable lod in Lods)
                 lod.Dispose();
         }
     }

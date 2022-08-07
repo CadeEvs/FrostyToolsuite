@@ -10,6 +10,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Frosty.Core.Managers;
+using LevelEditorPlugin.Entities;
+using LevelEditorPlugin.Layers;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -38,7 +40,7 @@ namespace LevelEditorPlugin.Editors
             {
                 if (selectedEntity != value)
                 {
-                    var prevSelection = selectedEntity;
+                    Entity prevSelection = selectedEntity;
                     UndoManager.Instance.CommitUndo(new GenericUndoUnit("Select Entity", (o) => { selectedEntity = value; SelectedEntityChanged(selectedEntity); }, (o) => { selectedEntity = prevSelection; SelectedEntityChanged(selectedEntity); NotifyPropertyChanged("SelectedEntity"); }));
                     NotifyPropertyChanged();
                 }
@@ -60,7 +62,7 @@ namespace LevelEditorPlugin.Editors
             EntityDoubleClickedCommand = new RelayCommand(EntityDoubleClicked);
             selectedEntity = currentSelection;
 
-            foreach (var layer in layers)
+            foreach (SceneLayer layer in layers)
                 layer.VisibilityChanged += SceneLayerVisibilityChanged;
 
             UpdateEntityInstances();

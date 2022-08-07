@@ -86,7 +86,7 @@ namespace LevelEditorPlugin.Editors
             Layers.SceneLayer layer = new Layers.SceneLayer(entity, layerName, new SharpDX.Color(0.0f, 0.5f, 0.0f, 1.0f));
 
             List<Entity> entities = (List<Entity>)entity.GetType().GetField("entities", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(entity);
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ILayerEntity)
                 {

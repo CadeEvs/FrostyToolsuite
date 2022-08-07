@@ -49,7 +49,7 @@ namespace LevelEditorPlugin.Entities
 				float retVal = inProperties[0].Value;
 				int i = 1;
 
-				foreach (var mathOp in Data.Operators)
+				foreach (MathOp mathOp in Data.Operators)
 				{
 					switch (mathOp)
                     {

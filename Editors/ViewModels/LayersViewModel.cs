@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LevelEditorPlugin.Layers;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -24,7 +25,7 @@ namespace LevelEditorPlugin.Editors
             owner.RootLayer.CollectLayers(layers);
 
             owner.RootLayer.SelectionChanged += SelectedLayerChanged;
-            foreach (var layer in layers)
+            foreach (SceneLayer layer in layers)
                 layer.SelectionChanged += SelectedLayerChanged;
         }
 

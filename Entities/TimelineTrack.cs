@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -45,12 +46,12 @@ namespace LevelEditorPlugin.Entities
 
         public Entity FindEntity(Guid instanceGuid)
         {
-            foreach (var track in tracks)
+            foreach (TimelineTrack track in tracks)
             {
                 if (track.InstanceGuid == instanceGuid)
                     return track;
                 
-                var entity = track.FindEntity(instanceGuid);
+                Entity entity = track.FindEntity(instanceGuid);
                 if (entity != null)
                     return entity;
             }
@@ -68,7 +69,7 @@ namespace LevelEditorPlugin.Entities
 
         protected void AddTrack(FrostySdk.Ebx.PointerRef pr)
         {
-            var trackEntity = CreateEntityFromRef(pr);
+            TimelineTrack trackEntity = CreateEntityFromRef(pr);
             if (trackEntity == null)
                 return;
             tracks.Add(trackEntity);
@@ -76,7 +77,7 @@ namespace LevelEditorPlugin.Entities
 
         protected void AddTrack<T>(FrostySdk.Ebx.PointerRef pr, out T outTrack) where T : TimelineTrack
         {
-            var trackEntity = CreateEntityFromRef(pr);
+            TimelineTrack trackEntity = CreateEntityFromRef(pr);
             if (trackEntity == null)
             {
                 outTrack = default(T);
@@ -89,7 +90,7 @@ namespace LevelEditorPlugin.Entities
 
         protected TimelineTrack CreateEntityFromRef(FrostySdk.Ebx.PointerRef pr)
         {
-            var objectData = pr.GetObjectAs<FrostySdk.Ebx.TimelineTrackData>();
+            TimelineTrackData objectData = pr.GetObjectAs<FrostySdk.Ebx.TimelineTrackData>();
             return CreateEntity(objectData) as TimelineTrack;
         }
     }

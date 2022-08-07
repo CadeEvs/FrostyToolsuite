@@ -94,7 +94,7 @@ namespace LevelEditorPlugin.Controls
 
             if (config.Panels != null)
             {
-                var panelData = config.Panels.FirstOrDefault(e => e.Location == panel.DockLocation);
+                DockPanelData panelData = config.Panels.FirstOrDefault(e => e.Location == panel.DockLocation);
                 panel.Size = new GridLength(panelData.Size);
             }
         }
@@ -136,13 +136,13 @@ namespace LevelEditorPlugin.Controls
             if (!dockedItemKeys.ContainsKey(itemToDock.UniqueId))
                 dockedItemKeys.Add(itemToDock.UniqueId, new DockLayoutData() { UniqueId = itemToDock.UniqueId, Location = location });
 
-            var layoutData = dockedItemKeys[itemToDock.UniqueId];
+            DockLayoutData layoutData = dockedItemKeys[itemToDock.UniqueId];
             layoutData.Location = location;
 
             if (location != DockLocation.Floating)
             {
                 PanelLocation panelLocation = DockToPanelLocation(location);
-                var panel = dockPanels[panelLocation];
+                DockPanel panel = dockPanels[panelLocation];
 
                 switch (location)
                 {
@@ -214,8 +214,8 @@ namespace LevelEditorPlugin.Controls
 
             if (dockedItemKeys[uniqueId].Location == DockLocation.Floating)
             {
-                var win = floatingDockedItems.Find(w => (w.DataContext as IDockableItem).UniqueId == uniqueId);
-                var layoutData = dockedItemKeys[uniqueId];
+                FrostyDockableWindow win = floatingDockedItems.Find(w => (w.DataContext as IDockableItem).UniqueId == uniqueId);
+                DockLayoutData layoutData = dockedItemKeys[uniqueId];
 
                 layoutData.FloatingData = new DockLayoutFloatingData()
                 {
@@ -246,7 +246,7 @@ namespace LevelEditorPlugin.Controls
 
         public void Shutdown()
         {
-            foreach (var win in floatingDockedItems)
+            foreach (FrostyDockableWindow win in floatingDockedItems)
             {
                 win.ShowActivated = false;
                 win.Close();
@@ -255,7 +255,7 @@ namespace LevelEditorPlugin.Controls
 
         public void HideFloatingWindows()
         {
-            foreach (var win in floatingDockedItems)
+            foreach (FrostyDockableWindow win in floatingDockedItems)
             {
                 win.Hide();
             }
@@ -263,7 +263,7 @@ namespace LevelEditorPlugin.Controls
 
         public void ShowFloatingWindows()
         {
-            foreach (var win in floatingDockedItems)
+            foreach (FrostyDockableWindow win in floatingDockedItems)
             {
                 win.Show();
             }
@@ -303,7 +303,7 @@ namespace LevelEditorPlugin.Controls
             DockManagerConfigData configData = new DockManagerConfigData();
 
             configData.Panels = new List<DockPanelData>();
-            foreach (var panelKvp in dockPanels)
+            foreach (KeyValuePair<PanelLocation, DockPanel> panelKvp in dockPanels)
             {
                 double tmpSize = panelKvp.Value.Size.Value;
                 if (!panelKvp.Value.Size.IsAbsolute)
@@ -321,7 +321,7 @@ namespace LevelEditorPlugin.Controls
             }
 
             configData.Layouts = new List<DockLayoutData>();
-            foreach (var dockedItemKvp in dockedItemKeys)
+            foreach (KeyValuePair<string, DockLayoutData> dockedItemKvp in dockedItemKeys)
             {
                 DockLayoutData layoutData = dockedItemKvp.Value;
                 layoutData.IsVisible = visibleDockedItems.Contains(dockedItemKvp.Key);
@@ -333,7 +333,7 @@ namespace LevelEditorPlugin.Controls
                 }
                 else
                 {
-                    var win = floatingDockedItems.Find(w => (w.DataContext as IDockableItem).UniqueId == dockedItemKvp.Key);
+                    FrostyDockableWindow win = floatingDockedItems.Find(w => (w.DataContext as IDockableItem).UniqueId == dockedItemKvp.Key);
                     if (win != null)
                     {
                         DockLayoutFloatingData floatingData = new DockLayoutFloatingData();
@@ -356,7 +356,7 @@ namespace LevelEditorPlugin.Controls
         public void LoadFromConfig(string editorName, DockManagerConfigData defaultValue)
         {
             config = ConfigExt.GetJsonObject<DockManagerConfigData>($"{editorName}DockLayout", defaultValue);
-            foreach (var layout in config.Layouts)
+            foreach (DockLayoutData layout in config.Layouts)
             {
                 dockedItemKeys.Add(layout.UniqueId, layout);
                 initialData.Add(layout.UniqueId, new Tuple<bool, bool>(layout.IsVisible, layout.IsSelected));
@@ -445,7 +445,7 @@ namespace LevelEditorPlugin.Controls
 
         public void AddTopItem(IDockableItem item, bool isSelected)
         {
-            var tabItem = new FrostyTabItem() { Content = item, Header = item.Header, TabId = item.UniqueId, IsSelected = isSelected, CloseButtonVisible = true, Icon = (new ImageSourceConverter().ConvertFromString("pack://application:,,,/LevelEditorPlugin;component/" + item.Icon)) as ImageSource };
+            FrostyTabItem tabItem = new FrostyTabItem() { Content = item, Header = item.Header, TabId = item.UniqueId, IsSelected = isSelected, CloseButtonVisible = true, Icon = (new ImageSourceConverter().ConvertFromString("pack://application:,,,/LevelEditorPlugin;component/" + item.Icon)) as ImageSource };
             tabItem.CloseButtonClick += (o, e) =>
             {
                 DockManager.RemoveItem(tabItem.TabId);
@@ -458,7 +458,7 @@ namespace LevelEditorPlugin.Controls
         {
             System.Diagnostics.Debug.Assert(SupportsBottomContent, "This docking panel does not support content being added to this location.");
 
-            var tabItem = new FrostyTabItem() { Content = item, Header = item.Header, TabId = item.UniqueId, IsSelected = isSelected, CloseButtonVisible = true, Icon = (new ImageSourceConverter().ConvertFromString("pack://application:,,,/LevelEditorPlugin;component/" + item.Icon)) as ImageSource };
+            FrostyTabItem tabItem = new FrostyTabItem() { Content = item, Header = item.Header, TabId = item.UniqueId, IsSelected = isSelected, CloseButtonVisible = true, Icon = (new ImageSourceConverter().ConvertFromString("pack://application:,,,/LevelEditorPlugin;component/" + item.Icon)) as ImageSource };
             tabItem.CloseButtonClick += (o, e) =>
             {
                 DockManager.RemoveItem(tabItem.TabId);
@@ -515,8 +515,8 @@ namespace LevelEditorPlugin.Controls
 
         private void BindTabControlContent(string controlName, string contentName)
         {
-            var tabControl = GetTemplateChild(controlName) as FrostyTabControl;
-            var tabContent = GetTemplateChild(contentName) as FrostyDetachedTabControl;
+            FrostyTabControl tabControl = GetTemplateChild(controlName) as FrostyTabControl;
+            FrostyDetachedTabControl tabContent = GetTemplateChild(contentName) as FrostyDetachedTabControl;
             tabContent.HeaderControl = tabControl;
         }
     }

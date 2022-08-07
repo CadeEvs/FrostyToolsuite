@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Media;
+using LevelEditorPlugin.Entities;
 
 namespace LevelEditorPlugin.Converters
 {
@@ -17,7 +18,7 @@ namespace LevelEditorPlugin.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var entity = value as Entities.Entity;
+            Entity entity = value as Entities.Entity;
             if (entity is Entities.WorldReferenceObject)
             {
                 return subWorldReferenceIcon;

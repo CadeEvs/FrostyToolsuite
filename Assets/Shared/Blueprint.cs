@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Assets
 {
@@ -24,7 +25,7 @@ namespace LevelEditorPlugin.Assets
         public string GetNextAvailablePropertyValue()
         {
             int index = 0;
-            var interfaceDesc = Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
+            InterfaceDescriptorData interfaceDesc = Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
 
             while (interfaceDesc.Fields.Find(f => ((string)f.Name).Equals($"PropertyValue_{index}")) != null)
                 index++;

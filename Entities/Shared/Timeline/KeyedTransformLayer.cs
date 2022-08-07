@@ -30,7 +30,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void Update(float elapsedTime)
         {
-            foreach (var track in tracks)
+            foreach (TimelineTrack track in tracks)
             {
 				track.Update(elapsedTime);
             }

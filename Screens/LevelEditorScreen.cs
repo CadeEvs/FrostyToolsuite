@@ -427,7 +427,7 @@ namespace LevelEditorPlugin.Screens
                 }
             }
 
-            foreach (var proxy in proxies)
+            foreach (RenderProxy proxy in proxies)
                 proxy.Update(RenderCreateState);
         }
 
@@ -436,10 +436,10 @@ namespace LevelEditorPlugin.Screens
             Render();
 
             {
-                var texture = Viewport.ColorBuffer;
-                var description = texture.Description;
+                D3D11.Texture2D texture = Viewport.ColorBuffer;
+                D3D11.Texture2DDescription description = texture.Description;
 
-                var textureCopy = new D3D11.Texture2D(Viewport.Device, new D3D11.Texture2DDescription
+                D3D11.Texture2D textureCopy = new D3D11.Texture2D(Viewport.Device, new D3D11.Texture2DDescription
                 {
                     Width = (int)description.Width,
                     Height = (int)description.Height,
@@ -455,7 +455,7 @@ namespace LevelEditorPlugin.Screens
                 Viewport.Context.CopyResource(texture, textureCopy);
 
                 DataStream dataStream;
-                var dataBox = Viewport.Context.MapSubresource(
+                DataBox dataBox = Viewport.Context.MapSubresource(
                     textureCopy,
                     0,
                     0,
@@ -541,7 +541,7 @@ namespace LevelEditorPlugin.Screens
 
             translateGizmo.Dispose();
 
-            foreach (var proxy in proxies)
+            foreach (RenderProxy proxy in proxies)
                 proxy.Dispose();
 
             proxies.Clear();
@@ -577,7 +577,7 @@ namespace LevelEditorPlugin.Screens
             translateGizmo.IsVisible = false;
             renderTasks.Enqueue((state) =>
             {
-                foreach (var proxy in selectedProxies)
+                foreach (RenderProxy proxy in selectedProxies)
                     proxy.SetSelected(state, false);
                 selectedProxies.Clear();
             });
@@ -587,7 +587,7 @@ namespace LevelEditorPlugin.Screens
         {
             ClearSelection();
 
-            var foundProxies = proxies.Where(rp => rp.OwnerEntity.Owner == entity);
+            IEnumerable<RenderProxy> foundProxies = proxies.Where(rp => rp.OwnerEntity.Owner == entity);
             if (foundProxies.Count() == 0)
                 return;
 
@@ -597,7 +597,7 @@ namespace LevelEditorPlugin.Screens
             renderTasks.Enqueue((state) =>
             {
                 selectedProxies.AddRange(foundProxies);
-                foreach (var proxy in selectedProxies)
+                foreach (RenderProxy proxy in selectedProxies)
                     proxy.SetSelected(state, true);
             });
         }
@@ -610,7 +610,7 @@ namespace LevelEditorPlugin.Screens
             BoundingBox totalBbox = new BoundingBox();
             int index = 0;
 
-            foreach (var proxy in selectedProxies)
+            foreach (RenderProxy proxy in selectedProxies)
             {
                 if (index == 0) totalBbox = proxy.BoundingBox;
                 else totalBbox = BoundingBox.Merge(totalBbox, proxy.BoundingBox);
@@ -632,13 +632,13 @@ namespace LevelEditorPlugin.Screens
             List<MeshRenderInstance> instancesInView = new List<MeshRenderInstance>();
             
             sprites.Clear();
-            foreach (var proxy in proxies)
+            foreach (RenderProxy proxy in proxies)
             {
                 float dist = (proxy.Transform.TranslationVector - worldMatrix.TranslationVector).Length();
                 float width = cameraFrustum.GetWidthAtDepth(dist);
                 float height = cameraFrustum.GetHeightAtDepth(dist);
 
-                var bSphere = BoundingSphere.FromBox(proxy.BoundingBox);
+                BoundingSphere bSphere = BoundingSphere.FromBox(proxy.BoundingBox);
                 float wratio =  (bSphere.Radius * 2) / width;
                 float hratio = (bSphere.Radius * 2) / height;
                 float screenSize = (wratio > hratio) ? wratio : hratio;
@@ -667,13 +667,13 @@ namespace LevelEditorPlugin.Screens
             BoundingFrustum cameraFrustum = BoundingFrustum.FromCamera(worldMatrix.TranslationVector, worldMatrix.Backward, worldMatrix.Down, currentCamera.FOV, currentCamera.GetNearClip(), currentCamera.GetFarClip(), currentCamera.AspectRatio);
             List<MeshRenderInstance> instancesInView = new List<MeshRenderInstance>();
 
-            foreach (var proxy in proxies)
+            foreach (RenderProxy proxy in proxies)
             {
                 float dist = (proxy.Transform.TranslationVector - worldMatrix.TranslationVector).Length();
                 float width = cameraFrustum.GetWidthAtDepth(dist);
                 float height = cameraFrustum.GetHeightAtDepth(dist);
 
-                var bSphere = BoundingSphere.FromBox(proxy.BoundingBox);
+                BoundingSphere bSphere = BoundingSphere.FromBox(proxy.BoundingBox);
                 float wratio = (bSphere.Radius * 2) / width;
                 float hratio = (bSphere.Radius * 2) / height;
                 float screenSize = (wratio > hratio) ? wratio : hratio;
@@ -738,7 +738,7 @@ namespace LevelEditorPlugin.Screens
                 Matrix m = Matrix.Scaling(scale) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(translateGizmo.Transform.TranslationVector);
                 (selectedProxies[0].OwnerEntity.Owner as ISpatialEntity).SetTransform(m, suppressUpdate: false);
 
-                foreach (var proxy in selectedProxies)
+                foreach (RenderProxy proxy in selectedProxies)
                     proxy.OwnerEntity.RequiresTransformUpdate = true;
 
                 return;
@@ -754,7 +754,7 @@ namespace LevelEditorPlugin.Screens
                     List<MeshRenderInstance> visibleInstances = GetSortedVisibleList();
                     List<Tuple<MeshRenderInstance, float>> hits = new List<Tuple<MeshRenderInstance, float>>();
 
-                    foreach (var instance in visibleInstances)
+                    foreach (MeshRenderInstance instance in visibleInstances)
                     {
                         RenderProxy instProxy = instance.RenderMesh as RenderProxy;
                         BoundingBox bbox = instProxy.BoundingBox;
@@ -778,7 +778,7 @@ namespace LevelEditorPlugin.Screens
                         proxy = hits[0].Item1.RenderMesh as RenderProxy;                        
                     }
 
-                    var entityToSelect = (proxy != null)
+                    Entity entityToSelect = (proxy != null)
                             ? proxy.OwnerEntity.Owner
                             : null;
 
@@ -813,7 +813,7 @@ namespace LevelEditorPlugin.Screens
                 Matrix m = Matrix.Scaling(scale) * Matrix.RotationQuaternion(rotation) * Matrix.Translation(translateGizmo.Transform.TranslationVector);
                 (selectedProxies[0].OwnerEntity.Owner as ISpatialEntity).SetTransform(m, suppressUpdate: true);
 
-                foreach (var proxy in selectedProxies)
+                foreach (RenderProxy proxy in selectedProxies)
                     proxy.OwnerEntity.RequiresTransformUpdate = true;
             }
         }

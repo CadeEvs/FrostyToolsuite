@@ -42,18 +42,18 @@ namespace LevelEditorPlugin.Render
             //using (NativeWriter writer = new NativeWriter(new FileStream(@"Z:\Dump\Terrain\Mask.txt", FileMode.Create)))
             //    PrintMaskNodes(streamingData, htree, mtree, mnode, writer, 0);
 
-            var chunkCache = new Dictionary<Guid, NativeReader>();
+            Dictionary<Guid, NativeReader> chunkCache = new Dictionary<Guid, NativeReader>();
             IterateNodes(state, streamingData, htree, hnode, mtree, mnode, new List<LayerData>(), chunkCache);
 
             //iterateNodes(state, streamingData, streamingData.GetRootNode());
 
-            foreach (var reader in chunkCache.Values)
+            foreach (NativeReader reader in chunkCache.Values)
                 reader.Dispose();
         }
 
         public void Dispose()
         {
-            foreach (var chunk in terrainChunks)
+            foreach (TerrainChunkRenderable chunk in terrainChunks)
                 chunk.Dispose();
         }
 
@@ -331,7 +331,7 @@ namespace LevelEditorPlugin.Render
                     }
                 }
 
-                foreach (var layer in layerDatas)
+                foreach (LayerData layer in layerDatas)
                 {
                     if (layer.Node.data == null && layer.Node.nonTrivialSubtileCount != 0)
                     {
@@ -361,7 +361,7 @@ namespace LevelEditorPlugin.Render
                     }
                 }
 
-                var chunk = new TerrainChunkRenderable(state, htree, hnode, mtree, layerDatas);
+                TerrainChunkRenderable chunk = new TerrainChunkRenderable(state, htree, hnode, mtree, layerDatas);
                 if (chunk.IsValid)
                     terrainChunks.Add(chunk);
             }
@@ -673,7 +673,7 @@ namespace LevelEditorPlugin.Render
                 TerrainRenderable.LayerData layer = layerDatas[i];
                 for (int j = 0; j < layer.Node.subtiles.Count; j++)
                 {
-                    var subtile = layer.Node.subtiles[j];
+                    TerrainMaskTreeNode.Subtile subtile = layer.Node.subtiles[j];
                     if (subtile.terrainLayerIndex == i)
                     {
                         if ((subtile.flags & 2) == 0)
@@ -747,7 +747,7 @@ namespace LevelEditorPlugin.Render
             if (totalLayerData[1].All(b => b == 0x00))
                 Console.WriteLine("TEST");
 
-            var texDesc = new Texture2DDescription()
+            Texture2DDescription texDesc = new Texture2DDescription()
             {
                 ArraySize = 1,
                 BindFlags = BindFlags.ShaderResource,
@@ -780,7 +780,7 @@ namespace LevelEditorPlugin.Render
 
         public void Dispose()
         {
-            foreach (var texture in textures)
+            foreach (BindableTextureWithData texture in textures)
             {
                 if (texture != null)
                     texture.Dispose();

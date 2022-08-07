@@ -111,7 +111,7 @@ namespace LevelEditorPlugin.Controls
         private bool IsInBookmarkDb(EbxAssetEntry entry, List<BookmarkItem> bookmarkItems)
         {
             bool retVal = false;
-            foreach (var item in bookmarkItems)
+            foreach (BookmarkItem item in bookmarkItems)
             {
                 if (item.IsFolder)
                 {
@@ -123,7 +123,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (item.Target is AssetBookmarkTarget)
                     {
-                        var assetTarget = item.Target as AssetBookmarkTarget;
+                        AssetBookmarkTarget assetTarget = item.Target as AssetBookmarkTarget;
                         if (assetTarget.Asset == entry)
                             return true;
                     }

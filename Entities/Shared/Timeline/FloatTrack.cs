@@ -1,4 +1,5 @@
 
+using FrostySdk.Ebx;
 using LevelEditorPlugin.Editors;
 using LevelEditorPlugin.Library;
 
@@ -35,7 +36,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void Update(float elapsedTime)
         {
-			var curveData = Data.CurveData.GetObjectAs<FrostySdk.Ebx.CurveData>();
+			CurveData curveData = Data.CurveData.GetObjectAs<FrostySdk.Ebx.CurveData>();
 			if (curveData.CurveType == FrostySdk.Ebx.CurveType.CurveType_Zero)
 			{
 				currentValue = 0.0f;

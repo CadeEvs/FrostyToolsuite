@@ -6,6 +6,7 @@ using Vec2 = FrostySdk.Ebx.Vec2;
 using Vec3 = FrostySdk.Ebx.Vec3;
 using Vec4 = FrostySdk.Ebx.Vec4;
 using System.Collections;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -35,7 +36,7 @@ namespace LevelEditorPlugin.Entities
 
             public void ClearState()
             {
-                foreach (var list in values)
+                foreach (IList list in values)
                 {
                     list.Clear();
                 }
@@ -99,7 +100,7 @@ namespace LevelEditorPlugin.Entities
             {
                 List<ConnectionDesc> outProperties = new List<ConnectionDesc>();
 
-                foreach (var instruction in Data.Assembly.Instructions)
+                foreach (MathEntityInstruction instruction in Data.Assembly.Instructions)
                 {
                     switch (instruction.Code)
                     {
@@ -142,7 +143,7 @@ namespace LevelEditorPlugin.Entities
 			: base(inData, inParent)
 		{
             SetFlags(EntityFlags.HasLogic);
-            foreach (var instruction in Data.Assembly.Instructions)
+            foreach (MathEntityInstruction instruction in Data.Assembly.Instructions)
             {
                 switch (instruction.Code)
                 {
@@ -184,7 +185,7 @@ namespace LevelEditorPlugin.Entities
 
         public override void OnPropertyChanged(int propertyHash)
         {
-            var property = paramProperties.Find(p => p.NameHash == propertyHash);
+            IProperty property = paramProperties.Find(p => p.NameHash == propertyHash);
             if (property != null && !Data.EvaluateOnEvent)
             {
                 Recalculate();
@@ -208,7 +209,7 @@ namespace LevelEditorPlugin.Entities
         private void Recalculate()
         {
             stack.ClearState();
-            foreach (var instruction in Data.Assembly.Instructions)
+            foreach (MathEntityInstruction instruction in Data.Assembly.Instructions)
             {
                 switch (instruction.Code)
                 {
@@ -293,7 +294,7 @@ namespace LevelEditorPlugin.Entities
 
         private T GetParameter<T>(int paramHash)
         {
-            var param = paramProperties.Find(p => p.NameHash == paramHash);
+            IProperty param = paramProperties.Find(p => p.NameHash == paramHash);
             return (T)param.Value;
         }
 

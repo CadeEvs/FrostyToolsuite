@@ -120,7 +120,7 @@ namespace LevelEditorPlugin.Entities
 
         public virtual void AddPropertyConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var property = GetProperty(srcPort);
+            IProperty property = GetProperty(srcPort);
             if (property == null)
             {
                 property = new Property<object>(this, srcPort);
@@ -131,7 +131,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddEventConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var evt = GetEvent(srcPort);
+            IEvent evt = GetEvent(srcPort);
             if (evt == null)
             {
                 evt = new Event<OutputEvent>(this, srcPort);
@@ -142,7 +142,7 @@ namespace LevelEditorPlugin.Entities
 
         public void AddLinkConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var link = GetLink(srcPort);
+            ILink link = GetLink(srcPort);
             if (link == null)
             {
                 link = new Link<object>(this, srcPort);

@@ -12,8 +12,13 @@ using SharpDX;
 using Frosty.Core;
 using System.IO;
 using Frosty.Core.Managers;
+using FrostySdk.Ebx;
+using FrostySdk.IO;
 using DataField = FrostySdk.Ebx.DataField;
 using LevelEditorPlugin.Converters;
+using Asset = LevelEditorPlugin.Assets.Asset;
+using ObjectBlueprint = LevelEditorPlugin.Assets.ObjectBlueprint;
+using PrefabBlueprint = LevelEditorPlugin.Assets.PrefabBlueprint;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -29,7 +34,7 @@ namespace LevelEditorPlugin.Entities
             get => base.RequiresTransformUpdate;
             set
             {
-                foreach (var entity in entities)
+                foreach (Entity entity in entities)
                 {
                     entity.RequiresTransformUpdate = value;
                 }
@@ -44,14 +49,14 @@ namespace LevelEditorPlugin.Entities
                 List<ConnectionDesc> outLinks = new List<ConnectionDesc>();
                 if (Blueprint != null)
                 {
-                    var interfaceDesc = Blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
+                    InterfaceDescriptorData interfaceDesc = Blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
                     if (interfaceDesc != null)
                     {
-                        foreach (var linkDesc in interfaceDesc.InputLinks)
+                        foreach (DynamicLink linkDesc in interfaceDesc.InputLinks)
                         {
                             outLinks.Add(new ConnectionDesc() { Name = linkDesc.Name, Direction = Direction.Out });
                         }
-                        foreach (var linkDesc in interfaceDesc.OutputLinks)
+                        foreach (DynamicLink linkDesc in interfaceDesc.OutputLinks)
                         {
                             outLinks.Add(new ConnectionDesc() { Name = linkDesc.Name, Direction = Direction.In });
                         }
@@ -61,7 +66,7 @@ namespace LevelEditorPlugin.Entities
                     {
                         if (entities.Count > 0)
                         {
-                            var rootEntity = entities[0];
+                            Entity rootEntity = entities[0];
                             outLinks.AddRange((rootEntity as ILogicEntity).Links);
                         }
                     }
@@ -76,14 +81,14 @@ namespace LevelEditorPlugin.Entities
                 List<ConnectionDesc> outEvents = new List<ConnectionDesc>();
                 if (Blueprint != null)
                 {
-                    var interfaceDesc = Blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
+                    InterfaceDescriptorData interfaceDesc = Blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
                     if (interfaceDesc != null)
                     {
-                        foreach (var eventDesc in interfaceDesc.InputEvents)
+                        foreach (DynamicEvent eventDesc in interfaceDesc.InputEvents)
                         {
                             outEvents.Add(new ConnectionDesc() { Name = eventDesc.Name, Direction = Direction.In });
                         }
-                        foreach (var eventDesc in interfaceDesc.OutputEvents)
+                        foreach (DynamicEvent eventDesc in interfaceDesc.OutputEvents)
                         {
                             outEvents.Add(new ConnectionDesc() { Name = eventDesc.Name, Direction = Direction.Out });
                         }
@@ -93,7 +98,7 @@ namespace LevelEditorPlugin.Entities
                     {
                         if (entities.Count > 0)
                         {
-                            var rootEntity = entities[0];
+                            Entity rootEntity = entities[0];
                             outEvents.AddRange((rootEntity as ILogicEntity).Events);
                         }
                     }
@@ -108,10 +113,10 @@ namespace LevelEditorPlugin.Entities
                 List<ConnectionDesc> outProperties = new List<ConnectionDesc>();
                 if (Blueprint != null)
                 {
-                    var interfaceDesc = Blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
+                    InterfaceDescriptorData interfaceDesc = Blueprint.Data.Interface.GetObjectAs<FrostySdk.Ebx.InterfaceDescriptorData>();
                     if (interfaceDesc != null)
                     {
-                        foreach (var fieldDesc in interfaceDesc.Fields)
+                        foreach (DataField fieldDesc in interfaceDesc.Fields)
                         {
                             string fieldName = fieldDesc.Name;
                             if (Utils.IsFieldProperty(fieldName))
@@ -137,7 +142,7 @@ namespace LevelEditorPlugin.Entities
                     {
                         if (entities.Count > 0)
                         {
-                            var rootEntity = entities[0];
+                            Entity rootEntity = entities[0];
                             outProperties.AddRange((rootEntity as ILogicEntity).Properties);
                         }
                     }
@@ -231,14 +236,14 @@ namespace LevelEditorPlugin.Entities
 
         public override void CreateRenderProxy(List<RenderProxy> proxies, RenderCreateState state)
         {
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
                 entity.CreateRenderProxy(proxies, state);
         }
 
         public override void SetOwner(Entity newOwner)
         {
             base.SetOwner(newOwner);
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
                 entity.SetOwner(newOwner);
         }
 
@@ -247,7 +252,7 @@ namespace LevelEditorPlugin.Entities
             if (newVisibility != isVisible)
             {
                 isVisible = newVisibility;
-                foreach (var entity in entities)
+                foreach (Entity entity in entities)
                     entity.SetVisibility(newVisibility);
             }
         }
@@ -257,10 +262,10 @@ namespace LevelEditorPlugin.Entities
             interfaceDescriptor?.Destroy();
 
             LoadedAssetManager.Instance.UnloadAsset(blueprint);
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
                 entity.Destroy();
 
-            foreach (var asset in additionalAssets)
+            foreach (Asset asset in additionalAssets)
                 LoadedAssetManager.Instance.UnloadAsset(asset);
 
             base.Destroy();
@@ -299,7 +304,7 @@ namespace LevelEditorPlugin.Entities
 
         public Entity FindEntity(Guid instanceGuid)
         {
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 Guid entityInstanceGuid = entity.InstanceGuid;
                 if (entityInstanceGuid == instanceGuid)
@@ -309,14 +314,14 @@ namespace LevelEditorPlugin.Entities
                 {
                     if (entity is ReferenceObject)
                     {
-                        var foundEntity = (entity as ReferenceObject).FindEntity(instanceGuid);
+                        Entity foundEntity = (entity as ReferenceObject).FindEntity(instanceGuid);
                         if (foundEntity != null)
                             return foundEntity;
                     }
                 }
                 else if (entity is IContainerOfEntities)
                 {
-                    var foundEntity = (entity as IContainerOfEntities).FindEntity(instanceGuid);
+                    Entity foundEntity = (entity as IContainerOfEntities).FindEntity(instanceGuid);
                     if (foundEntity != null)
                         return foundEntity;
                 }
@@ -330,11 +335,11 @@ namespace LevelEditorPlugin.Entities
             interfaceDescriptor?.BeginSimulation();
             selfLink.Value = this;
 
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ISchematicsType)
                 {
-                    var schematicsEntity = entity as ISchematicsType;
+                    ISchematicsType schematicsEntity = entity as ISchematicsType;
                     schematicsEntity.BeginSimulation();
                 }
             }
@@ -343,11 +348,11 @@ namespace LevelEditorPlugin.Entities
         public virtual void EndSimulation()
         {
             interfaceDescriptor?.EndSimulation();
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ISchematicsType)
                 {
-                    var schematicsEntity = entity as ISchematicsType;
+                    ISchematicsType schematicsEntity = entity as ISchematicsType;
                     schematicsEntity.EndSimulation();
                 }
             }
@@ -370,7 +375,7 @@ namespace LevelEditorPlugin.Entities
             //}
 
             // update link values in preframe
-            foreach (var link in links)
+            foreach (ILink link in links)
             {
                 if (link.HasValueChanged)
                 {
@@ -378,11 +383,11 @@ namespace LevelEditorPlugin.Entities
                 }
             }
 
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ISchematicsType)
                 {
-                    var schematicsEntity = entity as ISchematicsType;
+                    ISchematicsType schematicsEntity = entity as ISchematicsType;
                     schematicsEntity.Update_PreFrame();
                 }
             }
@@ -395,11 +400,11 @@ namespace LevelEditorPlugin.Entities
                 interfaceDescriptor.Update_PostFrame();
             }
 
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 if (entity is ISchematicsType)
                 {
-                    var schematicsEntity = entity as ISchematicsType;
+                    ISchematicsType schematicsEntity = entity as ISchematicsType;
                     schematicsEntity.Update_PostFrame();
                 }
             }
@@ -407,7 +412,7 @@ namespace LevelEditorPlugin.Entities
 
         public virtual void AddPropertyConnection(int srcPort, ISchematicsType dstObject, int dstPort)
         {
-            var property = properties.Find(p => p.NameHash == srcPort);
+            IProperty property = properties.Find(p => p.NameHash == srcPort);
             if (property != null)
             {
                 property.AddConnection(dstObject, dstPort);
@@ -429,7 +434,7 @@ namespace LevelEditorPlugin.Entities
 
         public IProperty GetProperty(int nameHash)
         {
-            var property = interfaceDescriptor?.GetProperty(nameHash);
+            IProperty property = interfaceDescriptor?.GetProperty(nameHash);
             if (property != null)
                 return property;
 
@@ -438,7 +443,7 @@ namespace LevelEditorPlugin.Entities
 
         public IEvent GetEvent(int nameHash)
         {
-            var evt = interfaceDescriptor?.GetEvent(nameHash);
+            IEvent evt = interfaceDescriptor?.GetEvent(nameHash);
             if (evt != null)
                 return evt;
 
@@ -447,7 +452,7 @@ namespace LevelEditorPlugin.Entities
 
         public ILink GetLink(int nameHash)
         {
-            var link = interfaceDescriptor?.GetLink(nameHash);
+            ILink link = interfaceDescriptor?.GetLink(nameHash);
             if (link != null)
                 return link;
 
@@ -503,9 +508,9 @@ namespace LevelEditorPlugin.Entities
 
             if (blueprint is Assets.ObjectBlueprint)
             {
-                var objectBlueprint = blueprint as Assets.ObjectBlueprint;
-                var objectData = objectBlueprint.Data.Object.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-                var entity = CreateEntity(objectData);
+                ObjectBlueprint objectBlueprint = blueprint as Assets.ObjectBlueprint;
+                GameObjectData objectData = objectBlueprint.Data.Object.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+                Entity entity = CreateEntity(objectData);
 
                 if (entity != null)
                 {
@@ -514,10 +519,10 @@ namespace LevelEditorPlugin.Entities
             }
             else if (blueprint is Assets.PrefabBlueprint)
             {
-                var prefabBlueprint = blueprint as Assets.PrefabBlueprint;
+                PrefabBlueprint prefabBlueprint = blueprint as Assets.PrefabBlueprint;
                 int index = 0;
 
-                foreach (var objPointer in prefabBlueprint.Data.Objects)
+                foreach (PointerRef objPointer in prefabBlueprint.Data.Objects)
                 {
                     if (objPointer.Type == FrostySdk.IO.PointerRefType.External)
                     {
@@ -525,8 +530,8 @@ namespace LevelEditorPlugin.Entities
                         additionalAssets.Add(LoadedAssetManager.Instance.LoadAsset<Assets.Asset>(objPointer.External.FileGuid));
                     }
 
-                    var objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
-                    var entity = CreateEntity(objectData);
+                    GameObjectData objectData = objPointer.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
+                    Entity entity = CreateEntity(objectData);
 
                     if (entity != null)
                     {
@@ -540,12 +545,12 @@ namespace LevelEditorPlugin.Entities
                     }
                 }
 
-                var ebxAsset = LoadedAssetManager.Instance.GetEbxAsset(blueprint.FileGuid);
-                foreach (var instance in ebxAsset.Objects)
+                EbxAsset ebxAsset = LoadedAssetManager.Instance.GetEbxAsset(blueprint.FileGuid);
+                foreach (object instance in ebxAsset.Objects)
                 {
                     if (instance is FrostySdk.Ebx.BaseShapeData)
                     {
-                        var entity = CreateEntity(instance as FrostySdk.Ebx.GameObjectData);
+                        Entity entity = CreateEntity(instance as FrostySdk.Ebx.GameObjectData);
                         if (entity != null)
                         {
                             entities.Add(entity);
@@ -561,11 +566,11 @@ namespace LevelEditorPlugin.Entities
             if (interfaceDescriptor != null)
             {
                 // find all property values
-                foreach (var propertyConnection in Blueprint.Data.PropertyConnections.Where(pc => Utils.IsFieldProperty(((string)pc.SourceField))))
+                foreach (PropertyConnection propertyConnection in Blueprint.Data.PropertyConnections.Where(pc => Utils.IsFieldProperty(((string)pc.SourceField))))
                 {
-                    var layerEntity = entities.Where(le =>
+                    ReferenceObject layerEntity = entities.Where(le =>
                     {
-                        var refObjEntity = le as ReferenceObject;
+                        ReferenceObject refObjEntity = le as ReferenceObject;
                         return refObjEntity?.Blueprint?.FileGuid == propertyConnection.Target.External.FileGuid;
 
                     }).FirstOrDefault() as ReferenceObject;
@@ -575,10 +580,10 @@ namespace LevelEditorPlugin.Entities
                         layerEntity = this;
                     }
 
-                    var entity = layerEntity?.FindEntity(propertyConnection.Target.GetInstanceGuid());
+                    Entity entity = layerEntity?.FindEntity(propertyConnection.Target.GetInstanceGuid());
                     if (entity != null)
                     {
-                        var field = interfaceDescriptor.Data.Fields.Find(f => f.Id == propertyConnection.SourceFieldId);
+                        DataField field = interfaceDescriptor.Data.Fields.Find(f => f.Id == propertyConnection.SourceFieldId);
                         entity.AddPropertyValue(propertyConnection.TargetField, field, propertyConnection, Blueprint);
                     }
                 }
@@ -590,7 +595,7 @@ namespace LevelEditorPlugin.Entities
             if (Blueprint == null)
                 return;
 
-            foreach (var propertyConnection in Blueprint.Data.PropertyConnections)
+            foreach (PropertyConnection propertyConnection in Blueprint.Data.PropertyConnections)
             {
                 ISchematicsType sourceEntity = world.FindEntity(propertyConnection.Source.GetInstanceGuid()) as ISchematicsType;
                 ISchematicsType targetEntity = world.FindEntity(propertyConnection.Target.GetInstanceGuid()) as ISchematicsType;
@@ -607,7 +612,7 @@ namespace LevelEditorPlugin.Entities
                 targetEntity.AddPropertyConnection(propertyConnection.TargetFieldId, sourceEntity, propertyConnection.SourceFieldId);
             }
 
-            foreach (var eventConnection in Blueprint.Data.EventConnections)
+            foreach (EventConnection eventConnection in Blueprint.Data.EventConnections)
             {
                 ISchematicsType sourceEntity = world.FindEntity(eventConnection.Source.GetInstanceGuid()) as ISchematicsType;
                 ISchematicsType targetEntity = world.FindEntity(eventConnection.Target.GetInstanceGuid()) as ISchematicsType;
@@ -624,7 +629,7 @@ namespace LevelEditorPlugin.Entities
                 sourceEntity.AddEventConnection(eventConnection.SourceEvent.Id, targetEntity, eventConnection.TargetEvent.Id);
             }
 
-            foreach (var linkConnection in Blueprint.Data.LinkConnections)
+            foreach (LinkConnection linkConnection in Blueprint.Data.LinkConnections)
             {
                 ISchematicsType sourceEntity = world.FindEntity(linkConnection.Source.GetInstanceGuid()) as ISchematicsType;
                 ISchematicsType targetEntity = world.FindEntity(linkConnection.Target.GetInstanceGuid()) as ISchematicsType;

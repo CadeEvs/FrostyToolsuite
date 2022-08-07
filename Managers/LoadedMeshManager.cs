@@ -42,11 +42,11 @@ namespace LevelEditorPlugin.Managers
 
         public void UnloadMesh(ObjRenderable mesh)
         {
-            var result = loadedMeshes.Where(m => m.Value.Mesh == mesh);
+            IEnumerable<KeyValuePair<uint, LoadedMeshInfo>> result = loadedMeshes.Where(m => m.Value.Mesh == mesh);
             if (result.Count() == 0)
                 return;
 
-            var loadedMesh = result.First();
+            KeyValuePair<uint, LoadedMeshInfo> loadedMesh = result.First();
             loadedMesh.Value.Decrement();
 
             if (loadedMesh.Value.RefCount == 0)

@@ -20,6 +20,8 @@ using System.Diagnostics;
 using System.Collections.Specialized;
 using System.Windows.Controls.Primitives;
 using Frosty.Core.Managers;
+using FrostySdk.Ebx;
+using Entity = LevelEditorPlugin.Entities.Entity;
 
 namespace LevelEditorPlugin.Controls
 {
@@ -195,7 +197,7 @@ namespace LevelEditorPlugin.Controls
             commentLayout.Color = Color.FromArgb(255, (byte)(CommentData.Color.x * 255.0f), (byte)(CommentData.Color.y * 255.0f), (byte)(CommentData.Color.z * 255.0f));
             commentLayout.Children = new List<Guid>();
 
-            foreach (var node in nodes)
+            foreach (BaseVisual node in nodes)
             {
                 commentLayout.Children.Add(node.UniqueId);
             }
@@ -218,7 +220,7 @@ namespace LevelEditorPlugin.Controls
         public override void Move(Point newPos)
         {
             Point offset = new Point(newPos.X - Rect.X, newPos.Y - Rect.Y);
-            foreach (var node in nodes)
+            foreach (BaseVisual node in nodes)
             {
                 if (node.IsSelected)
                     continue;
@@ -258,7 +260,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     double luminance = (CommentData.Color.x * 0.3) + (CommentData.Color.y * 0.59) + (CommentData.Color.z * 0.11);
                     // comment title
-                    var titleGlyphRun = state.ConvertTextLinesToGlyphRun(state.TransformPoint(titlePos), true, CommentData.CommentText);
+                    GlyphRun titleGlyphRun = state.ConvertTextLinesToGlyphRun(state.TransformPoint(titlePos), true, CommentData.CommentText);
                     state.DrawingContext.DrawGlyphRun((luminance > 0.2) ? Brushes.Black : Brushes.White, titleGlyphRun);
                 }
             }
@@ -347,7 +349,7 @@ namespace LevelEditorPlugin.Controls
 
         public override void ApplyLayout(SchematicsLayout layout, SchematicsCanvas canvas)
         {
-            var node = layout.Nodes.FirstOrDefault(n => (n.InterfaceData.HasValue && n.InterfaceData.Value.NameHash == Self.NameHash && n.InterfaceData.Value.FieldType == FieldType && n.InterfaceData.Value.Direction == Direction));
+            SchematicsLayout.Node node = layout.Nodes.FirstOrDefault(n => (n.InterfaceData.HasValue && n.InterfaceData.Value.NameHash == Self.NameHash && n.InterfaceData.Value.FieldType == FieldType && n.InterfaceData.Value.Direction == Direction));
             if (node.FileGuid == BlueprintGuid)
             {
                 UniqueId = (node.UniqueId != Guid.Empty) ? node.UniqueId : UniqueId;
@@ -357,7 +359,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (node.ShortcutData.HasValue)
                 {
-                    foreach (var shortcut in node.ShortcutData.Value.Shortcuts)
+                    foreach (SchematicsLayout.Shortcut shortcut in node.ShortcutData.Value.Shortcuts)
                     {
                         Port port = Self;
                         canvas.GenerateShortcuts(this, Self, shortcut);
@@ -380,17 +382,17 @@ namespace LevelEditorPlugin.Controls
 
             if (Self.ShortcutNode != null)
             {
-                var shortcutData = new SchematicsLayout.ShortcutData();
+                SchematicsLayout.ShortcutData shortcutData = new SchematicsLayout.ShortcutData();
                 shortcutData.Shortcuts = new List<SchematicsLayout.Shortcut>();
 
-                var shortcut = new SchematicsLayout.Shortcut();
+                SchematicsLayout.Shortcut shortcut = new SchematicsLayout.Shortcut();
                 shortcut.UniqueId = Self.ShortcutNode.UniqueId;
                 shortcut.DisplayName = Self.ShortcutNode.ShortcutData.DisplayName;
                 shortcut.Position = Self.ShortcutNode.Rect.Location;
                 shortcut.ChildPositions = new List<Point>();
                 shortcut.ChildGuids = new List<Guid>();
 
-                foreach (var child in Self.ShortcutChildren)
+                foreach (InterfaceShortcutNodeVisual child in Self.ShortcutChildren)
                 {
                     shortcut.ChildPositions.Add(child.Rect.Location);
                     shortcut.ChildGuids.Add(child.UniqueId);
@@ -504,7 +506,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     xOffset = (Direction == 0) ? 0 : (Rect.Width - 20);
 
-                    var group = new TransformGroup();
+                    TransformGroup group = new TransformGroup();
                     group.Children.Add(new ScaleTransform(state.Scale, state.Scale));
                     group.Children.Add(new TranslateTransform(nodePosition.X + xOffset * state.Scale, nodePosition.Y));
 
@@ -520,7 +522,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     // node title
                     double xOffset = (Direction == 1) ? (20 * state.Scale) : ((Rect.Width - 20) * state.Scale) - Self.Name.Length * state.LargeFont.AdvanceWidth;
-                    var titleGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + xOffset, nodePosition.Y + (4 * state.Scale)), true, Self.Name);
+                    GlyphRun titleGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + xOffset, nodePosition.Y + (4 * state.Scale)), true, Self.Name);
                     state.DrawingContext.DrawGlyphRun(Brushes.Black, titleGlyphRun);
                 }
             }
@@ -565,7 +567,7 @@ namespace LevelEditorPlugin.Controls
                 Self.Name = ShortcutData.DisplayName;
                 Update();
 
-                foreach (var child in OwnerPort.ShortcutChildren)
+                foreach (InterfaceShortcutNodeVisual child in OwnerPort.ShortcutChildren)
                 {
                     child.ShortcutData.DisplayName = Self.Name;
                     child.Update();
@@ -619,7 +621,7 @@ namespace LevelEditorPlugin.Controls
                     double targetX = (Direction == 0) ? Rect.X : Rect.X + Rect.Width;
                     for (int i = 0; i < OwnerPort.ShortcutChildren.Count; i++)
                     {
-                        var childNode = OwnerPort.ShortcutChildren[i];
+                        InterfaceShortcutNodeVisual childNode = OwnerPort.ShortcutChildren[i];
                         double sourceX = (childNode.Direction == 0) ? childNode.Rect.X : childNode.Rect.X + childNode.Rect.Width;
 
                         state.DrawingContext.DrawLine(state.ShortcutWirePen,
@@ -710,7 +712,7 @@ namespace LevelEditorPlugin.Controls
             }
 
             bool changedHighlight = false;
-            foreach (var port in AllPorts)
+            foreach (Port port in AllPorts)
             {
                 Rect portRect = new Rect(Rect.X + port.Rect.X, Rect.Y + port.Rect.Y, port.Rect.Width, port.Rect.Height);
                 if (portRect.Contains(mousePos))
@@ -752,7 +754,7 @@ namespace LevelEditorPlugin.Controls
             }
             else if (mouseButton == MouseButton.Right)
             {
-                foreach (var port in AllPorts)
+                foreach (Port port in AllPorts)
                 {
                     if (!port.Connected || port.ShortcutNode != null)
                         continue;
@@ -797,7 +799,7 @@ namespace LevelEditorPlugin.Controls
 
         public override void ApplyLayout(SchematicsLayout layout, SchematicsCanvas canvas)
         {
-            var node = layout.Nodes.FirstOrDefault(n => n.FileGuid == Entity.FileGuid && n.InstanceGuid == Entity.InstanceGuid);
+            SchematicsLayout.Node node = layout.Nodes.FirstOrDefault(n => n.FileGuid == Entity.FileGuid && n.InstanceGuid == Entity.InstanceGuid);
             if (node.FileGuid == Entity.FileGuid)
             {
                 UniqueId = (node.UniqueId != Guid.Empty) ? node.UniqueId : UniqueId;
@@ -807,7 +809,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (node.ShortcutData.HasValue)
                 {
-                    foreach (var shortcut in node.ShortcutData.Value.Shortcuts)
+                    foreach (SchematicsLayout.Shortcut shortcut in node.ShortcutData.Value.Shortcuts)
                     {
                         Port port = Self;
                         if (shortcut.ExtraData.HasValue)
@@ -830,11 +832,11 @@ namespace LevelEditorPlugin.Controls
             node.Position = Rect.Location;
 
             List<SchematicsLayout.Shortcut> shortcuts = new List<SchematicsLayout.Shortcut>();
-            foreach (var port in AllPorts)
+            foreach (Port port in AllPorts)
             {
                 if (port.ShortcutNode != null)
                 {
-                    var shortcut = new SchematicsLayout.Shortcut();
+                    SchematicsLayout.Shortcut shortcut = new SchematicsLayout.Shortcut();
                     shortcut.UniqueId = port.ShortcutNode.UniqueId;
                     shortcut.DisplayName = port.ShortcutNode.ShortcutData.DisplayName;
                     shortcut.Position = port.ShortcutNode.Rect.Location;
@@ -843,14 +845,14 @@ namespace LevelEditorPlugin.Controls
 
                     if (port != Self)
                     {
-                        var extraData = new SchematicsLayout.InterfaceData();
+                        SchematicsLayout.InterfaceData extraData = new SchematicsLayout.InterfaceData();
                         extraData.NameHash = port.NameHash;
                         extraData.Direction = port.PortDirection;
                         extraData.FieldType = port.PortType;
                         shortcut.ExtraData = extraData;
                     }
 
-                    foreach (var child in port.ShortcutChildren)
+                    foreach (InterfaceShortcutNodeVisual child in port.ShortcutChildren)
                     {
                         shortcut.ChildPositions.Add(child.Rect.Location);
                         shortcut.ChildGuids.Add(child.UniqueId);
@@ -862,7 +864,7 @@ namespace LevelEditorPlugin.Controls
 
             if (shortcuts.Count > 0)
             {
-                var shortcutData = new SchematicsLayout.ShortcutData();
+                SchematicsLayout.ShortcutData shortcutData = new SchematicsLayout.ShortcutData();
                 shortcutData.Shortcuts = shortcuts;
                 node.ShortcutData = shortcutData;
             }
@@ -953,7 +955,7 @@ namespace LevelEditorPlugin.Controls
             double headerHeight = Rect.Height - 4;
 
             // input links
-            foreach (var port in InputLinks)
+            foreach (Port port in InputLinks)
             {
                 if (!IsCollapsed || port.Connected)
                 {
@@ -966,7 +968,7 @@ namespace LevelEditorPlugin.Controls
             connectorIdx = linkCount;
 
             // input events
-            foreach (var port in InputEvents)
+            foreach (Port port in InputEvents)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -979,7 +981,7 @@ namespace LevelEditorPlugin.Controls
             connectorIdx = eventCount + linkCount;
 
             // input properties
-            foreach (var port in InputProperties)
+            foreach (Port port in InputProperties)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -994,7 +996,7 @@ namespace LevelEditorPlugin.Controls
             offset = 0;
 
             // output links
-            foreach (var port in OutputLinks)
+            foreach (Port port in OutputLinks)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1007,7 +1009,7 @@ namespace LevelEditorPlugin.Controls
             connectorIdx = linkCount;
 
             // output events
-            foreach (var port in OutputEvents)
+            foreach (Port port in OutputEvents)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1020,7 +1022,7 @@ namespace LevelEditorPlugin.Controls
             connectorIdx = eventCount + linkCount;
 
             // output properties
-            foreach (var port in OutputProperties)
+            foreach (Port port in OutputProperties)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1047,7 +1049,7 @@ namespace LevelEditorPlugin.Controls
 
         public override void RenderDebug(SchematicsCanvas.DrawingContextState state)
         {
-            var debugRows = Entity.DebugRows;
+            IEnumerable<string> debugRows = Entity.DebugRows;
             if (debugRows.Count() == 0)
                 return;
 
@@ -1087,7 +1089,7 @@ namespace LevelEditorPlugin.Controls
                         rowValue = rowValue.Remove(44) + "...";
                     }
 
-                    var headerRowGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (5 * state.Scale), nodePosition.Y + ((offsetY - 0.5) * state.Scale)), false, rowValue);
+                    GlyphRun headerRowGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (5 * state.Scale), nodePosition.Y + ((offsetY - 0.5) * state.Scale)), false, rowValue);
                     state.DrawingContext.DrawGlyphRun(Brushes.Black, headerRowGlyphRun);
                     offsetY += 10.0;
                 }
@@ -1111,10 +1113,10 @@ namespace LevelEditorPlugin.Controls
             oldOutputProps.AddRange(OutputProperties);
 
             // input links
-            foreach (var linkDesc in Entity.Links.Where(e => e.Direction == Direction.Out))
+            foreach (ConnectionDesc linkDesc in Entity.Links.Where(e => e.Direction == Direction.Out))
             {
                 int hash = HashString(linkDesc.Name);
-                var port = InputLinks.Find(p => p.NameHash == hash);
+                Port port = InputLinks.Find(p => p.NameHash == hash);
 
                 if (port == null)
                 {
@@ -1128,10 +1130,10 @@ namespace LevelEditorPlugin.Controls
             }
 
             // input events
-            foreach (var eventDesc in Entity.Events.Where(e => e.Direction == Direction.In))
+            foreach (ConnectionDesc eventDesc in Entity.Events.Where(e => e.Direction == Direction.In))
             {
                 int hash = HashString(eventDesc.Name);
-                var port = InputEvents.Find(p => p.NameHash == hash);
+                Port port = InputEvents.Find(p => p.NameHash == hash);
 
                 if (port == null)
                 {
@@ -1144,10 +1146,10 @@ namespace LevelEditorPlugin.Controls
             }
 
             // input properties
-            foreach (var propDesc in Entity.Properties.Where(p => p.Direction == Direction.In))
+            foreach (ConnectionDesc propDesc in Entity.Properties.Where(p => p.Direction == Direction.In))
             {
                 int hash = HashString(propDesc.Name);
-                var port = InputProperties.Find(p => p.NameHash == hash);
+                Port port = InputProperties.Find(p => p.NameHash == hash);
 
                 if (port == null)
                 {
@@ -1161,10 +1163,10 @@ namespace LevelEditorPlugin.Controls
             }
 
             // output links
-            foreach (var linkDesc in Entity.Links.Where(e => e.Direction == Direction.In))
+            foreach (ConnectionDesc linkDesc in Entity.Links.Where(e => e.Direction == Direction.In))
             {
                 int hash = HashString(linkDesc.Name);
-                var port = OutputLinks.Find(p => p.NameHash == hash);
+                Port port = OutputLinks.Find(p => p.NameHash == hash);
 
                 if (port == null)
                 {
@@ -1178,10 +1180,10 @@ namespace LevelEditorPlugin.Controls
             }
 
             // output events
-            foreach (var eventDesc in Entity.Events.Where(e => e.Direction == Direction.Out))
+            foreach (ConnectionDesc eventDesc in Entity.Events.Where(e => e.Direction == Direction.Out))
             {
                 int hash = HashString(eventDesc.Name);
-                var port = OutputEvents.Find(p => p.NameHash == hash);
+                Port port = OutputEvents.Find(p => p.NameHash == hash);
 
                 if (port == null)
                 {
@@ -1194,10 +1196,10 @@ namespace LevelEditorPlugin.Controls
             }
 
             // output properties
-            foreach (var propDesc in Entity.Properties.Where(p => p.Direction == Direction.Out))
+            foreach (ConnectionDesc propDesc in Entity.Properties.Where(p => p.Direction == Direction.Out))
             {
                 int hash = HashString(propDesc.Name);
-                var port = OutputProperties.Find(p => p.NameHash == hash);
+                Port port = OutputProperties.Find(p => p.NameHash == hash);
 
                 if (port == null)
                 {
@@ -1210,12 +1212,12 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            foreach (var port in oldInputLinks) { if (!port.DynamicallyGenerated) { InputLinks.Remove(port); } }
-            foreach (var port in oldOutputLinks) { if (!port.DynamicallyGenerated) { OutputLinks.Remove(port); } }
-            foreach (var port in oldInputEvents) { if (!port.DynamicallyGenerated) { InputEvents.Remove(port); } }
-            foreach (var port in oldOutputEvents) { if (!port.DynamicallyGenerated) { OutputEvents.Remove(port); } }
-            foreach (var port in oldInputProps) { if (!port.DynamicallyGenerated) { InputProperties.Remove(port); } }
-            foreach (var port in oldOutputProps) { if (!port.DynamicallyGenerated) { OutputProperties.Remove(port); } }
+            foreach (Port port in oldInputLinks) { if (!port.DynamicallyGenerated) { InputLinks.Remove(port); } }
+            foreach (Port port in oldOutputLinks) { if (!port.DynamicallyGenerated) { OutputLinks.Remove(port); } }
+            foreach (Port port in oldInputEvents) { if (!port.DynamicallyGenerated) { InputEvents.Remove(port); } }
+            foreach (Port port in oldOutputEvents) { if (!port.DynamicallyGenerated) { OutputEvents.Remove(port); } }
+            foreach (Port port in oldInputProps) { if (!port.DynamicallyGenerated) { InputProperties.Remove(port); } }
+            foreach (Port port in oldOutputProps) { if (!port.DynamicallyGenerated) { OutputProperties.Remove(port); } }
         }
 
         private void DrawHeader(SchematicsCanvas.DrawingContextState state)
@@ -1332,7 +1334,7 @@ namespace LevelEditorPlugin.Controls
             if (state.InvScale < 2.5)
             {
                 // node title
-                var titleGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (20 * state.Scale), nodePosition.Y + (3.5 * state.Scale)), true, Title);
+                GlyphRun titleGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (20 * state.Scale), nodePosition.Y + (3.5 * state.Scale)), true, Title);
                 state.DrawingContext.DrawGlyphRun((Entity as Entity).HasFlags(EntityFlags.HasLogic) ? Brushes.White : state.DynamicValueBrush, titleGlyphRun);
 
                 if (state.InvScale < 1.5)
@@ -1349,7 +1351,7 @@ namespace LevelEditorPlugin.Controls
 
                         if (value != "")
                         {
-                            var headerRowGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (5 * state.Scale), nodePosition.Y + ((offsetY - 0.5) * state.Scale)), false, rowValue);
+                            GlyphRun headerRowGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (5 * state.Scale), nodePosition.Y + ((offsetY - 0.5) * state.Scale)), false, rowValue);
                             state.DrawingContext.DrawGlyphRun(Brushes.LightGray, headerRowGlyphRun);
                         }
 
@@ -1372,7 +1374,7 @@ namespace LevelEditorPlugin.Controls
                 return;
 
             // draw input links
-            foreach (var port in InputLinks)
+            foreach (Port port in InputLinks)
             {
                 if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
                     continue;
@@ -1384,7 +1386,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (state.InvScale < 2.5)
                 {
-                    var varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
                     state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
                     if (port.Highlighted)
@@ -1395,7 +1397,7 @@ namespace LevelEditorPlugin.Controls
             }
 
             // draw events
-            foreach (var port in InputEvents)
+            foreach (Port port in InputEvents)
             {
                 if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
                     continue;
@@ -1407,13 +1409,13 @@ namespace LevelEditorPlugin.Controls
 
                 if (state.InvScale < 2.5)
                 {
-                    var varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
                     state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
                 }
             }
 
             // draw properties
-            foreach (var port in InputProperties)
+            foreach (Port port in InputProperties)
             {
                 if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
                     continue;
@@ -1425,7 +1427,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (state.InvScale < 2.5)
                 {
-                    var varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
                     state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
                     if (port.Highlighted)
@@ -1436,7 +1438,7 @@ namespace LevelEditorPlugin.Controls
             }
 
             // draw output links
-            foreach (var port in OutputLinks)
+            foreach (Port port in OutputLinks)
             {
                 if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
                     continue;
@@ -1448,7 +1450,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (state.InvScale < 2.5)
                 {
-                    var varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
                     state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
                     if (port.Highlighted)
@@ -1459,7 +1461,7 @@ namespace LevelEditorPlugin.Controls
 
             }
             // draw output events
-            foreach (var port in OutputEvents)
+            foreach (Port port in OutputEvents)
             {
                 if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
                     continue;
@@ -1471,13 +1473,13 @@ namespace LevelEditorPlugin.Controls
 
                 if (state.InvScale < 2.5)
                 {
-                    var varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
                     state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
                 }
             }
 
             // draw output properties
-            foreach (var port in OutputProperties)
+            foreach (Port port in OutputProperties)
             {
                 if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
                     continue;
@@ -1489,7 +1491,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (state.InvScale < 2.5)
                 {
-                    var varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + (port.Rect.Y) * state.Scale), true, port.Name);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + (port.Rect.Y) * state.Scale), true, port.Name);
                     state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
                     if (port.Highlighted)
@@ -1523,7 +1525,7 @@ namespace LevelEditorPlugin.Controls
             rect.X += 5;
             rect.Y += 0;
 
-            var varGlypRun = state.ConvertTextLinesToGlyphRun(state.TransformPoint(rect.Location), true, dataTypeValue);
+            GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(state.TransformPoint(rect.Location), true, dataTypeValue);
             state.DrawingContext.DrawGlyphRun(Brushes.White, varGlypRun);
             state.DrawingContext.Pop();
         }
@@ -1555,7 +1557,7 @@ namespace LevelEditorPlugin.Controls
             int tmpPropertyCount = propertyCount = 0;
             int tmpLinkCount = linkCount = 0;
 
-            foreach (var port in InputLinks)
+            foreach (Port port in InputLinks)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1563,7 +1565,7 @@ namespace LevelEditorPlugin.Controls
                     longestInput = (strLength > longestInput) ? strLength : longestInput; linkCount++;
                 }
             }
-            foreach (var port in OutputLinks)
+            foreach (Port port in OutputLinks)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1572,7 +1574,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            foreach (var port in InputEvents)
+            foreach (Port port in InputEvents)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1580,7 +1582,7 @@ namespace LevelEditorPlugin.Controls
                     longestInput = (strLength > longestInput) ? strLength : longestInput; eventCount++;
                 }
             }
-            foreach (var port in OutputEvents)
+            foreach (Port port in OutputEvents)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1589,7 +1591,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            foreach (var port in InputProperties)
+            foreach (Port port in InputProperties)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1597,7 +1599,7 @@ namespace LevelEditorPlugin.Controls
                     longestInput = (strLength > longestInput) ? strLength : longestInput; propertyCount++;
                 }
             }
-            foreach (var port in OutputProperties)
+            foreach (Port port in OutputProperties)
             {
                 if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
                 {
@@ -1605,7 +1607,7 @@ namespace LevelEditorPlugin.Controls
                     longestOutput = (strLength > longestOutput) ? strLength : longestOutput; tmpPropertyCount++;
                 }
             }
-            foreach (var row in Entity.HeaderRows)
+            foreach (string row in Entity.HeaderRows)
             {
                 int strLen = (row.Length > 44) ? strLen = 47 : row.Length;
                 double rowLength = strLen * (GlyphWidth * 0.6);
@@ -1681,12 +1683,12 @@ namespace LevelEditorPlugin.Controls
         {
             SchematicsLayout.Wire wireLayout = new SchematicsLayout.Wire();
 
-            var sourceNode = Source.GenerateLayout();
-            var targetNode = Target.GenerateLayout();
+            SchematicsLayout.Node sourceNode = Source.GenerateLayout();
+            SchematicsLayout.Node targetNode = Target.GenerateLayout();
 
             wireLayout.WirePoints = new List<SchematicsLayout.WirePoint>();
 
-            foreach (var wirePoint in WirePoints)
+            foreach (WirePointVisual wirePoint in WirePoints)
             {
                 SchematicsLayout.WirePoint wirePointLayout = new SchematicsLayout.WirePoint();
                 wirePointLayout.UniqueId = wirePoint.UniqueId;
@@ -1699,7 +1701,7 @@ namespace LevelEditorPlugin.Controls
 
         public void ApplyLayout(SchematicsLayout.Wire wireLayout, List<BaseVisual> visuals)
         {
-            foreach (var wirePointLayout in wireLayout.WirePoints)
+            foreach (SchematicsLayout.WirePoint wirePointLayout in wireLayout.WirePoints)
             {
                 WirePointVisual wp = new WirePointVisual(this, wirePointLayout.Position.X + 5, wirePointLayout.Position.Y + 5) { UniqueId = (wirePointLayout.UniqueId != Guid.Empty) ? wirePointLayout.UniqueId : Guid.NewGuid() };
                 visuals.Add(wp);
@@ -1734,7 +1736,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (hoveredNode is NodeVisual)
                     {
-                        foreach (var port in (hoveredNode as NodeVisual).AllPorts)
+                        foreach (BaseNodeVisual.Port port in (hoveredNode as NodeVisual).AllPorts)
                         {
                             port.ShowWhileCollapsed = false;
                         }
@@ -1754,21 +1756,21 @@ namespace LevelEditorPlugin.Controls
         {
             mousePosition = mousePos;
 
-            var wirePort = (Source != null) ? SourcePort : TargetPort;
-            var oldHoveredNode = hoveredNode;
+            BaseNodeVisual.Port wirePort = (Source != null) ? SourcePort : TargetPort;
+            BaseNodeVisual oldHoveredNode = hoveredNode;
 
             hoveredNode = null;
             hoveredPort = null;
 
-            foreach (var visual in visibleNodes)
+            foreach (BaseVisual visual in visibleNodes)
             {
                 if (visual is NodeVisual)
                 {
-                    var node = visual as NodeVisual;
+                    NodeVisual node = visual as NodeVisual;
                     if (node.Rect.Contains(mousePos))
                     {
                         hoveredNode = node;
-                        foreach (var port in node.AllPorts.Where(p => p.PortType == WireType && p.PortDirection != wirePort.PortDirection))
+                        foreach (BaseNodeVisual.Port port in node.AllPorts.Where(p => p.PortType == WireType && p.PortDirection != wirePort.PortDirection))
                         {
                             if (port.DataType == wirePort.DataType || wirePort.DataType == typeof(Any) || port.DataType == typeof(Any))
                             {
@@ -1793,7 +1795,7 @@ namespace LevelEditorPlugin.Controls
                 }
                 else if (visual is InterfaceNodeVisual)
                 {
-                    var node = visual as InterfaceNodeVisual;
+                    InterfaceNodeVisual node = visual as InterfaceNodeVisual;
                     if (node.Rect.Contains(mousePos))
                     {
                         if (node.Self.PortType == WireType && node.Direction != wirePort.PortDirection)
@@ -1821,7 +1823,7 @@ namespace LevelEditorPlugin.Controls
             {
                 if (oldHoveredNode is NodeVisual)
                 {
-                    foreach (var port in (oldHoveredNode as NodeVisual).AllPorts)
+                    foreach (BaseNodeVisual.Port port in (oldHoveredNode as NodeVisual).AllPorts)
                     {
                         port.Highlighted = false;
                         port.ShowWhileCollapsed = false;
@@ -1867,7 +1869,7 @@ namespace LevelEditorPlugin.Controls
         private void AddWirePointInternal(WirePointVisual wirePoint)
         {
             int index = 0;
-            foreach (var geom in geometry.Children)
+            foreach (Geometry geom in geometry.Children)
             {
                 if (geom.GetWidenedPathGeometry(hitTestPen).FillContains(new Point(wirePoint.Rect.X + 5, wirePoint.Rect.Y + 5)))
                 {
@@ -1892,7 +1894,7 @@ namespace LevelEditorPlugin.Controls
 
         public void Render(SchematicsCanvas.DrawingContextState state)
         {
-            var portToCheck = (WireType == 0) ? TargetPort : SourcePort;
+            BaseNodeVisual.Port portToCheck = (WireType == 0) ? TargetPort : SourcePort;
             bool drawConnectOrder = (state.ConnectorOrdersVisible && portToCheck.ConnectionCount > 1 && state.InvScale < 2.5);
 
             Point a = (Source != null) ? Source.Rect.Location : mousePosition;
@@ -1955,14 +1957,14 @@ namespace LevelEditorPlugin.Controls
             if (drawConnectOrder)
             {
                 int geomIndex = (geometry.Children.Count / 2);
-                var geomToUse = geometry.Children[geomIndex];
+                Geometry geomToUse = geometry.Children[geomIndex];
 
                 Rect box = new Rect(state.WorldMatrix.Transform(new Point(geomToUse.Bounds.X + (geomToUse.Bounds.Width / 2) - 6, geomToUse.Bounds.Y + (geomToUse.Bounds.Height / 2) - 5)), new Size(12 * state.Scale, 10 * state.Scale));
                 state.DrawingContext.DrawRectangle(wirePen.Brush, state.BlackPen, box);
 
                 string connectorString = (ConnectOrder + 1).ToString();
                 Point textCenter = state.WorldMatrix.Transform(new Point(geomToUse.Bounds.X + (geomToUse.Bounds.Width / 2) - (state.SmallFont.OriginalAdvanceWidth * connectorString.Length) * 0.5, geomToUse.Bounds.Y + (geomToUse.Bounds.Height / 2) - state.SmallFont.OriginalAdvanceHeight * 0.5));
-                var text = state.ConvertTextLinesToGlyphRun(textCenter, false, connectorString);
+                GlyphRun text = state.ConvertTextLinesToGlyphRun(textCenter, false, connectorString);
                 state.DrawingContext.DrawGlyphRun(Brushes.Black, text);
             }
 
@@ -1978,7 +1980,7 @@ namespace LevelEditorPlugin.Controls
         {
             if (WireType == 2)
             {
-                var propA = (Source is NodeVisual)
+                IProperty propA = (Source is NodeVisual)
                     ? (Source as NodeVisual).Entity.GetProperty(SourcePort.NameHash)
                     : (Source as InterfaceNodeVisual).InterfaceDescriptor.GetProperty(SourcePort.NameHash);
                 //var propB = (Target as NodeVisual)?.Entity.GetProperty(TargetPort.NameHash);
@@ -1993,7 +1995,7 @@ namespace LevelEditorPlugin.Controls
             }
             else if (WireType == 1)
             {
-                var eventA = (Source is NodeVisual)
+                IEvent eventA = (Source is NodeVisual)
                     ? (Source as NodeVisual).Entity.GetEvent(SourcePort.NameHash)
                     : (Source as InterfaceNodeVisual).InterfaceDescriptor.GetEvent(SourcePort.NameHash);
                 //var eventB = (Target as NodeVisual)?.Entity.GetEvent(TargetPort.NameHash);
@@ -2348,18 +2350,18 @@ namespace LevelEditorPlugin.Controls
 
             public GlyphRun ConvertTextLinesToGlyphRun(Point position, bool large, string line)
             {
-                var fontData = (large) ? LargeFont : SmallFont;
+                FontData fontData = (large) ? LargeFont : SmallFont;
 
-                var glyphIndices = new List<ushort>();
-                var advanceWidths = new List<double>();
-                var glyphOffsets = new List<Point>();
+                List<ushort> glyphIndices = new List<ushort>();
+                List<double> advanceWidths = new List<double>();
+                List<Point> glyphOffsets = new List<Point>();
 
-                var y = -position.Y;
-                var x = position.X;
+                double y = -position.Y;
+                double x = position.X;
 
                 for (int j = 0; j < line.Length; ++j)
                 {
-                    var glyphIndex = fontData.GlyphTypeface.CharacterToGlyphMap[line[j]];
+                    ushort glyphIndex = fontData.GlyphTypeface.CharacterToGlyphMap[line[j]];
                     glyphIndices.Add(glyphIndex);
                     advanceWidths.Add(0);
                     glyphOffsets.Add(new Point(x, y));
@@ -2420,7 +2422,7 @@ namespace LevelEditorPlugin.Controls
                 shortcutNode.ShortcutData.DisplayName = (layoutData.Value.DisplayName != null) ? layoutData.Value.DisplayName : shortcutNode.ShortcutData.DisplayName;
             }
 
-            var parentShortcut = shortcutNode;
+            InterfaceShortcutNodeVisual parentShortcut = shortcutNode;
             undoContainer.Add(new GenericUndoUnit("",
                 (o) => 
                 { 
@@ -2439,11 +2441,11 @@ namespace LevelEditorPlugin.Controls
 
             for (int i = wireVisuals.Count - 1; i >= 0; i--)
             {
-                var wire = wireVisuals[i];
+                WireVisual wire = wireVisuals[i];
                 if ((port.PortDirection == 0 && wire.SourcePort == port) || (port.PortDirection == 1 && wire.TargetPort == port))
                 {
-                    var targetNode = (port.PortDirection == 0) ? wire.Target : wire.Source;
-                    var targetPort = (port.PortDirection == 0) ? wire.TargetPort : wire.SourcePort;
+                    BaseNodeVisual targetNode = (port.PortDirection == 0) ? wire.Target : wire.Source;
+                    BaseNodeVisual.Port targetPort = (port.PortDirection == 0) ? wire.TargetPort : wire.SourcePort;
 
                     shortcutNode = new InterfaceShortcutNodeVisual(node, port, new ShortcutChildNodeData() { DisplayName = port.Name }, port.PortDirection, 0, 0) { UniqueId = Guid.NewGuid() };
 
@@ -2465,7 +2467,7 @@ namespace LevelEditorPlugin.Controls
                         }
                     }
 
-                    var childToAdd = shortcutNode;
+                    InterfaceShortcutNodeVisual childToAdd = shortcutNode;
                     undoContainer.Add(new GenericUndoUnit("",
                         (o) => 
                         { 
@@ -2480,9 +2482,9 @@ namespace LevelEditorPlugin.Controls
                         }));
 
                     int indexToDelete = i;
-                    var wireToDelete = wireVisuals[indexToDelete];
+                    WireVisual wireToDelete = wireVisuals[indexToDelete];
 
-                    foreach (var wirePoint in wire.WirePoints)
+                    foreach (WirePointVisual wirePoint in wire.WirePoints)
                     {
                         undoContainer.Add(new GenericUndoUnit("",
                             (o) =>
@@ -2507,15 +2509,15 @@ namespace LevelEditorPlugin.Controls
                         }));
 
                     int childIndexToUse = childIndex;
-                    var wireToModify = wire;
+                    WireVisual wireToModify = wire;
 
                     undoContainer.Add(new GenericUndoUnit("",
                         (o) =>
                         {
-                            var sourceNode = (port.PortDirection == 0) ? port.ShortcutChildren[childIndexToUse] : wireToModify.Source;
+                            BaseNodeVisual sourceNode = (port.PortDirection == 0) ? port.ShortcutChildren[childIndexToUse] : wireToModify.Source;
                             targetNode = (port.PortDirection == 0) ? wireToModify.Target : port.ShortcutChildren[childIndexToUse];
 
-                            var newWire = new WireVisual(sourceNode, wireToModify.SourcePort.Name, wireToModify.SourcePort.NameHash, targetNode, wireToModify.TargetPort.Name, wireToModify.TargetPort.NameHash, wireToModify.WireType);
+                            WireVisual newWire = new WireVisual(sourceNode, wireToModify.SourcePort.Name, wireToModify.SourcePort.NameHash, targetNode, wireToModify.TargetPort.Name, wireToModify.TargetPort.NameHash, wireToModify.WireType);
                             wireVisuals.Add(newWire);
                         }, 
                         (o) =>
@@ -2531,11 +2533,11 @@ namespace LevelEditorPlugin.Controls
                 undoContainer.Add(new GenericUndoUnit("",
                     (o) =>
                     {
-                        var sourceNode = (port.PortDirection == 0) ? node : port.ShortcutNode;
-                        var sourcePort = (port.PortDirection == 0) ? port : port.ShortcutNode.Self;
+                        BaseNodeVisual sourceNode = (port.PortDirection == 0) ? node : port.ShortcutNode;
+                        BaseNodeVisual.Port sourcePort = (port.PortDirection == 0) ? port : port.ShortcutNode.Self;
 
-                        var targetNode = (port.PortDirection == 0) ? port.ShortcutNode : node;
-                        var targetPort = (port.PortDirection == 0) ? port.ShortcutNode.Self : port;
+                        BaseNodeVisual targetNode = (port.PortDirection == 0) ? port.ShortcutNode : node;
+                        BaseNodeVisual.Port targetPort = (port.PortDirection == 0) ? port.ShortcutNode.Self : port;
 
                         WireVisual newWire = new WireVisual(sourceNode, sourcePort.Name, sourcePort.NameHash, targetNode, targetPort.Name, targetPort.NameHash, port.PortType);
                         wireVisuals.Add(newWire);
@@ -2587,7 +2589,7 @@ namespace LevelEditorPlugin.Controls
                 layout.Wires = new List<SchematicsLayout.Wire>();
                 layout.Comments = new List<SchematicsLayout.Comment>();
 
-                foreach (var node in nodeVisuals)
+                foreach (BaseVisual node in nodeVisuals)
                 {
                     if (node is BaseNodeVisual && !(node is InterfaceShortcutNodeVisual))
                     {
@@ -2603,7 +2605,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (wireVisuals[i].WirePoints.Count > 0)
                     {
-                        var wireLayout = wireVisuals[i].GenerateLayout();
+                        SchematicsLayout.Wire wireLayout = wireVisuals[i].GenerateLayout();
                         wireLayout.Index = i;
 
                         layout.Wires.Add(wireLayout);
@@ -2655,7 +2657,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (nodeVisuals[i] is BaseNodeVisual)
                     {
-                        var nodeVisual = nodeVisuals[i] as BaseNodeVisual;
+                        BaseNodeVisual nodeVisual = nodeVisuals[i] as BaseNodeVisual;
                         //if (!nodeVisual.IsValid())
                         //{
                         //    nodeVisuals.RemoveAt(i);
@@ -2677,7 +2679,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (layout.Value.Wires != null)
                     {
-                        foreach (var wireLayout in layout.Value.Wires)
+                        foreach (SchematicsLayout.Wire wireLayout in layout.Value.Wires)
                         {
                             wireVisuals[wireLayout.Index].ApplyLayout(wireLayout, nodeVisuals);
                         }
@@ -2685,10 +2687,10 @@ namespace LevelEditorPlugin.Controls
                     if (layout.Value.Comments != null)
                     {
                         List<BaseVisual> comments = new List<BaseVisual>();
-                        foreach (var commentLayout in layout.Value.Comments)
+                        foreach (SchematicsLayout.Comment commentLayout in layout.Value.Comments)
                         {
                             List<BaseVisual> children = new List<BaseVisual>();
-                            foreach (var guid in commentLayout.Children)
+                            foreach (Guid guid in commentLayout.Children)
                             {
                                 children.Add(nodeVisuals.Find(n => n.UniqueId == guid));
                             }
@@ -2717,7 +2719,7 @@ namespace LevelEditorPlugin.Controls
             {
                 if (e.Key == Key.S)
                 {
-                    var node = selectedNodes[0] as InterfaceNodeVisual;
+                    InterfaceNodeVisual node = selectedNodes[0] as InterfaceNodeVisual;
                     if (node.Self.ShortcutNode == null)
                     {
                         GenerateShortcuts(node, node.Self);
@@ -2732,10 +2734,10 @@ namespace LevelEditorPlugin.Controls
                 //bool invalidate = false;
                 for (int i = selectedNodes.Count - 1; i >= 0; i--)
                 {
-                    var node = selectedNodes[i];
+                    BaseVisual node = selectedNodes[i];
                     if (node is WirePointVisual)
                     {
-                        var wirePoint = node as WirePointVisual;
+                        WirePointVisual wirePoint = node as WirePointVisual;
                         container.Add(new GenericUndoUnit("",
                             (o) =>
                             {
@@ -2766,7 +2768,7 @@ namespace LevelEditorPlugin.Controls
             {
                 if (selectedNodes.Count > 0)
                 {
-                    var commentNode = new CommentNodeVisual(new CommentNodeData() { Color = new FrostySdk.Ebx.Vec4() { x = 0.25f, y = 0.0f, z = 0.0f, w = 1.0f }, CommentText = "@todo" }, selectedNodes, 0, 0) { UniqueId = Guid.NewGuid() };
+                    CommentNodeVisual commentNode = new CommentNodeVisual(new CommentNodeData() { Color = new FrostySdk.Ebx.Vec4() { x = 0.25f, y = 0.0f, z = 0.0f, w = 1.0f }, CommentText = "@todo" }, selectedNodes, 0, 0) { UniqueId = Guid.NewGuid() };
                     UndoManager.Instance.CommitUndo(new GenericUndoUnit("Create Comment Group",
                         (o) =>
                         {
@@ -2819,7 +2821,7 @@ namespace LevelEditorPlugin.Controls
                         prevSelection.AddRange(selectedNodes);
 
                         List<Point> prevPositions = new List<Point>();
-                        foreach (var node in selectedNodes)
+                        foreach (BaseVisual node in selectedNodes)
                             prevPositions.Add(node.Rect.Location);
                         
                         UndoManager.Instance.PendingUndoUnit = new GenericUndoUnit("Move Nodes",
@@ -2882,7 +2884,7 @@ namespace LevelEditorPlugin.Controls
                         }
                     }
 
-                    foreach (var node in nodeVisuals)
+                    foreach (BaseVisual node in nodeVisuals)
                     {
                         if (selectionRect.Contains(node.Rect))
                         {
@@ -2903,7 +2905,7 @@ namespace LevelEditorPlugin.Controls
                 MatrixTransform m = GetWorldMatrix();
                 Point mousePos = m.Inverse.Transform(e.GetPosition(this));
 
-                foreach (var visual in visibleNodeVisuals)
+                foreach (BaseVisual visual in visibleNodeVisuals)
                 {
                     if (visual.Rect.Contains(mousePos) && visual.HitTest(mousePos))
                     {
@@ -2949,7 +2951,7 @@ namespace LevelEditorPlugin.Controls
             MatrixTransform m = GetWorldMatrix();
             Point mousePos = m.Inverse.Transform(e.GetPosition(this));
 
-            foreach (var visual in visibleNodeVisuals)
+            foreach (BaseVisual visual in visibleNodeVisuals)
             {
                 if (visual.OnMouseDown(mousePos, e.ChangedButton))
                 {
@@ -2967,9 +2969,9 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (hoveredNode is BaseNodeVisual && (hoveredNode as BaseNodeVisual).HightlightedPort != null)
                     {
-                        var node = hoveredNode as BaseNodeVisual;
-                        var sourceNode = (node.HightlightedPort.PortDirection == 0) ? node : null;
-                        var targetNode = (node.HightlightedPort.PortDirection == 1) ? node : null;
+                        BaseNodeVisual node = hoveredNode as BaseNodeVisual;
+                        BaseNodeVisual sourceNode = (node.HightlightedPort.PortDirection == 0) ? node : null;
+                        BaseNodeVisual targetNode = (node.HightlightedPort.PortDirection == 1) ? node : null;
 
                         editingWire = new WireVisual(
                             sourceNode,
@@ -2986,7 +2988,7 @@ namespace LevelEditorPlugin.Controls
                         return;
                     }
 
-                    foreach (var visual in visibleNodeVisuals)
+                    foreach (BaseVisual visual in visibleNodeVisuals)
                     {
                         if (visual.Rect.Contains(mousePos) && visual.HitTest(mousePos))
                         {
@@ -3015,7 +3017,7 @@ namespace LevelEditorPlugin.Controls
                                 {
                                     if (selectedNodes.Count > 0)
                                     {
-                                        foreach (var node in selectedNodes)
+                                        foreach (BaseVisual node in selectedNodes)
                                         {
                                             node.IsSelected = false;
                                         }
@@ -3069,8 +3071,8 @@ namespace LevelEditorPlugin.Controls
             {
                 if (editingWire.HoveredPort != null)
                 {
-                    var sourcePort = (editingWire.Source != null) ? editingWire.SourcePort : editingWire.HoveredPort;
-                    var targetPort = (editingWire.Target != null) ? editingWire.TargetPort : editingWire.HoveredPort;
+                    BaseNodeVisual.Port sourcePort = (editingWire.Source != null) ? editingWire.SourcePort : editingWire.HoveredPort;
+                    BaseNodeVisual.Port targetPort = (editingWire.Target != null) ? editingWire.TargetPort : editingWire.HoveredPort;
 
                     WireAddedCommand?.Execute(new WireAddedEventArgs(
                         (sourcePort.Owner is NodeVisual) ? (sourcePort.Owner as NodeVisual).Entity : null, 
@@ -3087,7 +3089,7 @@ namespace LevelEditorPlugin.Controls
                 return;
             }
 
-            foreach (var visual in visibleNodeVisuals)
+            foreach (BaseVisual visual in visibleNodeVisuals)
             {
                 if (visual.OnMouseUp(mousePos, e.ChangedButton))
                 {
@@ -3108,12 +3110,12 @@ namespace LevelEditorPlugin.Controls
                     UndoManager.Instance.CommitUndo(UndoManager.Instance.PendingUndoUnit);
                 }
 
-                foreach (var wire in wireVisuals)
+                foreach (WireVisual wire in wireVisuals)
                 {
                     if (wire.OnMouseUp(mousePos, e.ChangedButton))
                     {
                         WirePointVisual wirePoint = new WirePointVisual(wire, mousePos.X, mousePos.Y) { UniqueId = Guid.NewGuid() };
-                        var wireToModify = wire;
+                        WireVisual wireToModify = wire;
 
                         UndoManager.Instance.CommitUndo(new GenericUndoUnit("Add Wire Point",
                             (o) =>
@@ -3141,7 +3143,7 @@ namespace LevelEditorPlugin.Controls
                     {
                         if (selectedNodes.Count > 0 && !(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
                         {
-                            foreach (var node in selectedNodes)
+                            foreach (BaseVisual node in selectedNodes)
                             {
                                 node.IsSelected = false;
                             }
@@ -3173,7 +3175,7 @@ namespace LevelEditorPlugin.Controls
                     {
                         if (selectedNodes.Count > 0 && !(Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift)))
                         {
-                            foreach (var node in selectedNodes)
+                            foreach (BaseVisual node in selectedNodes)
                             {
                                 node.IsSelected = false;
                             }
@@ -3213,7 +3215,7 @@ namespace LevelEditorPlugin.Controls
 
             if (ItemsSource.World.IsSimulationRunning)
             {
-                var drawingContext2 = debugLayerVisual.RenderOpen();
+                DrawingContext drawingContext2 = debugLayerVisual.RenderOpen();
                 RenderDebug(drawingContext2);
                 drawingContext2.Close();
 
@@ -3288,7 +3290,7 @@ namespace LevelEditorPlugin.Controls
 
         private void ClearSelection()
         {
-            foreach (var node in selectedNodes)
+            foreach (BaseVisual node in selectedNodes)
             {
                 node.IsSelected = false;
             }
@@ -3300,11 +3302,11 @@ namespace LevelEditorPlugin.Controls
 
         private void AddNode(BaseVisual nodeToAdd)
         {
-            foreach (var node in nodeVisuals.Where(n => n is CommentNodeVisual))
+            foreach (BaseVisual node in nodeVisuals.Where(n => n is CommentNodeVisual))
             {
                 if (node.Rect.Contains(nodeToAdd.Rect))
                 {
-                    var commentNode = node as CommentNodeVisual;
+                    CommentNodeVisual commentNode = node as CommentNodeVisual;
                     commentNode.AddNode(nodeToAdd);
                 }
             }
@@ -3348,7 +3350,7 @@ namespace LevelEditorPlugin.Controls
             Rect fustrum = new Rect(topLeft, bottomRight);
 
             visibleNodeVisuals.Clear();
-            foreach (var visual in nodeVisuals)
+            foreach (BaseVisual visual in nodeVisuals)
             {
                 if (fustrum.IntersectsWith(visual.Rect) || visual.IsSelected)
                 {
@@ -3360,29 +3362,29 @@ namespace LevelEditorPlugin.Controls
 
         private void GenerateNodes(IEnumerable<Entity> entities)
         {
-            var portContextMenu = new ContextMenu();
-            var makeShortcutItem = new MenuItem() { Header = "Make shortcut" };
+            ContextMenu portContextMenu = new ContextMenu();
+            MenuItem makeShortcutItem = new MenuItem() { Header = "Make shortcut" };
             makeShortcutItem.Click += (o, e) =>
             {
-                var port = (o as MenuItem).DataContext as BaseNodeVisual.Port;
+                BaseNodeVisual.Port port = (o as MenuItem).DataContext as BaseNodeVisual.Port;
                 GenerateShortcuts(port.Owner, port);
             };
             portContextMenu.Items.Add(makeShortcutItem);
 
             Random r = new Random(2);
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
-                var logicEntity = entity as ILogicEntity;
-                var nodeContextMenu = new ContextMenu();
+                ILogicEntity logicEntity = entity as ILogicEntity;
+                ContextMenu nodeContextMenu = new ContextMenu();
 
                 if (logicEntity is LogicEntity)
                 {
                     LogicEntity l = logicEntity as LogicEntity;
-                    foreach (var conn in l.Events)
+                    foreach (ConnectionDesc conn in l.Events)
                     {
                         if (conn.IsTriggerable)
                         {
-                            var triggerMenuItem = new MenuItem() { Header = $"Trigger {conn.Name}" };
+                            MenuItem triggerMenuItem = new MenuItem() { Header = $"Trigger {conn.Name}" };
                             triggerMenuItem.Click += (o, e) => { l.EventToTrigger = Frosty.Hash.Fnv1.HashString(conn.Name); };
                             nodeContextMenu.Items.Add(triggerMenuItem);
                         }
@@ -3396,7 +3398,7 @@ namespace LevelEditorPlugin.Controls
                 x = x - (x % 10);
                 y = y - (y % 10);
 
-                var node = new NodeVisual(logicEntity, x, y) 
+                NodeVisual node = new NodeVisual(logicEntity, x, y) 
                 { 
                     GlyphWidth = OriginalAdvanceWidth, 
                     NodeContextMenu = (nodeContextMenu.Items.Count > 0) ? nodeContextMenu : null,
@@ -3428,10 +3430,10 @@ namespace LevelEditorPlugin.Controls
             if (ItemsSource.InterfaceDescriptor == null)
                 return;
 
-            var interfaceDesc = ItemsSource.InterfaceDescriptor as InterfaceDescriptor;
+            InterfaceDescriptor interfaceDesc = ItemsSource.InterfaceDescriptor as InterfaceDescriptor;
             Random r = new Random(1);
 
-            foreach (var dataField in interfaceDesc.Data.Fields)
+            foreach (DataField dataField in interfaceDesc.Data.Fields)
             {
                 double x = ((int)(r.NextDouble() * 2000)) - 1000;
                 double y = ((int)(r.NextDouble() * 2000)) - 1000;
@@ -3450,7 +3452,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            foreach (var eventField in interfaceDesc.Data.InputEvents)
+            foreach (DynamicEvent eventField in interfaceDesc.Data.InputEvents)
             {
                 double x = ((int)(r.NextDouble() * 2000)) - 1000;
                 double y = ((int)(r.NextDouble() * 2000)) - 1000;
@@ -3460,7 +3462,7 @@ namespace LevelEditorPlugin.Controls
 
                 nodeVisuals.Add(new InterfaceNodeVisual(ItemsSource.BlueprintGuid, interfaceDesc, 0, eventField, x, y) { GlyphWidth = OriginalAdvanceWidth, UniqueId = Guid.NewGuid() });
             }
-            foreach (var eventField in interfaceDesc.Data.OutputEvents)
+            foreach (DynamicEvent eventField in interfaceDesc.Data.OutputEvents)
             {
                 double x = ((int)(r.NextDouble() * 2000)) - 1000;
                 double y = ((int)(r.NextDouble() * 2000)) - 1000;
@@ -3471,7 +3473,7 @@ namespace LevelEditorPlugin.Controls
                 nodeVisuals.Add(new InterfaceNodeVisual(ItemsSource.BlueprintGuid, interfaceDesc, 1, eventField, x, y) { GlyphWidth = OriginalAdvanceWidth, UniqueId = Guid.NewGuid() });
             }
 
-            foreach (var linkField in interfaceDesc.Data.InputLinks)
+            foreach (DynamicLink linkField in interfaceDesc.Data.InputLinks)
             {
                 double x = ((int)(r.NextDouble() * 2000)) - 1000;
                 double y = ((int)(r.NextDouble() * 2000)) - 1000;
@@ -3481,7 +3483,7 @@ namespace LevelEditorPlugin.Controls
 
                 nodeVisuals.Add(new InterfaceNodeVisual(ItemsSource.BlueprintGuid, interfaceDesc, 0, linkField, x, y) { GlyphWidth = OriginalAdvanceWidth, UniqueId = Guid.NewGuid() });
             }
-            foreach (var linkField in interfaceDesc.Data.OutputLinks)
+            foreach (DynamicLink linkField in interfaceDesc.Data.OutputLinks)
             {
                 double x = ((int)(r.NextDouble() * 2000)) - 1000;
                 double y = ((int)(r.NextDouble() * 2000)) - 1000;
@@ -3495,8 +3497,8 @@ namespace LevelEditorPlugin.Controls
 
         private void GenerateWires(IEnumerable<object> connections, int connectionType)
         {
-            var nodes = nodeVisuals.Where(n => n is BaseNodeVisual).Select(n => n as BaseNodeVisual);
-            foreach (var obj in connections)
+            IEnumerable<BaseNodeVisual> nodes = nodeVisuals.Where(n => n is BaseNodeVisual).Select(n => n as BaseNodeVisual);
+            foreach (object obj in connections)
             {
                 FrostySdk.Ebx.PointerRef source = new FrostySdk.Ebx.PointerRef();
                 FrostySdk.Ebx.PointerRef target = new FrostySdk.Ebx.PointerRef();
@@ -3509,7 +3511,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     case 0:
                         {
-                            var linkConnection = obj as FrostySdk.Ebx.LinkConnection;
+                            LinkConnection linkConnection = obj as FrostySdk.Ebx.LinkConnection;
                             source = MakeRef(linkConnection.Source, ItemsSource.BlueprintGuid);
                             target = MakeRef(linkConnection.Target, ItemsSource.BlueprintGuid);
                             sourceId = linkConnection.SourceFieldId;
@@ -3520,7 +3522,7 @@ namespace LevelEditorPlugin.Controls
                         break;
                     case 1:
                         {
-                            var eventConnection = obj as FrostySdk.Ebx.EventConnection;
+                            EventConnection eventConnection = obj as FrostySdk.Ebx.EventConnection;
                             source = MakeRef(eventConnection.Source, ItemsSource.BlueprintGuid);
                             target = MakeRef(eventConnection.Target, ItemsSource.BlueprintGuid);
                             sourceId = eventConnection.SourceEvent.Id;
@@ -3531,7 +3533,7 @@ namespace LevelEditorPlugin.Controls
                         break;
                     case 2:
                         {
-                            var propertyConnection = obj as FrostySdk.Ebx.PropertyConnection;
+                            PropertyConnection propertyConnection = obj as FrostySdk.Ebx.PropertyConnection;
                             source = MakeRef(propertyConnection.Source, ItemsSource.BlueprintGuid);
                             target = MakeRef(propertyConnection.Target, ItemsSource.BlueprintGuid);
                             sourceId = propertyConnection.SourceFieldId;
@@ -3573,7 +3575,7 @@ namespace LevelEditorPlugin.Controls
             }
             else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
-                foreach (var entity in e.OldItems)
+                foreach (object entity in e.OldItems)
                 {
                     nodeVisuals.Remove(nodeVisuals.Find(n => n.Data == entity));
                     // @todo: cleanup wires
@@ -3628,7 +3630,7 @@ namespace LevelEditorPlugin.Controls
 
         private static void OnEntitiesChanged(DependencyObject o, DependencyPropertyChangedEventArgs e)
         {
-            var canvas = o as SchematicsCanvas;
+            SchematicsCanvas canvas = o as SchematicsCanvas;
             canvas.Update();
         }
 
@@ -3637,8 +3639,8 @@ namespace LevelEditorPlugin.Controls
             if (e.NewValue == null)
                 return;
 
-            var canvas = o as SchematicsCanvas;
-            foreach (var node in canvas.visibleNodeVisuals)
+            SchematicsCanvas canvas = o as SchematicsCanvas;
+            foreach (BaseVisual node in canvas.visibleNodeVisuals)
                 node.Update();
             canvas.InvalidateVisual();
         }
@@ -3648,7 +3650,7 @@ namespace LevelEditorPlugin.Controls
             if (e.NewValue == null)
                 return;
 
-            var canvas = o as SchematicsCanvas;
+            SchematicsCanvas canvas = o as SchematicsCanvas;
             canvas.UpdateDebugLayer();
         }
     }

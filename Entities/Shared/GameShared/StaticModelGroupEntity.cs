@@ -13,8 +13,10 @@ using LevelEditorPlugin.Managers;
 using System.IO;
 using Frosty.Core.Managers;
 using FrostySdk.Attributes;
+using FrostySdk.Ebx;
 using FrostySdk.IO;
 using LevelEditorPlugin.Data;
+using MeshVariationDatabase = LevelEditorPlugin.Assets.MeshVariationDatabase;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -145,7 +147,7 @@ namespace LevelEditorPlugin.Entities
             int instCount = 0;
             int totalInstCount = 0;
 
-            foreach (var member in inData.MemberDatas)
+            foreach (StaticModelGroupMemberData member in inData.MemberDatas)
             {
                 for (int i = 0; i < member.InstanceCount; i++)
                 {
@@ -172,7 +174,7 @@ namespace LevelEditorPlugin.Entities
 
                         if (i < member.InstanceObjectVariation.Count)
                         {
-                            var currentLayer = Parent;
+                            Entity currentLayer = Parent;
                             entityData.ObjectVariationHash = member.InstanceObjectVariation[i];
 
                             if (entityData.ObjectVariationHash != 0)
@@ -180,7 +182,7 @@ namespace LevelEditorPlugin.Entities
                                 while (!(currentLayer is SubWorldReferenceObject))
                                     currentLayer = currentLayer.Parent;
 
-                                var meshVariatationDb = (currentLayer as SubWorldReferenceObject).MeshVariationDatabase;
+                                MeshVariationDatabase meshVariatationDb = (currentLayer as SubWorldReferenceObject).MeshVariationDatabase;
                                 if (meshVariatationDb != null)
                                 {
                                     entityData.ObjectVariation = meshVariatationDb.GetVariation(entityData.ObjectVariationHash);
@@ -229,7 +231,7 @@ namespace LevelEditorPlugin.Entities
                 int instanceIndex = 0;
                 bool ebxNeedsUpdating = false;
 
-                foreach (var member in Data.MemberDatas)
+                foreach (StaticModelGroupMemberData member in Data.MemberDatas)
                 {
                     for (int i = 0; i < member.InstanceCount; i++)
                     {
@@ -267,7 +269,7 @@ namespace LevelEditorPlugin.Entities
                 int instanceIndex = 0;
                 bool ebxNeedsUpdating = false;
 
-                foreach (var member in Data.MemberDatas)
+                foreach (StaticModelGroupMemberData member in Data.MemberDatas)
                 {
                     for (int i = 0; i < member.InstanceCount; i++)
                     {
@@ -297,7 +299,7 @@ namespace LevelEditorPlugin.Entities
         public Layers.SceneLayer GetLayer()
         {
             Layers.SceneLayer layer = new Layers.SceneLayer(this, "static_instances", new SharpDX.Color4(0.0f, 0.0f, 0.5f, 1.0f));
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
             {
                 layer.AddEntity(entity);
                 entity.SetOwner(entity);
@@ -309,7 +311,7 @@ namespace LevelEditorPlugin.Entities
         public override void SetOwner(Entity newOwner)
         {
             base.SetOwner(newOwner);
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
                 entity.SetOwner(newOwner);
         }
 
@@ -318,32 +320,32 @@ namespace LevelEditorPlugin.Entities
             if (newVisibility != isVisible)
             {
                 isVisible = newVisibility;
-                foreach (var entity in entities)
+                foreach (Entity entity in entities)
                     entity.SetVisibility(newVisibility);
             }
         }
 
         public override void CreateRenderProxy(List<RenderProxy> proxies, RenderCreateState state)
         {
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
                 entity.CreateRenderProxy(proxies, state);
         }
 
         public override void Destroy()
         {
-            foreach (var entity in entities)
+            foreach (Entity entity in entities)
                 entity.Destroy();
         }
 
         private Resources.HavokPhysicsData GetPhysicsData(FrostySdk.Ebx.StaticModelGroupEntityData inData)
         {
-            foreach (var component in inData.Components)
+            foreach (PointerRef component in inData.Components)
             {
                 FrostySdk.Ebx.GameObjectData gameObjectData = component.GetObjectAs<FrostySdk.Ebx.GameObjectData>();
                 if (gameObjectData is FrostySdk.Ebx.StaticModelGroupPhysicsComponentData)
                 {
                     FrostySdk.Ebx.StaticModelGroupPhysicsComponentData physicsComponentData = (FrostySdk.Ebx.StaticModelGroupPhysicsComponentData)gameObjectData;
-                    foreach (var body in physicsComponentData.PhysicsBodies)
+                    foreach (PointerRef body in physicsComponentData.PhysicsBodies)
                     {
                         FrostySdk.Ebx.GroupRigidBodyData bodyData = body.GetObjectAs<FrostySdk.Ebx.GroupRigidBodyData>();
                         FrostySdk.Ebx.GroupHavokAsset havokAsset = bodyData.Asset.GetObjectAs<FrostySdk.Ebx.GroupHavokAsset>();

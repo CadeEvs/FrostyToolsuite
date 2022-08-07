@@ -26,12 +26,12 @@ namespace LevelEditorPlugin.Assets
 
         public void OnEvent(SchematicChannelEntity callee, int eventHash)
         {
-            foreach (var entity in entities)
+            foreach (SchematicChannelEntity entity in entities)
             {
                 if (entity == callee)
                     continue;
 
-                var evt = entity.GetEvent(eventHash);
+                IEvent evt = entity.GetEvent(eventHash);
                 if (evt != null)
                 {
                     evt.Execute();
@@ -41,12 +41,12 @@ namespace LevelEditorPlugin.Assets
 
         public void OnPropertyUpdated(SchematicChannelEntity callee, IProperty property)
         {
-            foreach (var entity in entities)
+            foreach (SchematicChannelEntity entity in entities)
             {
                 if (entity == callee)
                     continue;
 
-                var dstProperty = entity.GetProperty(property.NameHash);
+                IProperty dstProperty = entity.GetProperty(property.NameHash);
                 if (dstProperty != null)
                 {
                     dstProperty.Value = property.Value;

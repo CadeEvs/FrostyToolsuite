@@ -17,7 +17,7 @@ namespace LevelEditorPlugin.Controls
 
         public SchematicsPreviewControl(ILogicEntity inEntity)
         {
-            var largeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
+            FontData largeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
 
             previewEntity = inEntity;
             previewEntityVisual = new NodeVisual(previewEntity, 0, 0) { IsCollapsed = false, GlyphWidth = largeFont.AdvanceWidth };

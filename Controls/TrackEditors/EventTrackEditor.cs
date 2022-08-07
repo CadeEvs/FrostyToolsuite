@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using LevelEditorPlugin.Entities;
 
 namespace LevelEditorPlugin.Controls.TrackEditors
 {
@@ -27,8 +28,8 @@ namespace LevelEditorPlugin.Controls.TrackEditors
         {
             base.OnRender(drawingContext);
 
-            var trackData = DataContext as Entities.EventTrack;
-            var timeline = trackData.Timeline;
+            EventTrack trackData = DataContext as Entities.EventTrack;
+            TimelineEntity timeline = trackData.Timeline;
             if (timeline == null)
                 return;
 

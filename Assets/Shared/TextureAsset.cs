@@ -228,7 +228,7 @@ namespace LevelEditorPlugin.Assets
             {
                 if (bitmapImage == null)
                 {
-                    var textureRes = App.AssetManager.GetResAs<Texture>(App.AssetManager.GetResEntry(Data.Resource));
+                    Texture textureRes = App.AssetManager.GetResAs<Texture>(App.AssetManager.GetResEntry(Data.Resource));
                     Application.Current.Dispatcher.Invoke(() => { bitmapImage = TextureCreator.CreatePNG(textureRes); });
                 }
                 return bitmapImage;
