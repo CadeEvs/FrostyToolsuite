@@ -128,6 +128,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="EbxClasses">
+      <HintPath>..\..\FrostyToolsuite\FrostySdk\Profiles\StarWarsIISDK.dll</HintPath>
+    </Reference>
     <Reference Include="FrostyControls">
       <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyControls.dll</HintPath>
     </Reference>
@@ -146,9 +149,6 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="EbxClasses">
-      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\StarWarsIISDK.dll</HintPath>
-    </Reference>
     <Reference Include="SharpDX">
       <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\ThirdParty\SharpDX.dll</HintPath>
     </Reference>
@@ -245,9 +245,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
-    <Compile Remove="GameSpecific\starwarsbattlefrontii\**"
-             Condition="'$(Configuration)' != 'SWBF2 - Debug' And '$(Configuration)' != 'SWBF2 - Release'"
-    />
+    
+    <Compile Remove="GameSpecific\starwarsbattlefrontii\**" Condition="'$(Configuration)' != 'SWBF2 - Debug' And '$(Configuration)' != 'SWBF2 - Release'" />
+    
+    <Compile Remove="GameSpecific\MassEffectAndromeda\**" Condition="'$(Configuration)' != 'MassEffect - Debug' And '$(Configuration)' != 'MassEffect - Release'" />
   </ItemGroup>
 
   <ItemGroup>
@@ -270,6 +271,11 @@
   
   <ItemGroup>
     <Folder Include="GameSpecific" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Page Remove="GameSpecific\starwarsbattlefrontii\**" Condition="'$(Configuration)' != 'SWBF2 - Debug' And '$(Configuration)' != 'SWBF2 - Release'" />
+    <Page Remove="GameSpecific\MassEffectAndromeda\**" Condition="'$(Configuration)' != 'MassEffect - Debug' And '$(Configuration)' != 'MassEffect - Release'" />
   </ItemGroup>
   
 </Project>

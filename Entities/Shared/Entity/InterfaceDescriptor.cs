@@ -48,7 +48,7 @@ namespace LevelEditorPlugin.Entities
         protected List<IEvent> events = new List<IEvent>();
         protected List<ILink> links = new List<ILink>();
 
-        private Queue<Action> queuedEvents = new Queue<Action>();
+        private Queue<System.Action> queuedEvents = new Queue<System.Action>();
         private List<Assets.Asset> loadedAssets = new List<Assets.Asset>();
         private EntityWorld world;
 
@@ -117,7 +117,7 @@ namespace LevelEditorPlugin.Entities
             {
                 if (queuedEvents.Count > 0)
                 {
-                    Action action = queuedEvents.Dequeue();
+                    System.Action action = queuedEvents.Dequeue();
                     action.Invoke();
                 }
             }
