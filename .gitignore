@@ -295,6 +295,3 @@ __pycache__/
 *.lib
 /FrostyEditor/MigrationBackup
 /Plugins/LevelEditorOldPlugin
-
-# Frosty custom
-**/GameSpecific/

@@ -245,6 +245,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Remove="GameSpecific\starwarsbattlefrontii\**"
+             Condition="'$(Configuration)' != 'SWBF2 - Debug' And '$(Configuration)' != 'SWBF2 - Release'"
+    />
   </ItemGroup>
 
   <ItemGroup>
@@ -264,5 +267,9 @@
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy /Y $(TargetPath) C:\Frostbite\FrostyToolsSuite\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Plugins\" />
   </Target>
-
+  
+  <ItemGroup>
+    <Folder Include="GameSpecific" />
+  </ItemGroup>
+  
 </Project>
