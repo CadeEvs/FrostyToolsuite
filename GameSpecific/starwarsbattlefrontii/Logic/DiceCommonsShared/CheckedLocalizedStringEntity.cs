@@ -9,6 +9,24 @@ namespace LevelEditorPlugin.Entities
 		public override string DisplayName => "CheckedLocalizedString";
 		public override FrostySdk.Ebx.Realm Realm => Data.Realm;
 
+		public override IEnumerable<ConnectionDesc> Properties
+		{
+			get => new List<ConnectionDesc>()
+			{
+				new ConnectionDesc("LocalizedString", Direction.Out)
+			};
+		}
+		
+		public override IEnumerable<string> HeaderRows
+		{
+			get
+			{
+				List<string> outHeaderRows = new List<string>();
+				outHeaderRows.Add($"Sid: {Data.Sid}");
+				return outHeaderRows;
+			}
+		}
+		
 		public CheckedLocalizedStringEntity(FrostySdk.Ebx.CheckedLocalizedStringEntityData inData, Entity inParent)
 			: base(inData, inParent)
 		{
