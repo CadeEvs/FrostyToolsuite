@@ -920,12 +920,34 @@ namespace LevelEditorPlugin.Controls
                 case 1: port = outputList.FirstOrDefault(p => p.NameHash == nameHash); break;
             };
 
+            // if port does not exist, create a dynamic one
             if (port == null)
             {
-                // port does not exist, so lets create a dynamic one
-                port = new Port(this) { Name = name, NameHash = nameHash, DynamicallyGenerated = true, PortType = portType, PortDirection = 1- direction };
-                if (direction == 0) inputList.Add(port);
-                else outputList.Add(port);
+                // check to see if hash is found in strings.txt
+                string foundName = FrostySdk.Utils.GetString(nameHash);
+                if (foundName != name)
+                {
+                    name = foundName;
+                    nameHash = HashString(name);
+                }
+                
+                port = new Port(this)
+                {
+                    Name = name,
+                    NameHash = nameHash,
+                    DynamicallyGenerated = true,
+                    PortType = portType,
+                    PortDirection = 1- direction
+                };
+                
+                if (direction == 0)
+                {
+                    inputList.Add(port);
+                }
+                else
+                {
+                    outputList.Add(port);
+                }
             }
 
             port.Connected = true;
