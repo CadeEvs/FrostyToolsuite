@@ -179,10 +179,10 @@ namespace LevelEditorPlugin.Entities
 
                             if (entityData.ObjectVariationHash != 0)
                             {
-                                while (!(currentLayer is SubWorldReferenceObject))
+                                while (!(currentLayer is SubWorldReferenceObject) && currentLayer != null)
                                     currentLayer = currentLayer.Parent;
 
-                                MeshVariationDatabase meshVariatationDb = (currentLayer as SubWorldReferenceObject).MeshVariationDatabase;
+                                MeshVariationDatabase meshVariatationDb = (currentLayer as SubWorldReferenceObject)?.MeshVariationDatabase;
                                 if (meshVariatationDb != null)
                                 {
                                     entityData.ObjectVariation = meshVariatationDb.GetVariation(entityData.ObjectVariationHash);

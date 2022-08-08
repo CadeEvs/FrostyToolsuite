@@ -331,8 +331,11 @@ namespace LevelEditorPlugin.Render
                     }
                 }
 
+                List<LayerData> temp = new List<LayerData>();
                 foreach (LayerData layer in layerDatas)
                 {
+                    if (layer.Node == null)
+                        continue;
                     if (layer.Node.data == null && layer.Node.nonTrivialSubtileCount != 0)
                     {
                         ushort hidx = htree.getNodeIndex(layer.Node.id);
@@ -359,9 +362,10 @@ namespace LevelEditorPlugin.Render
                             }
                         }
                     }
+                    temp.Add(layer);
                 }
 
-                TerrainChunkRenderable chunk = new TerrainChunkRenderable(state, htree, hnode, mtree, layerDatas);
+                TerrainChunkRenderable chunk = new TerrainChunkRenderable(state, htree, hnode, mtree, temp);
                 if (chunk.IsValid)
                     terrainChunks.Add(chunk);
             }
