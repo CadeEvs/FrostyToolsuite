@@ -128,8 +128,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="EbxClasses">
+    <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'SWBF2 - Debug' Or '$(Configuration)' == 'SWBF2 - Release'">
       <HintPath>..\..\FrostyToolsuite\FrostySdk\Profiles\StarWarsIISDK.dll</HintPath>
+    </Reference>
+    <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'MassEffect - Debug' Or '$(Configuration)' == 'MassEffect - Release'">
+      <HintPath>..\..\FrostyToolsuite\FrostySdk\Profiles\MassEffectSDK.dll</HintPath>
     </Reference>
     <Reference Include="FrostyControls">
       <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyControls.dll</HintPath>
