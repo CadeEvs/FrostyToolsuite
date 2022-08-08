@@ -3,8 +3,12 @@ using System.Collections.Generic;
 namespace LevelEditorPlugin.Entities
 {
 	[EntityBinding(DataType = typeof(FrostySdk.Ebx.CompareBoolEntityData))]
-	public class CompareBoolEntity : CompareEntityBase, IEntityData<FrostySdk.Ebx.CompareBoolEntityData>
-	{
+#if GW2
+    public class CompareBoolEntity : LogicEntity, IEntityData<FrostySdk.Ebx.CompareBoolEntityData>
+#else
+    public class CompareBoolEntity : CompareEntityBase, IEntityData<FrostySdk.Ebx.CompareBoolEntityData>
+#endif
+    {
         protected readonly int Property_Bool = Frosty.Hash.Fnv1.HashString("Bool");
         protected readonly int Event_In = Frosty.Hash.Fnv1.HashString("In");
         protected readonly int Event_OnTrue = Frosty.Hash.Fnv1.HashString("OnTrue");

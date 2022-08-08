@@ -11,6 +11,8 @@ Global
 		MassEffect - Release|x64 = MassEffect - Release|x64
 		SWBF2 - Debug|x64 = SWBF2 - Debug|x64
 		SWBF2 - Release|x64 = SWBF2 - Release|x64
+		GW2 - Debug|x64 = GW2 - Debug|x64
+		GW2 - Release|x64 = GW2 - Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.MassEffect - Debug|x64.ActiveCfg = MassEffect - Debug|x64
@@ -21,6 +23,10 @@ Global
 		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Debug|x64.Build.0 = SWBF2 - Debug|x64
 		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Release|x64.ActiveCfg = SWBF2 - Release|x64
 		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.SWBF2 - Release|x64.Build.0 = SWBF2 - Release|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.GW2 - Debug|x64.ActiveCfg = GW2 - Debug|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.GW2 - Debug|x64.Build.0 = GW2 - Debug|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.GW2 - Release|x64.ActiveCfg = GW2 - Release|x64
+		{ED805027-7A1F-4CAB-8EE5-20754F84532E}.GW2 - Release|x64.Build.0 = GW2 - Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

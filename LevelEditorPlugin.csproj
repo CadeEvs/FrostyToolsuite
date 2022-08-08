@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
-    <Configurations>MassEffect - Debug;MassEffect - Release;SWBF2 - Debug;SWBF2 - Release</Configurations>
+    <Configurations>MassEffect - Debug;MassEffect - Release;SWBF2 - Debug;SWBF2 - Release;GW2 - Debug;GW2 - Release</Configurations>
     <Platforms>x64</Platforms>
     <TargetFrameworks>net48</TargetFrameworks>
     <AssemblyTitle>LevelEditorPlugin</AssemblyTitle>
@@ -40,6 +40,18 @@
     <OutputPath>bin\Release\Final\</OutputPath>
     <DefineConstants>TRACE;SWBF2</DefineConstants>
     <Optimize>true</Optimize>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'GW2 - Debug|x64' ">
+    <DefineConstants>TRACE;DEBUG;GW2</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'GW2 - Release|x64' ">
+    <DefineConstants>TRACE;GW2</DefineConstants>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'SWBF2 - Debug|x64' ">
+    <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='MassEffect - Debug|net48|x64'">
@@ -129,10 +141,13 @@
 
   <ItemGroup>
     <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'SWBF2 - Debug' Or '$(Configuration)' == 'SWBF2 - Release'">
-      <HintPath>..\..\FrostyToolsuite\FrostySdk\Profiles\StarWarsIISDK.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\StarWarsIISDK.dll</HintPath>
     </Reference>
     <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'MassEffect - Debug' Or '$(Configuration)' == 'MassEffect - Release'">
-      <HintPath>..\..\FrostyToolsuite\FrostySdk\Profiles\MassEffectSDK.dll</HintPath>
+      <HintPath>..\..\FrostyToolsuiteFrostyEditor\bin\Developer\Debug\Profiles\MassEffectSDK.dll</HintPath>
+    </Reference>
+    <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'GW2 - Debug' Or '$(Configuration)' == 'GW2 - Release'">
+      <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\PVZ2SDK.dll</HintPath>
     </Reference>
     <Reference Include="FrostyControls">
       <HintPath>..\..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\FrostyControls.dll</HintPath>
