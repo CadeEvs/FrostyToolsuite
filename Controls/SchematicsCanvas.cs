@@ -86,11 +86,11 @@ namespace LevelEditorPlugin.Controls
             public string Name;
             public int NameHash;
             public Type DataType;
-            public bool Connected;
+            public bool IsConnected;
             public bool ShowWhileCollapsed;
-            public bool DynamicallyGenerated;
+            public bool IsDynamicallyGenerated;
             public int ConnectionCount;
-            public bool Highlighted;
+            public bool IsHighlighted;
 
             public int PortType;
             public int PortDirection;
@@ -417,7 +417,7 @@ namespace LevelEditorPlugin.Controls
 
         public override Port Connect(string name, int nameHash, int portType, int direction)
         {
-            Self.Connected = true;
+            Self.IsConnected = true;
             Self.ConnectionCount++;
 
             ConnectionCount++;
@@ -433,13 +433,13 @@ namespace LevelEditorPlugin.Controls
             {
                 Mouse.OverrideCursor = Cursors.Arrow;
                 HightlightedPort = Self;
-                Self.Highlighted = true;
+                Self.IsHighlighted = true;
                 changedHighlight = true;
             }
-            else if (Self.Highlighted)
+            else if (Self.IsHighlighted)
             {
                 HightlightedPort = null;
-                Self.Highlighted = false;
+                Self.IsHighlighted = false;
                 changedHighlight = true;
             }
 
@@ -450,7 +450,7 @@ namespace LevelEditorPlugin.Controls
         {
             if (HightlightedPort != null)
             {
-                HightlightedPort.Highlighted = false;
+                HightlightedPort.IsHighlighted = false;
                 HightlightedPort = null;
                 return true;
             }
@@ -493,8 +493,8 @@ namespace LevelEditorPlugin.Controls
             }
 
             // draw connector
-            state.DrawingContext.DrawRectangle((Self.Highlighted) ? state.NodeSelectedBrush : connectorBrush, state.BlackPen, new Rect(nodePosition.X + (Self.Rect.X * state.Scale), nodePosition.Y + (Self.Rect.Y * state.Scale), 12 * state.Scale, 12 * state.Scale));
-            if (!Self.Connected)
+            state.DrawingContext.DrawRectangle((Self.IsHighlighted) ? state.NodeSelectedBrush : connectorBrush, state.BlackPen, new Rect(nodePosition.X + (Self.Rect.X * state.Scale), nodePosition.Y + (Self.Rect.Y * state.Scale), 12 * state.Scale, 12 * state.Scale));
+            if (!Self.IsConnected)
                 state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + ((Self.Rect.X + 2) * state.Scale), nodePosition.Y + ((Self.Rect.Y + 2) * state.Scale), 8 * state.Scale, 8 * state.Scale));
 
             // draw symbol
@@ -586,13 +586,13 @@ namespace LevelEditorPlugin.Controls
             {
                 Mouse.OverrideCursor = Cursors.Arrow;
                 HightlightedPort = Self;
-                Self.Highlighted = true;
+                Self.IsHighlighted = true;
                 changedHighlight = true;
             }
-            else if (Self.Highlighted)
+            else if (Self.IsHighlighted)
             {
                 HightlightedPort = null;
-                Self.Highlighted = false;
+                Self.IsHighlighted = false;
                 changedHighlight = true;
             }
 
@@ -603,7 +603,7 @@ namespace LevelEditorPlugin.Controls
         {
             if (HightlightedPort != null)
             {
-                HightlightedPort.Highlighted = false;
+                HightlightedPort.IsHighlighted = false;
                 HightlightedPort = null;
                 return true;
             }
@@ -719,16 +719,16 @@ namespace LevelEditorPlugin.Controls
                 {
                     Mouse.OverrideCursor = Cursors.Arrow;
                     HightlightedPort = port;
-                    port.Highlighted = true;
+                    port.IsHighlighted = true;
                     changedHighlight = true;
                 }
-                else if (port.Highlighted)
+                else if (port.IsHighlighted)
                 {
                     if (HightlightedPort == port)
                     {
                         HightlightedPort = null;
                     }
-                    port.Highlighted = false;
+                    port.IsHighlighted = false;
                     changedHighlight = true;
                 }
             }
@@ -756,7 +756,7 @@ namespace LevelEditorPlugin.Controls
             {
                 foreach (Port port in AllPorts)
                 {
-                    if (!port.Connected || port.ShortcutNode != null)
+                    if (!port.IsConnected || port.ShortcutNode != null)
                         continue;
 
                     Rect portRect = new Rect(Rect.X + port.Rect.X, Rect.Y + port.Rect.Y, 12, 12);
@@ -789,7 +789,7 @@ namespace LevelEditorPlugin.Controls
             }
             if (HightlightedPort != null)
             {
-                HightlightedPort.Highlighted = false;
+                HightlightedPort.IsHighlighted = false;
                 HightlightedPort = null;
                 invalidate = true;
             }
@@ -899,7 +899,7 @@ namespace LevelEditorPlugin.Controls
 
             if (nameHash == 0)
             {
-                Self.Connected = true;
+                Self.IsConnected = true;
                 Self.ConnectionCount++;
                 ConnectionCount++;
 
@@ -935,7 +935,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     Name = name,
                     NameHash = nameHash,
-                    DynamicallyGenerated = true,
+                    IsDynamicallyGenerated = true,
                     PortType = portType,
                     PortDirection = 1- direction
                 };
@@ -950,7 +950,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            port.Connected = true;
+            port.IsConnected = true;
             port.ConnectionCount++;
 
             ConnectionCount++;
@@ -979,7 +979,7 @@ namespace LevelEditorPlugin.Controls
             // input links
             foreach (Port port in InputLinks)
             {
-                if (!IsCollapsed || port.Connected)
+                if (!IsCollapsed || port.IsConnected)
                 {
                     port.Rect = new Rect(4, ((headerHeight + 4 + (15 * connectorIdx))), 12, 12);
                     connectorIdx++;
@@ -992,7 +992,7 @@ namespace LevelEditorPlugin.Controls
             // input events
             foreach (Port port in InputEvents)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     port.Rect = new Rect(4, ((headerHeight + offset + 4 + (15 * connectorIdx))), 12, 12);
                     connectorIdx++;
@@ -1005,7 +1005,7 @@ namespace LevelEditorPlugin.Controls
             // input properties
             foreach (Port port in InputProperties)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     port.Rect = new Rect(4, ((headerHeight + 4 + offset + (15 * connectorIdx))), 12, 12);
                     connectorIdx++;
@@ -1020,7 +1020,7 @@ namespace LevelEditorPlugin.Controls
             // output links
             foreach (Port port in OutputLinks)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     port.Rect = new Rect(Rect.Width - 4 - 12, ((headerHeight + 4 + (15 * connectorIdx))), 12, 12);
                     connectorIdx++;
@@ -1033,7 +1033,7 @@ namespace LevelEditorPlugin.Controls
             // output events
             foreach (Port port in OutputEvents)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     port.Rect = new Rect(Rect.Width - 4 - 12, ((headerHeight + offset + 4 + (15 * connectorIdx))), 12, 12);
                     connectorIdx++;
@@ -1046,7 +1046,7 @@ namespace LevelEditorPlugin.Controls
             // output properties
             foreach (Port port in OutputProperties)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     port.Rect = new Rect(Rect.Width - 4 - 12, ((headerHeight + 4 + offset + (15 * connectorIdx))), 12, 12);
                     connectorIdx++;
@@ -1234,12 +1234,12 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            foreach (Port port in oldInputLinks) { if (!port.DynamicallyGenerated) { InputLinks.Remove(port); } }
-            foreach (Port port in oldOutputLinks) { if (!port.DynamicallyGenerated) { OutputLinks.Remove(port); } }
-            foreach (Port port in oldInputEvents) { if (!port.DynamicallyGenerated) { InputEvents.Remove(port); } }
-            foreach (Port port in oldOutputEvents) { if (!port.DynamicallyGenerated) { OutputEvents.Remove(port); } }
-            foreach (Port port in oldInputProps) { if (!port.DynamicallyGenerated) { InputProperties.Remove(port); } }
-            foreach (Port port in oldOutputProps) { if (!port.DynamicallyGenerated) { OutputProperties.Remove(port); } }
+            foreach (Port port in oldInputLinks) { if (!port.IsDynamicallyGenerated) { InputLinks.Remove(port); } }
+            foreach (Port port in oldOutputLinks) { if (!port.IsDynamicallyGenerated) { OutputLinks.Remove(port); } }
+            foreach (Port port in oldInputEvents) { if (!port.IsDynamicallyGenerated) { InputEvents.Remove(port); } }
+            foreach (Port port in oldOutputEvents) { if (!port.IsDynamicallyGenerated) { OutputEvents.Remove(port); } }
+            foreach (Port port in oldInputProps) { if (!port.IsDynamicallyGenerated) { InputProperties.Remove(port); } }
+            foreach (Port port in oldOutputProps) { if (!port.IsDynamicallyGenerated) { OutputProperties.Remove(port); } }
         }
 
         private void DrawHeader(SchematicsCanvas.DrawingContextState state)
@@ -1255,11 +1255,11 @@ namespace LevelEditorPlugin.Controls
                 return;
 
             // self connector
-            Brush brush = (Self.Highlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
+            Brush brush = (Self.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
             state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + (4 * state.Scale), nodePosition.Y + (4 * state.Scale), 12 * state.Scale, 12 * state.Scale));
-            if (!Self.Connected)
+            if (!Self.IsConnected)
                 state.DrawingContext.DrawRectangle(state.NodeTitleBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (6 * state.Scale), nodePosition.Y + (6 * state.Scale), 8 * state.Scale, 8 * state.Scale));
-            if (Self.Highlighted)
+            if (Self.IsHighlighted)
                 DrawTooltip(state, Self);
 
             // @todo: cache the shapes
@@ -1398,20 +1398,20 @@ namespace LevelEditorPlugin.Controls
             // draw input links
             foreach (Port port in InputLinks)
             {
-                if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
+                if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
                     continue;
 
-                Brush brush = (port.Highlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
+                Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
-                if (!port.Connected)
+                if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
                     GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
-                    if (port.Highlighted)
+                    if (port.IsHighlighted)
                     {
                         DrawTooltip(state, port);
                     }
@@ -1421,38 +1421,38 @@ namespace LevelEditorPlugin.Controls
             // draw events
             foreach (Port port in InputEvents)
             {
-                if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
+                if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
                     continue;
 
-                Brush brush = (port.Highlighted) ? state.NodeSelectedBrush : state.SchematicEventBrush;
+                Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicEventBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
-                if (!port.Connected)
+                if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
                     GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
                 }
             }
 
             // draw properties
             foreach (Port port in InputProperties)
             {
-                if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
+                if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
                     continue;
 
-                Brush brush = (port.Highlighted) ? state.NodeSelectedBrush : state.SchematicPropertyBrush;
+                Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicPropertyBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
-                if (!port.Connected)
+                if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
                     GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
-                    if (port.Highlighted)
+                    if (port.IsHighlighted)
                     {
                         DrawTooltip(state, port);
                     }
@@ -1462,20 +1462,20 @@ namespace LevelEditorPlugin.Controls
             // draw output links
             foreach (Port port in OutputLinks)
             {
-                if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
+                if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
                     continue;
 
-                Brush brush = (port.Highlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
+                Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
-                if (!port.Connected)
+                if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
                     GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
-                    if (port.Highlighted)
+                    if (port.IsHighlighted)
                     {
                         DrawTooltip(state, port);
                     }
@@ -1485,38 +1485,38 @@ namespace LevelEditorPlugin.Controls
             // draw output events
             foreach (Port port in OutputEvents)
             {
-                if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
+                if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
                     continue;
 
-                Brush brush = (port.Highlighted) ? state.NodeSelectedBrush : state.SchematicEventBrush;
+                Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicEventBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
-                if (!port.Connected)
+                if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
                     GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
                 }
             }
 
             // draw output properties
             foreach (Port port in OutputProperties)
             {
-                if ((IsCollapsed && !port.Connected) && !port.ShowWhileCollapsed)
+                if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
                     continue;
 
-                Brush brush = (port.Highlighted) ? state.NodeSelectedBrush : state.SchematicPropertyBrush;
+                Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicPropertyBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
-                if (!port.Connected)
+                if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
                     GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + (port.Rect.Y) * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.DynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
 
-                    if (port.Highlighted)
+                    if (port.IsHighlighted)
                     {
                         DrawTooltip(state, port);
                     }
@@ -1581,7 +1581,7 @@ namespace LevelEditorPlugin.Controls
 
             foreach (Port port in InputLinks)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     double strLength = port.Name.Length * GlyphWidth;
                     longestInput = (strLength > longestInput) ? strLength : longestInput; linkCount++;
@@ -1589,7 +1589,7 @@ namespace LevelEditorPlugin.Controls
             }
             foreach (Port port in OutputLinks)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     double strLength = port.Name.Length * GlyphWidth;
                     longestOutput = (strLength > longestOutput) ? strLength : longestOutput; tmpLinkCount++;
@@ -1598,7 +1598,7 @@ namespace LevelEditorPlugin.Controls
 
             foreach (Port port in InputEvents)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     double strLength = port.Name.Length * GlyphWidth;
                     longestInput = (strLength > longestInput) ? strLength : longestInput; eventCount++;
@@ -1606,7 +1606,7 @@ namespace LevelEditorPlugin.Controls
             }
             foreach (Port port in OutputEvents)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     double strLength = port.Name.Length * GlyphWidth;
                     longestOutput = (strLength > longestOutput) ? strLength : longestOutput; tmpEventCount++;
@@ -1615,7 +1615,7 @@ namespace LevelEditorPlugin.Controls
 
             foreach (Port port in InputProperties)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     double strLength = port.Name.Length * GlyphWidth;
                     longestInput = (strLength > longestInput) ? strLength : longestInput; propertyCount++;
@@ -1623,7 +1623,7 @@ namespace LevelEditorPlugin.Controls
             }
             foreach (Port port in OutputProperties)
             {
-                if ((!IsCollapsed || port.Connected) || port.ShowWhileCollapsed)
+                if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
                 {
                     double strLength = port.Name.Length * GlyphWidth;
                     longestOutput = (strLength > longestOutput) ? strLength : longestOutput; tmpPropertyCount++;
@@ -1796,7 +1796,7 @@ namespace LevelEditorPlugin.Controls
                         {
                             if (port.DataType == wirePort.DataType || wirePort.DataType == typeof(Any) || port.DataType == typeof(Any))
                             {
-                                port.Highlighted = true;
+                                port.IsHighlighted = true;
                             }
 
                             Rect portRect = new Rect(node.Rect.X + port.Rect.X, node.Rect.Y + port.Rect.Y, port.Rect.Width + port.Name.Length * node.GlyphWidth, port.Rect.Height);
@@ -1847,7 +1847,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     foreach (BaseNodeVisual.Port port in (oldHoveredNode as NodeVisual).AllPorts)
                     {
-                        port.Highlighted = false;
+                        port.IsHighlighted = false;
                         port.ShowWhileCollapsed = false;
                     }
                     oldHoveredNode.Update();
@@ -1862,7 +1862,7 @@ namespace LevelEditorPlugin.Controls
                 SourcePort.ConnectionCount--;
                 if (SourcePort.ConnectionCount == 0)
                 {
-                    SourcePort.Connected = false;
+                    SourcePort.IsConnected = false;
                 }
             }
             if (Target != null)
@@ -1870,7 +1870,7 @@ namespace LevelEditorPlugin.Controls
                 TargetPort.ConnectionCount--;
                 if (TargetPort.ConnectionCount == 0)
                 {
-                    TargetPort.Connected = false;
+                    TargetPort.IsConnected = false;
                 }
             }
         }
