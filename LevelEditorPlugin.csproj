@@ -144,7 +144,7 @@
       <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\StarWarsIISDK.dll</HintPath>
     </Reference>
     <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'MassEffect - Debug' Or '$(Configuration)' == 'MassEffect - Release'">
-      <HintPath>..\FrostyToolsuiteFrostyEditor\bin\Developer\Debug\Profiles\MassEffectSDK.dll</HintPath>
+      <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\MassEffectSDK.dll</HintPath>
     </Reference>
     <Reference Include="EbxClasses" Condition="'$(Configuration)' == 'GW2 - Debug' Or '$(Configuration)' == 'GW2 - Release'">
       <HintPath>..\FrostyToolsuite\FrostyEditor\bin\Developer\Debug\Profiles\PVZ2SDK.dll</HintPath>
