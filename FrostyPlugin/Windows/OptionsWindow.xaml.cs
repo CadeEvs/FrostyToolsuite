@@ -54,10 +54,17 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool UpdateCheckPrerelease { get; set; } = false;
 
-        [Category("Applying")]
+        [Category("General")]
+        [DisplayName("Applying Thread Count")]
         [Description("The thread count that should be used when applying mods. By default is set to the number of processors on the machine")]
         [EbxFieldMeta(EbxFieldType.Int32)]
         public int ApplyingThreadCount { get; set; } = Environment.ProcessorCount;
+        
+        [Category("General")]
+        [DisplayName("Disable Launch Process Check")]
+        [Description("Disable the functionality to check if a process is already running when trying to launch")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool DisableLaunchProcessCheck { get; set; } = false;
         
         public override void Load()
         {
@@ -67,6 +74,8 @@ namespace Frosty.Core.Windows
             UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
             ApplyingThreadCount = Config.Get<int>("ApplyingThreadCount", Environment.ProcessorCount);
+
+            DisableLaunchProcessCheck = Config.Get<bool>("DisableLaunchProcessCheck", false);
         }
 
         public override void Save()
@@ -77,13 +86,15 @@ namespace Frosty.Core.Windows
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
             
             Config.Add("ApplyingThreadCount", ApplyingThreadCount);
+            
+            Config.Add("DisableLaunchProcessCheck", DisableLaunchProcessCheck);
         }
     }
     
     [DisplayName("Editor Options")]
     public class EditorOptionsData : BaseOptionsData
     {
-        [Category("Localization")]
+        [Category("General")]
         [Description("Selects which localized language files to read from the game files.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
@@ -130,7 +141,7 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.String)]
         public string ModSettingsAuthor { get; set; } = "";
 
-        [Category("Asset")]
+        [Category("Editor")]
         [DisplayName("Display Module in Class Id")]
         [Description("Determines whether a class's default Id, when viewed in the property grid, is prepended with the module name of that class.\r\n\r\nTrue: Entity.MathEntityData\r\nFalse: MathEntityData")]
         [EbxFieldMeta(EbxFieldType.Boolean)]

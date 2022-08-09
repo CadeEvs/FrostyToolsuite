@@ -660,17 +660,20 @@ namespace Frosty.ModSupport
             }
 
             // check for already running process
-            Process[] processes = Process.GetProcesses();
-            string processName = ProfilesLibrary.ProfileName;
-            foreach (Process process in processes)
+            if (!Config.Get<bool>("DisableLaunchProcessCheck", false))
             {
-                if (process.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                Process[] processes = Process.GetProcesses();
+                string processName = ProfilesLibrary.ProfileName;
+                foreach (Process process in processes)
                 {
-                    FrostyMessageBox.Show(string.Format("Unable to launch process as there is already a running process with process Id {0}", process.Id), "Frosty Toolsuite");
-                    return -1;
+                    if (process.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        FrostyMessageBox.Show(string.Format("Unable to launch process as there is already a running process with process Id {0}", process.Id), "Frosty Toolsuite");
+                        return -1;
+                    }
                 }
             }
-
+            
             cancelToken.ThrowIfCancellationRequested();
 
             cancelToken.ThrowIfCancellationRequested();
