@@ -18,6 +18,7 @@ namespace LevelEditorPlugin.Controls
             public bool ShowWhileCollapsed;
             public bool IsDynamicallyGenerated;
             public int ConnectionCount;
+            public List<WireVisual> Connections = new List<WireVisual>();
             public bool IsHighlighted;
 
             public int PortType;
@@ -52,7 +53,7 @@ namespace LevelEditorPlugin.Controls
         public abstract SchematicsLayout.Node GenerateLayout();
         public abstract bool Matches(FrostySdk.Ebx.PointerRef pr, int nameHash, int direction);
         public abstract bool IsValid();
-        public abstract Port Connect(string name, int nameHash, int portType, int direction);
+        public abstract Port Connect(WireVisual wire, string name, int nameHash, int portType, int direction);
 
         protected int HashString(string value)
         {

@@ -37,11 +37,11 @@ namespace LevelEditorPlugin.Controls
 
             if (Source != null)
             {
-                SourcePort = Source.Connect(sourceName, sourceHash, portType, 1);
+                SourcePort = Source.Connect(this, sourceName, sourceHash, portType, 1);
             }
             if (Target != null)
             {
-                TargetPort = Target.Connect(targetName, targetHash, portType, 0);
+                TargetPort = Target.Connect(this, targetName, targetHash, portType, 0);
             }
 
             if (Source != null && Target != null)
@@ -220,6 +220,7 @@ namespace LevelEditorPlugin.Controls
             if (Source != null)
             {
                 SourcePort.ConnectionCount--;
+                SourcePort.Connections.Remove(this);
                 if (SourcePort.ConnectionCount == 0)
                 {
                     SourcePort.IsConnected = false;
@@ -228,6 +229,7 @@ namespace LevelEditorPlugin.Controls
             if (Target != null)
             {
                 TargetPort.ConnectionCount--;
+                TargetPort.Connections.Remove(this);
                 if (TargetPort.ConnectionCount == 0)
                 {
                     TargetPort.IsConnected = false;

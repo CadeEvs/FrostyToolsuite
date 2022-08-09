@@ -751,6 +751,7 @@ namespace LevelEditorPlugin.Controls
                         selectedOffsets.RemoveAt(i);
                     }
 
+                    // node
                     if (node is NodeVisual entity)
                     {
                         NodeRemovedCommand?.Execute(new NodeRemovedEventArgs(entity.Entity, container));
@@ -1321,6 +1322,12 @@ namespace LevelEditorPlugin.Controls
             nodeVisuals.Add(nodeToAdd);
         }
 
+        private void RemoveWire(WireVisual wire)
+        {
+            wire.Disconnect();
+            wireVisuals.Remove(wire);
+        }
+
         private void DrawSelectionRect(DrawingContext drawingContext)
         {
             if (!isMarqueeSelecting)
@@ -1414,7 +1421,7 @@ namespace LevelEditorPlugin.Controls
                     UniqueId = Guid.NewGuid() 
                 };
 
-                nodeVisuals.Add(node);
+                AddNode(node);
 
                 node.IsCollapsed = isCollapsed;
                 node.Update();
@@ -1585,8 +1592,27 @@ namespace LevelEditorPlugin.Controls
             {
                 foreach (object entity in e.OldItems)
                 {
-                    nodeVisuals.Remove(nodeVisuals.Find(n => n.Data == entity));
-                    // @todo: cleanup wires
+                    BaseVisual visual = nodeVisuals.Find(n => n.Data == entity);
+                    
+                    nodeVisuals.Remove(visual);
+                    
+                    // remove wires
+                    if (visual is NodeVisual node)
+                    {
+                        foreach (NodeVisual.Port port in node.AllPorts)
+                        {
+                            List<WireVisual> wiresToRemove = new List<WireVisual>();
+                            foreach (WireVisual wire in port.Connections)
+                            {
+                                wiresToRemove.Add(wire);
+                            }
+                            
+                            foreach (WireVisual wire in wiresToRemove)
+                            {
+                                RemoveWire(wire);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -1604,9 +1630,7 @@ namespace LevelEditorPlugin.Controls
                 foreach (object connection in e.OldItems)
                 {
                     WireVisual wire = wireVisuals.Find(n => n.Data == connection);
-                    
-                    wire.Disconnect();
-                    wireVisuals.Remove(wire);
+                    RemoveWire(wire);
                 }
             }
 
@@ -1624,9 +1648,7 @@ namespace LevelEditorPlugin.Controls
                 foreach (object connection in e.OldItems)
                 {
                     WireVisual wire = wireVisuals.Find(n => n.Data == connection);
-                    
-                    wire.Disconnect();
-                    wireVisuals.Remove(wire);
+                    RemoveWire(wire);
                 }
             }
 
@@ -1644,9 +1666,7 @@ namespace LevelEditorPlugin.Controls
                 foreach (object connection in e.OldItems)
                 {
                     WireVisual wire = wireVisuals.Find(n => n.Data == connection);
-                    
-                    wire.Disconnect();
-                    wireVisuals.Remove(wire);
+                    RemoveWire(wire);
                 }
             }
 

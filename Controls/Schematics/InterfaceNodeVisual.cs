@@ -136,10 +136,11 @@ namespace LevelEditorPlugin.Controls
             return ConnectionCount > 0;
         }
 
-        public override Port Connect(string name, int nameHash, int portType, int direction)
+        public override Port Connect(WireVisual wire, string name, int nameHash, int portType, int direction)
         {
             Self.IsConnected = true;
             Self.ConnectionCount++;
+            Self.Connections.Add(wire);
 
             ConnectionCount++;
             return Self;

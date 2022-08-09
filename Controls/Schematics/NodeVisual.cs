@@ -240,7 +240,7 @@ namespace LevelEditorPlugin.Controls
             return true;
         }
 
-        public override Port Connect(string name, int nameHash, int portType, int direction)
+        public override Port Connect(WireVisual wire, string name, int nameHash, int portType, int direction)
         {
             List<Port> inputList = null;
             List<Port> outputList = null;
@@ -249,6 +249,7 @@ namespace LevelEditorPlugin.Controls
             {
                 Self.IsConnected = true;
                 Self.ConnectionCount++;
+                Self.Connections.Add(wire);
                 ConnectionCount++;
 
                 return Self;
@@ -300,6 +301,7 @@ namespace LevelEditorPlugin.Controls
 
             port.IsConnected = true;
             port.ConnectionCount++;
+            port.Connections.Add(wire);
 
             ConnectionCount++;
             return port;

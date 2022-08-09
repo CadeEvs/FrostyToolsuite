@@ -399,6 +399,123 @@ namespace LevelEditorPlugin.Editors
         }
     }
 
+    public class RemoveNodeConnectionsUndoUnit : IUndoUnit
+    {
+        public string Text => "Remove Node Connections";
+        
+        private Dictionary<PropertyConnection, int> propertyConnectionsToRemove = new Dictionary<PropertyConnection, int>();
+        private Dictionary<EventConnection, int> eventConnectionsToRemove = new Dictionary<EventConnection, int>();
+        private Dictionary<LinkConnection, int> linkConnectionsToRemove = new Dictionary<LinkConnection, int>();
+        
+        private Entity entity;
+        private Blueprint blueprint;
+        private SchematicsData data;
+        
+        public RemoveNodeConnectionsUndoUnit(Entity inEntity, Blueprint inBlueprint, SchematicsData inData)
+        {
+            entity = inEntity;
+            blueprint = inBlueprint;
+            data = inData;
+            
+            //
+            // Find all connections that entity is connected to
+            //
+            
+            // property
+            for (int i = 0; i < blueprint.PropertyConnections.Count; i++)
+            {
+                PropertyConnection connection = blueprint.PropertyConnections[i];
+                if (connection.Source.Internal == entity.GetRawData())
+                {
+                    propertyConnectionsToRemove.Add(connection, i);
+                }
+                else if (connection.Target.Internal == entity.GetRawData())
+                {
+                    propertyConnectionsToRemove.Add(connection, i);
+                }
+            }
+            // event
+            for (int i = 0; i < blueprint.EventConnections.Count; i++)
+            {
+                EventConnection connection = blueprint.EventConnections[i];
+                if (connection.Source.Internal == entity.GetRawData())
+                {
+                    eventConnectionsToRemove.Add(connection, i);
+                }
+                else if (connection.Target.Internal == entity.GetRawData())
+                {
+                    eventConnectionsToRemove.Add(connection, i);
+                }
+            }
+            // link
+            for (int i = 0; i < blueprint.LinkConnections.Count; i++)
+            {
+                LinkConnection connection = blueprint.LinkConnections[i];
+                if (connection.Source.Internal == entity.GetRawData())
+                {
+                    linkConnectionsToRemove.Add(connection, i);
+                }
+                else if (connection.Target.Internal == entity.GetRawData())
+                {
+                    linkConnectionsToRemove.Add(connection, i);
+                }
+            }
+        }
+        
+        public void Do()
+        {
+            //
+            // Remove connections from blueprint and SchematicsData
+            // Store the index the connection was removed from so we can properly re-insert it on undo
+            //
+            
+            // property
+            foreach (KeyValuePair<PropertyConnection, int> connection in propertyConnectionsToRemove)
+            {
+                blueprint.PropertyConnections.Remove(connection.Key);
+                data.PropertyConnections.Remove(connection.Key);
+            }
+            // event
+            foreach (KeyValuePair<EventConnection, int> connection in eventConnectionsToRemove)
+            {
+                blueprint.EventConnections.Remove(connection.Key);
+                data.EventConnections.Remove(connection.Key);
+            }
+            // link
+            foreach (KeyValuePair<LinkConnection, int> connection in linkConnectionsToRemove)
+            {
+                blueprint.LinkConnections.Remove(connection.Key);
+                data.LinkConnections.Remove(connection.Key);
+            }
+        }
+
+        public void Undo()
+        {
+            //
+            // Re-insert connections to blueprint and SchematicsData
+            //
+            
+            // property
+            foreach (KeyValuePair<PropertyConnection, int> connection in propertyConnectionsToRemove)
+            {
+                blueprint.PropertyConnections.Insert(connection.Value, connection.Key);
+                data.PropertyConnections.Insert(connection.Value, connection.Key);
+            }
+            // event
+            foreach (KeyValuePair<EventConnection, int> connection in eventConnectionsToRemove)
+            {
+                blueprint.EventConnections.Insert(connection.Value, connection.Key);
+                data.EventConnections.Insert(connection.Value, connection.Key);
+            }
+            // link
+            foreach (KeyValuePair<LinkConnection, int> connection in linkConnectionsToRemove)
+            {
+                blueprint.LinkConnections.Insert(connection.Value, connection.Key);
+                data.LinkConnections.Insert(connection.Value, connection.Key);
+            }
+        }
+    }
+    
     public class PropertyGridModifiedEventArgs : EventArgs
     {
         public ItemModifiedEventArgs Args { get; private set; }
@@ -1039,7 +1156,10 @@ namespace LevelEditorPlugin.Editors
             {
                 ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
                 
-                e.Container.Add(new GenericUndoUnit("Remove Schematics Node",
+                // @todo: support deleting wirepoints and updating entity flags
+                e.Container.Add(new RemoveNodeConnectionsUndoUnit(entity, refObjEntity.Blueprint.Data, schematicsData));
+                
+                e.Container.Add(new GenericUndoUnit("Remove Schematics Node Entity",
                     (o) =>
                     {
                         // remove from reference
@@ -1047,7 +1167,8 @@ namespace LevelEditorPlugin.Editors
 
                         // remove from ebx
                         owner.Asset.RemoveObject(entity.GetRawData());
-                        LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
+                        // @todo: only update asset if we're removing a base asset node
+                        LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
 
                         // remove from canvas
                         schematicsData.Entities.Remove(schematicsData.Entities.First(se => se.InstanceGuid == entity.InstanceGuid));
@@ -1059,7 +1180,7 @@ namespace LevelEditorPlugin.Editors
 
                         // add to reference
                         refObjEntity.AddEntity(entity);
-                        LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
+                        LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
 
                         // add to canvas
                         schematicsData.Entities.Add(entity);
