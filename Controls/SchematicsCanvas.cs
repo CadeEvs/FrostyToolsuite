@@ -250,9 +250,12 @@ namespace LevelEditorPlugin.Controls
             public Brush NodeTitleBackgroundBrush { get; private set; }
             public Brush NodeBackgroundBrush { get; private set; }
             public Brush NodeSelectedBrush { get; private set; }
+            public Brush NodeCollapseButtonBackgroundBrush { get; private set; }
             public Brush SchematicLinkBrush { get; private set; }
             public Brush SchematicEventBrush { get; private set; }
             public Brush SchematicPropertyBrush { get; private set; }
+            public Brush SchematicRealmEnabled { get; private set; }
+            public Brush SchematicRealmDisabled { get; private set; }
 
             public long LastFrameCount { get; private set; }
 
@@ -266,11 +269,16 @@ namespace LevelEditorPlugin.Controls
                 state.InvScale = 1.0 / inScale;
 
                 state.BlackPen = new Pen(Brushes.Black, 1.0);
+                
                 state.NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
                 state.NodeBackgroundBrush = new SolidColorBrush(Color.FromRgb(194, 194, 194));
+                state.NodeCollapseButtonBackgroundBrush = new SolidColorBrush(Color.FromRgb(248, 248, 248));
+                
                 state.SchematicLinkBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x6f, 0xa9, 0xce));
                 state.SchematicEventBrush = new SolidColorBrush(Color.FromArgb(0xff, 0xf8, 0xf8, 0xf8));
                 state.SchematicPropertyBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x5f, 0xd9, 0x5f));
+                state.SchematicRealmEnabled = new SolidColorBrush(Color.FromRgb(255, 255, 0));
+                state.SchematicRealmDisabled = new SolidColorBrush(Color.FromRgb(155, 155, 155));
 
                 state.LargeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
                 state.SmallFont = FontData.MakeFont(new Typeface("Consolas"), 7);
@@ -306,9 +314,13 @@ namespace LevelEditorPlugin.Controls
                 NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
                 NodeBackgroundBrush = new SolidColorBrush(Color.FromRgb(194, 194, 194));
                 NodeSelectedBrush = Brushes.PaleGoldenrod;
+                NodeCollapseButtonBackgroundBrush = new SolidColorBrush(Color.FromRgb(248, 248, 248));
+                
                 SchematicLinkBrush = owner.SchematicLinkBrush;
                 SchematicEventBrush = owner.SchematicEventBrush;
                 SchematicPropertyBrush = owner.SchematicPropertyBrush;
+                SchematicRealmEnabled = new SolidColorBrush(Color.FromRgb(255, 255, 0));
+                SchematicRealmDisabled = new SolidColorBrush(Color.FromRgb(155, 155, 155));
 
                 LastFrameCount = owner.lastFrameCount;
 
