@@ -192,7 +192,7 @@ namespace FrostyEditor.Windows
                 MenuItem contextMenuItem = new MenuItem
                 {
                     Header = contextItemExtension.ContextItemName,
-                    Icon = new Image() { Source = contextItemExtension.Icon },
+                    Icon = new Image() { Source = contextItemExtension.Icon, Opacity = 0.5 },
                     Command = contextItemExtension.ContextItemClicked,
                     Tag = contextItemExtension
                 };
