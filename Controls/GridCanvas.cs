@@ -30,7 +30,7 @@ namespace LevelEditorPlugin.Controls
 
         protected double scale = 1.0;
         protected double scaleLevel = 1.0;
-        protected double scaleRate = 0.015;
+        protected double scaleRate = 0.075;
 
         protected double minorUnits = 10;
         protected double majorUnits = 100;
