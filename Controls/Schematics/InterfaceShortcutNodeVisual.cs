@@ -6,8 +6,8 @@ using LevelEditorPlugin.Data;
 using LevelEditorPlugin.Managers;
 
 namespace LevelEditorPlugin.Controls
-{
-public class InterfaceShortcutNodeVisual : InterfaceNodeVisual
+{ 
+    public class InterfaceShortcutNodeVisual : InterfaceNodeVisual
     {
         public override object Data => ShortcutData;
 

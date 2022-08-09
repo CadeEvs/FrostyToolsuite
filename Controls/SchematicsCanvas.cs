@@ -710,6 +710,23 @@ namespace LevelEditorPlugin.Controls
                         selectedNodes.RemoveAt(i);
                         selectedOffsets.RemoveAt(i);
                     }
+                    
+                    // comment
+                    if (node is CommentNodeVisual comment)
+                    {
+                        container.Add(new GenericUndoUnit("",
+                            (o) =>
+                            {
+                                nodeVisuals.Remove(comment);
+                            }, 
+                            (o) =>
+                            {
+                                nodeVisuals.Add(comment);
+                            }));
+
+                        selectedNodes.RemoveAt(i);
+                        selectedOffsets.RemoveAt(i);
+                    }
                 }
 
                 if (container.HasItems)
