@@ -511,7 +511,7 @@ namespace LevelEditorPlugin.Controls
                     group.Children.Add(new TranslateTransform(nodePosition.X + xOffset * state.Scale, nodePosition.Y));
 
                     state.DrawingContext.PushTransform(group);
-                    state.DrawingContext.DrawGeometry(state.NodeTitleBackgroundBrush, null, icon);
+                    state.DrawingContext.DrawGeometry(Brushes.Black, null, icon);
                     state.DrawingContext.Pop();
                 }
             }
@@ -2348,8 +2348,8 @@ namespace LevelEditorPlugin.Controls
                 state.InvScale = 1.0 / inScale;
 
                 state.BlackPen = new Pen(Brushes.Black, 1.0);
-                state.NodeTitleBackgroundBrush = Brushes.DimGray;
-                state.NodeBackgroundBrush = Brushes.LightGray;
+                state.NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
+                state.NodeBackgroundBrush = new SolidColorBrush(Color.FromRgb(194, 194, 194));
                 state.SchematicLinkBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x6f, 0xa9, 0xce));
                 state.SchematicEventBrush = new SolidColorBrush(Color.FromArgb(0xff, 0xf8, 0xf8, 0xf8));
                 state.SchematicPropertyBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x5f, 0xd9, 0x5f));
@@ -2385,8 +2385,8 @@ namespace LevelEditorPlugin.Controls
                 ShortcutWirePen = owner.shortcutWirePen;
                 GlowPen = owner.glowPen;
 
-                NodeTitleBackgroundBrush = Brushes.DimGray;
-                NodeBackgroundBrush = Brushes.LightGray;
+                NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
+                NodeBackgroundBrush = new SolidColorBrush(Color.FromRgb(194, 194, 194));
                 NodeSelectedBrush = Brushes.PaleGoldenrod;
                 SchematicLinkBrush = owner.SchematicLinkBrush;
                 SchematicEventBrush = owner.SchematicEventBrush;
