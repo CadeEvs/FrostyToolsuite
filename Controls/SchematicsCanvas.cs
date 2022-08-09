@@ -1603,7 +1603,10 @@ namespace LevelEditorPlugin.Controls
             {
                 foreach (object connection in e.OldItems)
                 {
-                    wireVisuals.Remove(wireVisuals.Find(n => n.Data == connection));
+                    WireVisual wire = wireVisuals.Find(n => n.Data == connection);
+                    
+                    wire.Disconnect();
+                    wireVisuals.Remove(wire);
                 }
             }
 
@@ -1620,7 +1623,10 @@ namespace LevelEditorPlugin.Controls
             {
                 foreach (object connection in e.OldItems)
                 {
-                    wireVisuals.Remove(wireVisuals.Find(n => n.Data == connection));
+                    WireVisual wire = wireVisuals.Find(n => n.Data == connection);
+                    
+                    wire.Disconnect();
+                    wireVisuals.Remove(wire);
                 }
             }
 
