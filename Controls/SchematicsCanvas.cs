@@ -1356,8 +1356,13 @@ namespace LevelEditorPlugin.Controls
             if (state.InvScale < 2.5)
             {
                 // node title
-                GlyphRun titleGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (20 * state.Scale), nodePosition.Y + (3.5 * state.Scale)), true, Title);
-                state.DrawingContext.DrawGlyphRun((Entity as Entity).HasFlags(EntityFlags.HasLogic) ? Brushes.White : state.DynamicValueBrush, titleGlyphRun);
+                GlyphRun titleGlyphRun = state.ConvertTextLinesToGlyphRun(
+                    new Point(
+                        nodePosition.X + (20 * state.Scale),
+                        nodePosition.Y + (3.5 * state.Scale)), 
+                    true, 
+                    (Entity as Entity).HasFlags(EntityFlags.HasLogic) ? Title : Title + "*");
+                state.DrawingContext.DrawGlyphRun(Brushes.White, titleGlyphRun);
 
                 if (state.InvScale < 1.5)
                 {
@@ -1403,13 +1408,19 @@ namespace LevelEditorPlugin.Controls
 
                 Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
+                
                 if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
-                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(
+                        new Point(
+                            nodePosition.X + (port.Rect.X + 14) * state.Scale, 
+                            nodePosition.Y + port.Rect.Y * state.Scale), 
+                        true, 
+                        port.IsDynamicallyGenerated ? port.Name + "*" : port.Name);
+                    state.DrawingContext.DrawGlyphRun(Brushes.Black, varGlypRun);
 
                     if (port.IsHighlighted)
                     {
@@ -1417,8 +1428,7 @@ namespace LevelEditorPlugin.Controls
                     }
                 }
             }
-
-            // draw events
+            // draw input events
             foreach (Port port in InputEvents)
             {
                 if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
@@ -1426,17 +1436,22 @@ namespace LevelEditorPlugin.Controls
 
                 Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicEventBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
+                
                 if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
-                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(
+                        new Point(
+                            nodePosition.X + (port.Rect.X + 14) * state.Scale, 
+                            nodePosition.Y + port.Rect.Y * state.Scale),
+                        true,
+                        port.IsDynamicallyGenerated ? port.Name + "*" : port.Name);
+                    state.DrawingContext.DrawGlyphRun(Brushes.Black, varGlypRun);
                 }
             }
-
-            // draw properties
+            // draw input properties
             foreach (Port port in InputProperties)
             {
                 if ((IsCollapsed && !port.IsConnected) && !port.ShowWhileCollapsed)
@@ -1444,13 +1459,19 @@ namespace LevelEditorPlugin.Controls
 
                 Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicPropertyBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
+                
                 if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
-                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (port.Rect.X + 14) * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(
+                        new Point(
+                            nodePosition.X + (port.Rect.X + 14) * state.Scale, 
+                            nodePosition.Y + port.Rect.Y * state.Scale), 
+                        true, 
+                        port.IsDynamicallyGenerated ? port.Name + "*" : port.Name);
+                    state.DrawingContext.DrawGlyphRun(Brushes.Black, varGlypRun);
 
                     if (port.IsHighlighted)
                     {
@@ -1467,13 +1488,20 @@ namespace LevelEditorPlugin.Controls
 
                 Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
+                
                 if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
-                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    string portName = port.IsDynamicallyGenerated ? port.Name + "*" : port.Name;
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(
+                        new Point(
+                            nodePosition.X + ((port.Rect.X - 4) * state.Scale) - portName.Length * state.LargeFont.AdvanceWidth, 
+                            nodePosition.Y + port.Rect.Y * state.Scale),
+                        true,
+                        portName);
+                    state.DrawingContext.DrawGlyphRun(Brushes.Black, varGlypRun);
 
                     if (port.IsHighlighted)
                     {
@@ -1490,16 +1518,22 @@ namespace LevelEditorPlugin.Controls
 
                 Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicEventBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
+                
                 if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
-                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + port.Rect.Y * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    string portName = port.IsDynamicallyGenerated ? port.Name + "*" : port.Name;
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(
+                        new Point(
+                            nodePosition.X + ((port.Rect.X - 4) * state.Scale) - portName.Length * state.LargeFont.AdvanceWidth, 
+                            nodePosition.Y + port.Rect.Y * state.Scale), 
+                        true, 
+                        portName);
+                    state.DrawingContext.DrawGlyphRun(Brushes.Black, varGlypRun);
                 }
             }
-
             // draw output properties
             foreach (Port port in OutputProperties)
             {
@@ -1508,13 +1542,20 @@ namespace LevelEditorPlugin.Controls
 
                 Brush brush = (port.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicPropertyBrush;
                 state.DrawingContext.DrawRectangle(brush, state.BlackPen, new Rect(nodePosition.X + port.Rect.X * state.Scale, nodePosition.Y + port.Rect.Y * state.Scale, 12 * state.Scale, 12 * state.Scale));
+                
                 if (!port.IsConnected)
                     state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + (port.Rect.X + 2) * state.Scale, nodePosition.Y + (port.Rect.Y + 2) * state.Scale, 8 * state.Scale, 8 * state.Scale));
 
                 if (state.InvScale < 2.5)
                 {
-                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + ((port.Rect.X - 4) * state.Scale) - port.Name.Length * state.LargeFont.AdvanceWidth, nodePosition.Y + (port.Rect.Y) * state.Scale), true, port.Name);
-                    state.DrawingContext.DrawGlyphRun((port.IsDynamicallyGenerated) ? state.DynamicValueBrush : Brushes.Black, varGlypRun);
+                    string portName = port.IsDynamicallyGenerated ? port.Name + "*" : port.Name;
+                    GlyphRun varGlypRun = state.ConvertTextLinesToGlyphRun(
+                        new Point(
+                            nodePosition.X + ((port.Rect.X - 4) * state.Scale) - portName.Length * state.LargeFont.AdvanceWidth, 
+                            nodePosition.Y + (port.Rect.Y) * state.Scale), 
+                        true, 
+                        portName);
+                    state.DrawingContext.DrawGlyphRun(Brushes.Black, varGlypRun);
 
                     if (port.IsHighlighted)
                     {
@@ -2294,7 +2335,6 @@ namespace LevelEditorPlugin.Controls
             public Brush SchematicLinkBrush { get; private set; }
             public Brush SchematicEventBrush { get; private set; }
             public Brush SchematicPropertyBrush { get; private set; }
-            public Brush DynamicValueBrush { get; private set; }
 
             public long LastFrameCount { get; private set; }
 
@@ -2313,7 +2353,6 @@ namespace LevelEditorPlugin.Controls
                 state.SchematicLinkBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x6f, 0xa9, 0xce));
                 state.SchematicEventBrush = new SolidColorBrush(Color.FromArgb(0xff, 0xf8, 0xf8, 0xf8));
                 state.SchematicPropertyBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x5f, 0xd9, 0x5f));
-                state.DynamicValueBrush = Brushes.PaleVioletRed;
 
                 state.LargeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
                 state.SmallFont = FontData.MakeFont(new Typeface("Consolas"), 7);
@@ -2352,7 +2391,6 @@ namespace LevelEditorPlugin.Controls
                 SchematicLinkBrush = owner.SchematicLinkBrush;
                 SchematicEventBrush = owner.SchematicEventBrush;
                 SchematicPropertyBrush = owner.SchematicPropertyBrush;
-                DynamicValueBrush = Brushes.PaleVioletRed;
 
                 LastFrameCount = owner.lastFrameCount;
 
