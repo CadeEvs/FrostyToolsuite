@@ -785,8 +785,11 @@ namespace FrostyEditor.Windows
 
         private void RemoveTab(FrostyTabItem ti)
         {
+            // execute closed on FrostyBaseEditor and FrostyAssetEditor
             FrostyBaseEditor editor = ti.Content as FrostyBaseEditor;
             editor?.Closed();
+            FrostyAssetEditor assetEditor = ti.Content as FrostyAssetEditor;
+            assetEditor?.Closed();
 
             TabControl.Items.Remove(ti);
             if (TabControl.Items.Count == 1)
