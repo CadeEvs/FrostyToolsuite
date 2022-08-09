@@ -615,44 +615,25 @@ namespace LevelEditorPlugin.Controls
             // @todo: cache the shapes
 
             // collapse button
-            Brush collapseButtonBrush =
-                IsCollapsed ? state.SchematicRealmDisabled : state.NodeCollapseButtonBackgroundBrush;
-            state.DrawingContext.DrawRoundedRectangle((CollapseHover) ? state.NodeSelectedBrush : collapseButtonBrush, null, new Rect(nodePosition.X + ((nodeSize.Width - 16) * state.Scale), nodePosition.Y + (4 * state.Scale), 12 * state.Scale, 12 * state.Scale), 2 , 2);
-            if (IsCollapsed)
+            Brush collapseButtonBrush = IsCollapsed ? state.SchematicRealmDisabled : state.NodeCollapseButtonBackgroundBrush;
+            state.DrawingContext.DrawRoundedRectangle(collapseButtonBrush, null, new Rect(nodePosition.X + ((nodeSize.Width - 16) * state.Scale), nodePosition.Y + (4 * state.Scale), 12 * state.Scale, 12 * state.Scale), 2 , 2);
+            
+            Point p = new Point(nodeSize.Width - 16 + 3, 6);
+            state.DrawingContext.DrawGeometry(IsCollapsed ?Brushes.White : state.NodeTitleBackgroundBrush, null, new PathGeometry(new[]
             {
-                Point p = new Point(nodeSize.Width - 16 + 3, 6);
-                state.DrawingContext.DrawGeometry(Brushes.White, null, new PathGeometry(new[]
+                new PathFigure(new Point(nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 2) * state.Scale), new []
                 {
-                    new PathFigure(new Point(nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 2) * state.Scale), new []
+                    new PolyLineSegment(new []
                     {
-                        new PolyLineSegment(new []
-                        {
-                            // right point
-                            new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y + 2) * state.Scale),
-                            // bottom middle point
-                            new Point(nodePosition.X + (p.X + 3) * state.Scale, nodePosition.Y + (p.Y + 6) * state.Scale)
-                        }, true)
-
+                        // right point
+                        new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y + 2) * state.Scale),
+                        // bottom middle point
+                        new Point(nodePosition.X + (p.X + 3) * state.Scale, nodePosition.Y + (p.Y + 6) * state.Scale)
                     }, true)
-                }));
-            }
-            else
-            {
-                Point p = new Point(nodeSize.Width - 16 + 3, 6);
-                state.DrawingContext.DrawGeometry(state.NodeTitleBackgroundBrush, null, new PathGeometry(new[]
-                {
-                    new PathFigure(new Point(nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 6) * state.Scale), new []
-                    {
-                        new PolyLineSegment(new []
-                        {
-                            new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y + 6) * state.Scale),
-                            new Point(nodePosition.X + (p.X + 3) * state.Scale, nodePosition.Y + (p.Y + 2) * state.Scale)
-                        }, true)
 
-                    }, true)
-                }));
-            }
-
+                }, true)
+            }));
+            
             // realm
             if (state.InvScale < 2)
             {
