@@ -86,6 +86,18 @@ namespace LevelEditorPlugin.Controls
         }
     }
 
+    public class NodeRemovedEventArgs : EventArgs
+    {
+        public ILogicEntity Entity { get; private set; }
+        public UndoContainer Container { get; private set; }
+        
+        public NodeRemovedEventArgs(ILogicEntity inEntity, UndoContainer inContainer)
+        {
+            Entity = inEntity;
+            Container = inContainer;
+        }
+    }
+    
     public class NodeModifiedEventArgs : EventArgs
     {
     }
@@ -102,6 +114,7 @@ namespace LevelEditorPlugin.Controls
 
         public static readonly DependencyProperty SelectedNodeChangedCommandProperty = DependencyProperty.Register("SelectedNodeChangedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty WireAddedCommandProperty = DependencyProperty.Register("WireAddedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
+        public static readonly DependencyProperty NodeRemovedCommandProperty = DependencyProperty.Register("NodeRemovedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty NodeModifiedCommandProperty = DependencyProperty.Register("NodeModifiedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
 
         public static readonly DependencyProperty ModifiedDataProperty = DependencyProperty.Register("ModifiedData", typeof(object), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null, OnDataModified));
@@ -112,6 +125,7 @@ namespace LevelEditorPlugin.Controls
             get => GetValue(ModifiedDataProperty);
             set => SetValue(ModifiedDataProperty, value);
         }
+        
         public SchematicsData ItemsSource
         {
             get => (SchematicsData)GetValue(ItemsSourceProperty);
@@ -142,6 +156,7 @@ namespace LevelEditorPlugin.Controls
             get => (Brush)GetValue(SchematicPropertyBrushProperty);
             set => SetValue(SchematicPropertyBrushProperty, value);
         }
+        
         public ICommand SelectedNodeChangedCommand
         {
             get => (ICommand)GetValue(SelectedNodeChangedCommandProperty);
@@ -152,11 +167,17 @@ namespace LevelEditorPlugin.Controls
             get => (ICommand)GetValue(WireAddedCommandProperty);
             set => SetValue(WireAddedCommandProperty, value);
         }
+        public ICommand NodeRemovedCommand
+        {
+            get => (ICommand)GetValue(NodeRemovedCommandProperty);
+            set => SetValue(NodeRemovedCommandProperty, value);
+        }
         public ICommand NodeModifiedCommand
         {
             get => (ICommand)GetValue(NodeModifiedCommandProperty);
             set => SetValue(NodeModifiedCommandProperty, value);
         }
+        
         public object UpdateDebug
         {
             get => GetValue(UpdateDebugProperty);
@@ -672,6 +693,7 @@ namespace LevelEditorPlugin.Controls
 
         protected override void OnPreviewKeyUp(KeyEventArgs e)
         {
+            // create shortcut
             if (selectedNodes.Count == 1 && selectedNodes[0] is InterfaceNodeVisual && !(selectedNodes[0] is InterfaceShortcutNodeVisual))
             {
                 if (e.Key == Key.S)
@@ -685,6 +707,7 @@ namespace LevelEditorPlugin.Controls
                     e.Handled = true;
                 }
             }
+            // delete node(s)
             else if (selectedNodes.Count > 0 && e.Key == Key.Delete)
             {
                 UndoContainer container = new UndoContainer("Delete Node(s)");
@@ -727,6 +750,11 @@ namespace LevelEditorPlugin.Controls
                         selectedNodes.RemoveAt(i);
                         selectedOffsets.RemoveAt(i);
                     }
+
+                    if (node is NodeVisual entity)
+                    {
+                        NodeRemovedCommand?.Execute(new NodeRemovedEventArgs(entity.Entity, container));
+                    }
                 }
 
                 if (container.HasItems)
@@ -737,7 +765,8 @@ namespace LevelEditorPlugin.Controls
 
                 e.Handled = true;
             }
-            else if (e.Key == Key.G && Keyboard.IsKeyDown(Key.LeftCtrl))
+            // create comment
+            else if (e.Key == Key.G)
             {
                 if (selectedNodes.Count > 0)
                 {
@@ -756,6 +785,12 @@ namespace LevelEditorPlugin.Controls
                 }
 
                 e.Handled = true;
+            }
+            // DEBUG: Invalidate Visual
+            else if (e.Key == Key.R)
+            {
+                InvalidateVisual();
+                Frosty.Core.App.NotificationManager.Show("Invalidated Visual");
             }
 
             base.OnPreviewKeyUp(e);
@@ -1184,7 +1219,7 @@ namespace LevelEditorPlugin.Controls
             if (ItemsSource == null)
                 return;
 
-            UpdateVisibileNodes();
+            UpdateVisibleNodes();
 
             if (ItemsSource.World.IsSimulationRunning)
             {
@@ -1315,7 +1350,7 @@ namespace LevelEditorPlugin.Controls
             drawingContext.DrawRectangle(null, marqueePen, new Rect(m.Transform(startPos), new Size(width * scale, height * scale)));
         }
 
-        private void UpdateVisibileNodes()
+        private void UpdateVisibleNodes()
         {
             MatrixTransform m = GetWorldMatrix();
             Point topLeft = m.Inverse.Transform(new Point(0, 0));
@@ -1564,6 +1599,13 @@ namespace LevelEditorPlugin.Controls
             {
                 GenerateWires(e.NewItems.OfType<object>(), 0);
             }
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (object connection in e.OldItems)
+                {
+                    wireVisuals.Remove(wireVisuals.Find(n => n.Data == connection));
+                }
+            }
 
             InvalidateVisual();
         }
@@ -1574,6 +1616,13 @@ namespace LevelEditorPlugin.Controls
             {
                 GenerateWires(e.NewItems.OfType<object>(), 1);
             }
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (object connection in e.OldItems)
+                {
+                    wireVisuals.Remove(wireVisuals.Find(n => n.Data == connection));
+                }
+            }
 
             InvalidateVisual();
         }
@@ -1583,6 +1632,16 @@ namespace LevelEditorPlugin.Controls
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
                 GenerateWires(e.NewItems.OfType<object>(), 2);
+            }
+            else if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (object connection in e.OldItems)
+                {
+                    WireVisual wire = wireVisuals.Find(n => n.Data == connection);
+                    
+                    wire.Disconnect();
+                    wireVisuals.Remove(wire);
+                }
             }
 
             InvalidateVisual();

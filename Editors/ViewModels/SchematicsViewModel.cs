@@ -410,7 +410,7 @@ namespace LevelEditorPlugin.Editors
             IsUndoAction = isUndoAction;
         }
     }
-
+    
     public class SchematicsViewModel : IDockableItem, INotifyPropertyChanged, IDragDropTargetProvider
     {
         public string Header => "Schematics";
@@ -423,6 +423,7 @@ namespace LevelEditorPlugin.Editors
         public ICommand ShowCommand => new RelayCommand(Show);
         public ICommand SelectedNodeChangedCommand => new RelayCommand(SelectedNodeChanged);
         public ICommand WireAddedCommand => new RelayCommand(ConnectionAdded);
+        public ICommand NodeRemovedCommand => new RelayCommand(NodeRemoved);
         public ICommand NodeModifiedCommand => new RelayCommand(NodeModified);
         public ICommand DataModifiedCommand => new RelayCommand(PropertyGridDataModified);
         public IEnumerable<ToolbarItem> ToolbarItems => toolbarItems;
@@ -789,13 +790,36 @@ namespace LevelEditorPlugin.Editors
         {
             WireAddedEventArgs e = obj as WireAddedEventArgs;
             ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
-            
+
             object source = (e.SourceEntity != null) ? (e.SourceEntity as Entities.Entity).GetRawData() : refObjEntity.InterfaceDescriptor.Data;
             object target = (e.TargetEntity != null) ? (e.TargetEntity as Entities.Entity).GetRawData() : refObjEntity.InterfaceDescriptor.Data;
-
-            if (e.ConnectionType == 0)
+            
+            byte origSourceFlagsRealm = 0;
+            byte origTargetFlagsRealm = 0;
+            uint origSourceFlags = 0;
+            uint origTargetFlags = 0;
+            
+            // copy original flags if node (not interface)
+            if (source is DataBusPeer)
             {
-                // Links
+                DataBusPeer entity = source as DataBusPeer;
+                origSourceFlags = entity.Flags;
+            }
+            if (target is DataBusPeer)
+            {
+                DataBusPeer entity = target as DataBusPeer;
+                origTargetFlags = entity.Flags;
+            }
+            
+            // we need to create a container to separate the undo into two steps: creating the connection and editing the entity flag
+            UndoContainer container = new UndoContainer("Create Connection");
+
+            // create and add connection based on type
+            dynamic schematicDataConnections = null;
+            dynamic blueprintConnections = null; 
+            dynamic newConnection = null;
+            if (e.ConnectionType == 0) // Links
+            {
                 LinkConnection connection = new FrostySdk.Ebx.LinkConnection()
                 {
                     Source = new FrostySdk.Ebx.PointerRef(source),
@@ -803,12 +827,19 @@ namespace LevelEditorPlugin.Editors
                     Target = new FrostySdk.Ebx.PointerRef(target),
                     TargetFieldId = e.TargetId
                 };
-                refObjEntity.Blueprint.Data.LinkConnections.Add(connection);
-                schematicsData.LinkConnections.Add(connection);
+
+                // store original flags realm for undo unit
+                if (e.SourceEntity != null)
+                    origSourceFlagsRealm = e.SourceEntity.FlagsLinkRealm;
+                if (e.TargetEntity != null)
+                    origTargetFlagsRealm = e.TargetEntity.FlagsLinkRealm;
+                
+                blueprintConnections = refObjEntity.Blueprint.Data.LinkConnections;
+                schematicDataConnections = schematicsData.LinkConnections;
+                newConnection = connection;
             }
-            else if (e.ConnectionType == 1)
+            else if (e.ConnectionType == 1) // Events
             {
-                // Events
                 EventConnection connection = new FrostySdk.Ebx.EventConnection()
                 {
                     Source = new FrostySdk.Ebx.PointerRef(source),
@@ -817,10 +848,23 @@ namespace LevelEditorPlugin.Editors
                     TargetEvent = new FrostySdk.Ebx.EventSpec() { Id = e.TargetId }
                 };
 
-                if (e.SourceEntity == null) connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_ClientAndServer;
+                // store original flags realm for undo unit
+                if (e.SourceEntity != null)
+                    origSourceFlagsRealm = e.SourceEntity.FlagsEventRealm;
+                if (e.TargetEntity != null)
+                    origTargetFlagsRealm = e.TargetEntity.FlagsEventRealm;
+                
+                // update target type
+                if (e.SourceEntity == null)
+                {
+                    connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_ClientAndServer;
+                }
                 else if (e.SourceEntity.Realm == FrostySdk.Ebx.Realm.Realm_Client)
                 {
-                    if (e.TargetEntity == null) connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_ClientAndServer;
+                    if (e.TargetEntity == null)
+                    {
+                        connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_ClientAndServer;
+                    }
                     else
                     {
                         switch (e.TargetEntity.Realm)
@@ -832,12 +876,12 @@ namespace LevelEditorPlugin.Editors
                     }
                 }
 
-                refObjEntity.Blueprint.Data.EventConnections.Add(connection);
-                schematicsData.EventConnections.Add(connection);
+                blueprintConnections = refObjEntity.Blueprint.Data.EventConnections;
+                schematicDataConnections = schematicsData.EventConnections;
+                newConnection = connection;
             }
-            else
+            else if (e.ConnectionType == 2) // Properties
             {
-                // Properties
                 PropertyConnection connection = new FrostySdk.Ebx.PropertyConnection()
                 {
                     Source = new FrostySdk.Ebx.PointerRef(source),
@@ -846,11 +890,24 @@ namespace LevelEditorPlugin.Editors
                     TargetFieldId = e.TargetId
                 };
 
+                // store original flags realm for undo unit
+                if (e.SourceEntity != null)
+                    origSourceFlagsRealm = e.SourceEntity.FlagsPropertyRealm;
+                if (e.TargetEntity != null)
+                    origTargetFlagsRealm = e.TargetEntity.FlagsPropertyRealm;
+                
+                // update flags
                 // @todo: prefabs and schematic channels
-                if (e.SourceEntity == null) connection.Flags = 18;
+                if (e.SourceEntity == null)
+                {
+                    connection.Flags = 18;
+                }
                 else if (e.SourceEntity.Realm == FrostySdk.Ebx.Realm.Realm_Client)
                 {
-                    if (e.TargetEntity == null) connection.Flags = 18;
+                    if (e.TargetEntity == null)
+                    {
+                        connection.Flags = 18;
+                    }
                     else
                     {
                         switch (e.TargetEntity.Realm)
@@ -862,7 +919,10 @@ namespace LevelEditorPlugin.Editors
                 }
                 else if (e.SourceEntity.Realm == FrostySdk.Ebx.Realm.Realm_Server)
                 {
-                    if (e.TargetEntity == null) connection.Flags = 19;
+                    if (e.TargetEntity == null)
+                    {
+                        connection.Flags = 19;
+                    }
                     else
                     {
                         switch (e.TargetEntity.Realm)
@@ -874,7 +934,10 @@ namespace LevelEditorPlugin.Editors
                 }
                 else
                 {
-                    if (e.TargetEntity == null) connection.Flags = 1;
+                    if (e.TargetEntity == null)
+                    {
+                        connection.Flags = 1;
+                    }
                     else
                     {
                         switch (e.TargetEntity.Realm)
@@ -886,31 +949,124 @@ namespace LevelEditorPlugin.Editors
                     }
                 }
 
-                refObjEntity.Blueprint.Data.PropertyConnections.Add(connection);
-                schematicsData.PropertyConnections.Add(connection);
+                blueprintConnections = refObjEntity.Blueprint.Data.PropertyConnections;
+                schematicDataConnections = schematicsData.PropertyConnections;
+                newConnection = connection;
             }
 
+            container.Add(new GenericUndoUnit("", 
+                (o) =>
+                    {
+                        blueprintConnections.Add(newConnection);
+                        schematicDataConnections.Add(newConnection);
+                    },
+                    (o) =>
+                    {
+                        blueprintConnections.Remove(newConnection);
+                        schematicDataConnections.Remove(newConnection);
+                    }));
+
+            // update entity realms
             if (e.TargetEntity != null)
             {
-                if (e.ConnectionType == 2)
-                {
-                    e.TargetEntity.FlagsPropertyRealm = (byte)(e.TargetEntity.Realm + 1);
-                    // @todo: prefabs/schematic channels
-                }
-                else if (e.ConnectionType == 1)
-                {
-                    e.TargetEntity.FlagsEventRealm = (byte)(e.TargetEntity.Realm + 1);
-                    // @todo: prefabs/schematic channels
-                }
-                else
-                {
-                    e.SourceEntity.FlagsLinkRealm = (byte)(e.SourceEntity.FlagsLinkRealm | 0x30);
-                    e.TargetEntity.FlagsLinkRealm = (byte)(e.TargetEntity.Realm + 1);
-                    // @todo: prefabs/schematic channels
-                }
+                container.Add(new GenericUndoUnit("",
+                    (o) =>
+                    {
+                        if (e.ConnectionType == 2)
+                        {
+                            e.TargetEntity.FlagsPropertyRealm = (byte)(e.TargetEntity.Realm + 1);
+                            // @todo: prefabs/schematic channels
+                        }
+                        else if (e.ConnectionType == 1)
+                        {
+                            e.TargetEntity.FlagsEventRealm = (byte)(e.TargetEntity.Realm + 1);
+                            // @todo: prefabs/schematic channels
+                        }
+                        else
+                        {
+                            if (e.SourceEntity != null)
+                                e.SourceEntity.FlagsLinkRealm = (byte)(e.SourceEntity.FlagsLinkRealm | 0x30);
+                            
+                            e.TargetEntity.FlagsLinkRealm = (byte)(e.TargetEntity.Realm + 1);
+                            // @todo: prefabs/schematic channels
+                        }
+                    },
+                    (o) =>
+                    {
+                        if (e.ConnectionType == 2)
+                        {
+                            e.TargetEntity.FlagsPropertyRealm = origTargetFlagsRealm;
+                        }
+                        else if (e.ConnectionType == 1)
+                        {
+                            e.TargetEntity.FlagsEventRealm = origTargetFlagsRealm;
+                            // @todo: prefabs/schematic channels
+                        }
+                        else
+                        {
+                            if (e.SourceEntity != null)
+                                e.SourceEntity.FlagsLinkRealm = origSourceFlagsRealm;
+
+                            e.TargetEntity.FlagsLinkRealm = origTargetFlagsRealm;
+                            // @todo: prefabs/schematic channels
+                        }
+
+                        // set original flags if node (not interface)
+                        if (source is DataBusPeer)
+                        {
+                            DataBusPeer entity = source as DataBusPeer;
+                            entity.Flags = origSourceFlags;
+                        }
+                        if (target is DataBusPeer)
+                        {
+                            DataBusPeer entity = target as DataBusPeer;
+                            entity.Flags = origTargetFlags;
+                        }
+                    }));
+            }
+
+            if (container.HasItems)
+            {
+                container.Add(new GenericUndoUnit("", o => LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint), o => LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint)));
+                UndoManager.Instance.CommitUndo(container);
             }
         }
 
+        private void NodeRemoved(object obj)
+        {
+            NodeRemovedEventArgs e = obj as NodeRemovedEventArgs;
+            if (e.Entity is Entity entity)
+            {
+                ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+                
+                e.Container.Add(new GenericUndoUnit("Remove Schematics Node",
+                    (o) =>
+                    {
+                        // remove from reference
+                        refObjEntity.RemoveEntity(entity);
+
+                        // remove from ebx
+                        owner.Asset.RemoveObject(entity.GetRawData());
+                        LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
+
+                        // remove from canvas
+                        schematicsData.Entities.Remove(schematicsData.Entities.First(se => se.InstanceGuid == entity.InstanceGuid));
+                    },
+                    (o) =>
+                    {
+                        // add entity to ebx
+                        owner.Asset.AddObject(entity.GetRawData());
+
+                        // add to reference
+                        refObjEntity.AddEntity(entity);
+                        LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
+
+                        // add to canvas
+                        schematicsData.Entities.Add(entity);
+                    }));
+            }
+        }
+        
         private void NodeModified(object obj)
         {
             NodeModifiedEventArgs e = obj as NodeModifiedEventArgs;
