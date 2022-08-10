@@ -25,6 +25,132 @@ using Entity = LevelEditorPlugin.Entities.Entity;
 
 namespace LevelEditorPlugin.Controls
 {
+    public class NodeSorterHelper
+    {
+        private List<BaseVisual> nodes;
+        private List<WireVisual> wires;
+
+        public NodeSorterHelper(List<BaseVisual> inData, List<WireVisual> inWires)
+        {
+            nodes = inData;
+            wires = inWires;
+        }
+
+        public void ApplyAutoLayout()
+        {
+            // Gather the nodes that feed into and out of each node
+            Dictionary<BaseNodeVisual, List<BaseNodeVisual>> ancestors = new Dictionary<BaseNodeVisual, List<BaseNodeVisual>>();
+            Dictionary<BaseNodeVisual, List<BaseNodeVisual>> children = new Dictionary<BaseNodeVisual, List<BaseNodeVisual>>();
+
+            foreach (BaseVisual visual in nodes)
+            {
+                if (visual is BaseNodeVisual node)
+                {
+                    ancestors.Add(node, new List<BaseNodeVisual>());
+                    children.Add(node, new List<BaseNodeVisual>());
+                }
+            }
+
+            foreach (WireVisual wire in wires)
+            {
+                BaseNodeVisual source = wire.Source;
+                BaseNodeVisual target = wire.Target;
+
+                ancestors[target].Add(source);
+                children[source].Add(target);
+            }
+
+            List<List<BaseNodeVisual>> columns = new List<List<BaseNodeVisual>>();
+            List<BaseNodeVisual> alreadyProcessed = new List<BaseNodeVisual>();
+
+            int columnIdx = 1;
+            columns.Add(new List<BaseNodeVisual>());
+
+            foreach (BaseNodeVisual node in nodes)
+            {
+                if (ancestors[node].Count == 0 && children[node].Count == 0)
+                {
+                    alreadyProcessed.Add(node);
+                    columns[0].Add(node);
+                    continue;
+                }
+
+                if (ancestors[node].Count == 0)
+                {
+                    LayoutNodes(node, children, columns, alreadyProcessed, columnIdx);
+                }
+            }
+
+            columnIdx = 1;
+            foreach (BaseNodeVisual node in nodes)
+            {
+                if (!alreadyProcessed.Contains(node))
+                {
+                    LayoutNodes(node, children, columns, alreadyProcessed, columnIdx);
+                }
+            }
+
+            double x = 100.0;
+            double width = 0.0;
+
+            foreach (List<BaseNodeVisual> column in columns)
+            {
+                double y = 96.0;
+                foreach (BaseNodeVisual node in column)
+                {
+                    node.Rect.X = x - (x % 8);
+                    node.Rect.Y = y - (y % 8);
+
+                    double curWidth = Math.Floor((node.Rect.Width + 7.0) / 8.0) * 8.0;
+                    double curHeight = Math.Floor((node.Rect.Height + 7.0) / 8.0) * 8.0;
+
+                    y += curHeight + 56.0;
+                    if (curWidth > width)
+                    {
+                        width = curWidth;
+                    }
+                    
+                    node.Update();
+                }
+
+                x += width + 60.0;
+            }
+        }
+
+        private int LayoutNodes(BaseNodeVisual node, Dictionary<BaseNodeVisual, List<BaseNodeVisual>> children, List<List<BaseNodeVisual>> columns, List<BaseNodeVisual> alreadyProcessed, int column)
+        {
+            if (alreadyProcessed.Contains(node))
+            {
+                for (int i = 0; i < columns.Count; i++)
+                {
+                    if (columns[i].Contains(node))
+                        return i;
+                }
+            }
+
+            alreadyProcessed.Add(node);
+            if (columns.Count <= column)
+                columns.Add(new List<BaseNodeVisual>());
+            columns[column++].Add(node);
+
+            int minimumColumn = 0;
+            foreach (BaseNodeVisual child in children[node])
+            {
+                int tmp = LayoutNodes(child, children, columns, alreadyProcessed, column);
+                if (tmp < minimumColumn || minimumColumn == 0)
+                    minimumColumn = tmp;
+            }
+
+            if (minimumColumn > (column + 1))
+            {
+                columns[column - 1].Remove(node);
+                columns[minimumColumn - 1].Add(node);
+            }
+
+            return column;
+        }
+    }
+    
     public class SchematicsData
     {
         public ObservableCollection<Entity> Entities;
@@ -635,38 +761,28 @@ namespace LevelEditorPlugin.Controls
                 // @temp: Remove any node spatial entity that doesnt have a recorded connection. Need to find a better
                 // way to handle this for eliminating nodes that should not appear
 
+                // apply custom layout if there is one, if not use the auto layout helper
                 SchematicsLayout? layout = SchematicsLayoutManager.Instance.GetLayout(ItemsSource.BlueprintGuid);
                 if (layout.HasValue)
                 {
+                    // canvas
                     scale = layout.Value.CanvasScale;
                     offset = new TranslateTransform(layout.Value.CanvasPosition.X, layout.Value.CanvasPosition.Y);
                     UpdateScaleParameters();
-                }
-
-                for (int i = nodeVisuals.Count - 1; i >= 0; i--)
-                {
-                    if (nodeVisuals[i] is BaseNodeVisual)
+                    
+                    // nodes
+                    for (int i = nodeVisuals.Count - 1; i >= 0; i--)
                     {
-                        BaseNodeVisual nodeVisual = nodeVisuals[i] as BaseNodeVisual;
-                        //if (!nodeVisual.IsValid())
-                        //{
-                        //    nodeVisuals.RemoveAt(i);
-                        //}
-                        //else
+                        if (nodeVisuals[i] is BaseNodeVisual nodeVisual)
                         {
-                            if (layout.HasValue)
-                            {
-                                nodeVisual.ApplyLayout(layout.Value, this);
-                            }
+                            nodeVisual.ApplyLayout(layout.Value, this);
 
                             // update the node to adjust for the collapsed state
                             nodeVisual.Update();
                         }
                     }
-                }
-
-                if (layout.HasValue)
-                {
+                    
+                    // wires
                     if (layout.Value.Wires != null)
                     {
                         foreach (SchematicsLayout.Wire wireLayout in layout.Value.Wires)
@@ -674,6 +790,8 @@ namespace LevelEditorPlugin.Controls
                             wireVisuals[wireLayout.Index].ApplyLayout(wireLayout, nodeVisuals);
                         }
                     }
+                    
+                    // comments
                     if (layout.Value.Comments != null)
                     {
                         List<BaseVisual> comments = new List<BaseVisual>();
@@ -697,6 +815,11 @@ namespace LevelEditorPlugin.Controls
                         }
                         nodeVisuals.AddRange(comments);
                     }
+                }
+                else
+                {
+                    NodeSorterHelper sorter = new NodeSorterHelper(nodeVisuals, wireVisuals);
+                    sorter.ApplyAutoLayout();
                 }
             }
 

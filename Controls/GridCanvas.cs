@@ -76,13 +76,19 @@ namespace LevelEditorPlugin.Controls
 
             if (e.Delta < 0)
             {
+                if (scale < 0.15)
+                    return;
+                
                 scale -= rate;
             }
             else
             {
+                if (scale > 1.3)
+                    return;
+                
                 scale += rate;
             }
-
+            
             UpdateScaleParameters();
 
             m = new MatrixTransform(scale, 0, 0, scale, viewport.X, viewport.Y);
