@@ -100,6 +100,8 @@ namespace LevelEditorPlugin.Controls
                 {
                     node.Rect.X = x - (x % 8);
                     node.Rect.Y = y - (y % 8);
+                    
+                    node.Update();
 
                     double curWidth = Math.Floor((node.Rect.Width + 7.0) / 8.0) * 8.0;
                     double curHeight = Math.Floor((node.Rect.Height + 7.0) / 8.0) * 8.0;
@@ -109,8 +111,6 @@ namespace LevelEditorPlugin.Controls
                     {
                         width = curWidth;
                     }
-                    
-                    node.Update();
                 }
 
                 x += width + 60.0;
