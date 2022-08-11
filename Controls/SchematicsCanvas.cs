@@ -1158,9 +1158,12 @@ namespace LevelEditorPlugin.Controls
                             
                             if (container.HasItems)
                             {
-                                container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => ClearSelection()));
+                                container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => {}));
                                 UndoManager.Instance.CommitUndo(container);
                             }
+                            
+                            // update node to ensure sizing is correct
+                            node.Update();
                         }
                         else
                         {
@@ -1178,27 +1181,27 @@ namespace LevelEditorPlugin.Controls
                             );
                             editingWire.OnMouseMove(mousePos);
 
-                            // deselect other nodes and highlight node that has port
-                            if (selectedNodes.Count > 0)
-                            {
-                                foreach (BaseVisual visual in selectedNodes)
-                                {
-                                    visual.IsSelected = false;
-                                }
-                                selectedNodes.Clear();
-                                selectedOffsets.Clear();
-                            }
-                        
-                            node.IsSelected = true;
-                            if (node.Data != null)
-                            {
-                                SelectedNodeChangedCommand?.Execute(hoveredNode.Data);
-                            }
-                            selectedNodes.Add(node);
-                            selectedOffsets.Add(new Point(node.Rect.Location.X - mousePos.X, node.Rect.Location.Y - mousePos.Y));
-                            
                             InvalidateVisual();
                         }
+                        
+                        // deselect other nodes
+                        if (selectedNodes.Count > 0)
+                        {
+                            foreach (BaseVisual visual in selectedNodes)
+                            {
+                                visual.IsSelected = false;
+                            }
+                            selectedNodes.Clear();
+                            selectedOffsets.Clear();
+                        }
+                        // highlight node that has port
+                        node.IsSelected = true;
+                        if (node.Data != null)
+                        {
+                            SelectedNodeChangedCommand?.Execute(hoveredNode.Data);
+                        }
+                        selectedNodes.Add(node);
+                        selectedOffsets.Add(new Point(node.Rect.Location.X - mousePos.X, node.Rect.Location.Y - mousePos.Y));
                         
                         return;
                     }
