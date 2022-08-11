@@ -320,6 +320,7 @@ namespace LevelEditorPlugin.Controls
         private Pen wirePropertyPen;
         private Pen wireHitTestPen;
         private Pen shortcutWirePen;
+        private Pen wireSelectedPen;
         private Pen marqueePen;
         private Pen glowPen;
 
@@ -370,6 +371,7 @@ namespace LevelEditorPlugin.Controls
             public Pen WirePropertyPen { get; private set; }
             public Pen WireHitTestPen { get; private set; }
             public Pen ShortcutWirePen { get; private set; }
+            public Pen WireSelectedPen { get; private set; }
             public Pen GlowPen { get; private set; }
 
             // Various Brushes
@@ -435,6 +437,7 @@ namespace LevelEditorPlugin.Controls
                 WirePropertyPen = owner.wirePropertyPen;
                 WireHitTestPen = owner.wireHitTestPen;
                 ShortcutWirePen = owner.shortcutWirePen;
+                WireSelectedPen = owner.wireSelectedPen;
                 GlowPen = owner.glowPen;
 
                 NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
@@ -688,6 +691,7 @@ namespace LevelEditorPlugin.Controls
             wirePropertyPen = new Pen(SchematicPropertyBrush, 2.0); wirePropertyPen.Freeze();
             wireHitTestPen = new Pen(Brushes.Transparent, 4.0); wireHitTestPen.Freeze();
             shortcutWirePen = new Pen(Brushes.WhiteSmoke, 2.0) { DashStyle = DashStyles.Dash }; shortcutWirePen.Freeze();
+            wireSelectedPen = new Pen(Brushes.PaleGoldenrod, 2.0); wireSelectedPen.Freeze();
             marqueePen = new Pen(Brushes.SlateGray, 2.0) { DashStyle = DashStyles.Dash }; marqueePen.Freeze();
             glowPen = new Pen(Brushes.Yellow, 5.0); glowPen.Freeze();
 
@@ -1020,7 +1024,7 @@ namespace LevelEditorPlugin.Controls
 
                     for (int i = selectedNodes.Count - 1; i >= 0; i--)
                     {
-                        if (!selectionRect.Contains(selectedNodes[i].Rect))
+                        if (!selectionRect.IntersectsWith(selectedNodes[i].Rect))
                         {
                             selectedNodes[i].IsSelected = false;
                             selectedNodes.RemoveAt(i);
@@ -1030,7 +1034,7 @@ namespace LevelEditorPlugin.Controls
 
                     foreach (BaseVisual node in nodeVisuals)
                     {
-                        if (selectionRect.Contains(node.Rect))
+                        if (selectionRect.IntersectsWith(node.Rect))
                         {
                             if (!selectedNodes.Contains(node))
                             {
