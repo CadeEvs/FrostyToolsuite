@@ -212,6 +212,26 @@ namespace LevelEditorPlugin.Controls
         }
     }
 
+    public class WireRemovedEventArgs : EventArgs
+    {
+        public object Connection { get; private set; }
+
+        public ILogicEntity SourceEntity { get; private set; }
+        public ILogicEntity TargetEntity { get; private set; }
+        
+        public UndoContainer Container { get; private set; }
+        
+        public WireRemovedEventArgs(object inConnection, ILogicEntity inSource, ILogicEntity inTarget, UndoContainer inContainer)
+        {
+            Connection = inConnection;
+
+            SourceEntity = inSource;
+            TargetEntity = inTarget;
+
+            Container = inContainer;
+        }
+    }
+    
     public class NodeRemovedEventArgs : EventArgs
     {
         public ILogicEntity Entity { get; private set; }
@@ -240,6 +260,7 @@ namespace LevelEditorPlugin.Controls
 
         public static readonly DependencyProperty SelectedNodeChangedCommandProperty = DependencyProperty.Register("SelectedNodeChangedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty WireAddedCommandProperty = DependencyProperty.Register("WireAddedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
+        public static readonly DependencyProperty WireRemovedCommandProperty = DependencyProperty.Register("WireRemovedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty NodeRemovedCommandProperty = DependencyProperty.Register("NodeRemovedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
         public static readonly DependencyProperty NodeModifiedCommandProperty = DependencyProperty.Register("NodeModifiedCommand", typeof(ICommand), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
 
@@ -292,6 +313,11 @@ namespace LevelEditorPlugin.Controls
         {
             get => (ICommand)GetValue(WireAddedCommandProperty);
             set => SetValue(WireAddedCommandProperty, value);
+        }
+        public ICommand WireRemovedCommand
+        {
+            get => (ICommand)GetValue(WireRemovedCommandProperty);
+            set => SetValue(WireRemovedCommandProperty, value);
         }
         public ICommand NodeRemovedCommand
         {
@@ -1114,40 +1140,66 @@ namespace LevelEditorPlugin.Controls
                     if (hoveredNode is BaseNodeVisual && (hoveredNode as BaseNodeVisual).HightlightedPort != null)
                     {
                         BaseNodeVisual node = hoveredNode as BaseNodeVisual;
-                        BaseNodeVisual sourceNode = (node.HightlightedPort.PortDirection == 0) ? node : null;
-                        BaseNodeVisual targetNode = (node.HightlightedPort.PortDirection == 1) ? node : null;
-
-                        editingWire = new WireVisual(
-                            sourceNode,
-                            (sourceNode != null) ? sourceNode.HightlightedPort.Name : "",
-                            (sourceNode != null) ? sourceNode.HightlightedPort.NameHash : 0,
-                            targetNode,
-                            (targetNode != null) ? targetNode.HightlightedPort.Name : "",
-                            (targetNode != null) ? targetNode.HightlightedPort.NameHash : 0,
-                            node.HightlightedPort.PortType
-                            );
-                        editingWire.OnMouseMove(mousePos);
-
-                        // deselect other nodes and highlight node that has port
-                        if (selectedNodes.Count > 0)
+                        
+                        // remove connections attached to port if holding Left Alt, if not start editing wire
+                        if (Keyboard.IsKeyDown(Key.LeftAlt))
                         {
-                            foreach (BaseVisual visual in selectedNodes)
+                            UndoContainer container = new UndoContainer("Delete Connection(s)");
+                            
+                            BaseNodeVisual.Port port = node.HightlightedPort;
+                            for (int i = port.Connections.Count - 1; i >= 0; i--)
                             {
-                                visual.IsSelected = false;
+                                WireVisual wire = port.Connections[i];
+                                
+                                WireRemovedCommand?.Execute(new WireRemovedEventArgs(wire.Data,
+                                    (wire.Source is NodeVisual) ? (wire.Source as NodeVisual).Entity : null, 
+                                    (wire.Target is NodeVisual) ? (wire.Target as NodeVisual).Entity : null, container));
                             }
-                            selectedNodes.Clear();
-                            selectedOffsets.Clear();
+                            
+                            if (container.HasItems)
+                            {
+                                container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => ClearSelection()));
+                                UndoManager.Instance.CommitUndo(container);
+                            }
                         }
-                        
-                        node.IsSelected = true;
-                        if (node.Data != null)
+                        else
                         {
-                            SelectedNodeChangedCommand?.Execute(hoveredNode.Data);
-                        }
-                        selectedNodes.Add(node);
-                        selectedOffsets.Add(new Point(node.Rect.Location.X - mousePos.X, node.Rect.Location.Y - mousePos.Y));
+                            BaseNodeVisual sourceNode = (node.HightlightedPort.PortDirection == 0) ? node : null;
+                            BaseNodeVisual targetNode = (node.HightlightedPort.PortDirection == 1) ? node : null;
+
+                            editingWire = new WireVisual(
+                                sourceNode,
+                                (sourceNode != null) ? sourceNode.HightlightedPort.Name : "",
+                                (sourceNode != null) ? sourceNode.HightlightedPort.NameHash : 0,
+                                targetNode,
+                                (targetNode != null) ? targetNode.HightlightedPort.Name : "",
+                                (targetNode != null) ? targetNode.HightlightedPort.NameHash : 0,
+                                node.HightlightedPort.PortType
+                            );
+                            editingWire.OnMouseMove(mousePos);
+
+                            // deselect other nodes and highlight node that has port
+                            if (selectedNodes.Count > 0)
+                            {
+                                foreach (BaseVisual visual in selectedNodes)
+                                {
+                                    visual.IsSelected = false;
+                                }
+                                selectedNodes.Clear();
+                                selectedOffsets.Clear();
+                            }
                         
-                        InvalidateVisual();
+                            node.IsSelected = true;
+                            if (node.Data != null)
+                            {
+                                SelectedNodeChangedCommand?.Execute(hoveredNode.Data);
+                            }
+                            selectedNodes.Add(node);
+                            selectedOffsets.Add(new Point(node.Rect.Location.X - mousePos.X, node.Rect.Location.Y - mousePos.Y));
+                            
+                            InvalidateVisual();
+                        }
+                        
                         return;
                     }
                 }

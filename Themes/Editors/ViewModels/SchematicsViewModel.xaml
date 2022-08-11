@@ -62,6 +62,7 @@
                                                     SuppressLayoutSave="{Binding Path=SuppressLayoutSave}"
                                                     SelectedNodeChangedCommand="{Binding Path=SelectedNodeChangedCommand}"
                                                     WireAddedCommand="{Binding Path=WireAddedCommand}"
+                                                    WireRemovedCommand="{Binding Path=WireRemovedCommand}"
                                                     NodeRemovedCommand="{Binding Path=NodeRemovedCommand}"
                                                     NodeModifiedCommand="{Binding Path=NodeModifiedCommand}"
                                                     UpdateDebug="{Binding Path=UpdateDebugLayer}"
