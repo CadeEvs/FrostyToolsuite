@@ -371,8 +371,6 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-
-
             connectorIdx = 0;
             offset = 0;
 

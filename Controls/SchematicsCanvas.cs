@@ -1194,6 +1194,10 @@ namespace LevelEditorPlugin.Controls
                                 WireRemovedCommand?.Execute(new WireRemovedEventArgs(wire.Data,
                                     (wire.Source is NodeVisual) ? (wire.Source as NodeVisual).Entity : null, 
                                     (wire.Target is NodeVisual) ? (wire.Target as NodeVisual).Entity : null, container));
+                                
+                                // update nodes to ensure sizing is correct
+                                wire.Source.Update();
+                                wire.Target.Update();
                             }
                             
                             if (container.HasItems)
@@ -1201,9 +1205,6 @@ namespace LevelEditorPlugin.Controls
                                 container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => {}));
                                 UndoManager.Instance.CommitUndo(container);
                             }
-                            
-                            // update node to ensure sizing is correct
-                            node.Update();
                         }
                         else
                         {
@@ -1452,7 +1453,7 @@ namespace LevelEditorPlugin.Controls
                     }
                 }
 
-                if (isMarqueeSelecting && e.ChangedButton == MouseButton.Left)
+                if (isMarqueeSelecting)
                 {
                     isMarqueeSelecting = false;
                     Mouse.Capture(null);
@@ -1460,30 +1461,30 @@ namespace LevelEditorPlugin.Controls
                     InvalidateVisual();
                     return;
                 }
-
-                if (isCuttingWire && e.ChangedButton == MouseButton.Left)
+                else if (isCuttingWire)
                 {
+                    UndoContainer container = new UndoContainer("Delete Connection(s)");
+                
                     isCuttingWire = false;
                     foreach (WireVisual wire in wiresToCut)
                     {
                         BaseVisual sourceNode = (wire.Source is BaseVisual) ? (wire.Source as BaseVisual) : null;
                         BaseVisual targetNode = (wire.Target is BaseVisual) ? (wire.Target as BaseVisual) : null;
-
-                        UndoContainer container = new UndoContainer("Delete Connection(s)");
-
+                        
                         WireRemovedCommand?.Execute(new WireRemovedEventArgs(wire.Data,
                                 (wire.Source is NodeVisual) ? (wire.Source as NodeVisual).Entity : null,
                                 (wire.Target is NodeVisual) ? (wire.Target as NodeVisual).Entity : null, container));
-
-                        if (container.HasItems)
-                        {
-                            container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => { }));
-                            UndoManager.Instance.CommitUndo(container);
-                        }
-
+                        
                         sourceNode.Update();
                         targetNode.Update();
                     }
+                    
+                    if (container.HasItems)
+                    {
+                        container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => { }));
+                        UndoManager.Instance.CommitUndo(container);
+                    }
+                    
                     wiresToCut.Clear();
 
                     Mouse.Capture(null);
