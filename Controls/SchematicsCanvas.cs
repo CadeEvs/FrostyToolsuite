@@ -1138,8 +1138,12 @@ namespace LevelEditorPlugin.Controls
                             selectedNodes.Clear();
                             selectedOffsets.Clear();
                         }
-
+                        
                         node.IsSelected = true;
+                        if (node.Data != null)
+                        {
+                            SelectedNodeChangedCommand?.Execute(hoveredNode.Data);
+                        }
                         selectedNodes.Add(node);
                         selectedOffsets.Add(new Point(node.Rect.Location.X - mousePos.X, node.Rect.Location.Y - mousePos.Y));
                         
