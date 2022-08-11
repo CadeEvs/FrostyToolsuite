@@ -688,7 +688,7 @@ namespace LevelEditorPlugin.Controls
             wirePropertyPen = new Pen(SchematicPropertyBrush, 2.0); wirePropertyPen.Freeze();
             wireHitTestPen = new Pen(Brushes.Transparent, 4.0); wireHitTestPen.Freeze();
             shortcutWirePen = new Pen(Brushes.WhiteSmoke, 2.0) { DashStyle = DashStyles.Dash }; shortcutWirePen.Freeze();
-            marqueePen = new Pen(Brushes.SlateGray, 2.0) { DashStyle = DashStyles.Dash }; marqueePen.Freeze();
+            marqueePen = new Pen(Brushes.White, 2.0) { DashStyle = DashStyles.Dash }; marqueePen.Freeze();
             glowPen = new Pen(Brushes.Yellow, 5.0); glowPen.Freeze();
 
             Unloaded += (o, ev) =>
@@ -1136,6 +1136,7 @@ namespace LevelEditorPlugin.Controls
                     {
                         if (visual.Rect.Contains(mousePos) && visual.HitTest(mousePos))
                         {
+                            // add node to selected nodes if shift is held
                             if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
                             {
                                 Mouse.Capture(this);
@@ -1155,6 +1156,7 @@ namespace LevelEditorPlugin.Controls
                                     InvalidateVisual();
                                 }
                             }
+                            // clear existing selected nodes and select new one
                             else
                             {
                                 if (!selectedNodes.Contains(visual))
