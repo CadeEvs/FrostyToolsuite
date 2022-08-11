@@ -363,6 +363,12 @@ namespace LevelEditorPlugin.Controls
         private Point marqueeSelectionStart;
         private Point marqueeSelectionCurrent;
 
+        private bool isCuttingWire;
+        private Point wireCutStart;
+        private Point wireCutCurrent;
+        private List<WireVisual> wiresToCut = new List<WireVisual>();
+
+
         private FormattedText simulationText;
 
         private DrawingVisual debugLayerVisual;
@@ -717,6 +723,7 @@ namespace LevelEditorPlugin.Controls
             wirePropertyPen = new Pen(SchematicPropertyBrush, 2.0); wirePropertyPen.Freeze();
             wireHitTestPen = new Pen(Brushes.Transparent, 4.0); wireHitTestPen.Freeze();
             shortcutWirePen = new Pen(Brushes.WhiteSmoke, 2.0) { DashStyle = DashStyles.Dash }; shortcutWirePen.Freeze();
+            wireSelectedPen = new Pen(Brushes.PaleGoldenrod, 2.0); wireSelectedPen.Freeze();
             marqueePen = new Pen(Brushes.White, 2.0) { DashStyle = DashStyles.Dash }; marqueePen.Freeze();
             glowPen = new Pen(Brushes.Yellow, 5.0); glowPen.Freeze();
 
@@ -1072,6 +1079,24 @@ namespace LevelEditorPlugin.Controls
 
                     InvalidateVisual();
                 }
+                else if (isCuttingWire)
+                {
+                    wireCutCurrent = mousePos;
+                    MatrixTransform mat = GetWorldMatrix();
+                    //Point startPos = mat.Inverse.Transform(wireCutStart);
+                    //Point endPos = mat.Inverse.Transform(wireCutCurrent);
+
+                    // clear list to avoid cutting wires that were previously hovered over
+                    wiresToCut.Clear();
+                    foreach (WireVisual wire in wireVisuals)
+                    {
+                        LineGeometry wireCutLine = wire.WireGeometry.Children[0] as LineGeometry;
+                        if (intersect(wireCutStart, wireCutCurrent, wireCutLine.StartPoint, wireCutLine.EndPoint))
+                            wiresToCut.Add(wire);
+                    }
+
+                    InvalidateVisual();
+                }
             }
             else
             {
@@ -1117,6 +1142,17 @@ namespace LevelEditorPlugin.Controls
             }
 
             base.OnMouseMove(e);
+
+            bool ccw(Point A, Point B, Point C)
+            {
+                return (C.Y - A.Y) * (B.X - A.X) > (B.Y - A.Y) * (C.X - A.X);
+            }
+    
+            bool intersect(Point start1, Point end1, Point start2, Point end2)
+            {
+                return ccw(start1, start2, end2) != ccw(end1, start2, end2) && ccw(start1, end1, start2) != ccw(start1, end1, end2);
+            }
+    
         }
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -1275,9 +1311,12 @@ namespace LevelEditorPlugin.Controls
                 else
                 {
                     Mouse.Capture(this);
-                    isMarqueeSelecting = hoveredNode == null;
+                    isMarqueeSelecting = hoveredNode == null && !Keyboard.IsKeyDown(Key.LeftAlt) && !isCuttingWire;
+                    isCuttingWire = hoveredNode == null && Keyboard.IsKeyDown(Key.LeftAlt) && !isMarqueeSelecting;
                     marqueeSelectionStart = mousePos;
                     marqueeSelectionCurrent = mousePos;
+                    wireCutStart = mousePos;
+                    wireCutCurrent = mousePos;
                 }
 
                 InvalidateVisual();
@@ -1420,6 +1459,37 @@ namespace LevelEditorPlugin.Controls
                     InvalidateVisual();
                     return;
                 }
+
+                if (isCuttingWire && e.ChangedButton == MouseButton.Left)
+                {
+                    isCuttingWire = false;
+                    foreach (WireVisual wire in wiresToCut)
+                    {
+                        BaseVisual sourceNode = (wire.Source is BaseVisual) ? (wire.Source as BaseVisual) : null;
+                        BaseVisual targetNode = (wire.Target is BaseVisual) ? (wire.Target as BaseVisual) : null;
+
+                        UndoContainer container = new UndoContainer("Delete Connection(s)");
+
+                        WireRemovedCommand?.Execute(new WireRemovedEventArgs(wire.Data,
+                                (wire.Source is NodeVisual) ? (wire.Source as NodeVisual).Entity : null,
+                                (wire.Target is NodeVisual) ? (wire.Target as NodeVisual).Entity : null, container));
+
+                        if (container.HasItems)
+                        {
+                            container.Add(new GenericUndoUnit("", o => InvalidateVisual(), o => { }));
+                            UndoManager.Instance.CommitUndo(container);
+                        }
+
+                        sourceNode.Update();
+                        targetNode.Update();
+                    }
+                    wiresToCut.Clear();
+
+                    Mouse.Capture(null);
+
+                    InvalidateVisual();
+                    return;
+                }
             }
 
             base.OnMouseUp(e);
@@ -1545,31 +1615,38 @@ namespace LevelEditorPlugin.Controls
 
         private void DrawSelectionRect(DrawingContext drawingContext)
         {
-            if (!isMarqueeSelecting)
+            if (!isMarqueeSelecting && !isCuttingWire)
                 return;
 
             MatrixTransform m = GetWorldMatrix();
 
-            double width = marqueeSelectionCurrent.X - marqueeSelectionStart.X;
-            double height = marqueeSelectionCurrent.Y - marqueeSelectionStart.Y;
-
-            if (width == 0 && height == 0)
-                return;
-
-            Point startPos = marqueeSelectionStart;
-
-            if (width <= 0)
+            if (isCuttingWire)
             {
-                width = marqueeSelectionStart.X - marqueeSelectionCurrent.X;
-                startPos.X = marqueeSelectionCurrent.X;
+                drawingContext.DrawLine(marqueePen, m.Transform(wireCutStart), m.Transform(wireCutCurrent));
             }
-            if (height <= 0)
+            else
             {
-                height = marqueeSelectionStart.Y - marqueeSelectionCurrent.Y;
-                startPos.Y = marqueeSelectionCurrent.Y;
-            }
+                double width = marqueeSelectionCurrent.X - marqueeSelectionStart.X;
+                double height = marqueeSelectionCurrent.Y - marqueeSelectionStart.Y;
 
-            drawingContext.DrawRectangle(null, marqueePen, new Rect(m.Transform(startPos), new Size(width * scale, height * scale)));
+                if (width == 0 && height == 0)
+                    return;
+
+                Point startPos = marqueeSelectionStart;
+
+                if (width <= 0)
+                {
+                    width = marqueeSelectionStart.X - marqueeSelectionCurrent.X;
+                    startPos.X = marqueeSelectionCurrent.X;
+                }
+                if (height <= 0)
+                {
+                    height = marqueeSelectionStart.Y - marqueeSelectionCurrent.Y;
+                    startPos.Y = marqueeSelectionCurrent.Y;
+                }
+
+                drawingContext.DrawRectangle(null, marqueePen, new Rect(m.Transform(startPos), new Size(width * scale, height * scale)));
+            }
         }
 
         private void UpdateVisibleNodes()

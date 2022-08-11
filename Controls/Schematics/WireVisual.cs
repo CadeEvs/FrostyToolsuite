@@ -12,6 +12,8 @@ namespace LevelEditorPlugin.Controls
 {
     public class WireVisual
     {
+        public GeometryGroup WireGeometry => geometry;
+
         public object Data;
         public BaseNodeVisual Source;
         public BaseNodeVisual.Port SourcePort;
