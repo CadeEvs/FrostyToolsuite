@@ -15,6 +15,8 @@ namespace LevelEditorPlugin.Controls
 
         private Brush colorBrush;
         private Pen colorPen;
+        private SolidColorBrush outlineBrush;
+        private Pen outlinePen;
         private List<BaseVisual> nodes;
 
         public CommentNodeVisual(CommentNodeData commentData, IEnumerable<BaseVisual> selectedVisuals, double x, double y) 
@@ -27,6 +29,8 @@ namespace LevelEditorPlugin.Controls
 
             colorBrush = new SolidColorBrush(Color.FromScRgb(1.0f, commentData.Color.x, commentData.Color.y, commentData.Color.z));
             colorPen = new Pen(colorBrush, 5.0);
+            outlineBrush = new SolidColorBrush(Color.FromScRgb(0.0f, 1.0f, 1.0f, 1.0f));
+            outlinePen = new Pen(outlineBrush, 2.5);
 
             UpdatePositionAndSize();
         }
@@ -57,7 +61,20 @@ namespace LevelEditorPlugin.Controls
         public override bool HitTest(Point mousePos)
         {
             Rect invalidZoneRect = new Rect(Rect.X + 5, Rect.Y + 20, Rect.Width - 10, Rect.Height - 25);
-            return !invalidZoneRect.Contains(mousePos);
+            bool hitTitle = !invalidZoneRect.Contains(mousePos);                              
+            return hitTitle;
+        }
+
+        public override bool OnMouseOver(Point mousePos)
+        {
+            outlineBrush.Opacity = 0.4;
+            return base.OnMouseOver(mousePos);
+        }
+
+        public override bool OnMouseLeave()
+        {
+            outlineBrush.Opacity = 0.0;
+            return base.OnMouseLeave();
         }
 
         public override void Move(Point newPos)
@@ -83,7 +100,17 @@ namespace LevelEditorPlugin.Controls
         public override void Render(SchematicsCanvas.DrawingContextState state)
         {
             colorPen.Thickness = 5.0 * state.Scale;
-            colorPen.Brush = (IsSelected) ? Brushes.PaleGoldenrod : colorBrush;
+            colorPen.Brush = colorBrush;
+
+            Rect rect = nodes[0].Rect;
+            for (int i = 1; i < nodes.Count; i++)
+            {
+                rect.Union(nodes[i].Rect);
+            }
+            Rect.X = rect.X - 10;
+            Rect.Y = rect.Y - 30;
+            Rect.Width = rect.Width + 20;
+            Rect.Height = rect.Height + 40;
 
             Rect outlineRect = new Rect(Rect.X + 2.5, Rect.Y + 2.5, Rect.Width - 5, Rect.Height - 5);
             Rect titleRect = new Rect(Rect.X, Rect.Y, Rect.Width, 20);
@@ -107,6 +134,12 @@ namespace LevelEditorPlugin.Controls
                     state.DrawingContext.DrawGlyphRun((luminance > 0.2) ? Brushes.Black : Brushes.White, titleGlyphRun);
                 }
             }
+
+            // selection outline
+            outlinePen.Thickness = 2.5 * state.Scale;
+            outlinePen.Brush = IsSelected ? Brushes.PaleGoldenrod : outlineBrush;
+            Rect selectedRect = new Rect(Rect.X - 1, Rect.Y - 1, Rect.Width + 2, Rect.Height + 2);
+            state.DrawingContext.DrawRectangle(null, outlinePen, state.TransformRect(selectedRect));
         }
 
         private void UpdatePositionAndSize()
