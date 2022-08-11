@@ -540,6 +540,7 @@ namespace LevelEditorPlugin.Editors
         public ICommand ShowCommand => new RelayCommand(Show);
         public ICommand SelectedNodeChangedCommand => new RelayCommand(SelectedNodeChanged);
         public ICommand WireAddedCommand => new RelayCommand(ConnectionAdded);
+        public ICommand WireRemovedCommand => new RelayCommand(ConnectionRemoved);
         public ICommand NodeRemovedCommand => new RelayCommand(NodeRemoved);
         public ICommand NodeModifiedCommand => new RelayCommand(NodeModified);
         public ICommand DataModifiedCommand => new RelayCommand(PropertyGridDataModified);
@@ -1149,6 +1150,55 @@ namespace LevelEditorPlugin.Editors
             }
         }
 
+        private void ConnectionRemoved(object obj)
+        {
+            WireRemovedEventArgs e = obj as WireRemovedEventArgs;
+            ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+            
+            // @todo: update flags
+            
+            // we need to create a container to separate the undo into two steps: deleting the connection and updating the entity flags
+            dynamic schematicDataConnections = null;
+            dynamic blueprintConnections = null; 
+            dynamic connection = null;
+            
+            if (e.Connection is FrostySdk.Ebx.EventConnection)
+            {
+                connection = (FrostySdk.Ebx.EventConnection)e.Connection;
+                blueprintConnections = refObjEntity.Blueprint.Data.EventConnections;
+                schematicDataConnections = schematicsData.EventConnections;
+            }
+            else if (e.Connection is FrostySdk.Ebx.PropertyConnection)
+            {
+                connection = (FrostySdk.Ebx.PropertyConnection)e.Connection;
+                blueprintConnections = refObjEntity.Blueprint.Data.PropertyConnections;
+                schematicDataConnections = schematicsData.PropertyConnections;
+            }
+            else if (e.Connection is FrostySdk.Ebx.LinkConnection)
+            {
+                connection = (FrostySdk.Ebx.LinkConnection)e.Connection;
+                blueprintConnections = refObjEntity.Blueprint.Data.LinkConnections;
+                schematicDataConnections = schematicsData.LinkConnections;
+            }
+            
+            e.Container.Add(new GenericUndoUnit("", 
+                (o) =>
+                {
+                    blueprintConnections.Remove(connection);
+                    schematicDataConnections.Remove(connection);
+                    
+                    // @todo: only update asset if we're removing a base asset connection
+                    LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
+                },
+                (o) =>
+                {
+                    blueprintConnections.Add(connection);
+                    schematicDataConnections.Add(connection);
+                    
+                    LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
+                }));
+        }
+        
         private void NodeRemoved(object obj)
         {
             NodeRemovedEventArgs e = obj as NodeRemovedEventArgs;
