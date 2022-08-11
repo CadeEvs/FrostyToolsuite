@@ -977,7 +977,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (hoveredNode != null && hoveredNode is NodeVisual)
                 {
-                    if ((hoveredNode as NodeVisual).CollapseHover)
+                    if ((hoveredNode as NodeVisual).IsCollapseButtonHovered)
                         return;
                     if ((hoveredNode as NodeVisual).HightlightedPort != null)
                         return;

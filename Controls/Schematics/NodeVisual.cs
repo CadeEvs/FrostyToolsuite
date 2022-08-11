@@ -16,7 +16,7 @@ namespace LevelEditorPlugin.Controls
         public override object Data => Entity;
 
         public bool IsCollapsed;
-        public bool CollapseHover;
+        public bool IsCollapseButtonHovered;
         public int Realm;
 
         public List<Port> InputLinks = new List<Port>();
@@ -41,7 +41,7 @@ namespace LevelEditorPlugin.Controls
             Title = Entity.DisplayName;
             IsCollapsed = true;
             IsSelected = false;
-            CollapseHover = false;
+            IsCollapseButtonHovered = false;
 
             // main connector
             Self = new Port(this) { Name = "", NameHash = 0, Rect = new Rect(4, 4, 12, 12), PortType = 0, PortDirection = 1, DataType = Entity.GetType() };
@@ -50,13 +50,13 @@ namespace LevelEditorPlugin.Controls
         public override bool OnMouseOver(Point mousePos)
         {
             Rect collapseButtonRect = new Rect(Rect.X + (Rect.Width - 16), Rect.Y + 4, 12, 12);
-            bool oldCollapseHover = CollapseHover;
+            bool oldCollapseHover = IsCollapseButtonHovered;
 
-            CollapseHover = false;
+            IsCollapseButtonHovered = false;
             if (collapseButtonRect.Contains(mousePos))
             {
                 Mouse.OverrideCursor = Cursors.Arrow;
-                CollapseHover = true;
+                IsCollapseButtonHovered = true;
             }
 
             bool changedHighlight = false;
@@ -81,11 +81,20 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            return oldCollapseHover != CollapseHover || changedHighlight;
+            return oldCollapseHover != IsCollapseButtonHovered || changedHighlight;
         }
 
         public override bool OnMouseDown(Point mousePos, MouseButton mouseButton)
         {
+            // we don't want to pass mouse down input if we're hovering over collapse button
+            if (mouseButton == MouseButton.Left)
+            {
+                if (IsCollapseButtonHovered)
+                {
+                    return true;
+                }
+            }
+            
             return false;
         }
 
@@ -93,7 +102,7 @@ namespace LevelEditorPlugin.Controls
         {
             if (mouseButton == MouseButton.Left)
             {
-                if (CollapseHover)
+                if (IsCollapseButtonHovered)
                 {
                     IsCollapsed = !IsCollapsed;
                     Update();
@@ -130,9 +139,9 @@ namespace LevelEditorPlugin.Controls
         public override bool OnMouseLeave()
         {
             bool invalidate = false;
-            if (CollapseHover)
+            if (IsCollapseButtonHovered)
             {
-                CollapseHover = false;
+                IsCollapseButtonHovered = false;
                 invalidate = true;
             }
             if (HightlightedPort != null)
