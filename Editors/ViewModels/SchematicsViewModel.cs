@@ -1186,11 +1186,16 @@ namespace LevelEditorPlugin.Editors
                 {
                     blueprintConnections.Remove(connection);
                     schematicDataConnections.Remove(connection);
+                    
+                    // @todo: only update asset if we're removing a base asset connection
+                    LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
                 },
                 (o) =>
                 {
                     blueprintConnections.Add(connection);
                     schematicDataConnections.Add(connection);
+                    
+                    LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
                 }));
         }
         
