@@ -141,12 +141,12 @@ namespace Frosty.Core.Viewport
             entries.Clear();
             task.Update("Loading variation databases");
 
-            string cache = System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache";
+            string cache = System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + ProfilesLibrary.CacheName + "_mvdb.cache";
             bool generateMVDB = true;
 
             if (File.Exists(cache))
             {
-                using (NativeReader reader = new NativeReader(new FileStream(System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache", FileMode.Open)))
+                using (NativeReader reader = new NativeReader(new FileStream(System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + ProfilesLibrary.CacheName + "_mvdb.cache", FileMode.Open)))
                 {
                     if (reader.ReadInt() == mvdbVersion)
                     {
@@ -235,7 +235,7 @@ namespace Frosty.Core.Viewport
                     index++;
                 }
 
-                using (NativeWriter writer = new NativeWriter(new FileStream(System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache", FileMode.Create)))
+                using (NativeWriter writer = new NativeWriter(new FileStream(System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + ProfilesLibrary.CacheName + "_mvdb.cache", FileMode.Create)))
                 {
                     writer.Write(mvdbVersion);
                     writer.Write(entries.Count);
