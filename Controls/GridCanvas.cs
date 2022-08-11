@@ -76,7 +76,7 @@ namespace LevelEditorPlugin.Controls
 
             if (e.Delta < 0)
             {
-                if (scale < 0.15)
+                if (scale < 0.05)
                     return;
                 
                 scale -= rate;
