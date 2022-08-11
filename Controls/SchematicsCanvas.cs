@@ -987,7 +987,7 @@ namespace LevelEditorPlugin.Controls
 
                 if (hoveredNode != null && hoveredNode is NodeVisual)
                 {
-                    if ((hoveredNode as NodeVisual).CollapseHover)
+                    if ((hoveredNode as NodeVisual).IsCollapseButtonHovered)
                         return;
                     if ((hoveredNode as NodeVisual).HightlightedPort != null)
                         return;
@@ -1103,6 +1103,7 @@ namespace LevelEditorPlugin.Controls
                 MatrixTransform m = GetWorldMatrix();
                 Point mousePos = m.Inverse.Transform(e.GetPosition(this));
 
+                bool hasEnteredHoverState = false;
                 foreach (BaseVisual visual in visibleNodeVisuals)
                 {
                     if (visual.Rect.Contains(mousePos) && visual.HitTest(mousePos))
@@ -1127,11 +1128,11 @@ namespace LevelEditorPlugin.Controls
                             InvalidateVisual();
                         }
 
-                        return;
+                        hasEnteredHoverState = true;
                     }
                 }
 
-                if (hoveredNode != null)
+                if (hoveredNode != null && !hasEnteredHoverState)
                 {
                     if (hoveredNode.OnMouseLeave())
                         InvalidateVisual();
