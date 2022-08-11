@@ -12,6 +12,8 @@ namespace LevelEditorPlugin.Controls
 {
     public class WireVisual
     {
+        public GeometryGroup WireGeometry => geometry;
+
         public object Data;
         public BaseNodeVisual Source;
         public BaseNodeVisual.Port SourcePort;
@@ -285,11 +287,16 @@ namespace LevelEditorPlugin.Controls
             Point b = (Target != null) ? Target.Rect.Location : mousePosition;
 
             Pen wirePen = null;
-            switch (WireType)
+            if (Source.IsSelected || Target.IsSelected)
+                wirePen = state.WireSelectedPen;
+            else
             {
-                case 0: wirePen = state.WireLinkPen; break;
-                case 1: wirePen = state.WireEventPen; break;
-                case 2: wirePen = state.WirePropertyPen; break;
+                switch (WireType)
+                {
+                    case 0: wirePen = state.WireLinkPen; break;
+                    case 1: wirePen = state.WireEventPen; break;
+                    case 2: wirePen = state.WirePropertyPen; break;
+                }
             }
 
             if (Source != null)
