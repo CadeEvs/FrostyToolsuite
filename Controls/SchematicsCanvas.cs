@@ -1128,70 +1128,23 @@ namespace LevelEditorPlugin.Controls
                             );
                         editingWire.OnMouseMove(mousePos);
 
+                        // deselect other nodes and highlight node that has port
+                        if (selectedNodes.Count > 0)
+                        {
+                            foreach (BaseVisual visual in selectedNodes)
+                            {
+                                visual.IsSelected = false;
+                            }
+                            selectedNodes.Clear();
+                            selectedOffsets.Clear();
+                        }
+
+                        node.IsSelected = true;
+                        selectedNodes.Add(node);
+                        selectedOffsets.Add(new Point(node.Rect.Location.X - mousePos.X, node.Rect.Location.Y - mousePos.Y));
+                        
                         InvalidateVisual();
                         return;
-                    }
-
-                    foreach (BaseVisual visual in visibleNodeVisuals)
-                    {
-                        if (visual.Rect.Contains(mousePos) && visual.HitTest(mousePos))
-                        {
-                            // add node to selected nodes if shift is held
-                            if (Keyboard.IsKeyDown(Key.LeftShift) || Keyboard.IsKeyDown(Key.RightShift))
-                            {
-                                Mouse.Capture(this);
-
-                                if (!selectedNodes.Contains(visual))
-                                {
-                                    selectedNodes.Add(visual);
-                                    selectedOffsets.Add(new Point(visual.Rect.Location.X - mousePos.X, visual.Rect.Location.Y - mousePos.Y));
-
-                                    visual.IsSelected = true;
-
-                                    if (visual.Data != null)
-                                    {
-                                        SelectedNodeChangedCommand?.Execute(visual.Data);
-                                    }
-
-                                    InvalidateVisual();
-                                }
-                            }
-                            // clear existing selected nodes and select new one
-                            else
-                            {
-                                if (!selectedNodes.Contains(visual))
-                                {
-                                    if (selectedNodes.Count > 0)
-                                    {
-                                        foreach (BaseVisual node in selectedNodes)
-                                        {
-                                            node.IsSelected = false;
-                                        }
-
-                                        selectedNodes.Clear();
-                                        selectedOffsets.Clear();
-                                    }
-
-                                    selectedNodes.Add(visual);
-                                    selectedOffsets.Add(new Point(visual.Rect.Location.X - mousePos.X, visual.Rect.Location.Y - mousePos.Y));
-
-                                    visual.IsSelected = true;
-
-                                    if (visual.Data != null)
-                                    {
-                                        SelectedNodeChangedCommand?.Execute(visual.Data);
-                                    }
-                                    InvalidateVisual();
-                                }
-                            }
-
-                            for (int i = 0; i < selectedOffsets.Count; i++)
-                            {
-                                selectedOffsets[i] = new Point(selectedNodes[i].Rect.Location.X - mousePos.X, selectedNodes[i].Rect.Location.Y - mousePos.Y);
-                            }
-
-                            return;
-                        }
                     }
                 }
                 else
