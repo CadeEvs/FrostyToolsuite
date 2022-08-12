@@ -28,7 +28,7 @@
         <Border Grid.Row="1" Background="{StaticResource ControlBackground}"/>
         
         <Grid Grid.Row="2">
-            <ListBox x:Name="ConfigurationListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="ConfigurationListView_OnSelectionChanged" MouseDoubleClick="ConfigurationListView_OnMouseDoubleClick">
+            <ListBox x:Name="ConfigurationListView" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="ConfigurationListView_OnSelectionChanged" MouseDoubleClick="ConfigurationListView_OnMouseDoubleClick" Background="{StaticResource WindowBackground}">
                 <ListBox.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel IsItemsHost="true" Orientation="Horizontal"/>
@@ -37,13 +37,36 @@
            
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Image Source="{Binding Path=Thumbnail}" Width="40" Height="40"/>
+                        <Grid Width="40" Height="40">
+                            <Image x:Name="GreyscaleImage">
+                                <Image.Source>
+                                    <FormatConvertedBitmap Source="{Binding Path=Thumbnail}" DestinationFormat="Gray8"/>
+                                </Image.Source>
+                                <Image.OpacityMask>
+                                    <ImageBrush ImageSource="{Binding Path=Thumbnail}"/>
+                                </Image.OpacityMask>
+                            </Image>
+                            <Image x:Name="ColorImage" Source="{Binding Path=Thumbnail}" Visibility="Hidden"/>
+                        </Grid>
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                <Setter TargetName="GreyscaleImage" Property="Visibility" Value="Hidden" />
+                                <Setter TargetName="ColorImage" Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <Setter Property="Padding" Value="4"/>
+                        <Setter Property="Cursor" Value="Hand"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
             </ListBox>
         </Grid>
-        
-        <Grid Grid.Row="3">
+
+        <Grid Grid.Row="3" Background="{StaticResource ListBackground}" >
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Content="Refresh" Padding="12,0" Margin="6,6,0,6" Click="RefreshButton_OnClicked"/>
                 <Button x:Name="AddConfigurationButton" Content="Add" Padding="12,0" Margin="6,6,0,6" Click="AddConfigurationButton_OnClick"/>
