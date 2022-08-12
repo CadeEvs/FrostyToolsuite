@@ -134,6 +134,7 @@
     <Compile Include="Attributes\RegisterToolbarExtensionAttribute.cs" />
     <Compile Include="Attributes\RegisterTypeOverrideAttribute.cs" />
     <Compile Include="Attributes\RegisterUserShaderAttribute.cs" />
+    <Compile Include="CodingStandards\FrostyCodingStandards.cs" />
     <Compile Include="Controls\FrostyBaseAssetEditor.cs" />
     <Compile Include="Controls\FrostyExceptionBox.cs" />
     <Compile Include="Controls\FrostyNotification.cs" />
