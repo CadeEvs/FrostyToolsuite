@@ -6,12 +6,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DataField = FrostySdk.Ebx.DataField;
-using DynamicEvent = FrostySdk.Ebx.DynamicEvent;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -28,31 +28,31 @@ namespace LevelEditorPlugin.Editors
 
     public class InputPropertyViewModel : INotifyPropertyChanged
     {
-        public string Name => dataField.Name;
-        public int Hash => dataField.Id;
+        public string Name => m_dataField.Name;
+        public int Hash => m_dataField.Id;
         public string Value
         {
-            get => dataValue;
+            get => m_dataValue;
             set
             {
-                if (dataValue != value)
+                if (m_dataValue != value)
                 {
-                    dataValue = value;
+                    m_dataValue = value;
                     NotifyPropertyChanged();
                 }
             }
         }
-        public ICommand PushCommand => pushCommand;
+        public ICommand PushCommand => m_pushCommand;
 
-        private DataField dataField;
-        private string dataValue;
-        private ICommand pushCommand;
+        private DataField m_dataField;
+        private string m_dataValue;
+        private ICommand m_pushCommand;
 
         public InputPropertyViewModel(DataField inDataField, ICommand interfacePushCommand)
         {
-            dataField = inDataField;
-            dataValue = dataField.Value;
-            pushCommand = new RelayCommand((o) => { interfacePushCommand.Execute(this); });
+            m_dataField = inDataField;
+            m_dataValue = m_dataField.Value;
+            m_pushCommand = new RelayCommand((o) => { interfacePushCommand.Execute(this); });
         }
 
         #region -- INotifyPropertyChanged --
@@ -69,28 +69,28 @@ namespace LevelEditorPlugin.Editors
 
     public class OutputPropertyViewModel : INotifyPropertyChanged
     {
-        public string Name => dataField.Name;
-        public int Hash => dataField.Id;
+        public string Name => m_dataField.Name;
+        public int Hash => m_dataField.Id;
         public string Value
         {
-            get => dataValue;
+            get => m_dataValue;
             set
             {
-                if (dataValue != value)
+                if (m_dataValue != value)
                 {
-                    dataValue = value;
+                    m_dataValue = value;
                     NotifyPropertyChanged();
                 }
             }
         }
 
-        private DataField dataField;
-        private string dataValue;
+        private DataField m_dataField;
+        private string m_dataValue;
 
         public OutputPropertyViewModel(DataField inDataField)
         {
-            dataField = inDataField;
-            dataValue = dataField.Value;
+            m_dataField = inDataField;
+            m_dataValue = m_dataField.Value;
         }
 
         #region -- INotifyPropertyChanged --
@@ -107,17 +107,17 @@ namespace LevelEditorPlugin.Editors
 
     public class InputEventViewModel : INotifyPropertyChanged
     {
-        public string Name => dynamicEvent.Name;
-        public int Hash => dynamicEvent.Id;
-        public ICommand PushCommand => pushCommand;
+        public string Name => m_dynamicEvent.Name;
+        public int Hash => m_dynamicEvent.Id;
+        public ICommand PushCommand => m_pushCommand;
 
-        private DynamicEvent dynamicEvent;
-        private ICommand pushCommand;
+        private DynamicEvent m_dynamicEvent;
+        private ICommand m_pushCommand;
 
         public InputEventViewModel(DynamicEvent inEvent, ICommand interfacePushCommand)
         {
-            dynamicEvent = inEvent;
-            pushCommand = new RelayCommand((o) => { interfacePushCommand.Execute(this); });
+            m_dynamicEvent = inEvent;
+            m_pushCommand = new RelayCommand((o) => { interfacePushCommand.Execute(this); });
         }
 
         #region -- INotifyPropertyChanged --
@@ -134,48 +134,48 @@ namespace LevelEditorPlugin.Editors
 
     public class OutputEventViewModel : INotifyPropertyChanged
     {
-        public string Name => dynamicEvent.Name;
-        public int Hash => dynamicEvent.Id;
+        public string Name => m_dynamicEvent.Name;
+        public int Hash => m_dynamicEvent.Id;
         public bool Triggered
         {
-            get => triggered;
+            get => m_triggered;
             set
             {
-                triggered = value;
-                if (triggered)
+                m_triggered = value;
+                if (m_triggered)
                 {
-                    alpha = 1.0f;
-                    timer.Change(0, 10);
+                    m_alpha = 1.0f;
+                    m_timer.Change(0, 10);
                 }
             }
         }
         public float Alpha
         {
-            get => alpha;
+            get => m_alpha;
             set
             {
-                if (alpha != value)
+                if (m_alpha != value)
                 {
-                    alpha = value;
-                    if (alpha <= 0.0f)
+                    m_alpha = value;
+                    if (m_alpha <= 0.0f)
                     {
-                        triggered = false;
-                        timer.Change(Timeout.Infinite, Timeout.Infinite);
+                        m_triggered = false;
+                        m_timer.Change(Timeout.Infinite, Timeout.Infinite);
                     }
                     NotifyPropertyChanged();
                 }
             }
         }
 
-        private DynamicEvent dynamicEvent;
-        private bool triggered;
-        private Timer timer;
-        private float alpha;
+        private DynamicEvent m_dynamicEvent;
+        private bool m_triggered;
+        private Timer m_timer;
+        private float m_alpha;
 
         public OutputEventViewModel(DynamicEvent inEvent)
         {
-            dynamicEvent = inEvent;
-            timer = new Timer(OnTimer, null, Timeout.Infinite, Timeout.Infinite);
+            m_dynamicEvent = inEvent;
+            m_timer = new Timer(OnTimer, null, Timeout.Infinite, Timeout.Infinite);
         }
 
         private void OnTimer(object state)
@@ -195,52 +195,108 @@ namespace LevelEditorPlugin.Editors
         #endregion
     }
 
+    public class InputLinkViewModel : INotifyPropertyChanged
+    {
+        public string Name => m_dynamicLink.Name;
+        public int Hash => m_dynamicLink.Id;
+
+        private DynamicLink m_dynamicLink;
+
+        public InputLinkViewModel(DynamicLink inLink)
+        {
+            m_dynamicLink = inLink;
+        }
+        
+        #region -- INotifyPropertyChanged --
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion
+    }
+    
+    public class OutputLinkViewModel : INotifyPropertyChanged
+    {
+        public string Name => m_dynamicLink.Name;
+        public int Hash => m_dynamicLink.Id;
+
+        private DynamicLink m_dynamicLink;
+
+        public OutputLinkViewModel(DynamicLink inLink)
+        {
+            m_dynamicLink = inLink;
+        }
+        
+        #region -- INotifyPropertyChanged --
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void NotifyPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] String propertyName = "")
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion
+    }
+    
     public class InterfaceViewModel : Controls.IDockableItem, INotifyPropertyChanged
     {
         public string Header => "Interface";
         public string UniqueId => "UID_LevelEditor_Interface";
         public string Icon => "Images/Interface.png";
-        public IEnumerable<object> InterfaceVars => interfaceVars;
+        public IEnumerable<object> InterfaceVars => m_interfaceVars;
 
-        private ISchematicsInterfaceProvider owner;
-        private List<object> interfaceVars = new List<object>();
+        private ISchematicsInterfaceProvider m_owner;
+        private List<object> m_interfaceVars = new List<object>();
 
         public InterfaceViewModel(ISchematicsInterfaceProvider inOwner)
         {
-            owner = inOwner;
-            owner.OnInterfaceOutputPropertyChanged += InterfaceOutputPropertyChanged;
-            owner.OnInterfaceOutputEventTriggered += InterfaceOutputEventTriggered;
-            if (owner.Interface != null)
+            m_owner = inOwner;
+            m_owner.OnInterfaceOutputPropertyChanged += InterfaceOutputPropertyChanged;
+            m_owner.OnInterfaceOutputEventTriggered += InterfaceOutputEventTriggered;
+            if (m_owner.Interface != null)
             {
-                foreach (DataField dataField in owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Target || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
+                // input property
+                foreach (DataField dataField in m_owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Target || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
                 {
-                    interfaceVars.Add(new InputPropertyViewModel(dataField, new RelayCommand(OnPushPropertyCommand)));
+                    m_interfaceVars.Add(new InputPropertyViewModel(dataField, new RelayCommand(OnPushPropertyCommand)));
+                }
+                // input event
+                foreach (DynamicEvent dynamicEvent in m_owner.Interface.Data.InputEvents)
+                {
+                    m_interfaceVars.Add(new InputEventViewModel(dynamicEvent, new RelayCommand(OnPushEventCommand)));
+                }
+                // input link
+                foreach (DynamicLink dynamicLink in m_owner.Interface.Data.InputLinks)
+                {
+                    m_interfaceVars.Add(new InputLinkViewModel(dynamicLink));
                 }
 
-                foreach (DynamicEvent evt in owner.Interface.Data.InputEvents)
+                // output property
+                foreach (DataField dataField in m_owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Source || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
                 {
-                    interfaceVars.Add(new InputEventViewModel(evt, new RelayCommand(OnPushEventCommand)));
+                    m_interfaceVars.Add(new OutputPropertyViewModel(dataField));
                 }
-
-                // @todo: input links
-
-                foreach (DataField dataField in owner.Interface.Data.Fields.Where(df => df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_Source || df.AccessType == FrostySdk.Ebx.FieldAccessType.FieldAccessType_SourceAndTarget))
+                // output event
+                foreach (DynamicEvent dynamicEvent in m_owner.Interface.Data.OutputEvents)
                 {
-                    interfaceVars.Add(new OutputPropertyViewModel(dataField));
+                    m_interfaceVars.Add(new OutputEventViewModel(dynamicEvent));
                 }
-
-                foreach (DynamicEvent evt in owner.Interface.Data.OutputEvents)
+                // output link
+                foreach (DynamicLink dynamicLink in m_owner.Interface.Data.OutputLinks)
                 {
-                    interfaceVars.Add(new OutputEventViewModel(evt));
+                    m_interfaceVars.Add(new OutputLinkViewModel(dynamicLink));
                 }
-
-                // @todo: output links
             }
         }
 
         private void InterfaceOutputEventTriggered(object sender, InterfaceOutputEventTriggeredEventArgs e)
         {
-            object value = interfaceVars.FirstOrDefault(i => (i is OutputEventViewModel) && (i as OutputEventViewModel).Hash == e.EventHash);
+            object value = m_interfaceVars.FirstOrDefault(i => (i is OutputEventViewModel) && (i as OutputEventViewModel).Hash == e.EventHash);
             if (value != null)
             {
                 OutputEventViewModel outputEvent = value as OutputEventViewModel;
@@ -250,7 +306,7 @@ namespace LevelEditorPlugin.Editors
 
         private void InterfaceOutputPropertyChanged(object sender, InterfaceOutputPropertyChangedEventArgs e)
         {
-            object value = interfaceVars.FirstOrDefault(i => (i is OutputPropertyViewModel) && (i as OutputPropertyViewModel).Hash == e.PropertyHash);
+            object value = m_interfaceVars.FirstOrDefault(i => (i is OutputPropertyViewModel) && (i as OutputPropertyViewModel).Hash == e.PropertyHash);
             if (value != null)
             {
                 OutputPropertyViewModel outputProperty = value as OutputPropertyViewModel;
@@ -261,13 +317,13 @@ namespace LevelEditorPlugin.Editors
         private void OnPushPropertyCommand(object o)
         {
             InputPropertyViewModel property = o as InputPropertyViewModel;
-            owner.InterfacePropertyPushed(property.Hash, property.Value);
+            m_owner.InterfacePropertyPushed(property.Hash, property.Value);
         }
 
         private void OnPushEventCommand(object o)
         {
             InputEventViewModel evt = o as InputEventViewModel;
-            owner.InterfaceEventPushed(evt.Hash);
+            m_owner.InterfaceEventPushed(evt.Hash);
         }
 
         #region -- INotifyPropertyChanged --
