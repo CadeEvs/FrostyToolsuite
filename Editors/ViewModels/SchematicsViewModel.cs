@@ -533,7 +533,7 @@ namespace LevelEditorPlugin.Editors
         public string Header => "Schematics";
         public string UniqueId => "UID_LevelEditor_Schematics";
         public string Icon => "Images/Schematics.png";
-        public DockManager DockManager => dockManager;
+        public DockManager DockManager => m_dockManager;
         public ICommand InitializeCommand => new RelayCommand(Initialize);
         public ICommand UnloadCommand => new RelayCommand(Unload);
         public ICommand HideCommand => new RelayCommand(Hide);
@@ -544,47 +544,47 @@ namespace LevelEditorPlugin.Editors
         public ICommand NodeRemovedCommand => new RelayCommand(NodeRemoved);
         public ICommand NodeModifiedCommand => new RelayCommand(NodeModified);
         public ICommand DataModifiedCommand => new RelayCommand(PropertyGridDataModified);
-        public IEnumerable<ToolbarItem> ToolbarItems => toolbarItems;
-        public IEnumerable<Entities.Entity> Entities => entities;
-        public SchematicsData SchematicsData => schematicsData;
-        public bool IsDockedInEditor => isDockedInEditor;
-        public bool IsGridVisible => isGridVisible;
-        public bool IsConnectorOrdersVisible => isConnectorOrdersVisible;
-        public bool SuppressLayoutSave => suppressLayoutSave;
-        public object ModifiedData => modifiedData;
-        public object UpdateDebugLayer => updateDebug;
+        public IEnumerable<ToolbarItem> ToolbarItems => m_toolbarItems;
+        public IEnumerable<Entities.Entity> Entities => m_entities;
+        public SchematicsData SchematicsData => m_schematicsData;
+        public bool IsDockedInEditor => m_isDockedInEditor;
+        public bool IsGridVisible => m_isGridVisible;
+        public bool IsConnectorOrdersVisible => m_isConnectorOrdersVisible;
+        public bool SuppressLayoutSave => m_suppressLayoutSave;
+        public object ModifiedData => m_modifiedData;
+        public object UpdateDebugLayer => m_updateDebug;
 
-        private RoutedCommand undoCommand;
-        private ToolbarAssetEditor owner;
-        private DockManager dockManager;
-        private List<ToolbarItem> toolbarItems;
-        private List<Entities.Entity> entities;
-        private SceneLayer layer;
-        private SchematicsData schematicsData;
+        private RoutedCommand m_undoCommand;
+        private ToolbarAssetEditor m_owner;
+        private DockManager m_dockManager;
+        private List<ToolbarItem> m_toolbarItems;
+        private List<Entities.Entity> m_entities;
+        private SceneLayer m_layer;
+        private SchematicsData m_schematicsData;
 
-        private bool isDockedInEditor;
-        private bool isGridVisible;
-        private bool isConnectorOrdersVisible;
-        private bool suppressLayoutSave;
+        private bool m_isDockedInEditor;
+        private bool m_isGridVisible;
+        private bool m_isConnectorOrdersVisible;
+        private bool m_suppressLayoutSave;
 
-        private object modifiedData;
-        private object updateDebug;
+        private object m_modifiedData;
+        private object m_updateDebug;
 
         public event EventHandler<SelectedEntityChangedEventArgs> SelectedEntityChanged;
         public event EventHandler<SelectedObjectChangedEventArgs> SelectedObjectChanged;
 
         public SchematicsViewModel(ToolbarAssetEditor inOwner, SceneLayer inLayer, bool isEditorView = false)
         {
-            owner = inOwner;
+            m_owner = inOwner;
 
-            isDockedInEditor = isEditorView;
-            isGridVisible = true;
-            isConnectorOrdersVisible = false;
+            m_isDockedInEditor = isEditorView;
+            m_isGridVisible = true;
+            m_isConnectorOrdersVisible = false;
 
-            dockManager = new DockManager(inOwner);
+            m_dockManager = new DockManager(inOwner);
             if (!isEditorView)
             {
-                dockManager.LoadFromConfig("Schematics", new DockManager.DockManagerConfigData()
+                m_dockManager.LoadFromConfig("Schematics", new DockManager.DockManagerConfigData()
                 {
                     Layouts = new List<DockManager.DockLayoutData>()
                     {
@@ -605,7 +605,7 @@ namespace LevelEditorPlugin.Editors
                     }
                 });
 
-                toolbarItems = RegisterToolbarItems();
+                m_toolbarItems = RegisterToolbarItems();
                 SetLayer(inLayer);
 
                 if (inOwner is LevelEditor)
@@ -630,34 +630,34 @@ namespace LevelEditorPlugin.Editors
 
         public void SetLayer(SceneLayer inLayer)
         {
-            if (inLayer != layer)
+            if (inLayer != m_layer)
             {
-                layer = inLayer;
-                if (layer != null)
+                m_layer = inLayer;
+                if (m_layer != null)
                 {
-                    entities = new List<Entities.Entity>();
-                    layer.CollectLogicEntities(entities);
+                    m_entities = new List<Entities.Entity>();
+                    m_layer.CollectLogicEntities(m_entities);
 
                     FrostySdk.Ebx.Blueprint blueprint = null;
                     Guid blueprintGuid = Guid.Empty;
                     Entities.InterfaceDescriptor interfaceDescriptor = null;
 
-                    if (layer.Entity is Entities.LogicPrefabReferenceObject)
+                    if (m_layer.Entity is Entities.LogicPrefabReferenceObject)
                     {
-                        LogicPrefabReferenceObject logicPrefabEntity = layer.Entity as Entities.LogicPrefabReferenceObject;
+                        LogicPrefabReferenceObject logicPrefabEntity = m_layer.Entity as Entities.LogicPrefabReferenceObject;
                         blueprint = logicPrefabEntity.Blueprint.Data;
                         blueprintGuid = logicPrefabEntity.Blueprint.FileGuid;
                         interfaceDescriptor = logicPrefabEntity.InterfaceDescriptor;
                     }
                     else
                     {
-                        ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+                        ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
                         blueprint = refObjEntity.Blueprint.Data;
                         blueprintGuid = refObjEntity.Blueprint.FileGuid;
                         interfaceDescriptor = refObjEntity.InterfaceDescriptor;
                     }
 
-                    schematicsData = new SchematicsData()
+                    m_schematicsData = new SchematicsData()
                     {
                         Entities = new ObservableCollection<Entities.Entity>(),
                         LinkConnections = new ObservableCollection<object>(),
@@ -665,25 +665,25 @@ namespace LevelEditorPlugin.Editors
                         PropertyConnections = new ObservableCollection<object>(),
                         InterfaceDescriptor = interfaceDescriptor,
                         BlueprintGuid = blueprintGuid,
-                        World = layer.Entity.World
+                        World = m_layer.Entity.World
                     };
-                    foreach (Entity entity in entities)
+                    foreach (Entity entity in m_entities)
                     {
-                        schematicsData.Entities.Add(entity);
+                        m_schematicsData.Entities.Add(entity);
                     }
                     foreach (LinkConnection connection in blueprint.LinkConnections)
                     {
-                        schematicsData.LinkConnections.Add(connection);
+                        m_schematicsData.LinkConnections.Add(connection);
                     }
                     foreach (EventConnection connection in blueprint.EventConnections)
                     {
-                        schematicsData.EventConnections.Add(connection);
+                        m_schematicsData.EventConnections.Add(connection);
                     }
                     foreach (PropertyConnection connection in blueprint.PropertyConnections)
                     {
                         if (!Utils.IsFieldProperty(connection.SourceField))
                         {
-                            schematicsData.PropertyConnections.Add(connection);
+                            m_schematicsData.PropertyConnections.Add(connection);
                         }
                     }
 
@@ -699,35 +699,35 @@ namespace LevelEditorPlugin.Editors
                 new DockingToolbarItem("", "Show/Hide properties tab", "Images/Properties.png", new RelayCommand((o) => DockManager.AddItem(((DockingToolbarItem)o).Location, new PropertiesViewModel(this))), DockManager, "UID_LevelEditor_Properties"),
                 new DockingToolbarItem("", "Show/Hide toolbox", "Images/Toolbox.png", new RelayCommand((o) => DockManager.AddItem(((DockingToolbarItem)o).Location, new SchematicsToolboxViewModel())), DockManager, "UID_LevelEditor_Toolbox"),
                 new DividerToolbarItem(),
-                new ToggleToolbarItem("", "Show/Hide the grid", "FrostyEditor/Images/Grid.png", true, new RelayCommand((o) => { isGridVisible = !isGridVisible; NotifyPropertyChanged("IsGridVisible"); (o as ToggleToolbarItem).IsToggled = isGridVisible; })),
-                new ToggleToolbarItem("", "Show/Hide connector order", "LevelEditorPlugin/Images/ConnectorOrder.png", false, new RelayCommand((o) => { isConnectorOrdersVisible = !isConnectorOrdersVisible; NotifyPropertyChanged("IsConnectorOrdersVisible"); })),
-                new RegularToolbarItem("", "Clear the current layout", "LevelEditorPlugin/Images/ClearLayout.png", new RelayCommand((o) => { SchematicsLayoutManager.Instance.ClearLayout(schematicsData.BlueprintGuid); suppressLayoutSave = true; NotifyPropertyChanged("SuppressLayoutSave"); }, (o) => { return (schematicsData != null) ? SchematicsLayoutManager.Instance.GetLayout(schematicsData.BlueprintGuid) != null : false; })),
+                new ToggleToolbarItem("", "Show/Hide the grid", "FrostyEditor/Images/Grid.png", true, new RelayCommand((o) => { m_isGridVisible = !m_isGridVisible; NotifyPropertyChanged("IsGridVisible"); (o as ToggleToolbarItem).IsToggled = m_isGridVisible; })),
+                new ToggleToolbarItem("", "Show/Hide connector order", "LevelEditorPlugin/Images/ConnectorOrder.png", false, new RelayCommand((o) => { m_isConnectorOrdersVisible = !m_isConnectorOrdersVisible; NotifyPropertyChanged("IsConnectorOrdersVisible"); })),
+                new RegularToolbarItem("", "Clear the current layout", "LevelEditorPlugin/Images/ClearLayout.png", new RelayCommand((o) => { SchematicsLayoutManager.Instance.ClearLayout(m_schematicsData.BlueprintGuid); m_suppressLayoutSave = true; NotifyPropertyChanged("SuppressLayoutSave"); }, (o) => { return (m_schematicsData != null) ? SchematicsLayoutManager.Instance.GetLayout(m_schematicsData.BlueprintGuid) != null : false; })),
                 new DividerToolbarItem()
             };
         }
 
         public void Initialize(object obj)
         {
-            if (!isDockedInEditor)
+            if (!m_isDockedInEditor)
             {
                 DockManager.AddItemOnLoad(new PropertiesViewModel(this));
                 DockManager.AddItemOnLoad(new SchematicsToolboxViewModel());
 
-                undoCommand = new RoutedCommand();
-                undoCommand.InputGestures.Add(new KeyGesture(Key.Z, ModifierKeys.Control));
+                m_undoCommand = new RoutedCommand();
+                m_undoCommand.InputGestures.Add(new KeyGesture(Key.Z, ModifierKeys.Control));
 
-                (obj as FrameworkElement).CommandBindings.Add(new CommandBinding(undoCommand, Schematics_Undo));
+                (obj as FrameworkElement).CommandBindings.Add(new CommandBinding(m_undoCommand, Schematics_Undo));
             }
             SelectedNodeChanged(null);
         }
 
         public void Unload(object obj)
         {
-            if (!isDockedInEditor)
+            if (!m_isDockedInEditor)
             {
-                if (owner is LevelEditor)
+                if (m_owner is LevelEditor)
                 {
-                    (owner as LevelEditor).SelectedLayerChanged -= OnSelectedLayerChanged;
+                    (m_owner as LevelEditor).SelectedLayerChanged -= OnSelectedLayerChanged;
                 }
                 DockManager.SaveToConfig("Schematics");
             }
@@ -756,9 +756,9 @@ namespace LevelEditorPlugin.Editors
 
         public void UpdateDebug()
         {
-            updateDebug = true;
+            m_updateDebug = true;
             NotifyPropertyChanged("UpdateDebugLayer");
-            updateDebug = null;
+            m_updateDebug = null;
             NotifyPropertyChanged("UpdateDebugLayer");
         }
 
@@ -791,20 +791,20 @@ namespace LevelEditorPlugin.Editors
                     entity.UserData = dropPoint;
 
                     // add entity to blueprint
-                    ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+                    ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
 
                     UndoManager.Instance.CommitUndo(new GenericUndoUnit("Add Schematics Node",
                         (o) =>
                         {
                             // add entity to ebx
-                            owner.Asset.AddObject(entity.GetRawData());
+                            m_owner.Asset.AddObject(entity.GetRawData());
 
                             // add to reference
                             refObjEntity.AddEntity(entity);
                             LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
 
                             // add to canvas
-                            schematicsData.Entities.Add(entity);
+                            m_schematicsData.Entities.Add(entity);
 
                         },
                         (o) =>
@@ -813,11 +813,11 @@ namespace LevelEditorPlugin.Editors
                             refObjEntity.RemoveEntity(entity);
 
                             // remove from ebx
-                            owner.Asset.RemoveObject(entity.GetRawData());
+                            m_owner.Asset.RemoveObject(entity.GetRawData());
                             LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
 
                             // remove from canvas
-                            schematicsData.Entities.Remove(schematicsData.Entities.First(e => e.InstanceGuid == entity.InstanceGuid));
+                            m_schematicsData.Entities.Remove(m_schematicsData.Entities.First(e => e.InstanceGuid == entity.InstanceGuid));
 
                         }));
                 }
@@ -838,20 +838,20 @@ namespace LevelEditorPlugin.Editors
                     entity.UserData = dropPoint;
 
                     // add entity to blueprint
-                    ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+                    ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
 
                     UndoManager.Instance.CommitUndo(new GenericUndoUnit("Add UIWidget",
                         (o) =>
                         {
                             // add entity to ebx
-                            owner.Asset.AddObject(entity.GetRawData());
+                            m_owner.Asset.AddObject(entity.GetRawData());
 
                             // add to reference
                             refObjEntity.AddEntity(entity);
                             LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
 
                             // add to canvas
-                            schematicsData.Entities.Add(entity);
+                            m_schematicsData.Entities.Add(entity);
 
                         },
                         (o) =>
@@ -860,11 +860,11 @@ namespace LevelEditorPlugin.Editors
                             refObjEntity.RemoveEntity(entity);
 
                             // remove from ebx
-                            owner.Asset.RemoveObject(entity.GetRawData());
+                            m_owner.Asset.RemoveObject(entity.GetRawData());
                             LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
 
                             // remove from canvas
-                            schematicsData.Entities.Remove(schematicsData.Entities.First(e => e.InstanceGuid == entity.InstanceGuid));
+                            m_schematicsData.Entities.Remove(m_schematicsData.Entities.First(e => e.InstanceGuid == entity.InstanceGuid));
 
                         }));
                 }
@@ -883,14 +883,14 @@ namespace LevelEditorPlugin.Editors
             {
                 if (obj == null)
                 {
-                    if (layer.Entity is Entities.LogicPrefabReferenceObject)
+                    if (m_layer.Entity is Entities.LogicPrefabReferenceObject)
                     {
-                        LogicPrefabReferenceObject logicPrefabEntity = layer.Entity as Entities.LogicPrefabReferenceObject;
+                        LogicPrefabReferenceObject logicPrefabEntity = m_layer.Entity as Entities.LogicPrefabReferenceObject;
                         SelectedObjectChanged?.Invoke(this, new SelectedObjectChangedEventArgs(logicPrefabEntity.Blueprint.Data, null));
                     }
-                    else if (layer.Entity is Entities.ReferenceObject)
+                    else if (m_layer.Entity is Entities.ReferenceObject)
                     {
-                        ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+                        ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
                         SelectedObjectChanged?.Invoke(this, new SelectedObjectChangedEventArgs(refObjEntity.Blueprint.Data, null));
                     }
                 }
@@ -907,7 +907,7 @@ namespace LevelEditorPlugin.Editors
         private void ConnectionAdded(object obj)
         {
             WireAddedEventArgs e = obj as WireAddedEventArgs;
-            ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+            ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
 
             object source = (e.SourceEntity != null) ? (e.SourceEntity as Entities.Entity).GetRawData() : refObjEntity.InterfaceDescriptor.Data;
             object target = (e.TargetEntity != null) ? (e.TargetEntity as Entities.Entity).GetRawData() : refObjEntity.InterfaceDescriptor.Data;
@@ -953,7 +953,7 @@ namespace LevelEditorPlugin.Editors
                     origTargetFlagsRealm = e.TargetEntity.FlagsLinkRealm;
                 
                 blueprintConnections = refObjEntity.Blueprint.Data.LinkConnections;
-                schematicDataConnections = schematicsData.LinkConnections;
+                schematicDataConnections = m_schematicsData.LinkConnections;
                 newConnection = connection;
             }
             else if (e.ConnectionType == 1) // Events
@@ -995,7 +995,7 @@ namespace LevelEditorPlugin.Editors
                 }
 
                 blueprintConnections = refObjEntity.Blueprint.Data.EventConnections;
-                schematicDataConnections = schematicsData.EventConnections;
+                schematicDataConnections = m_schematicsData.EventConnections;
                 newConnection = connection;
             }
             else if (e.ConnectionType == 2) // Properties
@@ -1068,7 +1068,7 @@ namespace LevelEditorPlugin.Editors
                 }
 
                 blueprintConnections = refObjEntity.Blueprint.Data.PropertyConnections;
-                schematicDataConnections = schematicsData.PropertyConnections;
+                schematicDataConnections = m_schematicsData.PropertyConnections;
                 newConnection = connection;
             }
 
@@ -1153,7 +1153,7 @@ namespace LevelEditorPlugin.Editors
         private void ConnectionRemoved(object obj)
         {
             WireRemovedEventArgs e = obj as WireRemovedEventArgs;
-            ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+            ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
             
             // @todo: update flags
             
@@ -1166,19 +1166,19 @@ namespace LevelEditorPlugin.Editors
             {
                 connection = (FrostySdk.Ebx.EventConnection)e.Connection;
                 blueprintConnections = refObjEntity.Blueprint.Data.EventConnections;
-                schematicDataConnections = schematicsData.EventConnections;
+                schematicDataConnections = m_schematicsData.EventConnections;
             }
             else if (e.Connection is FrostySdk.Ebx.PropertyConnection)
             {
                 connection = (FrostySdk.Ebx.PropertyConnection)e.Connection;
                 blueprintConnections = refObjEntity.Blueprint.Data.PropertyConnections;
-                schematicDataConnections = schematicsData.PropertyConnections;
+                schematicDataConnections = m_schematicsData.PropertyConnections;
             }
             else if (e.Connection is FrostySdk.Ebx.LinkConnection)
             {
                 connection = (FrostySdk.Ebx.LinkConnection)e.Connection;
                 blueprintConnections = refObjEntity.Blueprint.Data.LinkConnections;
-                schematicDataConnections = schematicsData.LinkConnections;
+                schematicDataConnections = m_schematicsData.LinkConnections;
             }
             
             e.Container.Add(new GenericUndoUnit("", 
@@ -1204,10 +1204,10 @@ namespace LevelEditorPlugin.Editors
             NodeRemovedEventArgs e = obj as NodeRemovedEventArgs;
             if (e.Entity is Entity entity)
             {
-                ReferenceObject refObjEntity = layer.Entity as Entities.ReferenceObject;
+                ReferenceObject refObjEntity = m_layer.Entity as Entities.ReferenceObject;
                 
                 // @todo: support deleting wirepoints and updating entity flags
-                e.Container.Add(new RemoveNodeConnectionsUndoUnit(entity, refObjEntity.Blueprint.Data, schematicsData));
+                e.Container.Add(new RemoveNodeConnectionsUndoUnit(entity, refObjEntity.Blueprint.Data, m_schematicsData));
                 
                 e.Container.Add(new GenericUndoUnit("Remove Schematics Node Entity",
                     (o) =>
@@ -1216,24 +1216,24 @@ namespace LevelEditorPlugin.Editors
                         refObjEntity.RemoveEntity(entity);
 
                         // remove from ebx
-                        owner.Asset.RemoveObject(entity.GetRawData());
+                        m_owner.Asset.RemoveObject(entity.GetRawData());
                         // @todo: only update asset if we're removing a base asset node
                         LoadedAssetManager.Instance.UpdateAsset(refObjEntity.Blueprint);
 
                         // remove from canvas
-                        schematicsData.Entities.Remove(schematicsData.Entities.First(se => se.InstanceGuid == entity.InstanceGuid));
+                        m_schematicsData.Entities.Remove(m_schematicsData.Entities.First(se => se.InstanceGuid == entity.InstanceGuid));
                     },
                     (o) =>
                     {
                         // add entity to ebx
-                        owner.Asset.AddObject(entity.GetRawData());
+                        m_owner.Asset.AddObject(entity.GetRawData());
 
                         // add to reference
                         refObjEntity.AddEntity(entity);
                         LoadedAssetManager.Instance.UndoUpdate(refObjEntity.Blueprint);
 
                         // add to canvas
-                        schematicsData.Entities.Add(entity);
+                        m_schematicsData.Entities.Add(entity);
                     }));
             }
         }
@@ -1255,16 +1255,16 @@ namespace LevelEditorPlugin.Editors
             PropertyGridModifiedEventArgs args = obj as PropertyGridModifiedEventArgs;
             if (args.IsUndoAction)
             {
-                LoadedAssetManager.Instance.UndoUpdate((layer.Entity as Entities.ReferenceObject).Blueprint);
+                LoadedAssetManager.Instance.UndoUpdate((m_layer.Entity as Entities.ReferenceObject).Blueprint);
             }
             else
             {
-                LoadedAssetManager.Instance.UpdateAsset((layer.Entity as Entities.ReferenceObject).Blueprint);
+                LoadedAssetManager.Instance.UpdateAsset((m_layer.Entity as Entities.ReferenceObject).Blueprint);
             }
 
-            modifiedData = obj;
+            m_modifiedData = obj;
             NotifyPropertyChanged("ModifiedData");
-            modifiedData = null;
+            m_modifiedData = null;
             NotifyPropertyChanged("ModifiedData");
         }
 
@@ -1272,7 +1272,7 @@ namespace LevelEditorPlugin.Editors
         {
             FrostySdk.Ebx.DataBusPeer entityData = (FrostySdk.Ebx.DataBusPeer)Activator.CreateInstance(entityDataType);
 
-            Guid instanceGuid = FrostySdk.Utils.GenerateDeterministicGuid(owner.Asset.Objects, entityDataType.Name, owner.Asset.FileGuid);
+            Guid instanceGuid = FrostySdk.Utils.GenerateDeterministicGuid(m_owner.Asset.Objects, entityDataType.Name, m_owner.Asset.FileGuid);
             entityData.SetInstanceGuid(new FrostySdk.Ebx.AssetClassGuid(instanceGuid, -1));
 
             byte[] array = instanceGuid.ToByteArray();

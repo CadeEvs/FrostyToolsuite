@@ -12,29 +12,29 @@ namespace LevelEditorPlugin.Controls
 {
     public class SchematicsPreviewControl : Control
     {
-        private ILogicEntity previewEntity;
-        private NodeVisual previewEntityVisual;
+        private ILogicEntity m_previewEntity;
+        private NodeVisual m_previewEntityVisual;
 
         public SchematicsPreviewControl(ILogicEntity inEntity)
         {
             FontData largeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
 
-            previewEntity = inEntity;
-            previewEntityVisual = new NodeVisual(previewEntity, 0, 0) { IsCollapsed = false, GlyphWidth = largeFont.AdvanceWidth };
-            previewEntityVisual.Update();
+            m_previewEntity = inEntity;
+            m_previewEntityVisual = new NodeVisual(m_previewEntity, 0, 0) { IsCollapsed = false, GlyphWidth = largeFont.AdvanceWidth };
+            m_previewEntityVisual.Update();
 
             Background = null;
             IsHitTestVisible = false;
             Focusable = false;
             IsEnabled = false;
-            Width = previewEntityVisual.Rect.Width;
-            Height = previewEntityVisual.Rect.Height;
+            Width = m_previewEntityVisual.Rect.Width;
+            Height = m_previewEntityVisual.Rect.Height;
         }
 
         protected override void OnRender(DrawingContext drawingContext)
         {
             base.OnRender(drawingContext);
-            previewEntityVisual.Render(SchematicsCanvas.DrawingContextState.CreateFromValues(drawingContext, new MatrixTransform(), 1));
+            m_previewEntityVisual.Render(SchematicsCanvas.DrawingContextState.CreateFromValues(drawingContext, new MatrixTransform(), 1));
         }
     }
 }

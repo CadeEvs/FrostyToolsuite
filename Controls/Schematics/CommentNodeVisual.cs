@@ -13,24 +13,24 @@ namespace LevelEditorPlugin.Controls
 
         public CommentNodeData CommentData;
 
-        private Brush colorBrush;
-        private Pen colorPen;
-        private SolidColorBrush outlineBrush;
-        private Pen outlinePen;
-        private List<BaseVisual> nodes;
+        private Brush m_colorBrush;
+        private Pen m_colorPen;
+        private SolidColorBrush m_outlineBrush;
+        private Pen m_outlinePen;
+        private List<BaseVisual> m_nodes;
 
-        public CommentNodeVisual(CommentNodeData commentData, IEnumerable<BaseVisual> selectedVisuals, double x, double y) 
-            : base(x, y)
+        public CommentNodeVisual(CommentNodeData inCommentData, IEnumerable<BaseVisual> inSelectedVisuals, double inX, double inY) 
+            : base(inX, inY)
         {
-            CommentData = commentData;
+            CommentData = inCommentData;
 
-            nodes = new List<BaseVisual>();
-            nodes.AddRange(selectedVisuals);
+            m_nodes = new List<BaseVisual>();
+            m_nodes.AddRange(inSelectedVisuals);
 
-            colorBrush = new SolidColorBrush(Color.FromScRgb(1.0f, commentData.Color.x, commentData.Color.y, commentData.Color.z));
-            colorPen = new Pen(colorBrush, 5.0);
-            outlineBrush = new SolidColorBrush(Color.FromScRgb(0.0f, 1.0f, 1.0f, 1.0f));
-            outlinePen = new Pen(outlineBrush, 2.5);
+            m_colorBrush = new SolidColorBrush(Color.FromScRgb(1.0f, inCommentData.Color.x, inCommentData.Color.y, inCommentData.Color.z));
+            m_colorPen = new Pen(m_colorBrush, 5.0);
+            m_outlineBrush = new SolidColorBrush(Color.FromScRgb(0.0f, 1.0f, 1.0f, 1.0f));
+            m_outlinePen = new Pen(m_outlineBrush, 2.5);
 
             UpdatePositionAndSize();
         }
@@ -44,7 +44,7 @@ namespace LevelEditorPlugin.Controls
             commentLayout.Color = Color.FromArgb(255, (byte)(CommentData.Color.x * 255.0f), (byte)(CommentData.Color.y * 255.0f), (byte)(CommentData.Color.z * 255.0f));
             commentLayout.Children = new List<Guid>();
 
-            foreach (BaseVisual node in nodes)
+            foreach (BaseVisual node in m_nodes)
             {
                 commentLayout.Children.Add(node.UniqueId);
             }
@@ -54,7 +54,7 @@ namespace LevelEditorPlugin.Controls
 
         public void AddNode(BaseVisual node)
         {
-            nodes.Add(node);
+            m_nodes.Add(node);
             UpdatePositionAndSize();
         }
 
@@ -67,20 +67,20 @@ namespace LevelEditorPlugin.Controls
 
         public override bool OnMouseOver(Point mousePos)
         {
-            outlineBrush.Opacity = 0.4;
+            m_outlineBrush.Opacity = 0.4;
             return base.OnMouseOver(mousePos);
         }
 
         public override bool OnMouseLeave()
         {
-            outlineBrush.Opacity = 0.0;
+            m_outlineBrush.Opacity = 0.0;
             return base.OnMouseLeave();
         }
 
         public override void Move(Point newPos)
         {
             Point offset = new Point(newPos.X - Rect.X, newPos.Y - Rect.Y);
-            foreach (BaseVisual node in nodes)
+            foreach (BaseVisual node in m_nodes)
             {
                 if (node.IsSelected)
                     continue;
@@ -99,13 +99,13 @@ namespace LevelEditorPlugin.Controls
 
         public override void Render(SchematicsCanvas.DrawingContextState state)
         {
-            colorPen.Thickness = 5.0 * state.Scale;
-            colorPen.Brush = colorBrush;
+            m_colorPen.Thickness = 5.0 * state.Scale;
+            m_colorPen.Brush = m_colorBrush;
 
-            Rect rect = nodes[0].Rect;
-            for (int i = 1; i < nodes.Count; i++)
+            Rect rect = m_nodes[0].Rect;
+            for (int i = 1; i < m_nodes.Count; i++)
             {
-                rect.Union(nodes[i].Rect);
+                rect.Union(m_nodes[i].Rect);
             }
             Rect.X = rect.X - 10;
             Rect.Y = rect.Y - 30;
@@ -115,8 +115,8 @@ namespace LevelEditorPlugin.Controls
             Rect outlineRect = new Rect(Rect.X + 2.5, Rect.Y + 2.5, Rect.Width - 5, Rect.Height - 5);
             Rect titleRect = new Rect(Rect.X, Rect.Y, Rect.Width, 20);
 
-            state.DrawingContext.DrawRectangle(null, colorPen, state.TransformRect(outlineRect));
-            state.DrawingContext.DrawRectangle(colorPen.Brush, null, state.TransformRect(titleRect));
+            state.DrawingContext.DrawRectangle(null, m_colorPen, state.TransformRect(outlineRect));
+            state.DrawingContext.DrawRectangle(m_colorPen.Brush, null, state.TransformRect(titleRect));
 
             if (state.InvScale < 2.5)
             {
@@ -136,18 +136,18 @@ namespace LevelEditorPlugin.Controls
             }
 
             // selection outline
-            outlinePen.Thickness = 2.5 * state.Scale;
-            outlinePen.Brush = IsSelected ? Brushes.PaleGoldenrod : outlineBrush;
+            m_outlinePen.Thickness = 2.5 * state.Scale;
+            m_outlinePen.Brush = IsSelected ? Brushes.PaleGoldenrod : m_outlineBrush;
             Rect selectedRect = new Rect(Rect.X - 1, Rect.Y - 1, Rect.Width + 2, Rect.Height + 2);
-            state.DrawingContext.DrawRectangle(null, outlinePen, state.TransformRect(selectedRect));
+            state.DrawingContext.DrawRectangle(null, m_outlinePen, state.TransformRect(selectedRect));
         }
 
         private void UpdatePositionAndSize()
         {
-            Rect rect = nodes[0].Rect;
-            for (int i = 1; i < nodes.Count; i++)
+            Rect rect = m_nodes[0].Rect;
+            for (int i = 1; i < m_nodes.Count; i++)
             {
-                rect.Union(nodes[i].Rect);
+                rect.Union(m_nodes[i].Rect);
             }
 
             Rect.X = rect.X - 10;
@@ -156,10 +156,10 @@ namespace LevelEditorPlugin.Controls
             Rect.Height = rect.Height + 40;
 
             Color tmpColor = Color.FromScRgb(1.0f, CommentData.Color.x, CommentData.Color.y, CommentData.Color.z);
-            if (tmpColor != (colorPen.Brush as SolidColorBrush).Color)
+            if (tmpColor != (m_colorPen.Brush as SolidColorBrush).Color)
             {
-                colorBrush = new SolidColorBrush(tmpColor);
-                colorPen.Brush = colorBrush;
+                m_colorBrush = new SolidColorBrush(tmpColor);
+                m_colorPen.Brush = m_colorBrush;
             }
         }
     }

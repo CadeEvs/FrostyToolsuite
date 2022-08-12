@@ -66,15 +66,15 @@ namespace LevelEditorPlugin.Controls
                 if (portRect.Contains(mousePos))
                 {
                     Mouse.OverrideCursor = Cursors.Arrow;
-                    HightlightedPort = port;
+                    HighlightedPort = port;
                     port.IsHighlighted = true;
                     changedHighlight = true;
                 }
                 else if (port.IsHighlighted)
                 {
-                    if (HightlightedPort == port)
+                    if (HighlightedPort == port)
                     {
-                        HightlightedPort = null;
+                        HighlightedPort = null;
                     }
                     port.IsHighlighted = false;
                     changedHighlight = true;
@@ -144,10 +144,10 @@ namespace LevelEditorPlugin.Controls
                 IsCollapseButtonHovered = false;
                 invalidate = true;
             }
-            if (HightlightedPort != null)
+            if (HighlightedPort != null)
             {
-                HightlightedPort.IsHighlighted = false;
-                HightlightedPort = null;
+                HighlightedPort.IsHighlighted = false;
+                HighlightedPort = null;
                 invalidate = true;
             }
             

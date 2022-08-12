@@ -362,9 +362,9 @@ namespace LevelEditorPlugin.Editors
         {
             get
             {
-                if (selectedEntity == null)
-                    return selectedObject;
-                return selectedEntity.GetPropertyGridData();
+                if (m_selectedEntity == null)
+                    return m_selectedObject;
+                return m_selectedEntity.GetPropertyGridData();
             }
         }
         public object RefreshPropertyGrid { get; set; }
@@ -372,21 +372,21 @@ namespace LevelEditorPlugin.Editors
         public object MockDataObject { get; set; }
         public RelayCommand OnPropertyGridModifiedCommand => new RelayCommand(PropertyGridModified);
 
-        private IEditorProvider owner;
-        private Entity selectedEntity;
-        private object selectedObject;
-        private ICommand dataModifiedCommand;
+        private IEditorProvider m_owner;
+        private Entity m_selectedEntity;
+        private object m_selectedObject;
+        private ICommand m_dataModifiedCommand;
 
         public PropertiesViewModel(IEditorProvider inOwner, Entity currentSelection)
         {
-            owner = inOwner;
-            owner.SelectedEntityChanged += SelectedEntityChanged;
-            owner.SelectedLayerChanged += SelectedLayerChanged;
+            m_owner = inOwner;
+            m_owner.SelectedEntityChanged += SelectedEntityChanged;
+            m_owner.SelectedLayerChanged += SelectedLayerChanged;
 
-            selectedEntity = currentSelection;
-            if (selectedEntity != null)
+            m_selectedEntity = currentSelection;
+            if (m_selectedEntity != null)
             {
-                selectedEntity.EntityModified += EntityModified;
+                m_selectedEntity.EntityModified += EntityModified;
             }
         }
 
@@ -394,7 +394,7 @@ namespace LevelEditorPlugin.Editors
         {
             inOwner.SelectedEntityChanged += SelectedEntityChanged;
             inOwner.SelectedObjectChanged += SelectedObjectChanged;
-            dataModifiedCommand = inOwner.DataModifiedCommand;
+            m_dataModifiedCommand = inOwner.DataModifiedCommand;
         }
 
         public PropertiesViewModel(TimelineViewModel inOwner)
@@ -405,38 +405,38 @@ namespace LevelEditorPlugin.Editors
         public PropertiesViewModel(IEditorProvider inOwner, Entity currentSelection, ICommand dataModifiedCommand)
             : this(inOwner, currentSelection)
         {
-            this.dataModifiedCommand = dataModifiedCommand;
+            this.m_dataModifiedCommand = dataModifiedCommand;
         }
 
         private void SelectedObjectChanged(object sender, SelectedObjectChangedEventArgs e)
         {
-            if (e.NewSelection != selectedEntity)
+            if (e.NewSelection != m_selectedEntity)
             {
-                if (selectedEntity != null)
+                if (m_selectedEntity != null)
                 {
-                    selectedEntity.EntityModified -= EntityModified;
-                    selectedEntity = null;
+                    m_selectedEntity.EntityModified -= EntityModified;
+                    m_selectedEntity = null;
                 }
 
-                selectedObject = e.NewSelection;
+                m_selectedObject = e.NewSelection;
                 NotifyPropertyChanged("Data");
             }
         }
 
         private void SelectedLayerChanged(object sender, SelectedLayerChangedEventArgs e)
         {
-            if (e.NewSelection.Entity != selectedEntity)
+            if (e.NewSelection.Entity != m_selectedEntity)
             {
-                if (selectedEntity != null)
+                if (m_selectedEntity != null)
                 {
-                    selectedEntity.EntityModified -= EntityModified;
+                    m_selectedEntity.EntityModified -= EntityModified;
                 }
 
-                selectedEntity = e.NewSelection.Entity;
+                m_selectedEntity = e.NewSelection.Entity;
 
-                if (selectedEntity != null)
+                if (m_selectedEntity != null)
                 {
-                    selectedEntity.EntityModified += EntityModified;
+                    m_selectedEntity.EntityModified += EntityModified;
                 }
 
                 NotifyPropertyChanged("Data");
@@ -445,26 +445,26 @@ namespace LevelEditorPlugin.Editors
 
         private void SelectedEntityChanged(object sender, SelectedEntityChangedEventArgs e)
         {
-            if (e.NewSelection != selectedEntity)
+            if (e.NewSelection != m_selectedEntity)
             {
-                if (selectedEntity != null)
+                if (m_selectedEntity != null)
                 {
-                    selectedEntity.EntityModified -= EntityModified;
+                    m_selectedEntity.EntityModified -= EntityModified;
                 }
 
-                selectedEntity = e.NewSelection;
+                m_selectedEntity = e.NewSelection;
                 NotifyPropertyChanged("Data");
 
-                if (selectedEntity != null)
+                if (m_selectedEntity != null)
                 {
-                    selectedEntity.EntityModified += EntityModified;
+                    m_selectedEntity.EntityModified += EntityModified;
 
-                    ItemsToInject = selectedEntity.GetPropertyValues();
+                    ItemsToInject = m_selectedEntity.GetPropertyValues();
                     NotifyPropertyChanged("ItemsToInject");
                     ItemsToInject = null;
                     NotifyPropertyChanged("ItemsToInject");
 
-                    MockDataObject = selectedEntity.GetMockDataObject();
+                    MockDataObject = m_selectedEntity.GetMockDataObject();
                     NotifyPropertyChanged("MockDataObject");
                     MockDataObject = null;
                     NotifyPropertyChanged("MockDataObject");
@@ -474,7 +474,7 @@ namespace LevelEditorPlugin.Editors
 
         private void EntityModified(object sender, EntityModifiedEventArgs e)
         {
-            RefreshPropertyGrid = new PropertyGridRefreshArgs(selectedEntity.GetPropertyGridData(), e.OptionalParameterNameChanged, true);
+            RefreshPropertyGrid = new PropertyGridRefreshArgs(m_selectedEntity.GetPropertyGridData(), e.OptionalParameterNameChanged, true);
             NotifyPropertyChanged("RefreshPropertyGrid");
             RefreshPropertyGrid = null;
             NotifyPropertyChanged("RefreshPropertyGrid");
@@ -533,28 +533,28 @@ namespace LevelEditorPlugin.Editors
                         }
                     }
 
-                    if (this.selectedEntity != null)
+                    if (this.m_selectedEntity != null)
                     {
-                        RefreshPropertyGrid = new PropertyGridRefreshArgs(selectedEntity.GetPropertyGridData(), pathToCheck, true);
+                        RefreshPropertyGrid = new PropertyGridRefreshArgs(m_selectedEntity.GetPropertyGridData(), pathToCheck, true);
                         NotifyPropertyChanged("RefreshPropertyGrid");
                         RefreshPropertyGrid = null;
                         NotifyPropertyChanged("RefreshPropertyGrid");
                     }
 
-                    if (dataModifiedCommand != null)
+                    if (m_dataModifiedCommand != null)
                     {
-                        dataModifiedCommand.Execute(new PropertyGridModifiedEventArgs(e, true));
+                        m_dataModifiedCommand.Execute(new PropertyGridModifiedEventArgs(e, true));
                     }
                 }));
 
             if (e.Item.Parent.DisplayName == PropertyGridExtension.PropertiesCategory)
             {
                 // find and update the property value
-                PropertyValue propertyValue = selectedEntity.GetPropertyValues().Find(pv => pv.Name.Equals(e.Item.Name));
+                PropertyValue propertyValue = m_selectedEntity.GetPropertyValues().Find(pv => pv.Name.Equals(e.Item.Name));
                 propertyValue.SetValue(e.NewValue);
 
                 // find the owner of the property values for this entity and update
-                SubWorldReferenceObject parent = selectedEntity.FindAncestor<SubWorldReferenceObject>();
+                SubWorldReferenceObject parent = m_selectedEntity.FindAncestor<SubWorldReferenceObject>();
                 LoadedAssetManager.Instance.UpdateAsset(parent.Blueprint);
             }
             else if (e.Item.Parent.DisplayName == PropertyGridExtension.MockDataCategory)
@@ -562,14 +562,14 @@ namespace LevelEditorPlugin.Editors
                 return;
             }
 
-            if (selectedEntity != null)
+            if (m_selectedEntity != null)
             {
-                selectedEntity.OnDataModified();
+                m_selectedEntity.OnDataModified();
             }
 
-            if (dataModifiedCommand != null)
+            if (m_dataModifiedCommand != null)
             {
-                dataModifiedCommand.Execute(new PropertyGridModifiedEventArgs(e, false));
+                m_dataModifiedCommand.Execute(new PropertyGridModifiedEventArgs(e, false));
             }
         }
 

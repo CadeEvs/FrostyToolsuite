@@ -12,7 +12,7 @@ namespace LevelEditorPlugin.Controls
 {
     public class WireVisual
     {
-        public GeometryGroup WireGeometry => geometry;
+        public GeometryGroup WireGeometry => m_geometry;
 
         public object Data;
         public BaseNodeVisual Source;
@@ -23,13 +23,13 @@ namespace LevelEditorPlugin.Controls
         public int ConnectOrder;
         public List<WirePointVisual> WirePoints = new List<WirePointVisual>();
 
-        private GeometryGroup geometry;
-        private PathGeometry hitTestGeometry;
-        private Stopwatch glowTimer;
+        private GeometryGroup m_geometry;
+        private PathGeometry m_hitTestGeometry;
+        private Stopwatch m_glowTimer;
 
-        private Point mousePosition;
+        private Point m_mousePosition;
 
-        private static Pen hitTestPen;
+        private static Pen m_hitTestPen;
 
         public WireVisual(BaseNodeVisual source, string sourceName, int sourceHash, BaseNodeVisual target, string targetName, int targetHash, int portType)
         {
@@ -50,16 +50,16 @@ namespace LevelEditorPlugin.Controls
             {
                 ConnectOrder = (WireType == 0) ? TargetPort.ConnectionCount - 1 : SourcePort.ConnectionCount - 1;
 
-                geometry = new GeometryGroup();
-                geometry.Children.Add(new LineGeometry(Source.Rect.Location, Target.Rect.Location));
+                m_geometry = new GeometryGroup();
+                m_geometry.Children.Add(new LineGeometry(Source.Rect.Location, Target.Rect.Location));
 
-                if (hitTestPen == null)
+                if (m_hitTestPen == null)
                 {
-                    hitTestPen = new Pen(Brushes.Transparent, 4.0);
-                    hitTestPen.Freeze();
+                    m_hitTestPen = new Pen(Brushes.Transparent, 4.0);
+                    m_hitTestPen.Freeze();
                 }
 
-                glowTimer = new Stopwatch();
+                m_glowTimer = new Stopwatch();
             }
         }
 
@@ -96,7 +96,7 @@ namespace LevelEditorPlugin.Controls
 
         public bool OnMouseMove(Point mousePos)
         {
-            mousePosition = mousePos;
+            m_mousePosition = mousePos;
             return false;
         }
 
@@ -107,44 +107,44 @@ namespace LevelEditorPlugin.Controls
 
         public bool OnMouseUp(Point mousePos, MouseButton mouseButton)
         {
-            if (hitTestGeometry != null)
+            if (m_hitTestGeometry != null)
             {
-                if (hitTestGeometry.FillContains(mousePos) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                if (m_hitTestGeometry.FillContains(mousePos) && Keyboard.IsKeyDown(Key.LeftCtrl))
                 {
                     return true;
                 }
             }
             if (Source == null || Target == null)
             {
-                if (hoveredNode != null)
+                if (m_hoveredNode != null)
                 {
-                    if (hoveredNode is NodeVisual)
+                    if (m_hoveredNode is NodeVisual)
                     {
-                        foreach (BaseNodeVisual.Port port in (hoveredNode as NodeVisual).AllPorts)
+                        foreach (BaseNodeVisual.Port port in (m_hoveredNode as NodeVisual).AllPorts)
                         {
                             port.ShowWhileCollapsed = false;
                         }
-                        hoveredNode.Update();
+                        m_hoveredNode.Update();
                     }
-                    hoveredNode = null;
+                    m_hoveredNode = null;
                 }
             }
             return false;
         }
 
-        private BaseNodeVisual hoveredNode;
-        private BaseNodeVisual.Port hoveredPort;
-        public BaseNodeVisual.Port HoveredPort => hoveredPort;
+        private BaseNodeVisual m_hoveredNode;
+        private BaseNodeVisual.Port m_hoveredPort;
+        public BaseNodeVisual.Port HoveredPort => m_hoveredPort;
 
         public void UpdateEditing(Point mousePos, IEnumerable<BaseVisual> visibleNodes)
         {
-            mousePosition = mousePos;
+            m_mousePosition = mousePos;
 
             BaseNodeVisual.Port wirePort = (Source != null) ? SourcePort : TargetPort;
-            BaseNodeVisual oldHoveredNode = hoveredNode;
+            BaseNodeVisual oldHoveredNode = m_hoveredNode;
 
-            hoveredNode = null;
-            hoveredPort = null;
+            m_hoveredNode = null;
+            m_hoveredPort = null;
 
             foreach (BaseVisual visual in visibleNodes)
             {
@@ -153,7 +153,7 @@ namespace LevelEditorPlugin.Controls
                     NodeVisual node = visual as NodeVisual;
                     if (node.Rect.Contains(mousePos))
                     {
-                        hoveredNode = node;
+                        m_hoveredNode = node;
                         foreach (BaseNodeVisual.Port port in node.AllPorts.Where(p => p.PortType == WireType && p.PortDirection != wirePort.PortDirection))
                         {
                             if (port.DataType == wirePort.DataType || wirePort.DataType == typeof(Any) || port.DataType == typeof(Any))
@@ -166,14 +166,14 @@ namespace LevelEditorPlugin.Controls
 
                             if (portRect.Contains(mousePos))
                             {
-                                hoveredPort = port;
-                                mousePosition = node.Rect.Location;
-                                mousePosition.X += port.Rect.Location.X + ((port.PortDirection == 0) ? 12 : 0);
-                                mousePosition.Y += port.Rect.Location.Y + 6;
+                                m_hoveredPort = port;
+                                m_mousePosition = node.Rect.Location;
+                                m_mousePosition.X += port.Rect.Location.X + ((port.PortDirection == 0) ? 12 : 0);
+                                m_mousePosition.Y += port.Rect.Location.Y + 6;
                             }
                             port.ShowWhileCollapsed = true;
                         }
-                        hoveredNode.Update();
+                        m_hoveredNode.Update();
                         break;
                     }
                 }
@@ -184,26 +184,26 @@ namespace LevelEditorPlugin.Controls
                     {
                         if (node.Self.PortType == WireType && node.Direction != wirePort.PortDirection)
                         {
-                            hoveredNode = node;
+                            m_hoveredNode = node;
                             Rect portRect = new Rect(node.Rect.X + node.Self.Rect.X, node.Rect.Y + node.Self.Rect.Y, node.Self.Rect.Width + node.Self.Name.Length * node.GlyphWidth, node.Self.Rect.Height);
                             if (node.Self.PortDirection == 0) portRect.X -= node.Self.Name.Length * node.GlyphWidth;
 
                             if (portRect.Contains(mousePos))
                             {
-                                hoveredPort = node.Self;
-                                mousePosition = node.Rect.Location;
-                                mousePosition.X += node.Self.Rect.Location.X + ((node.Self.PortDirection == 0) ? 12 : 0);
-                                mousePosition.Y += node.Self.Rect.Location.Y + 6;
+                                m_hoveredPort = node.Self;
+                                m_mousePosition = node.Rect.Location;
+                                m_mousePosition.X += node.Self.Rect.Location.X + ((node.Self.PortDirection == 0) ? 12 : 0);
+                                m_mousePosition.Y += node.Self.Rect.Location.Y + 6;
                             }
 
-                            hoveredNode.Update();
+                            m_hoveredNode.Update();
                             break;
                         }
                     }
                 }
             }
 
-            if (oldHoveredNode != hoveredNode && oldHoveredNode != null)
+            if (oldHoveredNode != m_hoveredNode && oldHoveredNode != null)
             {
                 if (oldHoveredNode is NodeVisual)
                 {
@@ -249,18 +249,18 @@ namespace LevelEditorPlugin.Controls
 
             wirePoint.IsSelected = false;
             WirePoints.Add(wirePoint);
-            geometry.Children.Add(new LineGeometry(Source.Rect.Location, Target.Rect.Location));
+            m_geometry.Children.Add(new LineGeometry(Source.Rect.Location, Target.Rect.Location));
         }
 
         private void AddWirePointInternal(WirePointVisual wirePoint)
         {
             int index = 0;
-            foreach (Geometry geom in geometry.Children)
+            foreach (Geometry geom in m_geometry.Children)
             {
-                if (geom.GetWidenedPathGeometry(hitTestPen).FillContains(new Point(wirePoint.Rect.X + 5, wirePoint.Rect.Y + 5)))
+                if (geom.GetWidenedPathGeometry(m_hitTestPen).FillContains(new Point(wirePoint.Rect.X + 5, wirePoint.Rect.Y + 5)))
                 {
                     WirePoints.Insert(index, wirePoint);
-                    geometry.Children.Add(new LineGeometry(Source.Rect.Location, Target.Rect.Location));
+                    m_geometry.Children.Add(new LineGeometry(Source.Rect.Location, Target.Rect.Location));
 
                     break;
                 }
@@ -275,7 +275,7 @@ namespace LevelEditorPlugin.Controls
             int index = WirePoints.IndexOf(wirePoint);
 
             WirePoints.RemoveAt(index);
-            geometry.Children.RemoveAt(index + 1);
+            m_geometry.Children.RemoveAt(index + 1);
         }
 
         public void Render(SchematicsCanvas.DrawingContextState state)
@@ -283,8 +283,8 @@ namespace LevelEditorPlugin.Controls
             BaseNodeVisual.Port portToCheck = (WireType == 0) ? TargetPort : SourcePort;
             bool drawConnectOrder = (state.ConnectorOrdersVisible && portToCheck.ConnectionCount > 1 && state.InvScale < 2.5);
 
-            Point a = (Source != null) ? Source.Rect.Location : mousePosition;
-            Point b = (Target != null) ? Target.Rect.Location : mousePosition;
+            Point a = (Source != null) ? Source.Rect.Location : m_mousePosition;
+            Point b = (Target != null) ? Target.Rect.Location : m_mousePosition;
 
             Pen wirePen = null;
             if (Source.IsSelected || Target.IsSelected)
@@ -322,15 +322,15 @@ namespace LevelEditorPlugin.Controls
                 {
                     Point endPoint = new Point(WirePoints[i].Rect.Location.X + 5, WirePoints[i].Rect.Location.Y + 5);
 
-                    (geometry.Children[i] as LineGeometry).StartPoint = startPoint;
-                    (geometry.Children[i] as LineGeometry).EndPoint = endPoint;
+                    (m_geometry.Children[i] as LineGeometry).StartPoint = startPoint;
+                    (m_geometry.Children[i] as LineGeometry).EndPoint = endPoint;
 
                     state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
                     startPoint = endPoint;
                 }
 
-                (geometry.Children[WirePoints.Count] as LineGeometry).StartPoint = startPoint;
-                (geometry.Children[WirePoints.Count] as LineGeometry).EndPoint = ba;
+                (m_geometry.Children[WirePoints.Count] as LineGeometry).StartPoint = startPoint;
+                (m_geometry.Children[WirePoints.Count] as LineGeometry).EndPoint = ba;
 
                 state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
             }
@@ -338,8 +338,8 @@ namespace LevelEditorPlugin.Controls
             {
                 if (Source != null && Target != null)
                 {
-                    (geometry.Children[0] as LineGeometry).StartPoint = ab;
-                    (geometry.Children[0] as LineGeometry).EndPoint = ba;
+                    (m_geometry.Children[0] as LineGeometry).StartPoint = ab;
+                    (m_geometry.Children[0] as LineGeometry).EndPoint = ba;
                 }
 
                 state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
@@ -347,8 +347,8 @@ namespace LevelEditorPlugin.Controls
 
             if (drawConnectOrder)
             {
-                int geomIndex = (geometry.Children.Count / 2);
-                Geometry geomToUse = geometry.Children[geomIndex];
+                int geomIndex = (m_geometry.Children.Count / 2);
+                Geometry geomToUse = m_geometry.Children[geomIndex];
 
                 Rect box = new Rect(state.WorldMatrix.Transform(new Point(geomToUse.Bounds.X + (geomToUse.Bounds.Width / 2) - 6, geomToUse.Bounds.Y + (geomToUse.Bounds.Height / 2) - 5)), new Size(12 * state.Scale, 10 * state.Scale));
                 state.DrawingContext.DrawRectangle(wirePen.Brush, state.BlackPen, box);
@@ -363,7 +363,7 @@ namespace LevelEditorPlugin.Controls
 
             if (Source != null && Target != null)
             {
-                hitTestGeometry = geometry.GetWidenedPathGeometry(state.WireHitTestPen);
+                m_hitTestGeometry = m_geometry.GetWidenedPathGeometry(state.WireHitTestPen);
             }
         }
 
@@ -380,7 +380,7 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (propA.SetOnFrame >= state.LastFrameCount)
                     {
-                        glowTimer.Restart();
+                        m_glowTimer.Restart();
                     }
                 }
             }
@@ -395,16 +395,16 @@ namespace LevelEditorPlugin.Controls
                 {
                     if (eventA.SetOnFrame >= state.LastFrameCount)
                     {
-                        glowTimer.Restart();
+                        m_glowTimer.Restart();
                     }
                 }
             }
 
-            if (glowTimer.IsRunning)
+            if (m_glowTimer.IsRunning)
             {
-                if (glowTimer.Elapsed.TotalSeconds > 1)
+                if (m_glowTimer.Elapsed.TotalSeconds > 1)
                 {
-                    glowTimer.Stop();
+                    m_glowTimer.Stop();
                     return;
                 }
 
@@ -420,7 +420,7 @@ namespace LevelEditorPlugin.Controls
                 Point ab = new Point(a.X + 9, a.Y);
                 Point ba = new Point(b.X - 9, b.Y);
 
-                state.DrawingContext.PushOpacity((1 - glowTimer.Elapsed.TotalSeconds) * 0.5);
+                state.DrawingContext.PushOpacity((1 - m_glowTimer.Elapsed.TotalSeconds) * 0.5);
                 state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(a), state.WorldMatrix.Transform(ab));
 
                 if (WirePoints.Count > 0)
@@ -430,22 +430,22 @@ namespace LevelEditorPlugin.Controls
                     {
                         Point endPoint = new Point(WirePoints[i].Rect.Location.X + 5, WirePoints[i].Rect.Location.Y + 5);
 
-                        (geometry.Children[i] as LineGeometry).StartPoint = startPoint;
-                        (geometry.Children[i] as LineGeometry).EndPoint = endPoint;
+                        (m_geometry.Children[i] as LineGeometry).StartPoint = startPoint;
+                        (m_geometry.Children[i] as LineGeometry).EndPoint = endPoint;
 
                         state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
                         startPoint = endPoint;
                     }
 
-                    (geometry.Children[WirePoints.Count] as LineGeometry).StartPoint = startPoint;
-                    (geometry.Children[WirePoints.Count] as LineGeometry).EndPoint = ba;
+                    (m_geometry.Children[WirePoints.Count] as LineGeometry).StartPoint = startPoint;
+                    (m_geometry.Children[WirePoints.Count] as LineGeometry).EndPoint = ba;
 
                     state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
                 }
                 else
                 {
-                    (geometry.Children[0] as LineGeometry).StartPoint = ab;
-                    (geometry.Children[0] as LineGeometry).EndPoint = ba;
+                    (m_geometry.Children[0] as LineGeometry).StartPoint = ab;
+                    (m_geometry.Children[0] as LineGeometry).EndPoint = ba;
 
                     state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
                 }

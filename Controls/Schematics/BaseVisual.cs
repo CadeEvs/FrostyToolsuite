@@ -12,10 +12,10 @@ namespace LevelEditorPlugin.Controls
         public Rect Rect;
         public bool IsSelected;
 
-        public BaseVisual(double x, double y)
+        public BaseVisual(double inX, double inY)
         {
-            Rect.X = x;
-            Rect.Y = y;
+            Rect.X = inX;
+            Rect.Y = inY;
         }
 
         public virtual bool OnMouseOver(Point mousePos)

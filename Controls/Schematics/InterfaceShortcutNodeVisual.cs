@@ -63,13 +63,13 @@ namespace LevelEditorPlugin.Controls
             if (portRect.Contains(mousePos))
             {
                 Mouse.OverrideCursor = Cursors.Arrow;
-                HightlightedPort = Self;
+                HighlightedPort = Self;
                 Self.IsHighlighted = true;
                 changedHighlight = true;
             }
             else if (Self.IsHighlighted)
             {
-                HightlightedPort = null;
+                HighlightedPort = null;
                 Self.IsHighlighted = false;
                 changedHighlight = true;
             }
@@ -79,10 +79,10 @@ namespace LevelEditorPlugin.Controls
 
         public override bool OnMouseLeave()
         {
-            if (HightlightedPort != null)
+            if (HighlightedPort != null)
             {
-                HightlightedPort.IsHighlighted = false;
-                HightlightedPort = null;
+                HighlightedPort.IsHighlighted = false;
+                HighlightedPort = null;
                 return true;
             }
             return false;

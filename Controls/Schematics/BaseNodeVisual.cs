@@ -27,25 +27,25 @@ namespace LevelEditorPlugin.Controls
             public InterfaceShortcutNodeVisual ShortcutNode;
             public List<InterfaceShortcutNodeVisual> ShortcutChildren = new List<InterfaceShortcutNodeVisual>();
 
-            public Port(BaseNodeVisual owner)
+            public Port(BaseNodeVisual inOwner)
             {
-                Owner = owner;
+                Owner = inOwner;
             }
 
-            public Port(BaseNodeVisual owner, Type dataType)
+            public Port(BaseNodeVisual inOwner, Type inDataType)
             {
-                Owner = owner;
-                DataType = dataType;
+                Owner = inOwner;
+                DataType = inDataType;
             }
         }
 
         public string Title;
         public double GlyphWidth;
         public int ConnectionCount;
-        public Port HightlightedPort;
+        public Port HighlightedPort;
 
-        public BaseNodeVisual(double x, double y)
-            : base(x, y)
+        public BaseNodeVisual(double inX, double inY)
+            : base(inX, inY)
         {
         }
 

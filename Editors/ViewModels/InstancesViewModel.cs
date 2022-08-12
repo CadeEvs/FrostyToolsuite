@@ -22,12 +22,12 @@ namespace LevelEditorPlugin.Editors
         public string Icon => "Images/Instances.png";
         public IEnumerable<Entities.Entity> Instances
         {
-            get => instances;
+            get => m_instances;
             set
             {
-                if (instances != value)
+                if (m_instances != value)
                 {
-                    instances = value;
+                    m_instances = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -35,32 +35,32 @@ namespace LevelEditorPlugin.Editors
         public ICommand EntityDoubleClickedCommand { get; private set; }
         public Entities.Entity SelectedEntity
         {
-            get => selectedEntity;
+            get => m_selectedEntity;
             set
             {
-                if (selectedEntity != value)
+                if (m_selectedEntity != value)
                 {
-                    Entity prevSelection = selectedEntity;
-                    UndoManager.Instance.CommitUndo(new GenericUndoUnit("Select Entity", (o) => { selectedEntity = value; SelectedEntityChanged(selectedEntity); }, (o) => { selectedEntity = prevSelection; SelectedEntityChanged(selectedEntity); NotifyPropertyChanged("SelectedEntity"); }));
+                    Entity prevSelection = m_selectedEntity;
+                    UndoManager.Instance.CommitUndo(new GenericUndoUnit("Select Entity", (o) => { m_selectedEntity = value; SelectedEntityChanged(m_selectedEntity); }, (o) => { m_selectedEntity = prevSelection; SelectedEntityChanged(m_selectedEntity); NotifyPropertyChanged("SelectedEntity"); }));
                     NotifyPropertyChanged();
                 }
             }
         }
 
-        private IEditorProvider owner;
-        private Entities.Entity selectedEntity;
-        private IEnumerable<Entities.Entity> instances;
+        private IEditorProvider m_owner;
+        private Entities.Entity m_selectedEntity;
+        private IEnumerable<Entities.Entity> m_instances;
 
-        public InstancesViewModel(IEditorProvider inOwner, Entities.Entity currentSelection)
+        public InstancesViewModel(IEditorProvider inOwner, Entity inCurrentSelection)
         {
-            owner = inOwner;
-            owner.Screen.SelectedEntityChanged += SelectedEntityChangedFromScreen;
+            m_owner = inOwner;
+            m_owner.Screen.SelectedEntityChanged += SelectedEntityChangedFromScreen;
 
             List<Layers.SceneLayer> layers = new List<Layers.SceneLayer>();
-            owner.RootLayer.CollectLayers(layers);
+            m_owner.RootLayer.CollectLayers(layers);
 
             EntityDoubleClickedCommand = new RelayCommand(EntityDoubleClicked);
-            selectedEntity = currentSelection;
+            m_selectedEntity = inCurrentSelection;
 
             foreach (SceneLayer layer in layers)
                 layer.VisibilityChanged += SceneLayerVisibilityChanged;
@@ -76,7 +76,7 @@ namespace LevelEditorPlugin.Editors
         private void UpdateEntityInstances()
         {
             List<Entities.Entity> entities = new List<Entities.Entity>();
-            owner.RootLayer.CollectEntities(entities);
+            m_owner.RootLayer.CollectEntities(entities);
 
             Instances = entities;
         }
@@ -89,12 +89,12 @@ namespace LevelEditorPlugin.Editors
         private void EntityDoubleClicked(object state)
         {
             SelectedEntity = state as Entities.Entity;
-            owner.CenterOnSelection();
+            m_owner.CenterOnSelection();
         }
 
         private void SelectedEntityChanged(Entities.Entity newSelection)
         {
-            owner.SelectEntity(newSelection);
+            m_owner.SelectEntity(newSelection);
         }
 
         #region -- INotifyPropertyChanged --
