@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace DuplicationPlugin
 {
@@ -118,6 +119,8 @@ namespace DuplicationPlugin
         }
 
         public override string ContextItemName => "Duplicate";
+
+        public override ImageSource Icon => new ImageSourceConverter().ConvertFromString("pack://application:,,,/FrostyEditor;component/Images/Add.png") as ImageSource;
 
         public override RelayCommand ContextItemClicked => new RelayCommand((o) =>
         {
