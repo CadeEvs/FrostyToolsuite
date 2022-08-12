@@ -13,7 +13,8 @@ namespace LevelEditorPlugin.Controls
     public class WireVisual
     {
         public GeometryGroup WireGeometry => m_geometry;
-
+        public BaseNodeVisual.Port HoveredPort => m_hoveredPort;
+        
         public object Data;
         public BaseNodeVisual Source;
         public BaseNodeVisual.Port SourcePort;
@@ -22,13 +23,16 @@ namespace LevelEditorPlugin.Controls
         public int WireType;
         public int ConnectOrder;
         public List<WirePointVisual> WirePoints = new List<WirePointVisual>();
-
+        
         private GeometryGroup m_geometry;
         private PathGeometry m_hitTestGeometry;
         private Stopwatch m_glowTimer;
 
         private Point m_mousePosition;
 
+        private BaseNodeVisual m_hoveredNode;
+        private BaseNodeVisual.Port m_hoveredPort;
+        
         private static Pen m_hitTestPen;
 
         public WireVisual(BaseNodeVisual source, string sourceName, int sourceHash, BaseNodeVisual target, string targetName, int targetHash, int portType)
@@ -131,10 +135,6 @@ namespace LevelEditorPlugin.Controls
             }
             return false;
         }
-
-        private BaseNodeVisual m_hoveredNode;
-        private BaseNodeVisual.Port m_hoveredPort;
-        public BaseNodeVisual.Port HoveredPort => m_hoveredPort;
 
         public void UpdateEditing(Point mousePos, IEnumerable<BaseVisual> visibleNodes)
         {
@@ -287,8 +287,11 @@ namespace LevelEditorPlugin.Controls
             Point b = (Target != null) ? Target.Rect.Location : m_mousePosition;
 
             Pen wirePen = null;
-            if (Source.IsSelected || Target.IsSelected)
+
+            if ((Source != null && Source.IsSelected) || (Target != null && Target.IsSelected))
+            {
                 wirePen = state.WireSelectedPen;
+            }
             else
             {
                 switch (WireType)
