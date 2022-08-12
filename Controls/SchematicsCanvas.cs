@@ -1688,16 +1688,41 @@ namespace LevelEditorPlugin.Controls
 
                 if (logicEntity is LogicEntity)
                 {
+                    MenuItem triggerMenuItem = new MenuItem() { Header = "Trigger" };
+
+                    MenuItem inputTriggerMenuItem = new MenuItem() { Header = "Input" };
+                    MenuItem outputTriggerMenuItem = new MenuItem() { Header = "Output" };
+                    
                     LogicEntity l = logicEntity as LogicEntity;
                     foreach (ConnectionDesc conn in l.Events)
                     {
-                        if (conn.IsTriggerable)
+                        MenuItem eventMenuItem = new MenuItem() { Header = conn.Name };
+                        eventMenuItem.Click += (o, e) => { l.EventToTrigger = Frosty.Hash.Fnv1.HashString(conn.Name); };
+                        
+                        if (conn.Direction == Direction.In)
                         {
-                            MenuItem triggerMenuItem = new MenuItem() { Header = $"Trigger {conn.Name}" };
-                            triggerMenuItem.Click += (o, e) => { l.EventToTrigger = Frosty.Hash.Fnv1.HashString(conn.Name); };
-                            nodeContextMenu.Items.Add(triggerMenuItem);
+                            inputTriggerMenuItem.Items.Add(eventMenuItem);
+                        }
+                        else if (conn.Direction == Direction.Out)
+                        {
+                            outputTriggerMenuItem.Items.Add(eventMenuItem);
                         }
                     }
+
+                    bool hasTriggers = false;
+                    if (inputTriggerMenuItem.Items.Count > 0)
+                    {
+                        triggerMenuItem.Items.Add(inputTriggerMenuItem);
+                        hasTriggers = true;
+                    }
+                    if (outputTriggerMenuItem.Items.Count > 0)
+                    {
+                        triggerMenuItem.Items.Add(outputTriggerMenuItem);
+                        hasTriggers = true;
+                    }
+
+                    if (hasTriggers)
+                        nodeContextMenu.Items.Add(triggerMenuItem);
                 }
 
                 double x = ((int)(r.NextDouble() * 2000)) - 1000;
