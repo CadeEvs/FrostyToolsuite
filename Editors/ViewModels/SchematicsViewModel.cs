@@ -401,7 +401,7 @@ namespace LevelEditorPlugin.Editors
 
     public class RemoveNodeConnectionsUndoUnit : IUndoUnit
     {
-        public string Text => "Remove Node Connections";
+        public string Text => "Delete Node Connections";
         
         private Dictionary<PropertyConnection, int> propertyConnectionsToRemove = new Dictionary<PropertyConnection, int>();
         private Dictionary<EventConnection, int> eventConnectionsToRemove = new Dictionary<EventConnection, int>();
@@ -1209,7 +1209,7 @@ namespace LevelEditorPlugin.Editors
                 // @todo: support deleting wirepoints and updating entity flags
                 e.Container.Add(new RemoveNodeConnectionsUndoUnit(entity, refObjEntity.Blueprint.Data, m_schematicsData));
                 
-                e.Container.Add(new GenericUndoUnit("Remove Schematics Node Entity",
+                e.Container.Add(new GenericUndoUnit("Delete Schematics Node Entity",
                     (o) =>
                     {
                         // remove from reference

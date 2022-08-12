@@ -1688,7 +1688,7 @@ namespace LevelEditorPlugin.Controls
                 ContextMenu nodeContextMenu = new ContextMenu();
                 if (logicEntity is LogicEntity)
                 {
-                    MenuItem triggerMenuItem = new MenuItem() { Header = "Trigger" };
+                    MenuItem triggerMenuItem = new MenuItem() { Header = "Trigger Event" };
 
                     MenuItem inputTriggerMenuItem = new MenuItem() { Header = "Input" };
                     MenuItem outputTriggerMenuItem = new MenuItem() { Header = "Output" };
