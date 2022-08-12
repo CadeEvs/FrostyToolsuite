@@ -60,12 +60,14 @@ namespace LevelEditorPlugin.Editors
         {
             entity = inEntity;
 
-            IComponentEntity componentEntity = entity as Entities.IComponentEntity;
-            foreach (Entity child in componentEntity.Components)
+            if (entity is Entities.IComponentEntity componentEntity)
             {
-                if (child is Entities.IComponentEntity)
+                foreach (Entity child in componentEntity.Components)
                 {
-                    children.Add(new ComponentWrapper(child));
+                    if (child is Entities.IComponentEntity)
+                    {
+                        children.Add(new ComponentWrapper(child));
+                    }
                 }
             }
         }
