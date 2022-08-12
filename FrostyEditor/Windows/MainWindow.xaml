@@ -48,22 +48,22 @@
                 <MenuItem Header="File" Height="22">
                     <MenuItem x:Name="NewModMenuItem" Header="New" Height="22" InputGestureText="Ctrl+N" Click="newModMenuItem_Click">
                         <MenuItem.Icon>
-                            <Image Source="/FrostyEditor;component/Images/New.png" Opacity="0.5"/>
+                            <Image Source="/FrostyEditor;component/Images/New.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="OpenModMenuItem" Header="Open" Height="22" InputGestureText="Ctrl+O" Click="openModMenuItem_Click">
                         <MenuItem.Icon>
-                            <Image Source="/FrostyEditor;component/Images/Open.png" Opacity="0.5"/>
+                            <Image Source="/FrostyEditor;component/Images/Open.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="SaveModMenuItem" Header="Save" Height="22" InputGestureText="Ctrl+S" Click="saveModMenuItem_Click">
                         <MenuItem.Icon>
-                            <Image Source="/FrostyEditor;component/Images/Save.png" Opacity="0.5"/>
+                            <Image Source="/FrostyEditor;component/Images/Save.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem x:Name="SaveAsModMenuItem" Header="Save As" Height="22" InputGestureText="Ctrl+Shift+S" Click="saveAsModMenuItem_Click">
                         <MenuItem.Icon>
-                            <Image Source="/FrostyEditor;component/Images/SaveAs.png" Opacity="0.5"/>
+                            <Image Source="/FrostyEditor;component/Images/SaveAs.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
@@ -71,7 +71,7 @@
                     <Separator/>
                     <MenuItem x:Name="ExitMenuItem" Header="Exit" InputGestureText="Alt+F4" Height="22" Click="exitMenuItem_Click">
                         <MenuItem.Icon>
-                            <Image Source="/FrostyEditor;component/Images/Exit.png" Opacity="0.5"/>
+                            <Image Source="/FrostyEditor;component/Images/Exit.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -80,7 +80,7 @@
                 <MenuItem Header="Window" Height="22">
                     <MenuItem x:Name="CloseAllDocumentsMenuItem" Header="Close All Documents" Click="closeAllDocumentsMenuItem_Click">
                         <MenuItem.Icon>
-                            <Image Source="/FrostyEditor;component/Images/CloseAll.png" Opacity="0.5"/>
+                            <Image Source="/FrostyEditor;component/Images/CloseAll.png"/>
                         </MenuItem.Icon>
                     </MenuItem>
                 </MenuItem>
@@ -636,22 +636,22 @@
                                         <ContextMenu>
                                             <MenuItem Header="Open" Click="contextMenuOpen_Click">
                                                 <MenuItem.Icon>
-                                                    <Image Source="/FrostyEditor;component/Images/OpenAsset.png" Opacity="0.5"/>
+                                                    <Image Source="/FrostyEditor;component/Images/OpenAsset.png"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
                                             <MenuItem Header="Revert" Click="contextMenuRevert_Click">
                                                 <MenuItem.Icon>
-                                                    <Image Source="/FrostyEditor;component/Images/Revert.png" Opacity="0.5"/>
+                                                    <Image Source="/FrostyEditor;component/Images/Revert.png"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
                                             <MenuItem Header="Export" Click="contextMenuExportEbx_Click">
                                                 <MenuItem.Icon>
-                                                    <Image Source="/FrostyEditor;component/Images/Export.png" Opacity="0.5"/>
+                                                    <Image Source="/FrostyEditor;component/Images/Export.png"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
                                             <MenuItem Header="Import" Click="contextMenuImportEbx_Click">
                                                 <MenuItem.Icon>
-                                                    <Image Source="/FrostyEditor;component/Images/Import.png" Opacity="0.5"/>
+                                                    <Image Source="/FrostyEditor;component/Images/Import.png"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
                                             <!--<MenuItem Header="Duplicate" Click="contextMenuDuplicateEbx_Click">

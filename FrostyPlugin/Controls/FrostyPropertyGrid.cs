@@ -1192,8 +1192,7 @@ namespace Frosty.Core.Controls
                 Header = "Copy",
                 Icon = new Image
                 {
-                    Source = StringToBitmapSourceConverter.CopySource,
-                    Opacity = 0.5
+                    Source = StringToBitmapSourceConverter.CopySource
                 }
             };
             mi.Click += CopyMenuItem_Click;
@@ -1204,8 +1203,7 @@ namespace Frosty.Core.Controls
                 Header = "Paste",
                 Icon = new Image
                 {
-                    Source = StringToBitmapSourceConverter.PasteSource,
-                    Opacity = 0.5
+                    Source = StringToBitmapSourceConverter.PasteSource
                 }
             };
             mi.Click += PasteMenuItem_Click;
@@ -1221,8 +1219,7 @@ namespace Frosty.Core.Controls
                     Header = "Copy Guid",
                     Icon = new Image
                     {
-                        Source = StringToBitmapSourceConverter.CopySource,
-                        Opacity = 0.5
+                        Source = StringToBitmapSourceConverter.CopySource
                     }
                 };
                 mi.Click += CopyGuidMenuItem_Click;
