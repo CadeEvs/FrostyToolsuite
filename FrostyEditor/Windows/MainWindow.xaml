@@ -67,7 +67,11 @@
                         </MenuItem.Icon>
                     </MenuItem>
                     <Separator/>
-                    <MenuItem x:Name="ExportModMenuItem" Header="Export to Mod" Height="22" Command="{StaticResource exportModMenuItemCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+                    <MenuItem x:Name="ExportModMenuItem" Header="Export to Mod" Height="22" Command="{StaticResource exportModMenuItemCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}">
+                        <MenuItem.Icon>
+                            <Image Source="/FrostyEditor;component/Images/Compile.png"/>
+                        </MenuItem.Icon>
+                    </MenuItem>
                     <Separator/>
                     <MenuItem x:Name="ExitMenuItem" Header="Exit" InputGestureText="Alt+F4" Height="22" Click="exitMenuItem_Click">
                         <MenuItem.Icon>

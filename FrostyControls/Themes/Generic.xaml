@@ -700,7 +700,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ContextMenu}">
                     <Border Background="{StaticResource MenuItemBackground}" BorderBrush="#555555" BorderThickness="1" CornerRadius="6">
-                        <ScrollViewer Margin="-2,5,-2,5" CanContentScroll="True" Style="{DynamicResource {ComponentResourceKey ResourceId=MenuScrollViewer, TypeInTargetAssembly={x:Type FrameworkElement}}}">
+                        <ScrollViewer Margin="-2,3,-2,3" CanContentScroll="True" Style="{DynamicResource {ComponentResourceKey ResourceId=MenuScrollViewer, TypeInTargetAssembly={x:Type FrameworkElement}}}">
                             <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" Margin="{TemplateBinding Padding}" SnapsToDevicePixels="True"/>
                         </ScrollViewer>
                     </Border>
@@ -782,11 +782,11 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type MenuItem}">
-                            <Border x:Name="templateRoot" BorderBrush="Transparent" MinHeight="22" Padding="10,0,0,0" Background="Transparent" SnapsToDevicePixels="True">
+                            <Border x:Name="templateRoot" BorderBrush="Transparent" MinHeight="22" Padding="6,0,0,0" Background="Transparent" SnapsToDevicePixels="True">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition MinWidth="22" SharedSizeGroup="MenuItemIconColumnGroup" Width="Auto"/>
-                                        <ColumnDefinition Width="13"/>
+                                        <ColumnDefinition Width="9"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="30"/>
                                         <ColumnDefinition SharedSizeGroup="MenuItemIGTColumnGroup" Width="Auto"/>
@@ -826,7 +826,7 @@
                                     <Setter Property="Background" TargetName="templateRoot" Value="{StaticResource SubMenuItemHighlight}"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Foreground" Value="#838383"/>
+                                    <Setter Property="Opacity" Value="0.5"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -838,13 +838,13 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="{x:Type MenuItem}">
-                            <Border x:Name="templateRoot" BorderBrush="Transparent" MinHeight="22" Padding="10,0,0,0" Background="Transparent" SnapsToDevicePixels="True">
+                            <Border x:Name="templateRoot" BorderBrush="Transparent" MinHeight="22" Padding="6,0,0,0" Background="Transparent" SnapsToDevicePixels="True">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition MinWidth="22" SharedSizeGroup="MenuItemIconColumnGroup" Width="Auto"/>
-                                        <ColumnDefinition Width="13"/>
+                                        <ColumnDefinition Width="9"/>
                                         <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="30"/>
+                                        <ColumnDefinition Width="35"/>
                                         <ColumnDefinition SharedSizeGroup="MenuItemIGTColumnGroup" Width="Auto"/>
                                         <ColumnDefinition Width="20"/>
                                     </Grid.ColumnDefinitions>
@@ -868,7 +868,7 @@
                                     <Setter Property="Background" TargetName="templateRoot" Value="{StaticResource SubMenuItemHighlight}"/>
                                 </Trigger>
                                 <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Foreground" Value="#838383"/>
+                                    <Setter Property="Opacity" Value="0.5"/>
                                 </Trigger>
                             </ControlTemplate.Triggers>
                         </ControlTemplate>
@@ -885,7 +885,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Separator}">
-                    <Border Background="#373737" Height="1" Margin="0,5,0,5"/>
+                    <Border Background="#373737" Height="1" Margin="0,4,0,4"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
