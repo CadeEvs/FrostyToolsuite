@@ -78,7 +78,7 @@
                 <MenuItem x:Name="ToolsMenuItem" Header="Tools" Height="22">
                 </MenuItem>
                 <MenuItem Header="Window" Height="22">
-                    <MenuItem x:Name="CloseAllDocumentsMenuItem" Header="Close All Documents" Click="closeAllDocumentsMenuItem_Click">
+                    <MenuItem x:Name="CloseAllDocumentsMenuItem" Header="Close All Documents" InputGestureText="Ctrl + D" Click="closeAllDocumentsMenuItem_Click">
                         <MenuItem.Icon>
                             <Image Source="/FrostyEditor;component/Images/CloseAll.png"/>
                         </MenuItem.Icon>
@@ -644,6 +644,7 @@
                                                     <Image Source="/FrostyEditor;component/Images/Revert.png"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
+                                            <Separator/>
                                             <MenuItem Header="Export" Click="contextMenuExportEbx_Click">
                                                 <MenuItem.Icon>
                                                     <Image Source="/FrostyEditor;component/Images/Export.png"/>
@@ -654,11 +655,6 @@
                                                     <Image Source="/FrostyEditor;component/Images/Import.png"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
-                                            <!--<MenuItem Header="Duplicate" Click="contextMenuDuplicateEbx_Click">
-                                                    <MenuItem.Icon>
-                                            <Image Source="/FrostyEditor;component/Images/Rename.png" Opacity="0.5"/>
-                                        </MenuItem.Icon>
-                                                </MenuItem>-->
                                         </ContextMenu>
                                     </core:FrostyDataExplorer.AssetContextMenu>
                                 </core:FrostyDataExplorer>
@@ -689,7 +685,6 @@
                                                     <Image Source="/FrostyEditor;component/Images/Import.png" Opacity="0.5"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
-                                            <!--<MenuItem Header="List Bundles" Click="listBundlesMenuItem_Click"/>-->
                                         </ContextMenu>
                                     </core:FrostyDataExplorer.AssetContextMenu>
                                 </core:FrostyDataExplorer>

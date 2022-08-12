@@ -187,6 +187,11 @@ namespace FrostyEditor.Windows
         }
         private void LoadDataExplorerMenuItemExtensions()
         {
+            if (App.PluginManager.DataExplorerContextMenuExtensions.Count() > 0)
+            {
+                dataExplorer.AssetContextMenu.Items.Add(new Separator());
+            }
+            
             foreach (DataExplorerContextMenuExtension contextItemExtension in App.PluginManager.DataExplorerContextMenuExtensions)
             {
                 MenuItem contextMenuItem = new MenuItem
