@@ -33,11 +33,11 @@ using System.Windows;
 [assembly: RegisterMenuExtension(typeof(DumpLayoutsToLogExtension))]
 [assembly: RegisterMenuExtension(typeof(BlueprintAnalysisExtension))]
 
+[assembly: RegisterAssetDefinition("LevelData", typeof(LevelDataAssetDefinition))]
+[assembly: RegisterAssetDefinition("DetachedSubWorldData", typeof(DetachedSubWorldDataAssetDefinition))]
 [assembly: RegisterAssetDefinition("ObjectBlueprint", typeof(ObjectBlueprintAssetDefinition))]
 [assembly: RegisterAssetDefinition("LogicPrefabBlueprint", typeof(LogicPrefabAssetDefinition))]
 [assembly: RegisterAssetDefinition("SpatialPrefabBlueprint", typeof(SpatialPrefabAssetDefinition))]
-[assembly: RegisterAssetDefinition("LevelData", typeof(LevelDataAssetDefinition))]
-[assembly: RegisterAssetDefinition("DetachedSubWorldData", typeof(DetachedSubWorldDataAssetDefinition))]
 
 [assembly:RegisterCustomHandler(CustomHandlerType.Res, typeof(HavokPhysicsDataActionHandler), ResType = ResourceType.HavokPhysicsData)]
 
