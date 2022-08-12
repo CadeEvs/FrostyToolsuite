@@ -520,6 +520,9 @@ namespace LevelEditorPlugin.Controls
 
         private BaseVisual m_hoveredNode;
 
+        private bool m_isMouseDown;
+        private bool m_isMouseMoving;
+        
         private bool m_isMarqueeSelecting;
         private Point m_marqueeSelectionStart;
         private Point m_marqueeSelectionCurrent;
@@ -718,6 +721,11 @@ namespace LevelEditorPlugin.Controls
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
+            if (m_isMouseDown)
+            {
+                m_isMouseMoving = true;
+            }
+            
             if (e.LeftButton == MouseButtonState.Pressed)
             {
                 Focus();
@@ -906,6 +914,8 @@ namespace LevelEditorPlugin.Controls
 
         protected override void OnMouseDown(MouseButtonEventArgs e)
         {
+            m_isMouseDown = true;
+            
             MatrixTransform m = GetWorldMatrix();
             Point mousePos = m.Inverse.Transform(e.GetPosition(this));
 
@@ -1104,7 +1114,7 @@ namespace LevelEditorPlugin.Controls
 
             foreach (BaseVisual visual in m_visibleNodeVisuals)
             {
-                if (visual.OnMouseUp(mousePos, e.ChangedButton))
+                if (visual.OnMouseUp(mousePos, e.ChangedButton, m_isMouseMoving))
                 {
                     e.Handled = true;
                     InvalidateVisual();
@@ -1243,6 +1253,9 @@ namespace LevelEditorPlugin.Controls
             }
 
             base.OnMouseUp(e);
+
+            m_isMouseDown = false;
+            m_isMouseMoving = false;
         }
 
         protected override void OnMouseLeave(MouseEventArgs e)

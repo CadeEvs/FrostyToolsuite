@@ -98,7 +98,7 @@ namespace LevelEditorPlugin.Controls
             return false;
         }
 
-        public override bool OnMouseUp(Point mousePos, MouseButton mouseButton)
+        public override bool OnMouseUp(Point mousePos, MouseButton mouseButton, bool hasMouseMoved)
         {
             if (mouseButton == MouseButton.Left)
             {
@@ -111,25 +111,29 @@ namespace LevelEditorPlugin.Controls
             }
             else if (mouseButton == MouseButton.Right)
             {
-                foreach (Port port in AllPorts)
+                // open context menu if mouse hasn't moved
+                if (!hasMouseMoved)
                 {
-                    if (!port.IsConnected || port.ShortcutNode != null)
-                        continue;
-
-                    Rect portRect = new Rect(Rect.X + port.Rect.X, Rect.Y + port.Rect.Y, 12, 12);
-                    if (portRect.Contains(mousePos))
+                    foreach (Port port in AllPorts)
                     {
-                        PortContextMenu.DataContext = port;
-                        PortContextMenu.IsOpen = true;
+                        if (!port.IsConnected || port.ShortcutNode != null)
+                            continue;
+
+                        Rect portRect = new Rect(Rect.X + port.Rect.X, Rect.Y + port.Rect.Y, 12, 12);
+                        if (portRect.Contains(mousePos))
+                        {
+                            PortContextMenu.DataContext = port;
+                            PortContextMenu.IsOpen = true;
+                            return true;
+                        }
+                    }
+
+                    if (NodeContextMenu != null && Rect.Contains(mousePos))
+                    {
+                        NodeContextMenu.DataContext = this;
+                        NodeContextMenu.IsOpen = true;
                         return true;
                     }
-                }
-
-                if (NodeContextMenu != null && Rect.Contains(mousePos))
-                {
-                    NodeContextMenu.DataContext = this;
-                    NodeContextMenu.IsOpen = true;
-                    return true;
                 }
             }
 
