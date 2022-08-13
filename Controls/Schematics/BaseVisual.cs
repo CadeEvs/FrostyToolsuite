@@ -10,6 +10,7 @@ namespace LevelEditorPlugin.Controls
 
         public Guid UniqueId;
         public Rect Rect;
+        public Rect Bounds => new Rect(Rect.X - 6, Rect.Y, Rect.Width + 12, Rect.Height);
         public bool IsSelected;
 
         public BaseVisual(double inX, double inY)

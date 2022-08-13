@@ -181,17 +181,17 @@ namespace LevelEditorPlugin.Controls
 
         public override void Update()
         {
-            Rect.Width = 20 + (Self.Name.Length * GlyphWidth) + 30;
+            Rect.Width = 8 + (Self.Name.Length * GlyphWidth) + 30;
             Rect.Width = Rect.Width + (10 - (Rect.Width % 10));
             Rect.Height = 20;
 
             if (Direction == 1)
             {
-                Self.Rect = new Rect(4, 4, 12, 12);
+                Self.Rect = new Rect(-6, 4, 12, 12);
             }
             else
             {
-                Self.Rect = new Rect(Rect.Width - 16, 4, 12, 12);
+                Self.Rect = new Rect(Rect.Width + 6 - 12, 4, 12, 12);
             }
         }
 
@@ -215,9 +215,8 @@ namespace LevelEditorPlugin.Controls
             }
 
             // draw connector
-            state.DrawingContext.DrawRectangle((Self.IsHighlighted) ? state.NodeSelectedBrush : connectorBrush, state.BlackPen, new Rect(nodePosition.X + (Self.Rect.X * state.Scale), nodePosition.Y + (Self.Rect.Y * state.Scale), 12 * state.Scale, 12 * state.Scale));
-            if (!Self.IsConnected)
-                state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X + ((Self.Rect.X + 2) * state.Scale), nodePosition.Y + ((Self.Rect.Y + 2) * state.Scale), 8 * state.Scale, 8 * state.Scale));
+            Brush brush = (Self.IsHighlighted) ? state.NodeSelectedBrush : connectorBrush;
+            Self.Draw(state, brush, nodeBackgroundBrush, nodePosition);
 
             // draw symbol
             {
@@ -243,7 +242,7 @@ namespace LevelEditorPlugin.Controls
                 if (!string.IsNullOrEmpty(Self.Name))
                 {
                     // node title
-                    double xOffset = (Direction == 1) ? (20 * state.Scale) : ((Rect.Width - 20) * state.Scale) - Self.Name.Length * state.LargeFont.AdvanceWidth;
+                    double xOffset = (Direction == 1) ? (8 * state.Scale) : ((Rect.Width - 8) * state.Scale) - Self.Name.Length * state.LargeFont.AdvanceWidth;
                     GlyphRun titleGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + xOffset, nodePosition.Y + (4 * state.Scale)), true, Self.Name);
                     state.DrawingContext.DrawGlyphRun(Brushes.Black, titleGlyphRun);
                 }
