@@ -201,7 +201,7 @@ namespace LevelEditorPlugin.Controls
             Brush nodeBackgroundBrush = (IsSelected) ? state.NodeSelectedBrush : state.NodeBackgroundBrush;
 
             // draw background
-            state.DrawingContext.DrawRectangle(nodeBackgroundBrush, state.BlackPen, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, Rect.Height * state.Scale));
+            state.DrawingContext.DrawRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, Rect.Height * state.Scale));
 
             if (state.InvScale >= 5)
                 return;
@@ -221,7 +221,7 @@ namespace LevelEditorPlugin.Controls
             // draw symbol
             {
                 double xOffset = (Direction == 0) ? 0 : (Rect.Width - 20) * state.Scale;
-                state.DrawingContext.DrawRectangle(connectorBrush, state.BlackPen, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale));
+                state.DrawingContext.DrawRectangle(connectorBrush, null, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale));
 
                 if (icon != null)
                 {
