@@ -760,7 +760,7 @@ namespace LevelEditorPlugin.Controls
                 }
 
                 // move nodes
-                if (m_selectedNodes.Count > 0)
+                if (m_selectedNodes.Count > 0 && !m_isMarqueeSelecting && !m_isCuttingWire)
                 {
                     if (!UndoManager.Instance.IsUndoing && UndoManager.Instance.PendingUndoUnit == null)
                     {
