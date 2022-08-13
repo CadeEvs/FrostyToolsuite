@@ -733,6 +733,7 @@ namespace LevelEditorPlugin.Controls
                 MatrixTransform m = GetWorldMatrix();
                 Point mousePos = m.Inverse.Transform(e.GetPosition(this));
 
+                // update editing wire
                 if (m_editingWire != null)
                 {
                     m_editingWire.OnMouseMove(mousePos);
@@ -741,15 +742,21 @@ namespace LevelEditorPlugin.Controls
                     return;
                 }
 
+                // only move full node if collapse button or highlighted port isn't hovered
                 if (m_hoveredNode != null && m_hoveredNode is NodeVisual)
                 {
                     if ((m_hoveredNode as NodeVisual).IsCollapseButtonHovered)
+                    {
                         return;
+                    }
                     if ((m_hoveredNode as NodeVisual).HighlightedPort != null)
+                    {
                         return;
+                    }
                 }
 
-                if (m_selectedNodes.Count > 0 && m_selectedNodes.Contains(m_hoveredNode))
+                // move nodes
+                if (m_selectedNodes.Count > 0)
                 {
                     if (!UndoManager.Instance.IsUndoing && UndoManager.Instance.PendingUndoUnit == null)
                     {
