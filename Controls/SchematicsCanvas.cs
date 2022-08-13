@@ -878,7 +878,7 @@ namespace LevelEditorPlugin.Controls
                 bool hasEnteredHoverState = false;
                 foreach (BaseVisual visual in m_visibleNodeVisuals)
                 {
-                    if (visual.Rect.Contains(mousePos) && visual.HitTest(mousePos))
+                    if (visual.Bounds.Contains(mousePos) && visual.HitTest(mousePos))
                     {
                         bool invalidate = false;
                         if (m_hoveredNode != null && m_hoveredNode != visual)
