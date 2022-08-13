@@ -23,6 +23,7 @@ namespace LevelEditorPlugin.Controls
         public int WireType;
         public int ConnectOrder;
         public List<WirePointVisual> WirePoints = new List<WirePointVisual>();
+        public bool IsMarkedForDeletion = false;
         
         private GeometryGroup m_geometry;
         private PathGeometry m_hitTestGeometry;
@@ -300,6 +301,12 @@ namespace LevelEditorPlugin.Controls
                     case 1: wirePen = state.WireEventPen; break;
                     case 2: wirePen = state.WirePropertyPen; break;
                 }
+            }
+
+            // highlight if overlapped by the cutting tool
+            if (IsMarkedForDeletion)
+            {
+                wirePen = state.WireDeletingPen;
             }
 
             if (Source != null)

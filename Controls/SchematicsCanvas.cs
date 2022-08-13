@@ -277,6 +277,7 @@ namespace LevelEditorPlugin.Controls
             public Pen WireHitTestPen { get; private set; }
             public Pen ShortcutWirePen { get; private set; }
             public Pen WireSelectedPen { get; private set; }
+            public Pen WireDeletingPen { get; private set; }
             public Pen GlowPen { get; private set; }
 
             // Various Brushes
@@ -343,6 +344,7 @@ namespace LevelEditorPlugin.Controls
                 WireHitTestPen = owner.m_wireHitTestPen;
                 ShortcutWirePen = owner.m_shortcutWirePen;
                 WireSelectedPen = owner.m_wireSelectedPen;
+                WireDeletingPen = owner.m_wireDeletingPen;
                 GlowPen = owner.m_glowPen;
 
                 NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
@@ -508,6 +510,7 @@ namespace LevelEditorPlugin.Controls
         private Pen m_wireHitTestPen;
         private Pen m_shortcutWirePen;
         private Pen m_wireSelectedPen;
+        private Pen m_wireDeletingPen;
         private Pen m_marqueePen;
         private Pen m_glowPen;
 
@@ -567,6 +570,7 @@ namespace LevelEditorPlugin.Controls
             m_wireHitTestPen = new Pen(Brushes.Transparent, 4.0); m_wireHitTestPen.Freeze();
             m_shortcutWirePen = new Pen(Brushes.WhiteSmoke, 2.0) { DashStyle = DashStyles.Dash }; m_shortcutWirePen.Freeze();
             m_wireSelectedPen = new Pen(Brushes.PaleGoldenrod, 2.0); m_wireSelectedPen.Freeze();
+            m_wireDeletingPen = new Pen(Brushes.Red, 2.0); m_wireDeletingPen.Freeze();
             m_marqueePen = new Pen(Brushes.White, 2.0) { DashStyle = DashStyles.Dash }; m_marqueePen.Freeze();
             m_glowPen = new Pen(Brushes.Yellow, 5.0); m_glowPen.Freeze();
 
@@ -846,8 +850,6 @@ namespace LevelEditorPlugin.Controls
                 {
                     m_wireCutCurrent = mousePos;
                     MatrixTransform mat = GetWorldMatrix();
-                    //Point startPos = mat.Inverse.Transform(wireCutStart);
-                    //Point endPos = mat.Inverse.Transform(wireCutCurrent);
 
                     // clear list to avoid cutting wires that were previously hovered over
                     m_wiresToCut.Clear();
@@ -855,7 +857,14 @@ namespace LevelEditorPlugin.Controls
                     {
                         LineGeometry wireCutLine = wire.WireGeometry.Children[0] as LineGeometry;
                         if (intersect(m_wireCutStart, m_wireCutCurrent, wireCutLine.StartPoint, wireCutLine.EndPoint))
+                        {
                             m_wiresToCut.Add(wire);
+                            wire.IsMarkedForDeletion = true;
+                        }
+                        else
+                        {
+                            wire.IsMarkedForDeletion = false;
+                        }
                     }
 
                     InvalidateVisual();
