@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Media;
 using LevelEditorPlugin.Managers;
 
 namespace LevelEditorPlugin.Controls
@@ -37,15 +38,27 @@ namespace LevelEditorPlugin.Controls
                 Owner = inOwner;
                 DataType = inDataType;
             }
-        }
 
+            public void Draw(SchematicsCanvas.DrawingContextState state, Brush brush, Brush background, Point nodePosition)
+            {
+                if (!IsConnected)
+                {
+                    state.DrawingContext.DrawEllipse(background, null, new Point(nodePosition.X + (Rect.X + Rect.Width - 6) * state.Scale, nodePosition.Y + (Rect.Y + 6) * state.Scale), 6 * state.Scale, 6 * state.Scale);
+                    state.DrawingContext.DrawEllipse(brush, state.BlackPen, new Point(nodePosition.X + (Rect.X + Rect.Width - 6) * state.Scale, nodePosition.Y + (Rect.Y + 6) * state.Scale), 3 * state.Scale, 3 * state.Scale);
+                }
+                else
+                {
+                    state.DrawingContext.DrawEllipse(brush, null, new Point(nodePosition.X + (Rect.X + Rect.Width - 6) * state.Scale, nodePosition.Y + (Rect.Y + 6) * state.Scale), 6 * state.Scale, 6 * state.Scale);
+                }
+            }
+        }
         public string Title;
         public double GlyphWidth;
         public int ConnectionCount;
         public Port HighlightedPort;
 
         public BaseNodeVisual(double inX, double inY)
-            : base(inX, inY)
+        : base(inX, inY)
         {
         }
 
