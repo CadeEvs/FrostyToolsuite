@@ -331,8 +331,15 @@ namespace LevelEditorPlugin.Render
                     }
                 }
 
-                foreach (LayerData layer in layerDatas)
+                List<LayerData> tmpLayers = new List<LayerData>(layerDatas);
+                layerDatas.Clear();
+                foreach (LayerData layer in tmpLayers)
                 {
+                    if (layer.Node == null)
+                    {
+                        continue;
+                    }
+
                     if (layer.Node.data == null && layer.Node.nonTrivialSubtileCount != 0)
                     {
                         ushort hidx = htree.getNodeIndex(layer.Node.id);
@@ -359,6 +366,8 @@ namespace LevelEditorPlugin.Render
                             }
                         }
                     }
+
+                    layerDatas.Add(layer);
                 }
 
                 TerrainChunkRenderable chunk = new TerrainChunkRenderable(state, htree, hnode, mtree, layerDatas);
