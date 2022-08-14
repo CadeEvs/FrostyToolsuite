@@ -38,15 +38,15 @@ namespace FrostyEditor
         public static long StartTime;
 
         public static bool OpenProject {
-            get => openProject;
-            set => openProject = value;
+            get => m_openProject;
+            set => m_openProject = value;
         }
 
         public static string LaunchArgs { get; private set; }
 
-        private static bool openProject;
+        private static bool m_openProject;
 
-        private FrostyConfiguration defaultConfig;
+        private FrostyConfiguration m_defaultConfig;
 
         public App()
         {
@@ -66,10 +66,12 @@ namespace FrostyEditor
             ProfilesLibrary.Initialize(PluginManager.Profiles);
 
             NotificationManager = new NotificationManager();
-
+            
+#if !FROSTY_DEVELOPER
             // for displaying exception box on all unhandled exceptions
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             Exit += Application_Exit;
+#endif
 
 #if FROSTY_DEVELOPER
             Frosty.Core.App.Version += " (Developer)";
@@ -111,7 +113,13 @@ namespace FrostyEditor
                 FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
                 return Assembly.LoadFile(fi.DirectoryName + "/ThirdParty/" + dllname + ".dll");
             }
-
+            
+            if (dllname.Equals("EbxClasses"))
+            {
+                FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
+                return Assembly.LoadFile(fi.DirectoryName + "/Profiles/" + ProfilesLibrary.SDKFilename + ".dll");
+            }
+            
             if (PluginManager != null)
             {
                 if (PluginManager.IsThirdPartyDll(dllname))
@@ -126,7 +134,7 @@ namespace FrostyEditor
             return null;
         }
 
-        public static void UpdateDiscordRPC(string state)
+        public static void UpdateDiscordRpc(string state)
         {
             if (!Config.Get<bool>("DiscordRPCEnabled", false))
                 return;
@@ -157,7 +165,7 @@ namespace FrostyEditor
             DiscordRPC.Discord_UpdatePresence(ref discordPresence);
         }
 
-        public static void InitDiscordRPC()
+        public static void InitDiscordRpc()
         {
             if (Config.Get<bool>("DiscordRPCEnabled", false))
             {
@@ -179,19 +187,25 @@ namespace FrostyEditor
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (!File.Exists($"{Frosty.Core.App.GlobalSettingsPath}/editor_config.json"))
+            {
                 Config.UpgradeConfigs();
+            }
 
             Config.Load();
 
             if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
+            {
                 CheckVersion();
+            }
 
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
             {
                 string prof = Config.Get<string>("DefaultProfile", null);
                 if (!string.IsNullOrEmpty(prof))
-                    defaultConfig = new FrostyConfiguration(prof);
+                {
+                    m_defaultConfig = new FrostyConfiguration(prof);
+                }
                 else
                 {
                     Config.Add("UseDefaultProfile", false);
@@ -202,32 +216,56 @@ namespace FrostyEditor
             //check args to see if it is loading a project
             if (e.Args.Length > 0) {
                 string arg = e.Args[0];
-                if (arg.Contains(".fbproject")) {
-                    openProject = true;
+                
+                if (arg.Contains(".fbproject"))
+                {
+                    m_openProject = true;
                     LaunchArgs = arg;
+
+                    //get game profile from project file
+                    using (NativeReader reader = new NativeReader(new FileStream(arg, FileMode.Open, FileAccess.Read)))
+                    {
+                        if (reader.ReadULong() == 0x00005954534F5246)
+                        {
+                            reader.ReadUInt();
+                            string gameProfile = reader.ReadNullTerminatedString();
+                            
+                            try
+                            { 
+                                m_defaultConfig = new FrostyConfiguration(gameProfile); 
+                            }
+                            catch
+                            { 
+                                FrostyMessageBox.Show("There was an error when trying to load project using the profile: " + gameProfile, "Frosty Editor");
+                            }
+                        }
+                    }
                 }
             }
 
-            if (defaultConfig != null)
+            if (m_defaultConfig != null)
             {
                 // load profile
-                if (!ProfilesLibrary.Initialize(defaultConfig.ProfileName))
+                if (!ProfilesLibrary.Initialize(m_defaultConfig.ProfileName))
                 {
                     FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
                     return;
                 }
 
-                this.StartupUri = new System.Uri("/FrostyEditor;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
+                StartupUri = new System.Uri("/FrostyEditor;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
 
-                App.InitDiscordRPC();
-                App.UpdateDiscordRPC("Loading...");
+                InitDiscordRpc();
+                UpdateDiscordRpc("Loading...");
             }
         }
 
         private void Application_Exit(object sender, ExitEventArgs e)
         {
+            // disable DiscordRPC
             if (Config.Current != null && Config.Get<bool>("DiscordRPCEnabled", false))
+            {
                 DiscordRPC.Discord_Shutdown();
+            }
         }
 
         private void CheckVersion()

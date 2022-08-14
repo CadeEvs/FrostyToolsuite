@@ -1060,10 +1060,6 @@ namespace Frosty.Core.Controls
                 FrostyPropertyGridItemFlags flags = FrostyPropertyGridItemFlags.None;
                 if (attributes.GetCustomAttribute<IsReferenceAttribute>() != null)
                     flags |= FrostyPropertyGridItemFlags.IsReference;
-
-                //object subDefValue = null;
-                //if (defValue != null)
-                //    subDefValue = pi.GetValue(defValue);
                 
                 object actualObject = value;
                 object actualDefaultValue = defValue;
@@ -1072,9 +1068,10 @@ namespace Frosty.Core.Controls
                     actualObject = additionalData;
                     actualDefaultValue = typeOverrideDefaultValue;
                 }
+                if (actualDefaultValue != null)
+                    actualDefaultValue = pi.GetValue(actualDefaultValue);
 
-                FrostyPropertyGridItemData subItem = new FrostyPropertyGridItemData(name, pi.Name, pi.GetValue(actualObject), pi.GetValue(actualDefaultValue), parent, flags) { Binding = new PropertyValueBinding(pi, actualObject) };
-                //FrostyPropertyGridItemData subItem = new FrostyPropertyGridItemData(name, pi.Name, pi.GetValue(value), subDefValue, parent, flags) {Binding = new PropertyValueBinding(pi, value)};
+                FrostyPropertyGridItemData subItem = new FrostyPropertyGridItemData(name, pi.Name, pi.GetValue(actualObject), actualDefaultValue, parent, flags) { Binding = new PropertyValueBinding(pi, actualObject) };
 
                 if (attributes.GetCustomAttribute<FrostySdk.Attributes.IsReadOnlyAttribute>() != null)
                     subItem.IsReadOnly = true;
@@ -1195,8 +1192,7 @@ namespace Frosty.Core.Controls
                 Header = "Copy",
                 Icon = new Image
                 {
-                    Source = StringToBitmapSourceConverter.CopySource,
-                    Opacity = 0.5
+                    Source = StringToBitmapSourceConverter.CopySource
                 }
             };
             mi.Click += CopyMenuItem_Click;
@@ -1207,8 +1203,7 @@ namespace Frosty.Core.Controls
                 Header = "Paste",
                 Icon = new Image
                 {
-                    Source = StringToBitmapSourceConverter.PasteSource,
-                    Opacity = 0.5
+                    Source = StringToBitmapSourceConverter.PasteSource
                 }
             };
             mi.Click += PasteMenuItem_Click;
@@ -1224,8 +1219,7 @@ namespace Frosty.Core.Controls
                     Header = "Copy Guid",
                     Icon = new Image
                     {
-                        Source = StringToBitmapSourceConverter.CopySource,
-                        Opacity = 0.5
+                        Source = StringToBitmapSourceConverter.CopySource
                     }
                 };
                 mi.Click += CopyGuidMenuItem_Click;

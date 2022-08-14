@@ -126,8 +126,8 @@ namespace Frosty.Core.Windows
         public static string Show(bool hasLoadedProfile = false)
         {
             string profileName = "";
-            
-            FrostyProfileSelectWindow win = new FrostyProfileSelectWindow();
+
+            FrostyProfileSelectWindow win = new FrostyProfileSelectWindow() { Owner = Application.Current.MainWindow };
             win.ShowDialog();
             
             profileName = win.selectedProfileName;

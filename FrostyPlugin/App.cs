@@ -42,9 +42,7 @@ namespace Frosty.Core
             FileSystem = null;
 
             PluginManager.Clear();
-
-            TypeLibrary.Clear();
-
+            
             GC.Collect();
             GC.WaitForPendingFinalizers();
             GC.Collect();

@@ -187,6 +187,11 @@ namespace FrostyEditor.Windows
         }
         private void LoadDataExplorerMenuItemExtensions()
         {
+            if (App.PluginManager.DataExplorerContextMenuExtensions.Count() > 0)
+            {
+                dataExplorer.AssetContextMenu.Items.Add(new Separator());
+            }
+            
             foreach (DataExplorerContextMenuExtension contextItemExtension in App.PluginManager.DataExplorerContextMenuExtensions)
             {
                 MenuItem contextMenuItem = new MenuItem
@@ -249,7 +254,7 @@ namespace FrostyEditor.Windows
                     state = header;
             }
 
-            App.UpdateDiscordRPC(state);
+            App.UpdateDiscordRpc(state);
         }
 
         private void InitGameSpecificMenus()
@@ -771,8 +776,12 @@ namespace FrostyEditor.Windows
         private void ShutdownEditorAndRemoveTab(FrostyAssetEditor editor, FrostyTabItem ti)
         {
             editor.Closed();
+            
             if (ti.IsSelected)
+            {
                 AssetEditorToolbarItems.ItemsSource = null;
+            }
+            
             TabControl.Items.Remove(ti);
             if (TabControl.Items.Count == 1)
             {
@@ -785,8 +794,11 @@ namespace FrostyEditor.Windows
 
         private void RemoveTab(FrostyTabItem ti)
         {
+            // execute closed on FrostyBaseEditor and FrostyAssetEditor
             FrostyBaseEditor editor = ti.Content as FrostyBaseEditor;
             editor?.Closed();
+            FrostyAssetEditor assetEditor = ti.Content as FrostyAssetEditor;
+            assetEditor?.Closed();
 
             TabControl.Items.Remove(ti);
             if (TabControl.Items.Count == 1)
@@ -804,9 +816,13 @@ namespace FrostyEditor.Windows
             {
                 FrostyTabItem tabItem = TabControl.Items[1] as FrostyTabItem;
                 if (tabItem.Content is FrostyAssetEditor editor)
+                {
                     ShutdownEditorAndRemoveTab(editor, tabItem);
+                }
                 else
+                {
                     RemoveTab(tabItem);
+                }
             }
         }
 

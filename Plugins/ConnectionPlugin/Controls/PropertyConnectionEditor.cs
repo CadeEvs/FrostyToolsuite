@@ -71,6 +71,8 @@ namespace ConnectionPlugin.Editors
             (sp.Children[4] as TextBlock).Text = GetEntity(propConnection.Target);
             (sp.Children[2] as TextBlock).Text = Sanitize(propConnection.Source, propConnection.SourceField);
             (sp.Children[6] as TextBlock).Text = Sanitize(propConnection.Target, propConnection.TargetField);
+            (sp.Children[2] as TextBlock).Text = AdditionalSanitize(propConnection.Source, propConnection.SourceField);
+            (sp.Children[6] as TextBlock).Text = AdditionalSanitize(propConnection.Target, propConnection.TargetField);
         }
 
         protected virtual string GetEntity(PointerRef pr)
@@ -105,7 +107,7 @@ namespace ConnectionPlugin.Editors
                 retVal = value.Remove(0, 2);
             if (value == "00000000")
                 retVal = "Self";
-
+          
             if (pr.Type == FrostySdk.IO.PointerRefType.Internal && TypeLibrary.IsSubClassOf(pr.Internal, "InterfaceDescriptorData"))
             {
                 dynamic interfaceDesc = pr.Internal;
@@ -141,6 +143,15 @@ namespace ConnectionPlugin.Editors
                 }
             }
             return retVal;
+        }
+
+        protected virtual string AdditionalSanitize(PointerRef pr, string value)
+        {
+            if (value.StartsWith("0x"))
+                value = value.Remove(0, 2);
+            if (value == "00000000")
+                value = "Self";
+            return value;
         }
 
         private FrostyAssetEditor GetParentEditor()

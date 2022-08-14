@@ -1,0 +1,43 @@
+<shader profile="*">
+	<permutations>
+		<permutation>
+			<vertexshader>
+				<vertexlayout>
+					<layoutelement usage="Pos" format="Float3"/>
+					<layoutelement usage="Normal" format="Float3"/>
+					<layoutelement usage="TexCoord0" format="Float2"/>
+					<layoutelement usage="Color0" format="Float3"/>
+				</vertexlayout>
+			</vertexshader>
+			<pixelshader>
+				<parameters>
+					<parameter name="Color" type="Float4" defaultValue="1,0,0,1"/>
+					<parameter name="HoleMaskIndex" type="Float4" defaultValue="-1,-1,-1,-1"/>
+					<parameter name="LayerOffsets1" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets2" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets3" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets4" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets5" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets6" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets7" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets8" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets9" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets10" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets11" type="Float4" defaultValue="1,1,1,1"/>
+					<parameter name="LayerOffsets12" type="Float4" defaultValue="1,1,1,1"/>
+				</parameters>
+				<textures>
+					<texture name="LayerGroup1" type="2d" defaultValue="Resources/Textures/DefaultLayer.dds"/>
+					<texture name="LayerGroup2" type="2d" defaultValue="Resources/Textures/DefaultLayer.dds"/>
+					<texture name="LayerGroup3" type="2d" defaultValue="Resources/Textures/DefaultLayer.dds"/>
+					<texture name="LayerGroup4" type="2d" defaultValue="Resources/Textures/DefaultLayer.dds"/>
+					<texture name="LayerGroup5" type="2d" defaultValue="Resources/Textures/DefaultLayer.dds"/>
+					<texture name="LayerGroup6" type="2d" defaultValue="Resources/Textures/DefaultLayer.dds"/>
+				</textures>
+				<samplers>
+					<sampler addressU="Clamp" addressV="Clamp" addressW="Clamp" Filter="Anisotropic"/>
+				</samplers>
+			</pixelshader>
+		</permutation>
+	</permutations>
+</shader>
