@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using LevelEditorPlugin.Entities;
+using LevelEditorPlugin.Library.Drawing;
 using LevelEditorPlugin.Managers;
 
 namespace LevelEditorPlugin.Controls
@@ -221,7 +222,7 @@ namespace LevelEditorPlugin.Controls
             // draw symbol
             {
                 double xOffset = (Direction == 0) ? 0 : (Rect.Width - 20) * state.Scale;
-                DrawSpecificRoundedRectangle(state.DrawingContext, connectorBrush, null, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale), 
+                state.DrawingContext.DrawRoundedRectangle(connectorBrush, null, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale), 
                     new CornerRadius((Direction == 1) ? 0 : 1 * state.Scale, (Direction == 0) ? 0 : 1 * state.Scale, (Direction == 0) ? 0 : 1 * state.Scale, (Direction == 1) ? 0 : 1 * state.Scale));
 
                 if (icon != null)
