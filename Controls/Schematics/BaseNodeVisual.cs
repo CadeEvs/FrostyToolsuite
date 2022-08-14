@@ -45,7 +45,7 @@ namespace LevelEditorPlugin.Controls
                 if (!IsConnected)
                 {
                     state.DrawingContext.DrawEllipse(background, null, new Point(nodePosition.X + (Rect.X + Rect.Width - 6) * state.Scale, nodePosition.Y + (Rect.Y + 6) * state.Scale), 6 * state.Scale, 6 * state.Scale);
-                    state.DrawingContext.DrawEllipse(brush, state.BlackPen, new Point(nodePosition.X + (Rect.X + Rect.Width - 6) * state.Scale, nodePosition.Y + (Rect.Y + 6) * state.Scale), 3 * state.Scale, 3 * state.Scale);
+                    state.DrawingContext.DrawEllipse(brush, state.InnerPortPen, new Point(nodePosition.X + (Rect.X + Rect.Width - 6) * state.Scale, nodePosition.Y + (Rect.Y + 6) * state.Scale), 3 * state.Scale, 3 * state.Scale);
                 }
                 else
                 {

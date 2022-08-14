@@ -86,6 +86,7 @@
     <None Remove="Images\ClearLayout.png" />
     <None Remove="Images\Components.png" />
     <None Remove="Images\ConnectorOrder.png" />
+    <None Remove="Images\CurvedWire.png" />
     <None Remove="Images\Delay.png" />
     <None Remove="Images\Float.png" />
     <None Remove="Images\GameObjectBlueprintFileType.png" />
@@ -193,6 +194,7 @@
   <ItemGroup>
     <Resource Include="Images\Bottom.png" />
     <Resource Include="Images\Components.png" />
+    <Resource Include="Images\CurvedWire.png" />
     <Resource Include="Images\GameView.png" />
     <Resource Include="Images\Input.png" />
     <Resource Include="Images\Interface.png" />

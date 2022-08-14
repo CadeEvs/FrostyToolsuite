@@ -271,6 +271,7 @@ namespace LevelEditorPlugin.Controls
 
             // Various Pens cached
             public Pen BlackPen { get; private set; }
+            public Pen InnerPortPen { get; private set; }
             public Pen GridMinorPen { get; private set; }
             public Pen GridMajorPen { get; private set; }
             public Pen WireLinkPen { get; private set; }
@@ -350,6 +351,7 @@ namespace LevelEditorPlugin.Controls
                 WireSelectedPen = owner.m_wireSelectedPen;
                 WireDeletingPen = owner.m_wireDeletingPen;
                 GlowPen = owner.m_glowPen;
+                InnerPortPen = new Pen(Brushes.Black, 1.0d * Scale);
 
                 NodeTitleBackgroundBrush = new SolidColorBrush(Color.FromRgb(63, 63, 63));
                 NodeBackgroundBrush = new SolidColorBrush(Color.FromRgb(194, 194, 194));

@@ -332,8 +332,8 @@ namespace LevelEditorPlugin.Controls
                 b.Y += TargetPort.Rect.Location.Y + 6;
             }
 
-            Point ab = new Point(state.UseCurvedLines ? a.X + 4.5 : a.X + 9, a.Y);
-            Point ba = new Point(state.UseCurvedLines ? b.X - 4.5 : b.X - 9, b.Y);
+            Point ab = new Point(state.UseCurvedLines ? a.X : a.X + 9, a.Y);
+            Point ba = new Point(state.UseCurvedLines ? b.X : b.X - 9, b.Y);
             state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(a), state.WorldMatrix.Transform(ab));
 
             if (WirePoints.Count > 0)
