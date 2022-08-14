@@ -617,7 +617,7 @@ namespace LevelEditorPlugin.Controls
             Size nodeSize = Rect.Size;
 
             // title background
-            state.DrawingContext.DrawRoundedRectangle(state.NodeTitleBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, headerHeight * state.Scale), new CornerRadius(1 * state.Scale, 1 * state.Scale, 0, 0));
+            state.DrawingContext.DrawRoundedRectangle(state.NodeTitleBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, headerHeight * state.Scale), new CornerRadius(2 * state.Scale, 2 * state.Scale, 0, 0));
 
             if (state.InvScale >= 5)
                 return;
@@ -764,7 +764,7 @@ namespace LevelEditorPlugin.Controls
             Brush nodeBackgroundBrush = (IsSelected) ? state.NodeSelectedBrush : state.NodeBackgroundBrush;
 
             // node body background
-            state.DrawingContext.DrawRoundedRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y + headerHeight * state.Scale, Rect.Width * state.Scale, (Rect.Height - headerHeight) * state.Scale), new CornerRadius(0, 0, 1 * state.Scale, 1 * state.Scale));
+            state.DrawingContext.DrawRoundedRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y + headerHeight * state.Scale, Rect.Width * state.Scale, (Rect.Height - headerHeight) * state.Scale), new CornerRadius(0, 0, 2 * state.Scale, 2 * state.Scale));
 
             if (state.InvScale >= 5)
                 return;

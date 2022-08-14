@@ -227,7 +227,7 @@ namespace LevelEditorPlugin.Controls
             {
                 double xOffset = (Direction == 0) ? 0 : (Rect.Width - 20) * state.Scale;
                 state.DrawingContext.DrawRoundedRectangle(connectorBrush, null, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale), 
-                    new CornerRadius((Direction == 1) ? 0 : 1 * state.Scale, (Direction == 0) ? 0 : 1 * state.Scale, (Direction == 0) ? 0 : 1 * state.Scale, (Direction == 1) ? 0 : 1 * state.Scale));
+                    new CornerRadius((Direction == 1) ? 0 : 2 * state.Scale, (Direction == 0) ? 0 : 2 * state.Scale, (Direction == 0) ? 0 : 2 * state.Scale, (Direction == 1) ? 0 : 2 * state.Scale));
 
                 if (icon != null)
                 {
