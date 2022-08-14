@@ -650,7 +650,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
             // delete node(s)
-            else if (m_selectedNodes.Count > 0 && e.Key == Key.Delete)
+            else if (m_selectedNodes.Count > 0 && (e.Key == Key.Delete || e.Key == Key.X))
             {
                 UndoContainer container = new UndoContainer("Delete Node(s)");
                 for (int i = m_selectedNodes.Count - 1; i >= 0; i--)
@@ -697,6 +697,126 @@ namespace LevelEditorPlugin.Controls
                     if (node is NodeVisual entity)
                     {
                         NodeRemovedCommand?.Execute(new NodeRemovedEventArgs(entity.Entity, container));
+                    }
+
+                    // shortcut
+                    if (node is InterfaceShortcutNodeVisual shortcut)
+                    {
+                        List<InterfaceShortcutNodeVisual> shortcutsToRemove = new List<InterfaceShortcutNodeVisual>();
+                        List<WireVisual> wiresToAdd = new List<WireVisual>();
+                        List<WireVisual> wiresToRemove = new List<WireVisual>();
+                        InterfaceShortcutNodeVisual owner = null;
+                        if (shortcut == shortcut.OwnerPort.ShortcutNode)
+                        {
+                            owner = shortcut;
+
+                            WireVisual wireToRemove = m_wireVisuals.Find(w => shortcut.OwnerPort.PortDirection == 0 ? w.Target == shortcut : w.Source == shortcut);
+
+                            if (wireToRemove != null)
+                            {
+                                wiresToRemove.Add(wireToRemove);
+                }
+
+                            foreach (InterfaceShortcutNodeVisual childShortcut in shortcut.OwnerPort.ShortcutChildren)
+                            {
+                                shortcutsToRemove.Add(childShortcut);
+                                WireVisual childWireToRemove = m_wireVisuals.Find(w => childShortcut.OwnerPort.PortDirection == 0 ? w.Source == childShortcut : w.Target == childShortcut);
+                                if (childWireToRemove != null)
+                                {
+                                    wiresToRemove.Add(childWireToRemove);
+
+                                    BaseNodeVisual source = shortcut.OwnerPort.PortDirection == 0 ? childShortcut.OwnerPort.Owner : childWireToRemove.Source;
+                                    BaseNodeVisual.Port sourcePort = (shortcut.OwnerPort.PortDirection == 0) ? childShortcut.OwnerPort : childWireToRemove.SourcePort;
+                                    BaseNodeVisual target = shortcut.OwnerPort.PortDirection == 0 ? childWireToRemove.Target : childShortcut.OwnerPort.Owner;
+                                    BaseNodeVisual.Port targetPort = (shortcut.OwnerPort.PortDirection == 0) ? childWireToRemove.TargetPort : childShortcut.OwnerPort;
+
+                                    wiresToAdd.Add(new WireVisual(source, sourcePort.Name, sourcePort.NameHash, target, targetPort.Name, targetPort.NameHash, childWireToRemove.WireType));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            shortcutsToRemove.Add(shortcut);
+
+                            WireVisual wireToRemove = m_wireVisuals.Find(w => shortcut.OwnerPort.PortDirection == 0 ? w.Source == shortcut : w.Target == shortcut);
+
+                            if (wireToRemove != null)
+                            {
+                                wiresToRemove.Add(wireToRemove);
+
+                                BaseNodeVisual source = shortcut.OwnerPort.PortDirection == 0 ? shortcut.OwnerPort.Owner : wireToRemove.Source;
+                                BaseNodeVisual.Port sourcePort = (shortcut.OwnerPort.PortDirection == 0) ? shortcut.OwnerPort : wireToRemove.SourcePort;
+                                BaseNodeVisual target = shortcut.OwnerPort.PortDirection == 0 ? wireToRemove.Target : shortcut.OwnerPort.Owner;
+                                BaseNodeVisual.Port targetPort = (shortcut.OwnerPort.PortDirection == 0) ? wireToRemove.TargetPort : shortcut.OwnerPort;
+
+                                wiresToAdd.Add(new WireVisual(source, sourcePort.Name, sourcePort.NameHash, target, targetPort.Name, targetPort.NameHash, wireToRemove.WireType));
+                            }
+
+                            if (shortcut.OwnerPort.ShortcutChildren.Count == 1)
+                            {
+                                owner = shortcut.OwnerPort.ShortcutNode;
+                                wireToRemove = m_wireVisuals.Find(w => shortcut.OwnerPort.PortDirection == 0 ? w.Target == shortcut.OwnerPort.ShortcutNode : w.Source == shortcut.OwnerPort.ShortcutNode);
+                                if (wireToRemove != null)
+                                {
+                                    wiresToRemove.Add(wireToRemove);
+                                }
+                            }
+                        }
+
+                        container.Add(new GenericUndoUnit("",
+                            (o) =>
+                            {
+                                foreach (InterfaceShortcutNodeVisual shortcutToRemove in shortcutsToRemove)
+                                {
+                                    shortcut.OwnerPort.ShortcutChildren.Remove(shortcutToRemove);
+                                    m_nodeVisuals.Remove(shortcutToRemove);
+                                }
+                                if (owner != null)
+                                {
+                                    shortcut.OwnerPort.ShortcutNode = null;
+                                    m_nodeVisuals.Remove(owner);
+                                }
+                                foreach (WireVisual wireToRemove in wiresToRemove)
+                                {
+                                    foreach (WirePointVisual wirePointToRemove in wireToRemove.WirePoints)
+                                    {
+                                        m_nodeVisuals.Remove(wirePointToRemove);
+                                    }
+                                    m_wireVisuals.Remove(wireToRemove);
+                                }
+                                foreach (WireVisual wireToAdd in wiresToAdd)
+                                {
+                                    m_wireVisuals.Add(wireToAdd);
+                                }
+                            },
+                            (o) =>
+                            {
+                                foreach (InterfaceShortcutNodeVisual shortcutToRemove in shortcutsToRemove)
+                                {
+                                    shortcut.OwnerPort.ShortcutChildren.Add(shortcutToRemove);
+                                    m_nodeVisuals.Add(shortcutToRemove);
+                                }
+                                if (owner != null)
+                                {
+                                    shortcut.OwnerPort.ShortcutNode = owner;
+                                    m_nodeVisuals.Add(owner);
+                                }
+                                foreach (WireVisual wireToRemove in wiresToRemove)
+                                {
+                                    foreach (WirePointVisual wirePointToRemove in wireToRemove.WirePoints)
+                                    {
+                                        m_nodeVisuals.Add(wirePointToRemove);
+                                    }
+                                    m_wireVisuals.Add(wireToRemove);
+                                }
+                                foreach (WireVisual wireToAdd in wiresToAdd)
+                                {
+                                    m_wireVisuals.Remove(wireToAdd);
+                                }
+                            }));
+
+                        m_selectedNodes.RemoveAt(i);
+                        m_selectedOffsets.RemoveAt(i);
                     }
                 }
 
