@@ -201,8 +201,8 @@ namespace LevelEditorPlugin.Controls
             Brush nodeBackgroundBrush = (IsSelected) ? state.NodeSelectedBrush : state.NodeBackgroundBrush;
 
             // draw background
-            state.DrawingContext.DrawRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, Rect.Height * state.Scale));
-
+            state.DrawingContext.DrawRoundedRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, Rect.Height * state.Scale), 1 * state.Scale, 1 * state.Scale);
+            //the background is under the symbol, so you have to make it a normal rounded rectangle
             if (state.InvScale >= 5)
                 return;
 
@@ -221,7 +221,8 @@ namespace LevelEditorPlugin.Controls
             // draw symbol
             {
                 double xOffset = (Direction == 0) ? 0 : (Rect.Width - 20) * state.Scale;
-                state.DrawingContext.DrawRectangle(connectorBrush, null, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale));
+                DrawSpecificRoundedRectangle(state.DrawingContext, connectorBrush, null, new Rect(nodePosition.X + xOffset, nodePosition.Y, 20 * state.Scale, 20 * state.Scale), 
+                    new CornerRadius((Direction == 1) ? 0 : 1 * state.Scale, (Direction == 0) ? 0 : 1 * state.Scale, (Direction == 0) ? 0 : 1 * state.Scale, (Direction == 1) ? 0 : 1 * state.Scale));
 
                 if (icon != null)
                 {
