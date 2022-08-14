@@ -883,7 +883,10 @@ namespace LevelEditorPlugin.Controls
                                 break;
                             }
                         }
-                        if (isCut == true) continue;
+                        if (isCut)
+                        {
+                            continue;
+                        }
                         wire.IsMarkedForDeletion = false;
                     }
 
