@@ -82,6 +82,11 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
+            if (!IsCollapseButtonHovered && !changedHighlight)
+            {
+                base.OnMouseOver(mousePos);
+            }
+
             return oldCollapseHover != IsCollapseButtonHovered || changedHighlight || !Rect.Contains(mousePos);
         }
 
@@ -627,23 +632,45 @@ namespace LevelEditorPlugin.Controls
 
             // collapse button
             Brush collapseButtonBrush = IsCollapsed ? state.SchematicRealmDisabled : state.NodeCollapseButtonBackgroundBrush;
-            state.DrawingContext.DrawRoundedRectangle(collapseButtonBrush, null, new Rect(nodePosition.X + ((nodeSize.Width - 16) * state.Scale), nodePosition.Y + (4 * state.Scale), 12 * state.Scale, 12 * state.Scale), 2, 2);
+            //state.DrawingContext.DrawRoundedRectangle(collapseButtonBrush, null, new Rect(nodePosition.X + ((nodeSize.Width - 16) * state.Scale), nodePosition.Y + (4 * state.Scale), 12 * state.Scale, 12 * state.Scale), 2, 2);
 
             Point p = new Point(nodeSize.Width - 16 + 3, 6);
-            state.DrawingContext.DrawGeometry(IsCollapsed ? Brushes.White : state.NodeTitleBackgroundBrush, null, new PathGeometry(new[]
+            PathGeometry geometry;
+            if (IsCollapsed)
             {
-                new PathFigure(new Point(nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 2) * state.Scale), new []
+                geometry = new PathGeometry(new[]
                 {
-                    new PolyLineSegment(new []
+                    new PathFigure(new Point(nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 4) * state.Scale), new []
                     {
-                        // right point
-                        new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y + 2) * state.Scale),
-                        // bottom middle point
-                        new Point(nodePosition.X + (p.X + 3) * state.Scale, nodePosition.Y + (p.Y + 6) * state.Scale)
-                    }, true)
+                        new PolyLineSegment(new []
+                        {
+                            // top right point
+                            new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y - 1) * state.Scale),
+                            // bottom right point
+                            new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y + 9) * state.Scale)
+                        }, true)
 
-                }, true)
-            }));
+                    }, true)
+                });
+            }
+            else
+            {
+                geometry = new PathGeometry(new[]
+                {
+                    new PathFigure(new Point(nodePosition.X + (p.X - 2) * state.Scale, nodePosition.Y + (p.Y + 1) * state.Scale), new []
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            // right point
+                            new Point(nodePosition.X + (p.X + 8) * state.Scale, nodePosition.Y + (p.Y + 1) * state.Scale),
+                            // bottom middle point
+                            new Point(nodePosition.X + (p.X + 3) * state.Scale, nodePosition.Y + (p.Y + 7) * state.Scale)
+                        }, true)
+
+                    }, true)
+                });
+            }
+            state.DrawingContext.DrawGeometry(IsCollapseButtonHovered ? Brushes.White : state.SchematicRealmDisabled, null, geometry);
 
             // realm
             if (state.InvScale < 2)
@@ -737,7 +764,7 @@ namespace LevelEditorPlugin.Controls
             Brush nodeBackgroundBrush = (IsSelected) ? state.NodeSelectedBrush : state.NodeBackgroundBrush;
 
             // node body background
-            state.DrawingContext.DrawRoundedRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y + headerHeight * state.Scale, Rect.Width * state.Scale, (Rect.Height - headerHeight) * state.Scale), new CornerRadius(0,0, 1 * state.Scale, 1 * state.Scale));
+            state.DrawingContext.DrawRoundedRectangle(nodeBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y + headerHeight * state.Scale, Rect.Width * state.Scale, (Rect.Height - headerHeight) * state.Scale), new CornerRadius(0, 0, 1 * state.Scale, 1 * state.Scale));
 
             if (state.InvScale >= 5)
                 return;

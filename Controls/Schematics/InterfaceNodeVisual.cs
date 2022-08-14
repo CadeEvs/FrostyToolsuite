@@ -165,6 +165,10 @@ namespace LevelEditorPlugin.Controls
                 Self.IsHighlighted = false;
                 changedHighlight = true;
             }
+            else
+            {
+                base.OnMouseOver(mousePos);
+            }
 
             return changedHighlight;
         }

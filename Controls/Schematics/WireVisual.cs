@@ -283,7 +283,7 @@ namespace LevelEditorPlugin.Controls
         public void Render(SchematicsCanvas.DrawingContextState state)
         {
             BaseNodeVisual.Port portToCheck = (WireType == 0) ? TargetPort : SourcePort;
-            bool shouldDrawConnectOrder = (state.ConnectorOrdersVisible && portToCheck.ConnectionCount > 1 && state.InvScale < 2.5);
+            bool shouldDrawConnectOrder = (state.ConnectorOrdersVisible && Target != null && Source != null && portToCheck.ConnectionCount > 1 && state.InvScale < 2.5);
 
             Point a = (Source != null) ? Source.Rect.Location : m_mousePosition;
             Point b = (Target != null) ? Target.Rect.Location : m_mousePosition;

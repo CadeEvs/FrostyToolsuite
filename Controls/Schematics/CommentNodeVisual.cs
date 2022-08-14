@@ -6,7 +6,7 @@ using LevelEditorPlugin.Data;
 using LevelEditorPlugin.Managers;
 
 namespace LevelEditorPlugin.Controls
-{ 
+{
     public class CommentNodeVisual : BaseVisual
     {
         public override object Data => CommentData;
@@ -19,7 +19,7 @@ namespace LevelEditorPlugin.Controls
         private Pen m_outlinePen;
         private List<BaseVisual> m_nodes;
 
-        public CommentNodeVisual(CommentNodeData inCommentData, IEnumerable<BaseVisual> inSelectedVisuals, double inX, double inY) 
+        public CommentNodeVisual(CommentNodeData inCommentData, IEnumerable<BaseVisual> inSelectedVisuals, double inX, double inY)
             : base(inX, inY)
         {
             CommentData = inCommentData;
@@ -61,7 +61,7 @@ namespace LevelEditorPlugin.Controls
         public override bool HitTest(Point mousePos)
         {
             Rect invalidZoneRect = new Rect(Rect.X + 5, Rect.Y + 20, Rect.Width - 10, Rect.Height - 25);
-            bool hitTitle = !invalidZoneRect.Contains(mousePos);                              
+            bool hitTitle = !invalidZoneRect.Contains(mousePos);
             return hitTitle;
         }
 
@@ -107,9 +107,9 @@ namespace LevelEditorPlugin.Controls
             {
                 rect.Union(m_nodes[i].Rect);
             }
-            Rect.X = rect.X - 10;
+            Rect.X = rect.X - 16;
             Rect.Y = rect.Y - 30;
-            Rect.Width = rect.Width + 20;
+            Rect.Width = rect.Width + 32;
             Rect.Height = rect.Height + 40;
 
             Rect outlineRect = new Rect(Rect.X + 2.5, Rect.Y + 2.5, Rect.Width - 5, Rect.Height - 5);

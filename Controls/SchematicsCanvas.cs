@@ -656,7 +656,7 @@ namespace LevelEditorPlugin.Controls
                 for (int i = m_selectedNodes.Count - 1; i >= 0; i--)
                 {
                     BaseVisual node = m_selectedNodes[i];
-                    
+
                     // wire point
                     if (node is WirePointVisual wirePoint)
                     {
@@ -665,7 +665,7 @@ namespace LevelEditorPlugin.Controls
                             {
                                 wirePoint.Wire.RemoveWirePoint(wirePoint);
                                 m_nodeVisuals.Remove(wirePoint);
-                            }, 
+                            },
                             (o) =>
                             {
                                 wirePoint.Wire.AddWirePoint(wirePoint, shouldForceAdd: true);
@@ -675,7 +675,7 @@ namespace LevelEditorPlugin.Controls
                         m_selectedNodes.RemoveAt(i);
                         m_selectedOffsets.RemoveAt(i);
                     }
-                    
+
                     // comment
                     if (node is CommentNodeVisual comment)
                     {
@@ -683,7 +683,7 @@ namespace LevelEditorPlugin.Controls
                             (o) =>
                             {
                                 m_nodeVisuals.Remove(comment);
-                            }, 
+                            },
                             (o) =>
                             {
                                 m_nodeVisuals.Add(comment);
@@ -715,7 +715,7 @@ namespace LevelEditorPlugin.Controls
                             if (wireToRemove != null)
                             {
                                 wiresToRemove.Add(wireToRemove);
-                }
+                            }
 
                             foreach (InterfaceShortcutNodeVisual childShortcut in shortcut.OwnerPort.ShortcutChildren)
                             {
@@ -1031,7 +1031,6 @@ namespace LevelEditorPlugin.Controls
                         }
 
                         m_hoveredNode = visual;
-                        Mouse.OverrideCursor = Cursors.SizeAll;
 
                         if (visual.OnMouseOver(mousePos))
                         {
