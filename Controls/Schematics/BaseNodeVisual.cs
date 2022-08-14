@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using LevelEditorPlugin.Managers;
 
@@ -73,6 +74,16 @@ namespace LevelEditorPlugin.Controls
             if (value.StartsWith("0x"))
                 return int.Parse(value.Substring(2), System.Globalization.NumberStyles.HexNumber);
             return Frosty.Hash.Fnv1.HashString(value);
+        }
+
+        public override bool OnMouseOver(Point mousePos)
+        {
+            if (Rect.Contains(mousePos))
+            {
+                Mouse.OverrideCursor = Cursors.SizeAll;
+            }
+
+            return false;
         }
     }
 }

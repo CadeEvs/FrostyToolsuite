@@ -22,6 +22,7 @@ namespace LevelEditorPlugin.Controls
 
         public virtual bool OnMouseOver(Point mousePos)
         {
+            Mouse.OverrideCursor = Cursors.SizeAll;
             return false;
         }
 

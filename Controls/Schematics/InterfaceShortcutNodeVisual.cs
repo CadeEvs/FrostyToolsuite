@@ -55,28 +55,6 @@ namespace LevelEditorPlugin.Controls
             base.Update();
         }
 
-        public override bool OnMouseOver(Point mousePos)
-        {
-            Rect portRect = new Rect(Rect.X + Self.Rect.X, Rect.Y + Self.Rect.Y, Self.Rect.Width, Self.Rect.Height);
-            bool changedHighlight = false;
-
-            if (portRect.Contains(mousePos))
-            {
-                Mouse.OverrideCursor = Cursors.Arrow;
-                HighlightedPort = Self;
-                Self.IsHighlighted = true;
-                changedHighlight = true;
-            }
-            else if (Self.IsHighlighted)
-            {
-                HighlightedPort = null;
-                Self.IsHighlighted = false;
-                changedHighlight = true;
-            }
-
-            return changedHighlight;
-        }
-
         public override bool OnMouseLeave()
         {
             if (HighlightedPort != null)
