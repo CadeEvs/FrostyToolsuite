@@ -314,7 +314,8 @@ namespace FrostyEditor.Windows
             }
 
             // load profile through the project if it's apart of the launch args, if not choose on startup
-            if (App.OpenProject) {
+            if (App.OpenProject)
+            {
                 LoadProject(App.LaunchArgs, false);
             }
             else

@@ -221,41 +221,7 @@ namespace FrostyEditor
                 {
                     m_openProject = true;
                     LaunchArgs = arg;
-
-                    //get game profile from project file
-                    using (NativeReader reader = new NativeReader(new FileStream(arg, FileMode.Open, FileAccess.Read)))
-                    {
-                        if (reader.ReadULong() == 0x00005954534F5246)
-                        {
-                            reader.ReadUInt();
-                            string gameProfile = reader.ReadNullTerminatedString();
-                            
-                            try
-                            { 
-                                m_defaultConfig = new FrostyConfiguration(gameProfile); 
-                            }
-                            catch
-                            { 
-                                FrostyMessageBox.Show("There was an error when trying to load project using the profile: " + gameProfile, "Frosty Editor");
-                            }
-                        }
-                    }
                 }
-            }
-
-            if (m_defaultConfig != null)
-            {
-                // load profile
-                if (!ProfilesLibrary.Initialize(m_defaultConfig.ProfileName))
-                {
-                    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-                    return;
-                }
-
-                StartupUri = new System.Uri("/FrostyEditor;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
-
-                InitDiscordRpc();
-                UpdateDiscordRpc("Loading...");
             }
         }
 
