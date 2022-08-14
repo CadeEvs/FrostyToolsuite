@@ -32,7 +32,7 @@ namespace Frosty.Core.CodingStandards
         private string m_inputName;
         // bool should always be prefixed with a modal verb, and no 'b' prefix
         private bool m_isOpen;
-        private bool m_ShouldOpenMenu;
+        private bool m_shouldOpenMenu;
 
         // class constructor parameter names should be prefixed with 'in' and camelCase
         public StandardClass(string inInputName, bool inIsOpen)
@@ -45,7 +45,7 @@ namespace Frosty.Core.CodingStandards
         public void OpenMenu()
         {
             // always surround execution logic with brackets on new lines
-            if (!m_isOpen && m_ShouldOpenMenu)
+            if (!m_isOpen && m_shouldOpenMenu)
             {
                 m_isOpen = true;
             }
