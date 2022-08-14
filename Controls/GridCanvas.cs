@@ -83,7 +83,7 @@ namespace LevelEditorPlugin.Controls
             }
             else
             {
-                if (scale > 1.3)
+                if (scale > 3)
                     return;
                 
                 scale += rate;
