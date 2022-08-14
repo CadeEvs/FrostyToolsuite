@@ -454,98 +454,37 @@
     <Style TargetType="{x:Type ScrollBar}">
         <Setter Property="Stylus.IsPressAndHoldEnabled" Value="false"/>
         <Setter Property="Stylus.IsFlicksEnabled" Value="false"/>
-        <Setter Property="Width" Value="17"/>
-        <Setter Property="MinWidth" Value="17"/>
+        <Setter Property="Width" Value="14"/>
+        <Setter Property="MinWidth" Value="14"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ScrollBar}">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition MaxHeight="17"/>
-                            <RowDefinition Height="0.00001*"/>
-                            <RowDefinition MaxHeight="17"/>
-                        </Grid.RowDefinitions>
-                        <RepeatButton x:Name="PART_LineUpButton" Grid.Row="0" Command="{x:Static ScrollBar.LineUpCommand}">
-                            <RepeatButton.Template>
-                                <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                    <Border Background="{StaticResource ScrollbarBackground}">
-                                        <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1">
-                                            <Polygon Points="0,0 7,0 3.5,-4" Stroke="{StaticResource ButtonImage}" Fill="{StaticResource ButtonImage}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="4,9,0,0"/>
-                                        </Border>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
-                                        </Trigger>
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </RepeatButton.Template>
-                        </RepeatButton>
-                        <Border Grid.Row="1" Background="{StaticResource ScrollbarBackground}">
-                            <Track x:Name="PART_Track" IsDirectionReversed="True" IsEnabled="{TemplateBinding IsMouseOver}">
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="{x:Static ScrollBar.PageUpCommand}">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate>
-                                                <Rectangle Fill="Transparent" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.DecreaseRepeatButton>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="{x:Static ScrollBar.PageDownCommand}">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate>
-                                                <Rectangle Fill="Transparent" Height="{TemplateBinding Height}" Width="{TemplateBinding Width}"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.IncreaseRepeatButton>
-                                <Track.Thumb>
-                                    <Thumb>
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="{x:Type Thumb}">
-                                                <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1,0,1,0"/>
-                                                <ControlTemplate.Triggers>
-                                                    <Trigger Property="IsMouseOver" Value="True">
-                                                        <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
-                                                    </Trigger>
-                                                    <Trigger Property="IsDragging" Value="True">
-                                                        <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
-                                                    </Trigger>
-                                                </ControlTemplate.Triggers>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Border>
-                        <RepeatButton x:Name="PART_LineDownButton" Grid.Row="2" Command="{x:Static ScrollBar.LineDownCommand}">
-                            <RepeatButton.Template>
-                                <ControlTemplate TargetType="{x:Type RepeatButton}">
-                                    <Border Background="{StaticResource ScrollbarBackground}">
-                                        <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1">
-                                            <Polygon Points="0,0 7,0 3.5,4" Stroke="{StaticResource ButtonImage}" Fill="{StaticResource ButtonImage}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="4,6,0,0"/>
-                                        </Border>
-                                    </Border>
-                                    <ControlTemplate.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
-                                        </Trigger>
-                                        <Trigger Property="IsPressed" Value="True">
-                                            <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
-                                        </Trigger>
-                                    </ControlTemplate.Triggers>
-                                </ControlTemplate>
-                            </RepeatButton.Template>
-                        </RepeatButton>
-                    </Grid>
+                    <Border Grid.Row="1" Background="{StaticResource ScrollbarBackground}">
+                        <Track x:Name="PART_Track" IsDirectionReversed="True" IsEnabled="{TemplateBinding IsMouseOver}">
+                            <Track.Thumb>
+                                <Thumb>
+                                    <Thumb.Template>
+                                        <ControlTemplate TargetType="{x:Type Thumb}">
+                                            <Border x:Name="border" Background="{StaticResource ControlBackground}" CornerRadius="3" Margin="4"/>
+                                            
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsDragging" Value="True">
+                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Thumb.Template>
+                                </Thumb>
+                            </Track.Thumb>
+                        </Track>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto"/>
