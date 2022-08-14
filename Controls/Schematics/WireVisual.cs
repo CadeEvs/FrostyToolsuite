@@ -31,7 +31,6 @@ namespace LevelEditorPlugin.Controls
         private Stopwatch m_glowTimer;
 
         private Point m_mousePosition;
-        private SchematicsCanvas.DrawingContextState State;
 
         private BaseNodeVisual m_hoveredNode;
         private BaseNodeVisual.Port m_hoveredPort;
@@ -97,7 +96,7 @@ namespace LevelEditorPlugin.Controls
                 WirePointVisual wp = new WirePointVisual(this, wirePointLayout.Position.X + 5, wirePointLayout.Position.Y + 5) { UniqueId = (wirePointLayout.UniqueId != Guid.Empty) ? wirePointLayout.UniqueId : Guid.NewGuid() };
                 visuals.Add(wp);
 
-                AddWirePoint(wp, force: true);
+                AddWirePoint(wp, shouldForceAdd: true);
             }
         }
 
@@ -242,9 +241,9 @@ namespace LevelEditorPlugin.Controls
             }
         }
 
-        public void AddWirePoint(WirePointVisual wirePoint, bool force = false)
+        public void AddWirePoint(WirePointVisual wirePoint, bool shouldForceAdd = false)
         {
-            if (!force)
+            if (!shouldForceAdd)
             {
                 AddWirePointInternal(wirePoint);
                 return;
@@ -283,9 +282,8 @@ namespace LevelEditorPlugin.Controls
 
         public void Render(SchematicsCanvas.DrawingContextState state)
         {
-            State = state;
             BaseNodeVisual.Port portToCheck = (WireType == 0) ? TargetPort : SourcePort;
-            bool drawConnectOrder = (state.ConnectorOrdersVisible && portToCheck.ConnectionCount > 1 && state.InvScale < 2.5);
+            bool shouldDrawConnectOrder = (state.ConnectorOrdersVisible && portToCheck.ConnectionCount > 1 && state.InvScale < 2.5);
 
             Point a = (Source != null) ? Source.Rect.Location : m_mousePosition;
             Point b = (Target != null) ? Target.Rect.Location : m_mousePosition;
@@ -390,7 +388,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
-            if (drawConnectOrder)
+            if (shouldDrawConnectOrder)
             {
                 int geomIndex = (m_geometry.Children.Count / 2);
                 Geometry geomToUse = m_geometry.Children[geomIndex];
@@ -432,7 +430,6 @@ namespace LevelEditorPlugin.Controls
                 IProperty propA = (Source is NodeVisual)
                     ? (Source as NodeVisual).Entity.GetProperty(SourcePort.NameHash)
                     : (Source as InterfaceNodeVisual).InterfaceDescriptor.GetProperty(SourcePort.NameHash);
-                //var propB = (Target as NodeVisual)?.Entity.GetProperty(TargetPort.NameHash);
 
                 if (propA != null)
                 {
@@ -447,7 +444,6 @@ namespace LevelEditorPlugin.Controls
                 IEvent eventA = (Source is NodeVisual)
                     ? (Source as NodeVisual).Entity.GetEvent(SourcePort.NameHash)
                     : (Source as InterfaceNodeVisual).InterfaceDescriptor.GetEvent(SourcePort.NameHash);
-                //var eventB = (Target as NodeVisual)?.Entity.GetEvent(TargetPort.NameHash);
 
                 if (eventA != null)
                 {

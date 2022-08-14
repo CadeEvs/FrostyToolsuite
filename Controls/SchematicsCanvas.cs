@@ -668,7 +668,7 @@ namespace LevelEditorPlugin.Controls
                             }, 
                             (o) =>
                             {
-                                wirePoint.Wire.AddWirePoint(wirePoint, force: true);
+                                wirePoint.Wire.AddWirePoint(wirePoint, shouldForceAdd: true);
                                 m_nodeVisuals.Add(wirePoint);
                             }));
 
