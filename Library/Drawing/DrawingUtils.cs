@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using static LevelEditorPlugin.Controls.SchematicsCanvas;
 
 namespace LevelEditorPlugin.Library.Drawing
 {
@@ -34,6 +35,27 @@ namespace LevelEditorPlugin.Library.Drawing
             }
             geometry.Freeze();
             dc.DrawGeometry(brush, pen, geometry);
+        }
+        public static void DrawCurvedLine(this DrawingContextState state, Pen pen, Point a, Point b, double curve = 30.0d)
+        {
+            StreamGeometry geometry = new StreamGeometry();
+            geometry.FillRule = FillRule.EvenOdd;
+            using (StreamGeometryContext context = geometry.Open())
+            {
+                context.BeginFigure(a, false, false);
+                context.LineTo(a, true, false);
+                Vector c, d;
+                c = new Vector(a.X + (curve * state.Scale), a.Y);
+                d = new Vector(b.X - (curve * state.Scale), b.Y);
+                context.BezierTo(
+                    new Point(c.X, c.Y),
+                    new Point(d.X, d.Y),
+                    new Point(b.X, b.Y),
+                    true, false);
+                context.LineTo(b, true, false);
+            }
+            geometry.Freeze();
+            state.DrawingContext.DrawGeometry(null, pen, geometry);
         }
     }
 }
