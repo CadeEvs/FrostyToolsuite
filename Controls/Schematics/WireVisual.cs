@@ -315,13 +315,13 @@ namespace LevelEditorPlugin.Controls
                     case 2: wirePen.Brush = state.WirePropertyPen.Brush; break;
                 }
             }
-            wirePen.Freeze();
 
             // highlight if overlapped by the cutting tool
             if (IsMarkedForDeletion)
             {
-                wirePen = state.WireDeletingPen;
+                wirePen.Brush = state.WireDeletingPen.Brush;
             }
+            wirePen.Freeze();
 
             if (Source != null)
             {
@@ -348,16 +348,29 @@ namespace LevelEditorPlugin.Controls
                     (m_geometry.Children[i] as LineGeometry).StartPoint = startPoint;
                     (m_geometry.Children[i] as LineGeometry).EndPoint = endPoint;
 
-                    if (state.UseCurvedLines) state.DrawCurvedLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
-                    else state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
+                    if (state.UseCurvedLines)
+                    {
+                        state.DrawCurvedLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
+                    }
+                    else
+                    {
+                        state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
+                    }
+
                     startPoint = endPoint;
                 }
 
                 (m_geometry.Children[WirePoints.Count] as LineGeometry).StartPoint = startPoint;
                 (m_geometry.Children[WirePoints.Count] as LineGeometry).EndPoint = ba;
 
-                if (state.UseCurvedLines) state.DrawCurvedLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
-                else state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
+                if (state.UseCurvedLines)
+                {
+                    state.DrawCurvedLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
+                }
+                else
+                {
+                    state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
+                }
             }
             else
             {
@@ -367,8 +380,14 @@ namespace LevelEditorPlugin.Controls
                     (m_geometry.Children[0] as LineGeometry).EndPoint = ba;
                 }
 
-                if (state.UseCurvedLines) state.DrawCurvedLine(wirePen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
-                else state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
+                if (state.UseCurvedLines)
+                {
+                    state.DrawCurvedLine(wirePen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
+                }
+                else
+                {
+                    state.DrawingContext.DrawLine(wirePen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
+                }
             }
 
             if (drawConnectOrder)
@@ -472,24 +491,43 @@ namespace LevelEditorPlugin.Controls
                         (m_geometry.Children[i] as LineGeometry).StartPoint = startPoint;
                         (m_geometry.Children[i] as LineGeometry).EndPoint = endPoint;
 
-                        if (state.UseCurvedLines) state.DrawCurvedLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
-                        else state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
+                        if (state.UseCurvedLines)
+                        {
+                            state.DrawCurvedLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
+                        }
+                        else
+                        {
+                            state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(endPoint));
+                        }
+
                         startPoint = endPoint;
                     }
 
                     (m_geometry.Children[WirePoints.Count] as LineGeometry).StartPoint = startPoint;
                     (m_geometry.Children[WirePoints.Count] as LineGeometry).EndPoint = ba;
 
-                    if (state.UseCurvedLines) state.DrawCurvedLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
-                    else state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
+                    if (state.UseCurvedLines)
+                    {
+                        state.DrawCurvedLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
+                    }
+                    else
+                    {
+                        state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(startPoint), state.WorldMatrix.Transform(ba));
+                    }
                 }
                 else
                 {
                     (m_geometry.Children[0] as LineGeometry).StartPoint = ab;
                     (m_geometry.Children[0] as LineGeometry).EndPoint = ba;
 
-                    if (state.UseCurvedLines) state.DrawCurvedLine(state.GlowPen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
-                    else state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
+                    if (state.UseCurvedLines)
+                    {
+                        state.DrawCurvedLine(state.GlowPen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
+                    }
+                    else
+                    {
+                        state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(ab), state.WorldMatrix.Transform(ba));
+                    }
                 }
 
                 state.DrawingContext.DrawLine(state.GlowPen, state.WorldMatrix.Transform(ba), state.WorldMatrix.Transform(b));
