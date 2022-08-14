@@ -58,6 +58,8 @@
                                                     editors:DragDropExtension.IsDragDropTarget="True"
                                                     ModifiedData="{Binding Path=ModifiedData}"
                                                     GridVisible="{Binding Path=IsGridVisible}"
+                                                    UseCurvedLines="{Binding Path=UseCurvedLines}"
+                                                    UseAlternateConnectorOrders="{Binding Path=UseAlternateConnectorOrders}"
                                                     ConnectorOrdersVisible="{Binding Path=IsConnectorOrdersVisible}"
                                                     SuppressLayoutSave="{Binding Path=SuppressLayoutSave}"
                                                     SelectedNodeChangedCommand="{Binding Path=SelectedNodeChangedCommand}"

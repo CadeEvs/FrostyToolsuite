@@ -256,6 +256,8 @@ namespace LevelEditorPlugin.Controls
 
             // Options
             public bool ConnectorOrdersVisible { get; private set; }
+            public bool UseCurvedLines { get; private set; }
+            public bool UseAlternateConnectorOrders { get; private set; }
 
             // Font
             public FontData LargeFont { get; private set; }
@@ -334,6 +336,8 @@ namespace LevelEditorPlugin.Controls
                 InvScale = 1.0 / owner.scale;
 
                 ConnectorOrdersVisible = owner.ConnectorOrdersVisible;
+                UseCurvedLines = owner.UseCurvedLines;
+                UseAlternateConnectorOrders = owner.UseAlternateConnectorOrders;
 
                 BlackPen = owner.blackPen;
                 GridMinorPen = owner.gridMinorPen;
@@ -415,6 +419,8 @@ namespace LevelEditorPlugin.Controls
         
         public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(SchematicsData), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null, OnEntitiesChanged));
         public static readonly DependencyProperty ConnectorOrdersVisibleProperty = DependencyProperty.Register("ConnectorOrdersVisible", typeof(bool), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty UseCurvedLinesProperty = DependencyProperty.Register("UseCurvedLines", typeof(bool), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
+        public static readonly DependencyProperty UseAlternateConnectorOrdersProperty = DependencyProperty.Register("UseAlternateConnectorOrders", typeof(bool), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty SuppressLayoutSaveProperty = DependencyProperty.Register("SuppressLayoutSave", typeof(bool), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(false));
 
         public static readonly DependencyProperty SchematicLinkBrushProperty = DependencyProperty.Register("SchematicLinkBrush", typeof(Brush), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null));
@@ -445,6 +451,16 @@ namespace LevelEditorPlugin.Controls
         {
             get => (bool)GetValue(ConnectorOrdersVisibleProperty);
             set => SetValue(ConnectorOrdersVisibleProperty, value);
+        }
+        public bool UseCurvedLines
+        {
+            get => (bool)GetValue(UseCurvedLinesProperty);
+            set => SetValue(UseCurvedLinesProperty, value);
+        }
+        public bool UseAlternateConnectorOrders
+        {
+            get => (bool)GetValue(UseAlternateConnectorOrdersProperty);
+            set => SetValue(UseAlternateConnectorOrdersProperty, value);
         }
         public bool SuppressLayoutSave
         {
@@ -855,16 +871,20 @@ namespace LevelEditorPlugin.Controls
                     m_wiresToCut.Clear();
                     foreach (WireVisual wire in m_wireVisuals)
                     {
-                        LineGeometry wireCutLine = wire.WireGeometry.Children[0] as LineGeometry;
-                        if (intersect(m_wireCutStart, m_wireCutCurrent, wireCutLine.StartPoint, wireCutLine.EndPoint))
+                        LineGeometry wireCutLine = new LineGeometry();
+                        bool isCut = false;
+                        for (int i = 0; i < wire.WireGeometry.Children.Count; i++)
                         {
-                            m_wiresToCut.Add(wire);
-                            wire.IsMarkedForDeletion = true;
+                            wireCutLine = wire.WireGeometry.Children[i] as LineGeometry;
+                            if (intersect(m_wireCutStart, m_wireCutCurrent, wireCutLine.StartPoint, wireCutLine.EndPoint))
+                            {
+                                m_wiresToCut.Add(wire);
+                                wire.IsMarkedForDeletion = true; isCut = true;
+                                break;
+                            }
                         }
-                        else
-                        {
-                            wire.IsMarkedForDeletion = false;
-                        }
+                        if (isCut == true) continue;
+                        wire.IsMarkedForDeletion = false;
                     }
 
                     InvalidateVisual();

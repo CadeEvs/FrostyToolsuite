@@ -549,6 +549,8 @@ namespace LevelEditorPlugin.Editors
         public SchematicsData SchematicsData => m_schematicsData;
         public bool IsDockedInEditor => m_isDockedInEditor;
         public bool IsGridVisible => m_isGridVisible;
+        public bool UseCurvedLines => m_useCurvedLines;
+        public bool UseAlternateConnectorOrders => m_useAlternateConnectorOrders;
         public bool IsConnectorOrdersVisible => m_isConnectorOrdersVisible;
         public bool SuppressLayoutSave => m_suppressLayoutSave;
         public object ModifiedData => m_modifiedData;
@@ -566,6 +568,8 @@ namespace LevelEditorPlugin.Editors
         private bool m_isGridVisible;
         private bool m_isConnectorOrdersVisible;
         private bool m_suppressLayoutSave;
+        private bool m_useCurvedLines;
+        private bool m_useAlternateConnectorOrders;
 
         private object m_modifiedData;
         private object m_updateDebug;
@@ -580,6 +584,8 @@ namespace LevelEditorPlugin.Editors
             m_isDockedInEditor = isEditorView;
             m_isGridVisible = true;
             m_isConnectorOrdersVisible = false;
+            m_useCurvedLines = false;
+            m_useAlternateConnectorOrders = false;
 
             m_dockManager = new DockManager(inOwner);
             if (!isEditorView)
@@ -702,6 +708,9 @@ namespace LevelEditorPlugin.Editors
                 new ToggleToolbarItem("", "Show/Hide the grid", "FrostyEditor/Images/Grid.png", true, new RelayCommand((o) => { m_isGridVisible = !m_isGridVisible; NotifyPropertyChanged("IsGridVisible"); (o as ToggleToolbarItem).IsToggled = m_isGridVisible; })),
                 new ToggleToolbarItem("", "Show/Hide connector order", "LevelEditorPlugin/Images/ConnectorOrder.png", false, new RelayCommand((o) => { m_isConnectorOrdersVisible = !m_isConnectorOrdersVisible; NotifyPropertyChanged("IsConnectorOrdersVisible"); })),
                 new RegularToolbarItem("", "Clear the current layout", "LevelEditorPlugin/Images/ClearLayout.png", new RelayCommand((o) => { SchematicsLayoutManager.Instance.ClearLayout(m_schematicsData.BlueprintGuid); m_suppressLayoutSave = true; NotifyPropertyChanged("SuppressLayoutSave"); }, (o) => { return (m_schematicsData != null) ? SchematicsLayoutManager.Instance.GetLayout(m_schematicsData.BlueprintGuid) != null : false; })),
+                new DividerToolbarItem(),
+                new ToggleToolbarItem("", "Enable/Disable curved lines", "LevelEditorPlugin/Images/Tracks/PathTrack.png", false, new RelayCommand((o) => { m_useCurvedLines = !m_useCurvedLines; NotifyPropertyChanged("UseCurvedLines"); (o as ToggleToolbarItem).IsToggled = m_useCurvedLines; })),
+                new ToggleToolbarItem("", "Toggle alternate connector order look", "LevelEditorPlugin/Images/ConnectorOrder.png", false, new RelayCommand((o) => { m_useAlternateConnectorOrders = !m_useAlternateConnectorOrders; NotifyPropertyChanged("UseAlternateConnectorOrders"); (o as ToggleToolbarItem).IsToggled = m_useAlternateConnectorOrders; })),
                 new DividerToolbarItem()
             };
         }
