@@ -35,8 +35,8 @@ namespace FrostyEditor.Windows
                 return;
             }
 
-            App.InitDiscordRPC();
-            App.UpdateDiscordRPC("Initializing");
+            App.InitDiscordRpc();
+            App.UpdateDiscordRpc("Initializing");
 
             // launch splash
             SplashWindow splash = new SplashWindow();

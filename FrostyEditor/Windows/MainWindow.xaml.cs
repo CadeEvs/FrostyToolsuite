@@ -254,7 +254,7 @@ namespace FrostyEditor.Windows
                     state = header;
             }
 
-            App.UpdateDiscordRPC(state);
+            App.UpdateDiscordRpc(state);
         }
 
         private void InitGameSpecificMenus()
@@ -776,8 +776,12 @@ namespace FrostyEditor.Windows
         private void ShutdownEditorAndRemoveTab(FrostyAssetEditor editor, FrostyTabItem ti)
         {
             editor.Closed();
+            
             if (ti.IsSelected)
+            {
                 AssetEditorToolbarItems.ItemsSource = null;
+            }
+            
             TabControl.Items.Remove(ti);
             if (TabControl.Items.Count == 1)
             {
@@ -812,9 +816,13 @@ namespace FrostyEditor.Windows
             {
                 FrostyTabItem tabItem = TabControl.Items[1] as FrostyTabItem;
                 if (tabItem.Content is FrostyAssetEditor editor)
+                {
                     ShutdownEditorAndRemoveTab(editor, tabItem);
+                }
                 else
+                {
                     RemoveTab(tabItem);
+                }
             }
         }
 
