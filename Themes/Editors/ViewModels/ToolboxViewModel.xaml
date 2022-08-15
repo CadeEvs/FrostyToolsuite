@@ -49,7 +49,11 @@
                     </Grid.RowDefinitions>
                     
                     <Border Grid.Row="0" Background="Transparent" Margin="1,1,1,1">
-                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" Text="{Binding Path=FilterText, Mode=TwoWay}" WatermarkText="Filter" BorderThickness="1" Height="24" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" Padding="4,0,0,0"/>
+                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" WatermarkText="Filter" BorderThickness="1" Height="24" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" Padding="4,0,0,0">
+                            <ctrl:FrostyWatermarkTextBox.Text>
+                                <Binding Path="FilterText" UpdateSourceTrigger="PropertyChanged"/>
+                            </ctrl:FrostyWatermarkTextBox.Text>
+                        </ctrl:FrostyWatermarkTextBox>
                     </Border>
                     <TreeView Grid.Row="1" ItemsSource="{Binding Path=Types}" editors:LevelEditorAttachedBehaviors.SelectedItemChangedCommand="{Binding Path=SelectedTypeChangedCommand}" editors:DragDropExtension.IsDragDropSource="True">
                         <TreeView.ItemContainerStyle>
