@@ -8,6 +8,7 @@ using System.Windows.Media;
 using LevelEditorPlugin.Entities;
 using LevelEditorPlugin.Library.Drawing;
 using LevelEditorPlugin.Library.Reflection;
+using LevelEditorPlugin.Library.Schematics;
 using LevelEditorPlugin.Managers;
 
 namespace LevelEditorPlugin.Controls
@@ -104,7 +105,7 @@ namespace LevelEditorPlugin.Controls
             return false;
         }
 
-        public override bool OnMouseUp(Point mousePos, MouseButton mouseButton, bool hasMouseMoved)
+        public override bool OnMouseUp(Point mousePos, MouseButton mouseButton)
         {
             if (mouseButton == MouseButton.Left)
             {
@@ -117,29 +118,25 @@ namespace LevelEditorPlugin.Controls
             }
             else if (mouseButton == MouseButton.Right)
             {
-                // open context menu if mouse hasn't moved
-                if (!hasMouseMoved)
+                foreach (Port port in AllPorts)
                 {
-                    foreach (Port port in AllPorts)
-                    {
-                        if (!port.IsConnected || port.ShortcutNode != null)
-                            continue;
+                    if (!port.IsConnected || port.ShortcutNode != null)
+                        continue;
 
-                        Rect portRect = new Rect(Rect.X + port.Rect.X, Rect.Y + port.Rect.Y, 12, 12);
-                        if (portRect.Contains(mousePos))
-                        {
-                            PortContextMenu.DataContext = port;
-                            PortContextMenu.IsOpen = true;
-                            return true;
-                        }
-                    }
-
-                    if (NodeContextMenu != null && Rect.Contains(mousePos))
+                    Rect portRect = new Rect(Rect.X + port.Rect.X, Rect.Y + port.Rect.Y, 12, 12);
+                    if (portRect.Contains(mousePos))
                     {
-                        NodeContextMenu.DataContext = this;
-                        NodeContextMenu.IsOpen = true;
+                        PortContextMenu.DataContext = port;
+                        PortContextMenu.IsOpen = true;
                         return true;
                     }
+                }
+
+                if (NodeContextMenu != null && Rect.Contains(mousePos))
+                {
+                    NodeContextMenu.DataContext = this;
+                    NodeContextMenu.IsOpen = true;
+                    return true;
                 }
             }
 
@@ -296,7 +293,7 @@ namespace LevelEditorPlugin.Controls
                 if (foundName != name)
                 {
                     name = foundName;
-                    nameHash = HashString(name);
+                    nameHash = SchematicsUtils.HashString(name);
                 }
 
                 port = new Port(this)
@@ -504,7 +501,7 @@ namespace LevelEditorPlugin.Controls
             // input links
             foreach (ConnectionDesc linkDesc in Entity.Links.Where(e => e.Direction == Direction.Out))
             {
-                int hash = HashString(linkDesc.Name);
+                int hash = SchematicsUtils.HashString(linkDesc.Name);
                 Port port = InputLinks.Find(p => p.NameHash == hash);
 
                 if (port == null)
@@ -521,7 +518,7 @@ namespace LevelEditorPlugin.Controls
             // input events
             foreach (ConnectionDesc eventDesc in Entity.Events.Where(e => e.Direction == Direction.In))
             {
-                int hash = HashString(eventDesc.Name);
+                int hash = SchematicsUtils.HashString(eventDesc.Name);
                 Port port = InputEvents.Find(p => p.NameHash == hash);
 
                 if (port == null)
@@ -537,7 +534,7 @@ namespace LevelEditorPlugin.Controls
             // input properties
             foreach (ConnectionDesc propDesc in Entity.Properties.Where(p => p.Direction == Direction.In))
             {
-                int hash = HashString(propDesc.Name);
+                int hash = SchematicsUtils.HashString(propDesc.Name);
                 Port port = InputProperties.Find(p => p.NameHash == hash);
 
                 if (port == null)
@@ -554,7 +551,7 @@ namespace LevelEditorPlugin.Controls
             // output links
             foreach (ConnectionDesc linkDesc in Entity.Links.Where(e => e.Direction == Direction.In))
             {
-                int hash = HashString(linkDesc.Name);
+                int hash = SchematicsUtils.HashString(linkDesc.Name);
                 Port port = OutputLinks.Find(p => p.NameHash == hash);
 
                 if (port == null)
@@ -571,7 +568,7 @@ namespace LevelEditorPlugin.Controls
             // output events
             foreach (ConnectionDesc eventDesc in Entity.Events.Where(e => e.Direction == Direction.Out))
             {
-                int hash = HashString(eventDesc.Name);
+                int hash = SchematicsUtils.HashString(eventDesc.Name);
                 Port port = OutputEvents.Find(p => p.NameHash == hash);
 
                 if (port == null)
@@ -587,7 +584,7 @@ namespace LevelEditorPlugin.Controls
             // output properties
             foreach (ConnectionDesc propDesc in Entity.Properties.Where(p => p.Direction == Direction.Out))
             {
-                int hash = HashString(propDesc.Name);
+                int hash = SchematicsUtils.HashString(propDesc.Name);
                 Port port = OutputProperties.Find(p => p.NameHash == hash);
 
                 if (port == null)

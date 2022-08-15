@@ -22,6 +22,7 @@ using System.Windows.Controls.Primitives;
 using Frosty.Core.Managers;
 using FrostySdk.Ebx;
 using LevelEditorPlugin.Library.Schematics;
+using LevelEditorPlugin.Windows;
 using Entity = LevelEditorPlugin.Entities.Entity;
 
 namespace LevelEditorPlugin.Controls
@@ -1168,19 +1169,28 @@ namespace LevelEditorPlugin.Controls
                 return;
             }
 
-            foreach (BaseVisual visual in m_visibleNodeVisuals)
+            if (m_isMouseMoving && m_isMouseDown)
             {
-                if (visual.OnMouseUp(mousePos, e.ChangedButton, m_isMouseMoving))
+                m_isMouseMoving = false;
+                m_isMouseDown = false;
+            }
+            else if (!m_isMouseMoving && m_isMouseDown)
+            {
+                foreach (BaseVisual visual in m_visibleNodeVisuals)
                 {
-                    e.Handled = true;
-                    InvalidateVisual();
-                    return;
+                    if (visual.OnMouseUp(mousePos, e.ChangedButton))
+                    {
+                        e.Handled = true;
+                        InvalidateVisual();
+                        return;
+                    }
                 }
+
+                m_isMouseDown = false;
             }
 
             if (e.ChangedButton == MouseButton.Left)
             {
-                //prevMousePos = mousePos;
                 Mouse.Capture(null);
 
                 if (UndoManager.Instance.PendingUndoUnit != null)
@@ -1309,9 +1319,6 @@ namespace LevelEditorPlugin.Controls
             }
 
             base.OnMouseUp(e);
-
-            m_isMouseDown = false;
-            m_isMouseMoving = false;
         }
 
         protected override void OnMouseLeave(MouseEventArgs e)
@@ -1749,30 +1756,130 @@ namespace LevelEditorPlugin.Controls
 
         private void GenerateNodes(IEnumerable<Entity> entities)
         {
+            //
+            // Port Context Menu
+            //
             ContextMenu portContextMenu = new ContextMenu();
-            MenuItem makeShortcutItem = new MenuItem() { Header = "Make shortcut" };
-            makeShortcutItem.Click += (o, e) =>
+            
+            // shortcut
+            MenuItem makeShortcutMenuItem = new MenuItem() { Header = "Make Shortcut" };
+            makeShortcutMenuItem.Click += (o, e) =>
             {
                 BaseNodeVisual.Port port = (o as MenuItem).DataContext as BaseNodeVisual.Port;
                 GenerateShortcuts(port.Owner, port);
             };
-            portContextMenu.Items.Add(makeShortcutItem);
+            portContextMenu.Items.Add(makeShortcutMenuItem);
 
+            // copy name
+            MenuItem copyNameMenuItem = new MenuItem() { Header = "Copy Name" };
+            copyNameMenuItem.Click += (o, e) =>
+            {
+                BaseNodeVisual.Port port = (o as MenuItem).DataContext as BaseNodeVisual.Port;
+                Clipboard.SetText(port.Name);
+                
+                Frosty.Core.App.NotificationManager.Show($"Copied {port.Name}");
+            };
+            portContextMenu.Items.Add(copyNameMenuItem);
+            
+            //
+            // Node Generation
+            //
+            
             Random r = new Random(2);
             foreach (Entity entity in entities)
             {
                 ILogicEntity logicEntity = entity as ILogicEntity;
-                
-                // add event triggers items to context menu
+
+                double x = ((int)(r.NextDouble() * 2000)) - 1000;
+                double y = ((int)(r.NextDouble() * 2000)) - 1000;
+                bool isCollapsed = entity.UserData == null;
+
+                x = x - (x % 10);
+                y = y - (y % 10);
                 ContextMenu nodeContextMenu = new ContextMenu();
-                if (logicEntity is LogicEntity)
+                NodeVisual node = new NodeVisual(logicEntity, x, y) 
+                { 
+                    GlyphWidth = OriginalAdvanceWidth, 
+                    NodeContextMenu = nodeContextMenu,
+                    PortContextMenu = portContextMenu, 
+                    UniqueId = Guid.NewGuid() 
+                };
+
+                //
+                // Logic Entity Context Menu
+                //
+                if (logicEntity is LogicEntity l)
                 {
+                    // add dynamic port
+                    MenuItem addPortMenuItem = new MenuItem() { Header = "Add Dynamic Port" };
+                    addPortMenuItem.Click += (o, e) =>
+                    {
+                        SchematicsDynamicPortWindow window = new SchematicsDynamicPortWindow();
+                        if (window.ShowDialog() == true)
+                        {
+                            if (window.Options is DynamicPortSettings portSettings)
+                            {
+                                BaseNodeVisual.Port port = new BaseNodeVisual.Port(node)
+                                {
+                                    IsDynamicallyGenerated = true,
+                                    Name = portSettings.Name,
+                                    NameHash = SchematicsUtils.HashString(portSettings.Name),
+                                    PortType = (int)portSettings.Type,
+                                    PortDirection = 1 - (int)portSettings.Direction
+                                };
+                                
+                                bool isInPort = portSettings.Direction == Direction.In;
+                                // property
+                                if (portSettings.Type == PortType.Property)
+                                {
+                                    if (isInPort)
+                                    {
+                                        node.InputProperties.Add(port);
+                                    }
+                                    else
+                                    {
+                                        node.OutputProperties.Add(port);
+                                    }
+                                }
+                                // event
+                                else if (portSettings.Type == PortType.Event)
+                                {
+                                    if (isInPort)
+                                    {
+                                        node.InputEvents.Add(port);
+                                    }
+                                    else
+                                    {
+                                        node.OutputEvents.Add(port);
+                                    }
+                                }
+                                // link
+                                else if (portSettings.Type == PortType.Link)
+                                {
+                                    if (isInPort)
+                                    {
+                                        node.InputLinks.Add(port);
+                                    }
+                                    else
+                                    {
+                                        node.OutputLinks.Add(port);
+                                    }
+                                }
+                                
+                                node.Update();
+                                InvalidateVisual();
+                            }
+                        }
+                    };
+                    
+                    nodeContextMenu.Items.Add(addPortMenuItem);
+                    
+                    // trigger events
                     MenuItem triggerMenuItem = new MenuItem() { Header = "Trigger Event" };
 
                     MenuItem inputTriggerMenuItem = new MenuItem() { Header = "Input" };
                     MenuItem outputTriggerMenuItem = new MenuItem() { Header = "Output" };
                     
-                    LogicEntity l = logicEntity as LogicEntity;
                     foreach (ConnectionDesc conn in l.Events)
                     {
                         MenuItem eventMenuItem = new MenuItem() { Header = conn.Name };
@@ -1805,22 +1912,7 @@ namespace LevelEditorPlugin.Controls
                         nodeContextMenu.Items.Add(triggerMenuItem);
                     }
                 }
-
-                double x = ((int)(r.NextDouble() * 2000)) - 1000;
-                double y = ((int)(r.NextDouble() * 2000)) - 1000;
-                bool isCollapsed = entity.UserData == null;
-
-                x = x - (x % 10);
-                y = y - (y % 10);
-
-                NodeVisual node = new NodeVisual(logicEntity, x, y) 
-                { 
-                    GlyphWidth = OriginalAdvanceWidth, 
-                    NodeContextMenu = (nodeContextMenu.Items.Count > 0) ? nodeContextMenu : null,
-                    PortContextMenu = portContextMenu, 
-                    UniqueId = Guid.NewGuid() 
-                };
-
+                
                 AddNode(node);
 
                 node.IsCollapsed = isCollapsed;

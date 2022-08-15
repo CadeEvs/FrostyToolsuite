@@ -49,7 +49,7 @@ namespace LevelEditorPlugin.Entities
         byte FlagsLinkRealm { get; set; }
     }
 
-    public enum Direction
+    public enum Direction : int
     {
         In,
         Out

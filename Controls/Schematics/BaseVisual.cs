@@ -31,7 +31,7 @@ namespace LevelEditorPlugin.Controls
             return false;
         }
 
-        public virtual bool OnMouseUp(Point mousePos, MouseButton mouseButton, bool hasMouseMoved)
+        public virtual bool OnMouseUp(Point mousePos, MouseButton mouseButton)
         {
             return false;
         }

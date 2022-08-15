@@ -1,0 +1,26 @@
+<ctrl:FrostyDockableWindow x:Class="LevelEditorPlugin.Windows.SchematicsDynamicPortWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        xmlns:local="clr-namespace:LevelEditorPlugin.Windows"
+        xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+        mc:Ignorable="d"
+        Topmost="True" ResizeMode="NoResize" WindowStartupLocation="CenterScreen"
+        Title="Add Dynamic Port" Height="200" Width="400">
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="38"/>
+        </Grid.RowDefinitions>
+        
+        <core:FrostyPropertyGrid Grid.Row="0" ClassViewVisible="False" Object="{Binding Path=Options, RelativeSource={RelativeSource AncestorType={x:Type local:SchematicsDynamicPortWindow}}}"/>
+        
+        <Grid Grid.Row="1" Background="{StaticResource ListBackground}" >
+            <Button Content="Add" HorizontalAlignment="Right" Padding="12,0" Margin="6" Command="{Binding Path=AddButtonClickedCommand, RelativeSource={RelativeSource AncestorType={x:Type local:SchematicsDynamicPortWindow}}}"/>
+            <Button Content="Cancel" HorizontalAlignment="Left" Padding="12,0" Margin="6" Command="{Binding Path=CancelButtonClickedCommand, RelativeSource={RelativeSource AncestorType={x:Type local:SchematicsDynamicPortWindow}}}"/>
+        </Grid>
+    </Grid>
+</ctrl:FrostyDockableWindow>

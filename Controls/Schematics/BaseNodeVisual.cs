@@ -69,13 +69,6 @@ namespace LevelEditorPlugin.Controls
         public abstract bool IsValid();
         public abstract Port Connect(WireVisual wire, string name, int nameHash, int portType, int direction);
 
-        protected int HashString(string value)
-        {
-            if (value.StartsWith("0x"))
-                return int.Parse(value.Substring(2), System.Globalization.NumberStyles.HexNumber);
-            return Frosty.Hash.Fnv1.HashString(value);
-        }
-
         public override bool OnMouseOver(Point mousePos)
         {
             if (Rect.Contains(mousePos))
