@@ -1322,7 +1322,9 @@ namespace LevelEditorPlugin.Controls
         protected override void Render(DrawingContext drawingContext)
         {
             if (ItemsSource == null)
+            {
                 return;
+            }
 
             UpdateVisibleNodes();
 
@@ -1726,15 +1728,21 @@ namespace LevelEditorPlugin.Controls
             MatrixTransform m = GetWorldMatrix();
             Point topLeft = m.Inverse.Transform(new Point(0, 0));
             Point bottomRight = m.Inverse.Transform(new Point(ActualWidth, ActualHeight));
-            Rect fustrum = new Rect(topLeft, bottomRight);
+            Rect frustum = new Rect(topLeft, bottomRight);
 
             m_visibleNodeVisuals.Clear();
             foreach (BaseVisual visual in m_nodeVisuals)
             {
-                if (fustrum.IntersectsWith(visual.Rect) || visual.IsSelected)
+                if (frustum.IntersectsWith(visual.Rect) || visual.IsSelected)
                 {
-                    if (visual.IsSelected) m_visibleNodeVisuals.Insert(0, visual);
-                    else m_visibleNodeVisuals.Add(visual);
+                    if (visual.IsSelected)
+                    {
+                        m_visibleNodeVisuals.Insert(0, visual);
+                    }
+                    else
+                    {
+                        m_visibleNodeVisuals.Add(visual);
+                    }
                 }
             }
         }
