@@ -21,8 +21,8 @@
                     <ImageBrush ImageSource="/FrostyEditor;component/Images/CloseFolder.png"/>
                 </Rectangle.OpacityMask>
             </Rectangle>
-            <TextBlock Grid.Column="1" Text="{Binding Path=Name}" VerticalAlignment="Center" Margin="8 0 0 0"/>
             
+            <TextBlock Grid.Column="1" Text="{Binding Path=Name}" VerticalAlignment="Center" Margin="8 0 0 0"/>
         </Grid>
         <HierarchicalDataTemplate.Triggers>
             <DataTrigger Binding="{Binding Path=IsExpanded}" Value="True">
@@ -41,18 +41,27 @@
     
     <DataTemplate DataType="{x:Type editors:SchematicsToolboxViewModel}">
         <ctrl:FrostyDockablePanel TitleBarVisible="False" BorderVisible="False">
-
             <Border BorderThickness="0 2 0 0" BorderBrush="{StaticResource ControlBackground}">
-                <TreeView ItemsSource="{Binding Path=Types}" editors:LevelEditorAttachedBehaviors.SelectedItemChangedCommand="{Binding Path=SelectedTypeChangedCommand}" editors:DragDropExtension.IsDragDropSource="True">
-                    <TreeView.ItemContainerStyle>
-                        <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource StrechedTreeViewItemStyle}">
-                            <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                            <Setter Property="TreeViewItem.IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}"/>
-                            <Setter Property="TreeViewItem.IsSelected" Value="{Binding Path=IsSelected, Mode=TwoWay}"/>
-                        </Style>
-                    </TreeView.ItemContainerStyle>
-                </TreeView>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="26"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    
+                    <Border Grid.Row="0" Background="Transparent" Margin="1,1,1,1">
+                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" Text="{Binding Path=FilterText, Mode=TwoWay}" WatermarkText="Filter" BorderThickness="1" Height="24" HorizontalAlignment="Stretch" VerticalContentAlignment="Center" Padding="4,0,0,0"/>
+                    </Border>
+                    <TreeView Grid.Row="1" ItemsSource="{Binding Path=Types}" editors:LevelEditorAttachedBehaviors.SelectedItemChangedCommand="{Binding Path=SelectedTypeChangedCommand}" editors:DragDropExtension.IsDragDropSource="True">
+                        <TreeView.ItemContainerStyle>
+                            <Style TargetType="{x:Type TreeViewItem}" BasedOn="{StaticResource StrechedTreeViewItemStyle}">
+                                <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                <Setter Property="TreeViewItem.IsExpanded" Value="{Binding Path=IsExpanded, Mode=TwoWay}"/>
+                                <Setter Property="TreeViewItem.IsSelected" Value="{Binding Path=IsSelected, Mode=TwoWay}"/>
+                            </Style>
+                        </TreeView.ItemContainerStyle>
+                    </TreeView>
+                </Grid>
             </Border>
             
         </ctrl:FrostyDockablePanel>

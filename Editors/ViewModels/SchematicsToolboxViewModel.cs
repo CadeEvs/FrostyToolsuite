@@ -289,44 +289,47 @@ namespace LevelEditorPlugin.Editors
 
     public class ToolboxTypeItem : INotifyPropertyChanged
     {
-        public string Name => name;
-        public Type Type => type;
+        public string Name => m_name;
+        public Type Type => m_type;
         public bool IsExpanded
         {
-            get => isExpanded;
+            get => m_isExpanded;
             set
             {
-                if (isExpanded != value)
+                if (m_isExpanded != value)
                 {
-                    isExpanded = value;
+                    m_isExpanded = value;
                     NotifyPropertyChanged();
                 }
             }
         }
         public bool IsSelected
         {
-            get => isSelected;
+            get => m_isSelected;
             set
             {
-                if (isSelected != value)
+                if (m_isSelected != value)
                 {
-                    isSelected = value;
+                    m_isSelected = value;
                     NotifyPropertyChanged();
                 }
             }
         }
 
-        private string name;
-        private bool isExpanded;
-        private bool isSelected;
-        private Type type;
+        private string m_name;
+        private bool m_isExpanded;
+        private bool m_isSelected;
+        private Type m_type;
 
         public ToolboxTypeItem(Type inType)
         {
-            type = inType;
-            name = type.Name;
-            if (name.EndsWith("Entity"))
-                name = name.Remove(name.Length - 6);
+            m_type = inType;
+            m_name = m_type.Name;
+            
+            if (m_name.EndsWith("Entity"))
+            {
+                m_name = m_name.Remove(m_name.Length - 6);
+            }
         }
 
         #region -- INotifyPropertyChanged --
@@ -343,46 +346,46 @@ namespace LevelEditorPlugin.Editors
 
     public class ToolboxFolderItem : INotifyPropertyChanged
     {
-        public string Name => name;
-        public IEnumerable<ToolboxTypeItem> Children => children;
+        public string Name => m_name;
+        public IEnumerable<ToolboxTypeItem> Children => m_children;
         public bool IsExpanded
         {
-            get => isExpanded;
+            get => m_isExpanded;
             set
             {
-                if (isExpanded != value)
+                if (m_isExpanded != value)
                 {
-                    isExpanded = value;
+                    m_isExpanded = value;
                     NotifyPropertyChanged();
                 }
             }
         }
         public bool IsSelected
         {
-            get => isSelected;
+            get => m_isSelected;
             set
             {
-                if (isSelected != value)
+                if (m_isSelected != value)
                 {
-                    isSelected = value;
+                    m_isSelected = value;
                     NotifyPropertyChanged();
                 }
             }
         }
 
-        private string name;
-        private List<ToolboxTypeItem> children = new List<ToolboxTypeItem>();
-        private bool isExpanded;
-        private bool isSelected;
+        private string m_name;
+        private List<ToolboxTypeItem> m_children = new List<ToolboxTypeItem>();
+        private bool m_isExpanded;
+        private bool m_isSelected;
 
         public ToolboxFolderItem(string inName)
         {
-            name = inName;
+            m_name = inName;
         }
 
         public void AddChild(Type childType)
         {
-            children.Add(new ToolboxTypeItem(childType));
+            m_children.Add(new ToolboxTypeItem(childType));
         }
 
         #region -- INotifyPropertyChanged --
@@ -402,16 +405,53 @@ namespace LevelEditorPlugin.Editors
         public string Header => "Toolbox";
         public virtual string UniqueId => "UID_LevelEditor_Toolbox";
         public string Icon => "Images/Toolbox.png";
-        public IEnumerable<ToolboxFolderItem> Types => types;
+        public IEnumerable<ToolboxFolderItem> Types
+        {
+            get => m_types;
+            set
+            {
+                if (m_types != value)
+                {
+                    m_types = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+        public string FilterText
+        {
+            get => m_filterText;
+            set
+            {
+                m_filterText = value;
+                FilterTextChanged();
+            }
+        }
+        
         public ICommand SelectedTypeChangedCommand => new RelayCommand(SelectedTypeChanged);
 
-        protected IEnumerable<ToolboxFolderItem> types;
-        protected ToolboxTypeItem selectedType;
+        private IEnumerable<ToolboxFolderItem> m_types;
+        private IEnumerable<Type> m_allTypes;
+        private ToolboxTypeItem m_selectedType;
+        private string m_filterText;
 
         public SchematicsToolboxViewModel()
         {
-            List<ToolboxFolderItem> modules = new List<ToolboxFolderItem>();
+            m_filterText = "";
+            
+            List<Type> types = new List<Type>();
             foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => IsTypeValid(t)))
+            {
+                types.Add(type);
+            }
+            m_allTypes = types;
+            
+            UpdateTypes();
+        }
+
+        public void UpdateTypes()
+        {
+            List<ToolboxFolderItem> modules = new List<ToolboxFolderItem>();
+            foreach (Type type in m_allTypes)
             {
                 EntityBindingAttribute attr = type.GetCustomAttribute<EntityBindingAttribute>();
                 Type dataType = attr.DataType;
@@ -419,6 +459,11 @@ namespace LevelEditorPlugin.Editors
 
                 if (metaAttr != null)
                 {
+                    if (m_filterText != "" && type.Name.IndexOf(m_filterText, StringComparison.OrdinalIgnoreCase) < 0)
+                    {
+                        continue;
+                    }
+                    
                     ToolboxFolderItem folderItem = modules.Find(m => m.Name == metaAttr.Namespace);
                     if (folderItem == null)
                     {
@@ -429,21 +474,22 @@ namespace LevelEditorPlugin.Editors
                     folderItem.AddChild(type);
                 }
             }
-            types = modules;
-        }
 
+            Types = modules;
+        }
+        
         public virtual bool InitiateDrag(out object dataToDrag, out FrameworkElement optionalVisual)
         {
             dataToDrag = null;
             optionalVisual = null;
 
-            if (selectedType == null)
+            if (m_selectedType == null)
                 return false;
 
-            dataToDrag = new SchematicsDropData() { DataType = selectedType.Type };
-            EntityBindingAttribute attr = selectedType.Type.GetCustomAttribute<EntityBindingAttribute>();
+            dataToDrag = new SchematicsDropData() { DataType = m_selectedType.Type };
+            EntityBindingAttribute attr = m_selectedType.Type.GetCustomAttribute<EntityBindingAttribute>();
 
-            Entity tmpEntity = (Entity)Activator.CreateInstance(selectedType.Type, new object[] { Activator.CreateInstance(attr.DataType), null });
+            Entity tmpEntity = (Entity)Activator.CreateInstance(m_selectedType.Type, new object[] { Activator.CreateInstance(attr.DataType), null });
             optionalVisual = new Controls.SchematicsPreviewControl(tmpEntity as ILogicEntity);
 
             return true;
@@ -458,11 +504,16 @@ namespace LevelEditorPlugin.Editors
         {
             if (newType is ToolboxFolderItem)
             {
-                selectedType = null;
+                m_selectedType = null;
                 return;
             }
 
-            selectedType = newType as ToolboxTypeItem;
+            m_selectedType = newType as ToolboxTypeItem;
+        }
+        
+        private void FilterTextChanged()
+        {
+            UpdateTypes();
         }
 
         #region -- INotifyPropertyChanged --
