@@ -26,11 +26,13 @@ namespace LevelEditorPlugin.Editors
             dataToDrag = null;
             optionalVisual = null;
 
-            if (selectedType == null)
+            if (m_selectedType == null)
+            {
                 return false;
+            }
 
-            dataToDrag = new UIWidgetDropData() { DataType = selectedType.Type };
-            var attr = selectedType.Type.GetCustomAttribute<EntityBindingAttribute>();
+            dataToDrag = new UIWidgetDropData() { DataType = m_selectedType.Type };
+            EntityBindingAttribute attr = m_selectedType.Type.GetCustomAttribute<EntityBindingAttribute>();
 
             optionalVisual = new Rectangle() { Width = 50, Height = 50, Fill = Brushes.White, Stroke = Brushes.Black, StrokeThickness = 1.0 };
 

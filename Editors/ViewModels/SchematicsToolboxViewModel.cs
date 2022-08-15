@@ -429,9 +429,10 @@ namespace LevelEditorPlugin.Editors
         
         public ICommand SelectedTypeChangedCommand => new RelayCommand(SelectedTypeChanged);
 
+        protected ToolboxTypeItem m_selectedType;
+        
         private IEnumerable<ToolboxFolderItem> m_types;
         private IEnumerable<Type> m_allTypes;
-        private ToolboxTypeItem m_selectedType;
         private string m_filterText;
 
         public SchematicsToolboxViewModel()
