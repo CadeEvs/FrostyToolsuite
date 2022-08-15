@@ -608,8 +608,7 @@ namespace LevelEditorPlugin.Controls
             foreach (Port port in oldInputProps) { if (!port.IsDynamicallyGenerated) { InputProperties.Remove(port); } }
             foreach (Port port in oldOutputProps) { if (!port.IsDynamicallyGenerated) { OutputProperties.Remove(port); } }
         }
-
-
+        
         private void DrawHeader(SchematicsCanvas.DrawingContextState state)
         {
             double headerHeight = (Entity.HeaderRows.Count() * 10.0) + 20;

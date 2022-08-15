@@ -671,6 +671,7 @@ namespace LevelEditorPlugin.Editors
                         PropertyConnections = new ObservableCollection<object>(),
                         InterfaceDescriptor = interfaceDescriptor,
                         BlueprintGuid = blueprintGuid,
+                        BlueprintName = blueprint.Name,
                         World = m_layer.Entity.World
                     };
                     foreach (Entity entity in m_entities)

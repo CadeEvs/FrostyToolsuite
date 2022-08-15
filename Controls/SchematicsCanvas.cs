@@ -21,136 +21,11 @@ using System.Collections.Specialized;
 using System.Windows.Controls.Primitives;
 using Frosty.Core.Managers;
 using FrostySdk.Ebx;
+using LevelEditorPlugin.Library.Schematics;
 using Entity = LevelEditorPlugin.Entities.Entity;
 
 namespace LevelEditorPlugin.Controls
 {
-    public class NodeSorterHelper
-    {
-        private List<BaseVisual> m_nodes;
-        private List<WireVisual> m_wires;
-
-        public NodeSorterHelper(List<BaseVisual> inData, List<WireVisual> inWires)
-        {
-            m_nodes = inData;
-            m_wires = inWires;
-        }
-
-        public void ApplyAutoLayout()
-        {
-            // Gather the nodes that feed into and out of each node
-            Dictionary<BaseNodeVisual, List<BaseNodeVisual>> ancestors = new Dictionary<BaseNodeVisual, List<BaseNodeVisual>>();
-            Dictionary<BaseNodeVisual, List<BaseNodeVisual>> children = new Dictionary<BaseNodeVisual, List<BaseNodeVisual>>();
-
-            foreach (BaseVisual visual in m_nodes)
-            {
-                if (visual is BaseNodeVisual node)
-                {
-                    ancestors.Add(node, new List<BaseNodeVisual>());
-                    children.Add(node, new List<BaseNodeVisual>());
-                }
-            }
-
-            foreach (WireVisual wire in m_wires)
-            {
-                BaseNodeVisual source = wire.Source;
-                BaseNodeVisual target = wire.Target;
-
-                ancestors[target].Add(source);
-                children[source].Add(target);
-            }
-
-            List<List<BaseNodeVisual>> columns = new List<List<BaseNodeVisual>>();
-            List<BaseNodeVisual> alreadyProcessed = new List<BaseNodeVisual>();
-
-            int columnIdx = 1;
-            columns.Add(new List<BaseNodeVisual>());
-
-            foreach (BaseNodeVisual node in m_nodes)
-            {
-                if (ancestors[node].Count == 0 && children[node].Count == 0)
-                {
-                    alreadyProcessed.Add(node);
-                    columns[0].Add(node);
-                    continue;
-                }
-
-                if (ancestors[node].Count == 0)
-                {
-                    LayoutNodes(node, children, columns, alreadyProcessed, columnIdx);
-                }
-            }
-
-            columnIdx = 1;
-            foreach (BaseNodeVisual node in m_nodes)
-            {
-                if (!alreadyProcessed.Contains(node))
-                {
-                    LayoutNodes(node, children, columns, alreadyProcessed, columnIdx);
-                }
-            }
-
-            double x = 100.0;
-            double width = 0.0;
-
-            foreach (List<BaseNodeVisual> column in columns)
-            {
-                double y = 96.0;
-                foreach (BaseNodeVisual node in column)
-                {
-                    node.Rect.X = x - (x % 8);
-                    node.Rect.Y = y - (y % 8);
-                    
-                    node.Update();
-
-                    double curWidth = Math.Floor((node.Rect.Width + 7.0) / 8.0) * 8.0;
-                    double curHeight = Math.Floor((node.Rect.Height + 7.0) / 8.0) * 8.0;
-
-                    y += curHeight + 56.0;
-                    if (curWidth > width)
-                    {
-                        width = curWidth;
-                    }
-                }
-
-                x += width + 60.0;
-            }
-        }
-
-        private int LayoutNodes(BaseNodeVisual node, Dictionary<BaseNodeVisual, List<BaseNodeVisual>> children, List<List<BaseNodeVisual>> columns, List<BaseNodeVisual> alreadyProcessed, int column)
-        {
-            if (alreadyProcessed.Contains(node))
-            {
-                for (int i = 0; i < columns.Count; i++)
-                {
-                    if (columns[i].Contains(node))
-                        return i;
-                }
-            }
-
-            alreadyProcessed.Add(node);
-            if (columns.Count <= column)
-                columns.Add(new List<BaseNodeVisual>());
-            columns[column++].Add(node);
-
-            int minimumColumn = 0;
-            foreach (BaseNodeVisual child in children[node])
-            {
-                int tmp = LayoutNodes(child, children, columns, alreadyProcessed, column);
-                if (tmp < minimumColumn || minimumColumn == 0)
-                    minimumColumn = tmp;
-            }
-
-            if (minimumColumn > (column + 1))
-            {
-                columns[column - 1].Remove(node);
-                columns[minimumColumn - 1].Add(node);
-            }
-
-            return column;
-        }
-    }
-    
     public class SchematicsData
     {
         public ObservableCollection<Entity> Entities;
@@ -159,6 +34,7 @@ namespace LevelEditorPlugin.Controls
         public ObservableCollection<object> PropertyConnections;
         public object InterfaceDescriptor;
         public Guid BlueprintGuid;
+        public string BlueprintName;
         public EntityWorld World;
     }
 
@@ -250,6 +126,8 @@ namespace LevelEditorPlugin.Controls
 
     public class SchematicsCanvas : GridCanvas
     {
+        #region -- Internal Classes --
+        
         public class DrawingContextState
         {
             public DrawingContext DrawingContext { get; private set; }
@@ -419,6 +297,10 @@ namespace LevelEditorPlugin.Controls
             }
         }
         
+        #endregion
+
+        #region -- Properties --
+
         public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(SchematicsData), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(null, OnEntitiesChanged));
         public static readonly DependencyProperty ConnectorOrdersVisibleProperty = DependencyProperty.Register("ConnectorOrdersVisible", typeof(bool), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
         public static readonly DependencyProperty UseCurvedLinesProperty = DependencyProperty.Register("UseCurvedLines", typeof(bool), typeof(SchematicsCanvas), new FrameworkPropertyMetadata(true, FrameworkPropertyMetadataOptions.AffectsRender));
@@ -511,6 +393,10 @@ namespace LevelEditorPlugin.Controls
             set => SetValue(NodeModifiedCommandProperty, value);
         }
         
+        #endregion
+
+        #region -- Members --
+        
         public object UpdateDebug
         {
             get => GetValue(UpdateDebugProperty);
@@ -561,6 +447,10 @@ namespace LevelEditorPlugin.Controls
         private long m_lastFrameCount = -1;
         private WireVisual m_editingWire = null;
 
+        #endregion
+
+        #region -- Constructors --
+
         public SchematicsCanvas()
         {
             m_largeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
@@ -578,6 +468,10 @@ namespace LevelEditorPlugin.Controls
             m_debugWireVisual = new DrawingVisual();
         }
 
+        #endregion
+
+        #region -- Override Methods --
+        
         protected override void OnInitialized(EventArgs e)
         {
             base.OnInitialized(e);
@@ -597,14 +491,16 @@ namespace LevelEditorPlugin.Controls
                 if (SuppressLayoutSave)
                     return;
 
-                SchematicsLayout layout = new SchematicsLayout();
-
-                layout.FileGuid = ItemsSource.BlueprintGuid;
-                layout.CanvasPosition = new Point(offset.X, offset.Y);
-                layout.CanvasScale = scale;
-                layout.Nodes = new List<SchematicsLayout.Node>();
-                layout.Wires = new List<SchematicsLayout.Wire>();
-                layout.Comments = new List<SchematicsLayout.Comment>();
+                SchematicsLayout layout = new SchematicsLayout()
+                {
+                    BlueprintName = ItemsSource.BlueprintName,
+                    FileGuid = ItemsSource.BlueprintGuid,
+                    CanvasPosition = new Point(offset.X, offset.Y),
+                    CanvasScale = scale,
+                    Nodes = new List<SchematicsLayout.Node>(),
+                    Wires = new List<SchematicsLayout.Wire>(),
+                    Comments = new List<SchematicsLayout.Comment>()
+                };
 
                 foreach (BaseVisual node in m_nodeVisuals)
                 {
@@ -998,7 +894,7 @@ namespace LevelEditorPlugin.Controls
                         for (int i = 0; i < wire.WireGeometry.Children.Count; i++)
                         {
                             wireCutLine = wire.WireGeometry.Children[i] as LineGeometry;
-                            if (intersect(m_wireCutStart, m_wireCutCurrent, wireCutLine.StartPoint, wireCutLine.EndPoint))
+                            if (Intersect(m_wireCutStart, m_wireCutCurrent, wireCutLine.StartPoint, wireCutLine.EndPoint))
                             {
                                 m_wiresToCut.Add(wire);
                                 wire.IsMarkedForDeletion = true; isCut = true;
@@ -1060,14 +956,14 @@ namespace LevelEditorPlugin.Controls
 
             base.OnMouseMove(e);
 
-            bool ccw(Point a, Point b, Point c)
+            bool Ccw(Point a, Point b, Point c)
             {
                 return (c.Y - a.Y) * (b.X - a.X) > (b.Y - a.Y) * (c.X - a.X);
             }
     
-            bool intersect(Point start1, Point end1, Point start2, Point end2)
+            bool Intersect(Point start1, Point end1, Point start2, Point end2)
             {
-                return ccw(start1, start2, end2) != ccw(end1, start2, end2) && ccw(start1, end1, start2) != ccw(start1, end1, end2);
+                return Ccw(start1, start2, end2) != Ccw(end1, start2, end2) && Ccw(start1, end1, start2) != Ccw(start1, end1, end2);
             }
     
         }
@@ -1473,6 +1369,8 @@ namespace LevelEditorPlugin.Controls
             }
         }
         
+        #endregion
+        
         // @todo: organise this
         public void GenerateShortcuts(BaseNodeVisual node, BaseNodeVisual.Port port, SchematicsLayout.Shortcut? layoutData = null)
         {
@@ -1716,7 +1614,7 @@ namespace LevelEditorPlugin.Controls
                 }
                 else
                 {
-                    NodeSorterHelper sorter = new NodeSorterHelper(m_nodeVisuals, m_wireVisuals);
+                    NodeSortUtils sorter = new NodeSortUtils(m_nodeVisuals, m_wireVisuals);
                     sorter.ApplyAutoLayout();
                 }
             }

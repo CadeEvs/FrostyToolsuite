@@ -70,6 +70,7 @@ namespace LevelEditorPlugin.Managers
             public List<Guid> Children;
         }
 
+        public string BlueprintName;
         public Guid FileGuid;
         public Point CanvasPosition;
         public double CanvasScale;
@@ -87,37 +88,37 @@ namespace LevelEditorPlugin.Managers
 
         #endregion
 
-        private readonly string LayoutsFilename = $"{App.ProfileSettingsPath}/layouts.json";
-        private readonly string BlankProjectName = "New Project.fbproject";
+        private readonly string m_layoutsPath = $"{App.ProfileSettingsPath}/layouts";
+        private readonly string m_blankProjectName = "New Project.fbproject";
 
-        private Dictionary<Guid, SchematicsLayout> layouts;
-        private Dictionary<Guid, SchematicsLayout> projectLayouts;
-        private string currentProject;
+        private Dictionary<Guid, SchematicsLayout> m_layouts;
+        private Dictionary<Guid, SchematicsLayout> m_projectLayouts;
+        private string m_currentProject;
 
         public void LoadProjectLayouts(string project)
         {
-            if (currentProject != project)
+            if (m_currentProject != project)
             {
-                if (project == BlankProjectName)
+                if (project == m_blankProjectName)
                 {
-                    currentProject = null;
-                    projectLayouts.Clear();
+                    m_currentProject = null;
+                    m_projectLayouts.Clear();
                 }
                 else
                 {
-                    currentProject = project;
+                    m_currentProject = project;
                     string layoutsFilename = $"{project}.layouts.json";
 
                     if (File.Exists(layoutsFilename))
                     {
                         using (StreamReader streamReader = new StreamReader(layoutsFilename))
                         {
-                            projectLayouts = JsonConvert.DeserializeObject<Dictionary<Guid, SchematicsLayout>>(streamReader.ReadToEnd());
+                            m_projectLayouts = JsonConvert.DeserializeObject<Dictionary<Guid, SchematicsLayout>>(streamReader.ReadToEnd());
                         }
                     }
                     else
                     {
-                        projectLayouts = new Dictionary<Guid, SchematicsLayout>();
+                        m_projectLayouts = new Dictionary<Guid, SchematicsLayout>();
                     }
                 }
             }
@@ -125,40 +126,40 @@ namespace LevelEditorPlugin.Managers
 
         public SchematicsLayout? GetLayout(Guid guid)
         {
-            if (!string.IsNullOrEmpty(currentProject))
+            if (!string.IsNullOrEmpty(m_currentProject))
             {
-                if (projectLayouts.ContainsKey(guid))
-                    return projectLayouts[guid];
+                if (m_projectLayouts.ContainsKey(guid))
+                    return m_projectLayouts[guid];
             }
 
-            if (!layouts.ContainsKey(guid))
+            if (!m_layouts.ContainsKey(guid))
                 return null;
 
-            return layouts[guid];
+            return m_layouts[guid];
         }
 
         public void AddLayout(Guid guid, SchematicsLayout layout)
         {
-            if (!string.IsNullOrEmpty(currentProject))
+            if (!string.IsNullOrEmpty(m_currentProject))
             {
-                if (!projectLayouts.ContainsKey(guid))
+                if (!m_projectLayouts.ContainsKey(guid))
                 {
-                    projectLayouts.Add(guid, layout);
+                    m_projectLayouts.Add(guid, layout);
                 }
                 else
                 {
-                    projectLayouts[guid] = layout;
+                    m_projectLayouts[guid] = layout;
                 }
             }
             else
             {
-                if (!layouts.ContainsKey(guid))
+                if (!m_layouts.ContainsKey(guid))
                 {
-                    layouts.Add(guid, layout);
+                    m_layouts.Add(guid, layout);
                 }
                 else
                 {
-                    layouts[guid] = layout;
+                    m_layouts[guid] = layout;
                 }
             }
 
@@ -167,26 +168,26 @@ namespace LevelEditorPlugin.Managers
 
         public void ClearLayout(Guid guid)
         {
-            if (!string.IsNullOrEmpty(currentProject))
+            if (!string.IsNullOrEmpty(m_currentProject))
             {
-                if (layouts.ContainsKey(guid))
+                if (m_layouts.ContainsKey(guid))
                 {
-                    layouts.Remove(guid);
+                    m_layouts.Remove(guid);
                     SaveLayouts();
                     return;
                 }
             }
 
-            if (!layouts.ContainsKey(guid))
+            if (!m_layouts.ContainsKey(guid))
                 return;
 
-            layouts.Remove(guid);
+            m_layouts.Remove(guid);
             SaveLayouts();
         }
 
         public void PrintLayouts(ILogger logger)
         {
-            foreach (Guid guid in layouts.Keys)
+            foreach (Guid guid in m_layouts.Keys)
             {
                 EbxAssetEntry entry = App.AssetManager.GetEbxEntry(guid);
                 logger.Log(entry.Name);
@@ -194,40 +195,49 @@ namespace LevelEditorPlugin.Managers
         }
 
         private void LoadLayouts()
-        {
-            if (File.Exists(LayoutsFilename))
+        { 
+            m_layouts = new Dictionary<Guid, SchematicsLayout>();
+
+            // load layouts if folder exists
+            if (Directory.Exists(m_layoutsPath))
             {
-                using (StreamReader streamReader = new StreamReader(LayoutsFilename))
+                foreach (string filePath in Directory.GetFiles(m_layoutsPath, ".", SearchOption.AllDirectories))
                 {
-                    layouts = JsonConvert.DeserializeObject<Dictionary<Guid, SchematicsLayout>>(streamReader.ReadToEnd());
+                    using (StreamReader streamReader = new StreamReader(filePath))
+                    {
+                        KeyValuePair<Guid, SchematicsLayout> layout = JsonConvert.DeserializeObject<KeyValuePair<Guid, SchematicsLayout>>(streamReader.ReadToEnd());
+                        m_layouts.Add(layout.Key, layout.Value);
+                    }
                 }
-            }
-            else
-            {
-                layouts = new Dictionary<Guid, SchematicsLayout>();
             }
         }
 
         private void SaveLayouts()
         {
-            if (!string.IsNullOrEmpty(currentProject))
+            // project
+            if (!string.IsNullOrEmpty(m_currentProject))
             {
-                string layoutsFilename = $"{currentProject}.layouts.json";
+                string layoutsFilename = $"{m_currentProject}.layouts.json";
                 using (StreamWriter streamWriter = new StreamWriter(layoutsFilename))
                 {
-                    streamWriter.WriteLine(JsonConvert.SerializeObject(projectLayouts, Formatting.Indented));
+                    streamWriter.WriteLine(JsonConvert.SerializeObject(m_projectLayouts, Formatting.Indented));
                 }
             }
 
-            FileInfo fi = new FileInfo(LayoutsFilename);
-            if (!fi.Directory.Exists)
+            // global
+            foreach (KeyValuePair<Guid, SchematicsLayout> layout in m_layouts)
             {
-                Directory.CreateDirectory(fi.DirectoryName);
-            }
-            
-            using (StreamWriter streamWriter = new StreamWriter(LayoutsFilename))
-            {
-                streamWriter.WriteLine(JsonConvert.SerializeObject(layouts, Formatting.Indented));
+                string fileName = $"{m_layoutsPath}/{layout.Value.BlueprintName}.json";
+                FileInfo fi = new FileInfo(fileName);
+                if (!fi.Directory.Exists)
+                {
+                    Directory.CreateDirectory(fi.DirectoryName);
+                }
+                
+                using (StreamWriter streamWriter = new StreamWriter(fileName))
+                {
+                    streamWriter.WriteLine(JsonConvert.SerializeObject(layout, Formatting.Indented));
+                }
             }
         }
     }
