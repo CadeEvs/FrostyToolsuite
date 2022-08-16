@@ -89,36 +89,43 @@ namespace LevelEditorPlugin.Managers
         #endregion
 
         private readonly string m_layoutsPath = $"{App.ProfileSettingsPath}/layouts";
-        private readonly string m_blankProjectName = "New Project.fbproject";
 
         private Dictionary<Guid, SchematicsLayout> m_layouts;
         private Dictionary<Guid, SchematicsLayout> m_projectLayouts;
-        private string m_currentProject;
+        
+        private FileInfo m_currentProjectFile;
+        private string m_currentProjectPath = "";
 
         public void LoadProjectLayouts(string project)
         {
-            if (m_currentProject != project)
+            // @todo: refactor this to not need m_currentProjectPath
+            if (m_currentProjectPath != project)
             {
-                if (project == m_blankProjectName)
+                if (project == "")
                 {
-                    m_currentProject = null;
+                    m_currentProjectFile = null;
+                    m_currentProjectPath = "";
+                    
                     m_projectLayouts.Clear();
                 }
                 else
                 {
-                    m_currentProject = project;
-                    string layoutsFilename = $"{project}.layouts.json";
+                    m_currentProjectFile = new FileInfo(project);
+                    m_currentProjectPath = project;
+                    
+                    m_projectLayouts = new Dictionary<Guid, SchematicsLayout>();
 
-                    if (File.Exists(layoutsFilename))
+                    string projectLayoutsPath =  $"{m_currentProjectFile.Directory.FullName}/layouts";
+                    if (Directory.Exists(projectLayoutsPath))
                     {
-                        using (StreamReader streamReader = new StreamReader(layoutsFilename))
+                        foreach (string filePath in Directory.GetFiles(projectLayoutsPath, ".", SearchOption.AllDirectories))
                         {
-                            m_projectLayouts = JsonConvert.DeserializeObject<Dictionary<Guid, SchematicsLayout>>(streamReader.ReadToEnd());
+                            using (StreamReader streamReader = new StreamReader(filePath))
+                            {
+                                KeyValuePair<Guid, SchematicsLayout> layout = JsonConvert.DeserializeObject<KeyValuePair<Guid, SchematicsLayout>>(streamReader.ReadToEnd());
+                                m_projectLayouts.Add(layout.Key, layout.Value);
+                            }
                         }
-                    }
-                    else
-                    {
-                        m_projectLayouts = new Dictionary<Guid, SchematicsLayout>();
                     }
                 }
             }
@@ -126,21 +133,25 @@ namespace LevelEditorPlugin.Managers
 
         public SchematicsLayout? GetLayout(Guid guid)
         {
-            if (!string.IsNullOrEmpty(m_currentProject))
+            if (!string.IsNullOrEmpty(m_currentProjectPath))
             {
                 if (m_projectLayouts.ContainsKey(guid))
+                {
                     return m_projectLayouts[guid];
+                }
             }
 
             if (!m_layouts.ContainsKey(guid))
+            {
                 return null;
+            }
 
             return m_layouts[guid];
         }
 
         public void AddLayout(Guid guid, SchematicsLayout layout)
         {
-            if (!string.IsNullOrEmpty(m_currentProject))
+            if (!string.IsNullOrEmpty(m_currentProjectPath) && LoadedAssetManager.Instance.IsAssetModified(guid))
             {
                 if (!m_projectLayouts.ContainsKey(guid))
                 {
@@ -168,18 +179,21 @@ namespace LevelEditorPlugin.Managers
 
         public void ClearLayout(Guid guid)
         {
-            if (!string.IsNullOrEmpty(m_currentProject))
+            if (!string.IsNullOrEmpty(m_currentProjectPath))
             {
                 if (m_layouts.ContainsKey(guid))
                 {
                     m_layouts.Remove(guid);
                     SaveLayouts();
+                    
                     return;
                 }
             }
 
             if (!m_layouts.ContainsKey(guid))
+            {
                 return;
+            }
 
             m_layouts.Remove(guid);
             SaveLayouts();
@@ -215,12 +229,21 @@ namespace LevelEditorPlugin.Managers
         private void SaveLayouts()
         {
             // project
-            if (!string.IsNullOrEmpty(m_currentProject))
+            if (!string.IsNullOrEmpty(m_currentProjectPath))
             {
-                string layoutsFilename = $"{m_currentProject}.layouts.json";
-                using (StreamWriter streamWriter = new StreamWriter(layoutsFilename))
+                foreach (KeyValuePair<Guid, SchematicsLayout> layout in m_projectLayouts)
                 {
-                    streamWriter.WriteLine(JsonConvert.SerializeObject(m_projectLayouts, Formatting.Indented));
+                    string fileName = $"{m_currentProjectFile.Directory.FullName}/layouts/{layout.Value.BlueprintName}.json";
+                    FileInfo fi = new FileInfo(fileName);
+                    if (!fi.Directory.Exists)
+                    {
+                        Directory.CreateDirectory(fi.DirectoryName);
+                    }
+                    
+                    using (StreamWriter streamWriter = new StreamWriter(fileName))
+                    {
+                        streamWriter.WriteLine(JsonConvert.SerializeObject(layout, Formatting.Indented));
+                    }
                 }
             }
 

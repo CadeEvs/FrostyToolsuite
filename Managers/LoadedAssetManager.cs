@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using Frosty.Core;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -38,9 +39,11 @@ namespace LevelEditorPlugin.Managers
             public void Decrement() { RefCount--; }
         }
 
-        private Dictionary<EbxImportReference, LoadedAssetInfo> loadedAssets = new Dictionary<EbxImportReference, LoadedAssetInfo>();
-        private Dictionary<Guid, LoadedAssetInfo> loadedEbx = new Dictionary<Guid, LoadedAssetInfo>();
+        private Dictionary<EbxImportReference, LoadedAssetInfo> m_loadedAssets = new Dictionary<EbxImportReference, LoadedAssetInfo>();
+        private Dictionary<Guid, LoadedAssetInfo> m_loadedEbx = new Dictionary<Guid, LoadedAssetInfo>();
 
+        private static Dictionary<Type, Type> m_assetTypes = new Dictionary<Type, Type>();
+        
         public T LoadAsset<T>(Guid assetFileGuid) where T : Asset
         {
             EbxAssetEntry entry = App.AssetManager.GetEbxEntry(assetFileGuid);
@@ -51,10 +54,10 @@ namespace LevelEditorPlugin.Managers
 
         public T LoadAsset<T>(EbxImportReference importRefr) where T : Asset
         {
-            if (!loadedAssets.ContainsKey(importRefr))
+            if (!m_loadedAssets.ContainsKey(importRefr))
             {
-                EbxAsset ebxAsset = (loadedEbx.ContainsKey(importRefr.FileGuid))
-                    ? loadedEbx[importRefr.FileGuid].EbxAsset
+                EbxAsset ebxAsset = (m_loadedEbx.ContainsKey(importRefr.FileGuid))
+                    ? m_loadedEbx[importRefr.FileGuid].EbxAsset
                     : App.AssetManager.GetEbx(App.AssetManager.GetEbxEntry(importRefr.FileGuid));
 
                 if (importRefr.ClassGuid == Guid.Empty)
@@ -62,13 +65,13 @@ namespace LevelEditorPlugin.Managers
                     importRefr.ClassGuid = ebxAsset.RootInstanceGuid;
                 }
 
-                if (!loadedAssets.ContainsKey(importRefr))
+                if (!m_loadedAssets.ContainsKey(importRefr))
                 {
-                    if (!loadedEbx.ContainsKey(importRefr.FileGuid))
+                    if (!m_loadedEbx.ContainsKey(importRefr.FileGuid))
                     {
                         EbxAssetEntry entry = App.AssetManager.GetEbxEntry(importRefr.FileGuid);
-                        loadedEbx.Add(importRefr.FileGuid, new LoadedAssetInfo() { EbxAsset = ebxAsset });
-                        PushState(entry, loadedEbx[importRefr.FileGuid], true);
+                        m_loadedEbx.Add(importRefr.FileGuid, new LoadedAssetInfo() { EbxAsset = ebxAsset });
+                        PushState(entry, m_loadedEbx[importRefr.FileGuid], true);
                     }
 
                     object obj = ebxAsset.GetObject(importRefr.ClassGuid);
@@ -80,14 +83,14 @@ namespace LevelEditorPlugin.Managers
                         return default(T);
                     }
 
-                    loadedAssets.Add(importRefr, new LoadedAssetInfo() { LoadedAsset = loadedAsset });
+                    m_loadedAssets.Add(importRefr, new LoadedAssetInfo() { LoadedAsset = loadedAsset });
                 }
             }
 
-            loadedAssets[importRefr].Increment();
-            loadedEbx[importRefr.FileGuid].Increment();
+            m_loadedAssets[importRefr].Increment();
+            m_loadedEbx[importRefr.FileGuid].Increment();
 
-            return loadedAssets[importRefr].LoadedAsset as T;
+            return m_loadedAssets[importRefr].LoadedAsset as T;
         }
 
         public T LoadAsset<T>(Entities.IEbxType owner, FrostySdk.Ebx.PointerRef pointer) where T : Asset
@@ -117,14 +120,14 @@ namespace LevelEditorPlugin.Managers
                 ClassGuid = assetData.__InstanceGuid.ExportedGuid
             };
 
-            if (!loadedAssets.ContainsKey(importRefr))
+            if (!m_loadedAssets.ContainsKey(importRefr))
             {
-                if (!loadedEbx.ContainsKey(importRefr.FileGuid))
+                if (!m_loadedEbx.ContainsKey(importRefr.FileGuid))
                 {
                     Debug.Assert(ebxAsset != null);
                     EbxAssetEntry entry = App.AssetManager.GetEbxEntry(ebxAsset.FileGuid);
-                    loadedEbx.Add(importRefr.FileGuid, new LoadedAssetInfo() { EbxAsset = ebxAsset });
-                    PushState(entry, loadedEbx[importRefr.FileGuid], true);
+                    m_loadedEbx.Add(importRefr.FileGuid, new LoadedAssetInfo() { EbxAsset = ebxAsset });
+                    PushState(entry, m_loadedEbx[importRefr.FileGuid], true);
                 }
 
                 Asset loadedAsset = CreateAsset(assetData, assetFileGuid);
@@ -135,13 +138,13 @@ namespace LevelEditorPlugin.Managers
                 }
 
                 LoadedAssetInfo loadedAssetInfo = new LoadedAssetInfo() { LoadedAsset = loadedAsset, EbxAsset = ebxAsset };
-                loadedAssets.Add(importRefr, loadedAssetInfo);   
+                m_loadedAssets.Add(importRefr, loadedAssetInfo);   
             }
 
-            loadedAssets[importRefr].Increment();
-            loadedEbx[importRefr.FileGuid].Increment();
+            m_loadedAssets[importRefr].Increment();
+            m_loadedEbx[importRefr.FileGuid].Increment();
 
-            return loadedAssets[importRefr].LoadedAsset as T;
+            return m_loadedAssets[importRefr].LoadedAsset as T;
         }
 
         public EbxAsset GetEbxAsset(FrostySdk.Ebx.PointerRef pr)
@@ -151,12 +154,21 @@ namespace LevelEditorPlugin.Managers
 
         public EbxAsset GetEbxAsset(Guid fileGuid)
         {
-            if (!loadedEbx.ContainsKey(fileGuid))
+            if (!m_loadedEbx.ContainsKey(fileGuid))
+            {
                 return null;
+            }
 
-            return loadedEbx[fileGuid].EbxAsset;
+            return m_loadedEbx[fileGuid].EbxAsset;
         }
 
+        public bool IsAssetModified(Guid fileGuid)
+        {
+            EbxAssetEntry entry = App.AssetManager.GetEbxEntry(fileGuid);
+
+            return entry.IsModified;
+        }
+        
         public void UpdateAsset(Asset asset)
         {
             EbxImportReference importRefr = new EbxImportReference()
@@ -165,13 +177,15 @@ namespace LevelEditorPlugin.Managers
                 ClassGuid = asset.InstanceGuid
             };
 
-            if (!loadedAssets.ContainsKey(importRefr))
+            if (!m_loadedAssets.ContainsKey(importRefr))
+            {
                 return;
+            }
 
             EbxAssetEntry entry = App.AssetManager.GetEbxEntry(asset.FileGuid);
-            EbxAsset ebxAsset = loadedEbx[importRefr.FileGuid].EbxAsset;
+            EbxAsset ebxAsset = m_loadedEbx[importRefr.FileGuid].EbxAsset;
 
-            PushState(entry, loadedEbx[importRefr.FileGuid], false);
+            PushState(entry, m_loadedEbx[importRefr.FileGuid], false);
             App.AssetManager.ModifyEbx(entry.Name, ebxAsset);
         }
 
@@ -183,12 +197,12 @@ namespace LevelEditorPlugin.Managers
                 ClassGuid = asset.InstanceGuid
             };
 
-            if (!loadedAssets.ContainsKey(importRefr))
+            if (!m_loadedAssets.ContainsKey(importRefr))
                 return;
 
             EbxAssetEntry entry = App.AssetManager.GetEbxEntry(asset.FileGuid);
-            EbxAsset ebxAsset = loadedEbx[importRefr.FileGuid].EbxAsset;
-            PopState(entry, loadedEbx[importRefr.FileGuid], ebxAsset);
+            EbxAsset ebxAsset = m_loadedEbx[importRefr.FileGuid].EbxAsset;
+            PopState(entry, m_loadedEbx[importRefr.FileGuid], ebxAsset);
         }
 
         public void UnloadAsset(Asset asset)
@@ -202,14 +216,14 @@ namespace LevelEditorPlugin.Managers
                 ClassGuid = asset.InstanceGuid
             };
 
-            if (!loadedAssets.ContainsKey(importRefr))
+            if (!m_loadedAssets.ContainsKey(importRefr))
                 return;
 
-            loadedAssets[importRefr].Decrement();
-            if (loadedAssets[importRefr].RefCount <= 0)
+            m_loadedAssets[importRefr].Decrement();
+            if (m_loadedAssets[importRefr].RefCount <= 0)
             {
                 asset.Dispose();
-                loadedAssets.Remove(importRefr);
+                m_loadedAssets.Remove(importRefr);
             }
 
             UnloadEbx(importRefr.FileGuid);
@@ -217,39 +231,38 @@ namespace LevelEditorPlugin.Managers
 
         private void UnloadEbx(Guid guid)
         {
-            if (!loadedEbx.ContainsKey(guid))
+            if (!m_loadedEbx.ContainsKey(guid))
                 return;
 
-            loadedEbx[guid].Decrement();
-            if (loadedEbx[guid].RefCount <= 0)
+            m_loadedEbx[guid].Decrement();
+            if (m_loadedEbx[guid].RefCount <= 0)
             {
-                loadedEbx.Remove(guid);
+                m_loadedEbx.Remove(guid);
             }
         }
-
-        private static Dictionary<Type, Type> assetTypes = new Dictionary<Type, Type>();
+        
         private Asset CreateAsset(FrostySdk.Ebx.Asset assetData, Guid fileGuid)
         {
-            if (assetTypes.Count == 0)
+            if (m_assetTypes.Count == 0)
             {
                 foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<AssetBindingAttribute>() != null))
                 {
                     foreach (AssetBindingAttribute attr in type.GetCustomAttributes<AssetBindingAttribute>())
                     {
-                        if (assetTypes.ContainsKey(attr.DataType))
+                        if (m_assetTypes.ContainsKey(attr.DataType))
                         {
                             Debug.WriteLine($"{attr.DataType},{type}");
                             Debug.Assert(false);
                         }
-                        assetTypes.Add(attr.DataType, type);
+                        m_assetTypes.Add(attr.DataType, type);
                     }
                 }
             }
 
             Type assetDataType = assetData.GetType();
-            if (assetTypes.ContainsKey(assetDataType))
+            if (m_assetTypes.ContainsKey(assetDataType))
             {
-                Type assetType = assetTypes[assetDataType];
+                Type assetType = m_assetTypes[assetDataType];
                 return (Asset)Activator.CreateInstance(assetType, new object[] { fileGuid, assetData });
             }
             else
@@ -257,9 +270,9 @@ namespace LevelEditorPlugin.Managers
                 Type tmpType = assetDataType.BaseType;
                 while (tmpType != typeof(object))
                 {
-                    if (assetTypes.ContainsKey(tmpType))
+                    if (m_assetTypes.ContainsKey(tmpType))
                     {
-                        Type assetType = assetTypes[tmpType];
+                        Type assetType = m_assetTypes[tmpType];
                         return (Asset)Activator.CreateInstance(assetType, new object[] { fileGuid, assetData });
                     }
 
