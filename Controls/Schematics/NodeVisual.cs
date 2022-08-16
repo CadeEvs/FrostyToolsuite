@@ -616,7 +616,9 @@ namespace LevelEditorPlugin.Controls
             state.DrawingContext.DrawRoundedRectangle(state.NodeTitleBackgroundBrush, null, new Rect(nodePosition.X, nodePosition.Y, Rect.Width * state.Scale, headerHeight * state.Scale), new CornerRadius(2 * state.Scale, 2 * state.Scale, 0, 0));
 
             if (state.InvScale >= 5)
+            {
                 return;
+            }
 
             // self connector
             Brush brush = (Self.IsHighlighted) ? state.NodeSelectedBrush : state.SchematicLinkBrush;
@@ -628,7 +630,6 @@ namespace LevelEditorPlugin.Controls
 
             // collapse button
             Brush collapseButtonBrush = IsCollapsed ? state.SchematicRealmDisabled : state.NodeCollapseButtonBackgroundBrush;
-            //state.DrawingContext.DrawRoundedRectangle(collapseButtonBrush, null, new Rect(nodePosition.X + ((nodeSize.Width - 16) * state.Scale), nodePosition.Y + (4 * state.Scale), 12 * state.Scale, 12 * state.Scale), 2, 2);
 
             Point p = new Point(nodeSize.Width - 16 + 3, 6);
             PathGeometry geometry;
@@ -744,7 +745,7 @@ namespace LevelEditorPlugin.Controls
                         if (value != "")
                         {
                             GlyphRun headerRowGlyphRun = state.ConvertTextLinesToGlyphRun(new Point(nodePosition.X + (5 * state.Scale), nodePosition.Y + ((offsetY - 0.5) * state.Scale)), false, rowValue);
-                            state.DrawingContext.DrawGlyphRun(Brushes.LightGray, headerRowGlyphRun);
+                            state.DrawingContext.DrawGlyphRun(Brushes.White, headerRowGlyphRun);
                         }
 
                         offsetY += 10.0;
