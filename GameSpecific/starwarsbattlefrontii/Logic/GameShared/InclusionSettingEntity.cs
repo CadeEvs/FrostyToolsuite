@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using FrostySdk.Ebx;
 
 namespace LevelEditorPlugin.Entities
 {
@@ -9,6 +10,27 @@ namespace LevelEditorPlugin.Entities
 		public override string DisplayName => "InclusionSetting";
 		public override FrostySdk.Ebx.Realm Realm => Data.Realm;
 
+		public override IEnumerable<ConnectionDesc> Properties
+		{
+			get => new List<ConnectionDesc>()
+			{
+				new ConnectionDesc("Out", Direction.Out)
+			};
+		}
+
+		public override IEnumerable<string> HeaderRows
+		{
+			get
+			{
+				List<string> outHeaderRows = new List<string>();
+				foreach (CString setting in Data.Settings)
+				{
+					outHeaderRows.Add($"Setting: {setting}");
+				}
+				return outHeaderRows;
+			}
+		}
+		
 		public InclusionSettingEntity(FrostySdk.Ebx.InclusionSettingEntityData inData, Entity inParent)
 			: base(inData, inParent)
 		{
