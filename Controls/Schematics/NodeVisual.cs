@@ -956,7 +956,7 @@ namespace LevelEditorPlugin.Controls
 
         private double CalculateNodeWidth(out int linkCount, out int eventCount, out int propertyCount)
         {
-            double nodeWidth = 8 + (Entity.DisplayName.Length * GlyphWidth) + 60;
+            double nodeWidth = 8 + (Entity.DisplayName.Length * GlyphWidth) + 45;
             nodeWidth = nodeWidth - (nodeWidth % 10);
 
             double longestInput = 0.0;
@@ -967,6 +967,7 @@ namespace LevelEditorPlugin.Controls
             int tmpPropertyCount = propertyCount = 0;
             int tmpLinkCount = linkCount = 0;
 
+            // links
             foreach (Port port in InputLinks)
             {
                 if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
@@ -984,6 +985,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
+            // events
             foreach (Port port in InputEvents)
             {
                 if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
@@ -1001,6 +1003,7 @@ namespace LevelEditorPlugin.Controls
                 }
             }
 
+            // properties
             foreach (Port port in InputProperties)
             {
                 if ((!IsCollapsed || port.IsConnected) || port.ShowWhileCollapsed)
@@ -1017,6 +1020,8 @@ namespace LevelEditorPlugin.Controls
                     longestOutput = (strLength > longestOutput) ? strLength : longestOutput; tmpPropertyCount++;
                 }
             }
+            
+            // header row
             foreach (string row in Entity.HeaderRows)
             {
                 int strLen = (row.Length > 44) ? strLen = 47 : row.Length;
