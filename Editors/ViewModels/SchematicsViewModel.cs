@@ -1003,6 +1003,22 @@ namespace LevelEditorPlugin.Editors
                         }
                     }
                 }
+                else if (e.SourceEntity.Realm == FrostySdk.Ebx.Realm.Realm_Server)
+                {
+                    if (e.TargetEntity == null)
+                    {
+                        connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_ClientAndServer;
+                    }
+                    else
+                    {
+                        switch (e.TargetEntity.Realm)
+                        {
+                            case FrostySdk.Ebx.Realm.Realm_Client: connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_NetworkedClient; break;
+                            case FrostySdk.Ebx.Realm.Realm_Server: connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_Server; break;
+                            case FrostySdk.Ebx.Realm.Realm_ClientAndServer: connection.TargetType = FrostySdk.Ebx.EventConnectionTargetType.EventConnectionTargetType_ClientAndServer; break;
+                        }
+                    }
+                }
 
                 blueprintConnections = refObjEntity.Blueprint.Data.EventConnections;
                 schematicDataConnections = m_schematicsData.EventConnections;
