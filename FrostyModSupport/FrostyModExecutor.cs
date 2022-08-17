@@ -2225,9 +2225,16 @@ namespace Frosty.ModSupport
             {
                 ArchiveInfo info = archiveData[sha1];
 
-                // if cas exceeds 1gb in size, create a new one (incrementing index)
-                if (currentCasStream == null || ((totalSize + info.Data.Length) > 1073741824))
+                int casMaxBytes = 536870912;
+                switch (Config.Get("MaxCasFileSize", "512MB"))
                 {
+                    case "1GB": casMaxBytes = 1073741824; break;
+                    case "512MB": casMaxBytes = 536870912; break;
+                    case "256MB": casMaxBytes = 268435456; break;
+                }
+
+                // if cas exceeds max size, create a new one (incrementing index)
+                if (currentCasStream == null || ((totalSize + info.Data.Length) > casMaxBytes)) {
                     if (currentCasStream != null)
                     {
                         currentCasStream.Dispose();
