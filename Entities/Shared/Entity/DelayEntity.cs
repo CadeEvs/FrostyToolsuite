@@ -42,6 +42,10 @@ namespace LevelEditorPlugin.Entities
                 {
                     outHeaderRows.Add($"Delay: {Data.Delay}");
                 }
+                if (Data.AutoStart)
+                {
+                    outHeaderRows.Add($"AutoStart: {Data.AutoStart}");
+                }
                 return outHeaderRows;
             }
         }

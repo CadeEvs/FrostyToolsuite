@@ -26,8 +26,8 @@ namespace LevelEditorPlugin.Entities
         {
             get => new List<ConnectionDesc>()
             {
-                new ConnectionDesc("DefaultValue", Direction.In),
-                new ConnectionDesc("Value", Direction.Out)
+                new ConnectionDesc("DefaultValue", Direction.In, typeof(bool)),
+                new ConnectionDesc("Value", Direction.Out, typeof(bool))
             };
         }
 

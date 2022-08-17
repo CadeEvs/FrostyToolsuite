@@ -24,16 +24,16 @@ namespace LevelEditorPlugin.Entities
         {
             get => new List<ConnectionDesc>()
             {
-                new ConnectionDesc("BoolValue", Direction.In),
-                new ConnectionDesc("FloatValue", Direction.In),
-                new ConnectionDesc("IntValue", Direction.In),
-                new ConnectionDesc("UintValue", Direction.In),
-                new ConnectionDesc("StringValue", Direction.In),
-                new ConnectionDesc("CastToBool", Direction.Out),
-                new ConnectionDesc("CastToFloat", Direction.Out),
-                new ConnectionDesc("CastToInt", Direction.Out),
-                new ConnectionDesc("CastToUint", Direction.Out),
-                new ConnectionDesc("CastToString", Direction.Out),
+                new ConnectionDesc("BoolValue", Direction.In, typeof(bool)),
+                new ConnectionDesc("FloatValue", Direction.In, typeof(float)),
+                new ConnectionDesc("IntValue", Direction.In, typeof(int)),
+                new ConnectionDesc("UintValue", Direction.In, typeof(uint)),
+                new ConnectionDesc("StringValue", Direction.In, typeof(CString)),
+                new ConnectionDesc("CastToBool", Direction.Out, typeof(bool)),
+                new ConnectionDesc("CastToFloat", Direction.Out, typeof(float)),
+                new ConnectionDesc("CastToInt", Direction.Out, typeof(int)),
+                new ConnectionDesc("CastToUint", Direction.Out, typeof(uint)),
+                new ConnectionDesc("CastToString", Direction.Out, typeof(CString)),
             };
         }
 

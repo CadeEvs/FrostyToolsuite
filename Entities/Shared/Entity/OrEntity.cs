@@ -10,6 +10,7 @@ namespace LevelEditorPlugin.Entities
 		public new FrostySdk.Ebx.OrEntityData Data => data as FrostySdk.Ebx.OrEntityData;
 		public override string DisplayName => "Or";
 		public override FrostySdk.Ebx.Realm Realm => Data.Realm;
+        
         public override IEnumerable<ConnectionDesc> Properties
         {
             get
@@ -17,9 +18,9 @@ namespace LevelEditorPlugin.Entities
                 List<ConnectionDesc> outProperties = new List<ConnectionDesc>();
                 for (int i = 0; i < Data.InputCount; i++)
                 {
-                    outProperties.Add(new ConnectionDesc() { Name = $"In{i + 1}", Direction = Direction.In });
+                    outProperties.Add(new ConnectionDesc($"In{i + 1}", Direction.In, typeof(bool)));
                 }
-                outProperties.Add(new ConnectionDesc("Out", Direction.Out));
+                outProperties.Add(new ConnectionDesc("Out", Direction.Out, typeof(bool)));
                 return outProperties;
             }
         }
