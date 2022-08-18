@@ -93,6 +93,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LaunchPlatformPlugin", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyCmd", "..\FrostyCmd\FrostyCmd.csproj", "{500ACAB7-D948-4BCA-8208-20812D712DDB}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FD1661C5-7CF2-449A-B52C-735ABEA16626}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig.inferred = .editorconfig.inferred
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Developer - Debug|x64 = Developer - Debug|x64
