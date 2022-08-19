@@ -768,7 +768,7 @@ namespace FrostyModManager
 
             if (mod.GameVersion != fs.Head)
                 mod.AddWarning("Mod was designed for a different game version");
-            availableMods.Add(mod);
+            lock (availableMods) availableMods.Add(mod);
 
             return mod;
         }
@@ -788,12 +788,16 @@ namespace FrostyModManager
 
             foreach (var mod in collection.Mods)
             {
-                int index = availableMods.FindIndex((IFrostyMod a) => a.Filename == mod.Filename);
-                if (index != -1)
-                    availableMods.RemoveAt(index);
+                lock (availableMods)
+                {
+                    int index = availableMods.FindIndex((IFrostyMod a) => a.Filename == mod.Filename);
+                    if (index != -1)
+                        availableMods.RemoveAt(index);
+
+                }
             }
 
-            availableMods.Add(collection);
+            lock (availableMods) availableMods.Add(collection);
 
             return collection;
         }
