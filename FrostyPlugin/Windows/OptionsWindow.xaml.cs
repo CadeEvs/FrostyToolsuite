@@ -14,6 +14,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Data;
 using FrostySdk;
+using System.IO;
 
 namespace Frosty.Core.Windows
 {
@@ -255,6 +256,13 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool DeleteCollectionMods { get; set; } = true;
 
+        [Category("Manager")]
+        [DisplayName("Custom Mods Directory")]
+        [Description("Select directory to load mods from upon startup.")]
+        [EbxFieldMeta(EbxFieldType.String)]
+        [DependsOn("UseCustomModsDirectory")]
+        public string CustomModsDirectory { get; set; }
+
         [Category("Update Checking")]
         [DisplayName("Check for Updates")]
         [Description("Check Github for Frosty updates on startup")]
@@ -291,6 +299,8 @@ namespace Frosty.Core.Windows
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
             DeleteCollectionMods = Config.Get<bool>("DeleteCollectionMods", true);
 
+            CustomModsDirectory = Config.Get<string>("CustomModsDirectory", "");
+
             UpdateCheck = Config.Get<bool>("UpdateCheck", true);
 
             UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
@@ -304,6 +314,9 @@ namespace Frosty.Core.Windows
             Config.Add("UseDefaultProfile", RememberChoice);
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
             Config.Add("DeleteCollectionMods", DeleteCollectionMods);
+
+            if (Directory.Exists(CustomModsDirectory))
+                Config.Add("CustomModsDirectory", CustomModsDirectory);
 
             Config.Add("UpdateCheck", UpdateCheck);
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
