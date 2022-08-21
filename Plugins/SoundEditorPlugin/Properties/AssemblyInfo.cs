@@ -1,5 +1,6 @@
 ﻿using Frosty.Core.Attributes;
 using SoundEditorPlugin;
+using SoundEditorPlugin.Resources;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -22,12 +23,13 @@ using System.Windows;
 [assembly: Guid("5fdd1243-084e-42dc-99bb-394a169d988f")]
 
 [assembly: PluginDisplayName("Sound Editor")]
-[assembly: PluginAuthor("GalaxyMan2015")]
-[assembly: PluginVersion("1.0.0.0")]
+[assembly: PluginAuthor("GalaxyMan2015 & wannkunstbeikor")]
+[assembly: PluginVersion("1.0.0.1")]
 
 [assembly: RegisterOptionsExtension(typeof(SoundOptions))]
 
-[assembly: RegisterTypeOverride("SoundWaveAsset", typeof(SoundWaveAssetOverride))]
+[assembly: RegisterTypeOverride("LocalizedWaveAsset", typeof(LocalizedWaveAssetOverride))]
+[assembly: RegisterTypeOverride("NewWaveAsset", typeof(NewWaveAssetOverride))]
 
 [assembly: RegisterAssetDefinition("SoundWaveAsset", typeof(SoundWaveAssetDefinition))]
 [assembly: RegisterAssetDefinition("NewWaveAsset", typeof(NewWaveAssetDefinition))]
