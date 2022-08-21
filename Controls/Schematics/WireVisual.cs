@@ -31,6 +31,7 @@ namespace LevelEditorPlugin.Controls
         private Stopwatch m_glowTimer;
 
         private Point m_mousePosition;
+        public Point MousePosition { get { return m_mousePosition; } }
 
         private BaseNodeVisual m_hoveredNode;
         private BaseNodeVisual.Port m_hoveredPort;
