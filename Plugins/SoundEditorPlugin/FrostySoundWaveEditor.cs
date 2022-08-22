@@ -130,8 +130,8 @@ namespace SoundEditorPlugin
 
                         track.SampleRate = sampleRate;
                         track.ChannelCount = channels;
-                        if (segment.Duration == 0)
-                            segment.Duration = (decodedSoundBuf.Count / track.ChannelCount) / (float)sampleRate;
+                        if (segment.SegmentLength == 0)
+                            segment.SegmentLength = (decodedSoundBuf.Count / track.ChannelCount) / (float)sampleRate;
                     }
                     track.Duration = (decodedSoundBuf.Count / track.ChannelCount) / (double)track.SampleRate;
                     //track.LoopEnd += track.LoopStart;
