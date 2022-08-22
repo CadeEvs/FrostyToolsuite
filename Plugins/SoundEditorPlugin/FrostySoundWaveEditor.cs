@@ -130,8 +130,8 @@ namespace SoundEditorPlugin
 
                         track.SampleRate = sampleRate;
                         track.ChannelCount = channels;
-                        if (segment.Duration == 0)
-                            segment.Duration = (decodedSoundBuf.Count / track.ChannelCount) / (float)sampleRate;
+                        if (segment.SegmentLength == 0)
+                            segment.SegmentLength = (decodedSoundBuf.Count / track.ChannelCount) / (float)sampleRate;
                     }
                     track.Duration = (decodedSoundBuf.Count / track.ChannelCount) / (double)track.SampleRate;
                     //track.LoopEnd += track.LoopStart;
@@ -608,6 +608,7 @@ namespace SoundEditorPlugin
                                 }
 
                                 target.Render(visual);
+                                target.Freeze();
                                 track.WaveForm = target;
                             }
                         }
@@ -635,6 +636,179 @@ namespace SoundEditorPlugin
         public FrostyOctaneSoundEditor(ILogger inLogger)
             : base(inLogger)
         {
+        }
+
+        private static int[] EA_XA_TABLE = 
+        {
+            0,  240,  460,  392,
+            0,    0, -208, -220,
+            0,    1,    3,    4,
+            7,    8,   10,   11,
+            0,   -1,   -3,   -4
+        };
+
+        protected override List<SoundDataTrack> InitialLoad(FrostyTaskWindow task)
+        {
+            dynamic octane = RootObject;
+            List<SoundDataTrack> retVal = new List<SoundDataTrack>();
+
+            dynamic soundDataChunkId = octane.Chunks[0].ChunkId;
+
+            SoundDataTrack track = new SoundDataTrack() { ChannelCount = 1, Codec = "XAS Interleaved v0", Name = "Track #1" };
+            double startLoopingTime = 0;
+            double loopingDuration = 0;
+            List<short> decodedSoundBuf = new List<short>();
+
+            MemoryStream file = App.AssetManager.GetChunk(App.AssetManager.GetChunkEntry(soundDataChunkId));
+            using (NativeReader reader = new NativeReader(file))
+            {
+                string magic = reader.ReadSizedString(4);
+                uint version = reader.ReadUInt();
+                float minrpm = reader.ReadFloat();
+                float maxrpm = reader.ReadFloat();
+                uint table1Size = reader.ReadUInt();
+                uint table2Size = reader.ReadUInt();
+                uint sampleCount = reader.ReadUInt();
+                track.SampleRate = reader.ReadInt();
+
+                //rpm to sample table
+                reader.ReadInt();
+                int[] table1 = new int[table1Size];
+                for (int i = 0; i < table1Size; i++)
+                {
+                    table1[i] = reader.ReadInt();
+                }
+
+                //sample to sampleloop table
+                reader.ReadInt();
+                int[] table2 = new int[table2Size];
+                for (int i = 0; i < table2Size; i++)
+                {
+                    table2[i] = reader.ReadInt();
+                }
+
+                long pos = reader.Position;
+                if (pos != ((table1Size + 1 + table2Size + 1) * 4) + 32)
+                {
+                    logger.LogError("Wrong offset after Tables");
+                    pos = ((table1Size + 1 + table2Size + 1) * 4) + 32;
+                }
+
+                for (int block = 0; block < (reader.Length - pos) / 19; block++)
+                {
+                    short[] blocksamples = new short[32];
+                    uint header = reader.ReadUInt(Endian.Little);
+                    int coef1 = EA_XA_TABLE[(header & 0x0F) + 0];
+                    int coef2 = EA_XA_TABLE[(header & 0x0F) + 4];
+                    short hist1 = (short)((header >> 16) & 0xFFF0);
+                    short hist2 = (short)((header >> 0) & 0xFFF0);
+                    byte shift = (byte)((header >> 16) & 0x0F);
+                    blocksamples[0] = hist2;
+                    blocksamples[1] = hist1;
+
+                    for (int row = 0; row < 15; row++)
+                    {
+                        byte b = reader.ReadByte();
+                        for (int i = 0; i < 2; i++)
+                        {
+                            int sample = 0;
+                            if (i == 0)
+                                sample = (b & 0xF0) >> 4;
+                            else if (i == 1)
+                                sample = b & 0x0F;
+
+                            if (sample > 7)
+                                sample -= 16;
+
+                            int num = hist1 * coef1 + hist2 * coef2;
+
+                            sample = ((sample << (20 - shift)) + num + 128) >> 8;
+
+                            // Clamp sample
+                            if (sample > short.MaxValue)
+                                sample = short.MaxValue;
+                            else if (sample < short.MinValue)
+                                sample = short.MinValue;
+
+                            blocksamples[2 + row * 2 + i] = (short)sample;
+
+                            hist2 = hist1;
+                            hist1 = (short)sample;
+                        }
+                    }
+                    decodedSoundBuf.AddRange(blocksamples);
+                }
+                track.Samples = decodedSoundBuf.ToArray();
+                track.Duration = decodedSoundBuf.Count / track.SampleRate;
+                retVal.Add(track);
+            }
+            var maxPeakProvider = new MaxPeakProvider();
+            var rmsPeakProvider = new RmsPeakProvider(200); // e.g. 200
+            var samplingPeakProvider = new SamplingPeakProvider(200); // e.g. 200
+            var averagePeakProvider = new AveragePeakProvider(4); // e.g. 4
+
+            var topSpacerColor = System.Drawing.Color.FromArgb(64, 83, 22, 3);
+            var soundCloudOrangeTransparentBlocks = new SoundCloudBlockWaveFormSettings(System.Drawing.Color.FromArgb(255, 218, 218, 218), topSpacerColor, System.Drawing.Color.FromArgb(255, 109, 109, 109),
+                                                                                        System.Drawing.Color.FromArgb(64, 79, 79, 79))
+            {
+                Name = "SoundCloud Orange Transparent Blocks",
+                PixelsPerPeak = 2,
+                SpacerPixels = 1,
+                TopSpacerGradientStartColor = topSpacerColor,
+                BackgroundColor = System.Drawing.Color.FromArgb(128, 0, 0, 0),
+                Width = 800,
+                TopHeight = 49,
+                BottomHeight = 29,
+            };
+
+            try
+            {
+                var renderer = new WaveFormRenderer();
+                var image = renderer.Render(track.Samples, maxPeakProvider, soundCloudOrangeTransparentBlocks);
+
+                using (var ms = new MemoryStream())
+                {
+                    image.Save(ms, ImageFormat.Png);
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    var bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.StreamSource = ms;
+                    bitmapImage.EndInit();
+
+                    var target = new RenderTargetBitmap(bitmapImage.PixelWidth, bitmapImage.PixelHeight, bitmapImage.DpiX, bitmapImage.DpiY, PixelFormats.Pbgra32);
+                    var visual = new DrawingVisual();
+
+                    using (var r = visual.RenderOpen())
+                    {
+                        visual.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                        r.DrawImage(bitmapImage, new Rect(0, 0, bitmapImage.Width, bitmapImage.Height));
+
+                        if (loopingDuration > 0)
+                        {
+                            r.DrawLine(new Pen(Brushes.White, 1.0),
+                                new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), soundCloudOrangeTransparentBlocks.TopHeight),
+                                new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                            r.DrawLine(new Pen(Brushes.White, 1.0),
+                                new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), soundCloudOrangeTransparentBlocks.TopHeight),
+                                new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                            r.DrawLine(new Pen(Brushes.White, 1.0),
+                                new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height),
+                                new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                        }
+                    }
+
+                    target.Render(visual);
+                    target.Freeze();
+                    track.WaveForm = target;
+                }
+            }
+            catch (Exception e)
+            {
+            }
+
+            return retVal;
         }
     }
 
