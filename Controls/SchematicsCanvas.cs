@@ -422,6 +422,7 @@ namespace LevelEditorPlugin.Controls
         private List<BaseVisual> m_nodeVisuals = new List<BaseVisual>();
         private List<BaseVisual> m_visibleNodeVisuals = new List<BaseVisual>();
         private List<WireVisual> m_wireVisuals = new List<WireVisual>();
+        private List<WireVisual> m_visibleWireVisuals = new List<WireVisual>();
 
         private List<BaseVisual> m_selectedNodes = new List<BaseVisual>();
         private List<Point> m_selectedOffsets = new List<Point>();
@@ -1349,9 +1350,9 @@ namespace LevelEditorPlugin.Controls
             DrawingContextState state = new DrawingContextState(this, drawingContext);
             {
                 // draw wires
-                for (int i = 0; i < m_wireVisuals.Count; i++)
+                for (int i = 0; i < m_visibleWireVisuals.Count; i++)
                 {
-                    m_wireVisuals[i].Render(state);
+                    m_visibleWireVisuals[i].Render(state);
                 }
                 if (m_editingWire != null)
                 {
@@ -1750,6 +1751,18 @@ namespace LevelEditorPlugin.Controls
                     {
                         m_visibleNodeVisuals.Add(visual);
                     }
+                }
+            }
+            m_visibleWireVisuals.Clear();
+            foreach (WireVisual visual in m_wireVisuals)
+            {
+                if (frustum.IntersectsWith(
+                    new Rect(
+                        (visual.Source != null) ? visual.Source.Rect.Location : visual.MousePosition,
+                       (visual.Target != null) ? visual.Target.Rect.Location : visual.MousePosition)
+                    ))
+                {
+                    m_visibleWireVisuals.Add(visual);
                 }
             }
         }
