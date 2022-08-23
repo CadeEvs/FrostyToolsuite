@@ -777,12 +777,24 @@
                                                     </Button>
                                                 </StackPanel>
                                             </Border>
+
+                                            <!-- Loading Order -->
+                                            <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Right" RenderOptions.EdgeMode="Aliased">
+                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                    <TextBlock Margin="6,0,0,0" Text="Load Order:" VerticalAlignment="Center"/>
+                                                    <ComboBox x:Name="orderComboBox" Width="68" Height="22" Margin="4,0,0,0" Padding="4,2,4,2" SelectionChanged="orderComboBox_SelectionChanged" ToolTip="{Binding Path=SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}">
+                                                        <ComboBoxItem Content="List" ToolTip="Bottom Overrides Top"/>
+                                                        <ComboBoxItem Content="Priority" ToolTip="Top Overrides Bottom"/>
+                                                    </ComboBox>
+                                                </StackPanel>
+                                            </Border>
+
                                             <!-- Filler -->
                                             <Border Background="Transparent" Margin="1,0,0,0" HorizontalAlignment="Stretch" DockPanel.Dock="Left"/>
                                         </DockPanel>
                                     </Border>
 
-                                    <ListBox x:Name="appliedModsList" Grid.Row="1" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="appliedModsList_SelectionChanged" SelectionMode="Extended">
+                                    <ListBox x:Name="appliedModsList" Grid.Row="1" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="appliedModsList_SelectionChanged" SelectionMode="Extended" VerticalAlignment="Top">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid>
@@ -798,6 +810,16 @@
                                                 </Grid>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                                <Setter Property="DockPanel.Dock" Value="Top" />
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <DockPanel LastChildFill='False' />
+                                            </ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
                                     </ListBox>
                                 </Grid>
                             </ctrl:FrostyTabItem>

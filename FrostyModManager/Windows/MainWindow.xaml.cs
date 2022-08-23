@@ -475,6 +475,11 @@ namespace FrostyModManager
 
             LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
 
+            if (Config.Get("ApplyModOrder", "List") == "List")
+                orderComboBox.SelectedIndex = 0;
+            else if (Config.Get("ApplyModOrder", "List") == "Priority")
+                orderComboBox.SelectedIndex = 1;
+
             GC.Collect();
         }
 
@@ -543,12 +548,22 @@ namespace FrostyModManager
 
         private void upButton_Click(object sender, RoutedEventArgs e)
         {
-            for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
-                selectedPack.MoveModsUp(appliedModsList.SelectedItems);
+            if (orderComboBox.SelectedIndex == 0)
+            {
+                for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                    selectedPack.MoveModsUp(appliedModsList.SelectedItems);
 
-            if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
-                selectedPack.MoveModsTop(appliedModsList.SelectedItems);
+                if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                    selectedPack.MoveModsTop(appliedModsList.SelectedItems);
+            }
+            else if (orderComboBox.SelectedIndex == 1)
+            {
+                for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                    selectedPack.MoveModsDown(appliedModsList.SelectedItems);
 
+                if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                    selectedPack.MoveModsBottom(appliedModsList.SelectedItems);
+            }
             appliedModsList.Items.Refresh();
 
             updateAppliedModButtons();
@@ -556,12 +571,22 @@ namespace FrostyModManager
 
         private void downButton_Click(object sender, RoutedEventArgs e)
         {
-            for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
-                selectedPack.MoveModsDown(appliedModsList.SelectedItems);
+            if (orderComboBox.SelectedIndex == 0)
+            {
+                for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                    selectedPack.MoveModsDown(appliedModsList.SelectedItems);
 
-            if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
-                selectedPack.MoveModsBottom(appliedModsList.SelectedItems);
+                if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                    selectedPack.MoveModsBottom(appliedModsList.SelectedItems);
+            }
+            else if (orderComboBox.SelectedIndex == 1)
+            {
+                for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                    selectedPack.MoveModsUp(appliedModsList.SelectedItems);
 
+                if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                    selectedPack.MoveModsTop(appliedModsList.SelectedItems);
+            }
             appliedModsList.Items.Refresh();
 
             updateAppliedModButtons();
@@ -1375,8 +1400,17 @@ namespace FrostyModManager
             if (appliedModsList.SelectedItem != null)
             {
                 removeButton.IsEnabled = true;
-                upButton.IsEnabled = appliedModsList.SelectedIndex != 0;
-                downButton.IsEnabled = appliedModsList.SelectedIndex != (appliedModsList.Items.Count - 1);
+
+                if (orderComboBox.SelectedIndex == 0)
+                {
+                    upButton.IsEnabled = appliedModsList.SelectedIndex != 0;
+                    downButton.IsEnabled = appliedModsList.SelectedIndex != (appliedModsList.Items.Count - 1);
+                }
+                else if (orderComboBox.SelectedIndex == 1)
+                {
+                    upButton.IsEnabled = appliedModsList.SelectedIndex != (appliedModsList.Items.Count - 1);
+                    downButton.IsEnabled = appliedModsList.SelectedIndex != 0;
+                }
             }
             else
             {
@@ -1818,6 +1852,27 @@ namespace FrostyModManager
 
         private void collectionModsList_LostFocus(object sender, RoutedEventArgs e) {
             ((ListView)sender).UnselectAll();
+        }
+
+        private void orderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            Setter setter = new Setter(DockPanel.DockProperty, Dock.Top);
+            switch (orderComboBox.SelectedIndex)
+            {
+                case 0:
+                    setter = new Setter(DockPanel.DockProperty, Dock.Top);
+                    Config.Add("ApplyModOrder", "List");
+                    break;
+                case 1:
+                    setter = new Setter(DockPanel.DockProperty, Dock.Bottom);
+                    Config.Add("ApplyModOrder", "Priority");
+                    break;
+            }
+            Style style = new Style(typeof(ListBoxItem), FindResource(typeof(ListBoxItem)) as Style);
+            style.Setters.Add(setter);
+            appliedModsList.ItemContainerStyle = style;
+
+            updateAppliedModButtons();
         }
     }
 }
