@@ -76,7 +76,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BaseProfile\BaseBinarySb.cs" />
     <Compile Include="BaseProfile\BaseBinarySbReader.cs" />
+    <Compile Include="BaseProfile\BaseBinarySbWriter.cs" />
     <Compile Include="BaseProfile\BaseCompressionUtils.cs" />
     <Compile Include="BaseProfile\BaseFrostyProfile.cs" />
     <Compile Include="Deobfuscators\DADeobfuscator.cs" />
@@ -92,12 +94,14 @@
     <Compile Include="Ebx\TypeRef.cs" />
     <Compile Include="FileSystem.cs" />
     <Compile Include="Interfaces\IBinarySbReader.cs" />
+    <Compile Include="Interfaces\IBinarySbWriter.cs" />
     <Compile Include="Interfaces\ICompressionUtils.cs" />
     <Compile Include="Interfaces\IDeobfuscator.cs" />
     <Compile Include="Interfaces\ILoggable.cs" />
     <Compile Include="Interfaces\ILogger.cs" />
     <Compile Include="Interfaces\IProfile.cs" />
     <Compile Include="IO\BinarySbReader.cs" />
+    <Compile Include="IO\BinarySbWriter.cs" />
     <Compile Include="IO\BitReader.cs" />
     <Compile Include="IO\CasReader.cs" />
     <Compile Include="IO\CatReader.cs" />
@@ -106,6 +110,7 @@
     <Compile Include="IO\EbxReader.cs" />
     <Compile Include="IO\EbxWriter.cs" />
     <Compile Include="IO\EbxXmlWriter.cs" />
+    <Compile Include="IO\LegacyBinarySbReader.cs" />
     <Compile Include="IO\NativeReader.cs" />
     <Compile Include="DbObject.cs" />
     <Compile Include="IO\NativeWriter.cs" />

@@ -99,13 +99,13 @@ namespace FrostySdk.Managers
                                 //    Console.WriteLine("TEST");
 
                                 // patched binary super bundle
-                                using (BinarySbReader reader = new BinarySbReader(baseStream, stream, parent.fs.CreateDeobfuscator()))
+                                using (BinarySbReader reader = new LegacyBinarySbReader(baseStream, stream, parent.fs.CreateDeobfuscator()))
                                     sb = reader.ReadDbObject();
 
                                 DbObject baseSb = null;
                                 if (bi != null)
                                 {
-                                    using (BinarySbReader reader = new BinarySbReader(baseMf.CreateViewStream(bi.Offset, bi.Size), bi.Offset, parent.fs.CreateDeobfuscator()))
+                                    using (BinarySbReader reader = new LegacyBinarySbReader(baseMf.CreateViewStream(bi.Offset, bi.Size), bi.Offset, parent.fs.CreateDeobfuscator()))
                                         baseSb = reader.ReadDbObject();
                                 }
 
@@ -115,7 +115,7 @@ namespace FrostySdk.Managers
                             else
                             {
                                 // binary super bundle
-                                using (BinarySbReader reader = new BinarySbReader(stream, offset, parent.fs.CreateDeobfuscator()))
+                                using (BinarySbReader reader = new LegacyBinarySbReader(stream, offset, parent.fs.CreateDeobfuscator()))
                                     sb = reader.ReadDbObject();
                             }
                         }

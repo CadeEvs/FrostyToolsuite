@@ -497,7 +497,7 @@ namespace Frosty.ModSupport
                                             baseSbStream = baseSb.CreateViewStream(bi.Offset, bi.Size);
 
                                             // read in base bundle unpatched
-                                            using (BinarySbReader reader = new BinarySbReader(baseSbStream, 0, parent.fs.CreateDeobfuscator()))
+                                            using (BinarySbReader reader = new LegacyBinarySbReader(baseSbStream, 0, parent.fs.CreateDeobfuscator()))
                                                 baseSbBundle = reader.ReadDbObject();
                                             baseBundleDataOffset = baseSbBundle.GetValue<long>("dataOffset");
                                             baseSbStream = baseSb.CreateViewStream(bi.Offset, bi.Size);
@@ -507,7 +507,7 @@ namespace Frosty.ModSupport
                                         DbObject sbBundle = null;
 
                                         // read in bundle and patch it
-                                        using (BinarySbReader reader = new BinarySbReader(baseSbStream, patchSbStream, parent.fs.CreateDeobfuscator()))
+                                        using (BinarySbReader reader = new LegacyBinarySbReader(baseSbStream, patchSbStream, parent.fs.CreateDeobfuscator()))
                                             sbBundle = reader.ReadDbObject();
 
                                         baseSbStream?.Dispose();
@@ -707,7 +707,7 @@ namespace Frosty.ModSupport
                                         DbObject baseSbBundle = null;
 
                                         // read in base bundle unpatched
-                                        using (BinarySbReader reader = new BinarySbReader(baseSbStream, 0, parent.fs.CreateDeobfuscator()))
+                                        using (BinarySbReader reader = new LegacyBinarySbReader(baseSbStream, 0, parent.fs.CreateDeobfuscator()))
                                             baseSbBundle = reader.ReadDbObject();
                                         baseBundleDataOffset = baseSbBundle.GetValue<long>("dataOffset");
 
