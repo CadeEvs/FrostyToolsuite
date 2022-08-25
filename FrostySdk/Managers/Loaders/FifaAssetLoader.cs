@@ -159,7 +159,7 @@ namespace FrostySdk.Managers
                                             BundleEntry be = new BundleEntry { Name = bundleName, SuperBundleId = sbIndex };
                                             parent.bundles.Add(be);
 
-                                            using (BinarySbReader bundleReader = new BinarySbReader(ms, 0, parent.fs.CreateDeobfuscator()))
+                                            using (BinarySbReader bundleReader = new BinarySbReader(ms, parent.fs.CreateDeobfuscator()))
                                             {
                                                 DbObject bundle = bundleReader.ReadDbObject();
 

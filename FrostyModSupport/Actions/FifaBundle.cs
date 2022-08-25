@@ -1,5 +1,6 @@
 ﻿using Frosty.Hash;
 using FrostySdk;
+using FrostySdk.BaseProfile;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
@@ -186,7 +187,7 @@ namespace Frosty.ModSupport
                                                     }
 
                                                     DbObject bundle = null;
-                                                    using (BinarySbReader sbReader = new BinarySbReader(ms, 0, parent.fs.CreateDeobfuscator()))
+                                                    using (BinarySbReader sbReader = new BinarySbReader(ms, parent.fs.CreateDeobfuscator()))
                                                     {
                                                         bundle = sbReader.ReadDbObject();
                                                         foreach (DbObject ebx in bundle.GetValue<DbObject>("ebx"))
@@ -406,108 +407,10 @@ namespace Frosty.ModSupport
                                                     foreach (DbObject chunk in bundle.GetValue<DbObject>("chunks"))
                                                         files.Add(new BundleFileEntry(chunk.GetValue<int>("cas"), chunk.GetValue<int>("offset"), chunk.GetValue<int>("size")));
 
-                                                    int ebxTotalCount = bundle.GetValue<DbObject>("ebx").Count;
-                                                    int resTotalCount = bundle.GetValue<DbObject>("res").Count;
-                                                    int chunkTotalCount = bundle.GetValue<DbObject>("chunks").Count;
-
                                                     // now write out new patched binary bundle
-                                                    using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+                                                    using (BinarySbWriter writer = new BinarySbWriter(new MemoryStream()))
                                                     {
-                                                        writer.Write(0xDEADBABE, Endian.Big);
-                                                        writer.Write(0xB3EDF05D, Endian.Big);
-                                                        writer.Write(ebxTotalCount + resTotalCount + chunkTotalCount, Endian.Big);
-                                                        writer.Write(ebxTotalCount, Endian.Big);
-                                                        writer.Write(resTotalCount, Endian.Big);
-                                                        writer.Write(chunkTotalCount, Endian.Big);
-                                                        writer.Write(0xDEADBABE, Endian.Big);
-                                                        writer.Write(0xDEADBABE, Endian.Big);
-                                                        writer.Write(0xDEADBABE, Endian.Big);
-
-                                                        // names
-                                                        long nameOffset = 0;
-                                                        Dictionary<uint, long> stringToOffsetMap = new Dictionary<uint, long>();
-                                                        List<string> stringsToPrint = new List<string>();
-                                                        foreach (DbObject ebx in bundle.GetValue<DbObject>("ebx"))
-                                                        {
-                                                            uint hash = (uint)Fnv1.HashString(ebx.GetValue<string>("name"));
-                                                            writer.Write((uint)nameOffset, Endian.Big);
-                                                            //if (!stringToOffsetMap.ContainsKey(hash))
-                                                            {
-                                                                stringsToPrint.Add(ebx.GetValue<string>("name"));
-                                                                //stringToOffsetMap.Add(hash, nameOffset);
-                                                                nameOffset += ebx.GetValue<string>("name").Length + 1;
-                                                            }
-                                                            //writer.Write((uint)stringToOffsetMap[hash], Endian.Big);
-                                                            writer.Write(ebx.GetValue<int>("originalSize"), Endian.Big);
-                                                        }
-                                                        foreach (DbObject res in bundle.GetValue<DbObject>("res"))
-                                                        {
-                                                            uint hash = (uint)Fnv1.HashString(res.GetValue<string>("name"));
-                                                            writer.Write((uint)nameOffset, Endian.Big);
-                                                            //if (!stringToOffsetMap.ContainsKey(hash))
-                                                            {
-                                                                stringsToPrint.Add(res.GetValue<string>("name"));
-                                                                //stringToOffsetMap.Add(hash, nameOffset);
-                                                                nameOffset += res.GetValue<string>("name").Length + 1;
-                                                            }
-                                                            //writer.Write((uint)stringToOffsetMap[hash], Endian.Big);
-                                                            writer.Write(res.GetValue<int>("originalSize"), Endian.Big);
-                                                        }
-
-                                                        // res
-                                                        foreach (DbObject res in bundle.GetValue<DbObject>("res"))
-                                                        {
-                                                            writer.Write((uint)res.GetValue<long>("resType"), Endian.Big);
-                                                        }
-                                                        foreach (DbObject res in bundle.GetValue<DbObject>("res"))
-                                                        {
-                                                            writer.Write(res.GetValue<byte[]>("resMeta"));
-                                                        }
-                                                        foreach (DbObject res in bundle.GetValue<DbObject>("res"))
-                                                        {
-                                                            writer.Write(res.GetValue<long>("resRid"), Endian.Big);
-                                                        }
-
-                                                        // chunks
-                                                        foreach (DbObject chunk in bundle.GetValue<DbObject>("chunks"))
-                                                        {
-                                                            writer.Write(chunk.GetValue<Guid>("id"), Endian.Big);
-                                                            writer.Write(chunk.GetValue<int>("logicalOffset"), Endian.Big);
-                                                            writer.Write(chunk.GetValue<int>("logicalSize"), Endian.Big);
-                                                        }
-
-                                                        // strings
-                                                        long stringsOffset = writer.Position;
-                                                        foreach (string str in stringsToPrint)
-                                                            writer.WriteNullTerminatedString(str);
-
-                                                        // meta
-                                                        long metaOffset = 0;
-                                                        long metaSize = 0;
-                                                        if (bundle.GetValue<DbObject>("chunks").Count > 0)
-                                                        {
-                                                            DbObject meta = bundle.GetValue<DbObject>("chunkMeta");
-
-                                                            metaOffset = writer.Position;
-                                                            using (DbWriter metaWriter = new DbWriter(new MemoryStream()))
-                                                                writer.Write(metaWriter.WriteDbObject("chunkMeta", meta));
-                                                            metaSize = ((writer.Position) - metaOffset);
-                                                        }
-
-                                                        //while ((writer.Position - 4) % 16 != 0)
-                                                        //    writer.Write((byte)0x00);
-
-                                                        // data offset
-                                                        long dataOffset = writer.Position - 4;
-
-                                                        // update all relevant offsets
-                                                        writer.Position = 0x18;
-                                                        writer.Write((uint)(stringsOffset-4), Endian.Big);
-                                                        writer.Write((uint)(metaOffset-4), Endian.Big);
-                                                        writer.Write((uint)(metaSize), Endian.Big);
-
-                                                        writer.Position = 0;
-                                                        writer.Write((uint)(dataOffset), Endian.Big);
+                                                        writer.Write(bundle);
 
                                                         // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
                                                         if (casWriter == null || casWriter.Length + writer.Length > 1073741824)
@@ -518,7 +421,7 @@ namespace Frosty.ModSupport
 
                                                         bundleFile.CasIndex = casFileIndex;
                                                         bundleFile.Offset = (int)casWriter.Position;
-                                                        bundleFile.Size = (int)(dataOffset + 4);
+                                                        bundleFile.Size = (int)(writer.Length);
 
                                                         casWriter.Write(((MemoryStream)(writer.BaseStream)).ToArray());
                                                     }

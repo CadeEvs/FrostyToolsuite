@@ -4,8 +4,10 @@ using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace FrostySdk.BaseProfile
 {
@@ -26,33 +28,37 @@ namespace FrostySdk.BaseProfile
 
         private List<Sha1> sha1 = new List<Sha1>();
 
-        public DbObject ReadDbObject(DbReader reader, bool containsUncompressedData, long bundleOffset)
+        public DbObject ReadDbObject(DbReader reader)
         {
-            uint dataOffset = reader.ReadUInt(Endian.Big) + 4;
-            uint magic = reader.ReadUInt(endian) ^ 0x7065636E;
+            uint size = reader.ReadUInt(Endian.Big);
+            BaseBinarySb.Magic magic = (BaseBinarySb.Magic)(reader.ReadUInt(endian) ^ BaseBinarySb.GetSalt());
 
-            bool containsSha1 = !(magic == 0xC3889333 || magic == 0xC3E5D5C3);
+            // check what endian its written in
+            if (!BaseBinarySb.IsValidMagic(magic))
+            {
+                endian = Endian.Little;
+                reader.Position -= 4;
+                magic = (BaseBinarySb.Magic)(reader.ReadUInt(endian) ^ BaseBinarySb.GetSalt());
+
+                if (!BaseBinarySb.IsValidMagic(magic))
+                    throw new InvalidDataException("magic");
+            }
+
+            bool containsSha1 = !(magic == BaseBinarySb.Magic.Fifa || magic == BaseBinarySb.Magic.Encrypted);
 
             totalCount = reader.ReadUInt(endian);
             ebxCount = reader.ReadUInt(endian);
             resCount = reader.ReadUInt(endian);
             chunkCount = reader.ReadUInt(endian);
-            stringsOffset = reader.ReadUInt(endian) - 0x24;
-            metaOffset = reader.ReadUInt(endian) - 0x24;
+            stringsOffset = reader.ReadUInt(endian) - 0x20;
+            metaOffset = reader.ReadUInt(endian) - 0x20;
             metaSize = reader.ReadUInt(endian);
 
-            byte[] buffer = (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem
-                             || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
-                             || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
-                )
-                    ? reader.ReadToEnd()
-                    : reader.ReadBytes((int)(dataOffset - reader.Position));
+            byte[] buffer = reader.ReadBytes((int)(size - 0x20));
 
-            if (magic == 0xC3889333)
-                containsSha1 = false;
-            else if (magic == 0xC3E5D5C3)
+            // decrypt the data
+            if (magic == BaseBinarySb.Magic.Encrypted)
             {
-                containsSha1 = false;
                 byte[] key = KeyManager.Instance.GetKey("Key2");
 
                 using (Aes aes = Aes.Create())
@@ -74,81 +80,21 @@ namespace FrostySdk.BaseProfile
             using (DbReader dbReader = new DbReader(new MemoryStream(buffer), null))
             {
                 for (int i = 0; i < totalCount; i++)
-                    sha1.Add((containsSha1)
-                        ? dbReader.ReadSha1()
-                        : Sha1.Zero
-                    );
+                    sha1.Add((containsSha1) ? dbReader.ReadSha1() : Sha1.Zero);
 
                 bundle.AddValue("ebx", new DbObject(ReadEbx(dbReader)));
                 bundle.AddValue("res", new DbObject(ReadRes(dbReader)));
                 bundle.AddValue("chunks", new DbObject(ReadChunks(dbReader)));
-                bundle.AddValue("dataOffset", (int)(dataOffset - 4));
+                bundle.AddValue("dataOffset", (int)size);
 
                 if (chunkCount > 0)
                 {
-                    dbReader.Position = metaOffset + 4;
+                    dbReader.Position = metaOffset;
                     bundle.AddValue("chunkMeta", dbReader.ReadDbObject());
                 }
             }
 
-            reader.Position = dataOffset;
-            if (reader.Position == reader.Length)
-                return bundle;
-
-            if (magic == 0xED1CEDB8)
-                return bundle;
-
-            ReadDataBlock(reader, bundle.GetValue<DbObject>("ebx"), containsUncompressedData, bundleOffset);
-            ReadDataBlock(reader, bundle.GetValue<DbObject>("res"), containsUncompressedData, bundleOffset);
-            ReadDataBlock(reader, bundle.GetValue<DbObject>("chunks"), containsUncompressedData, bundleOffset);
-
-            System.Diagnostics.Debug.Assert(reader.Position <= reader.Length);
             return bundle;
-        }
-
-        public void ReadDataBlock(DbReader reader, DbObject list, bool containsUncompressedData, long bundleOffset)
-        {
-            foreach (DbObject entry in list)
-            {
-                entry.AddValue("offset", bundleOffset + reader.Position);
-
-                long originalSize = entry.GetValue<long>("originalSize");
-                long size = 0;
-
-                if (containsUncompressedData)
-                {
-                    size = originalSize;
-                    entry.AddValue("data", reader.ReadBytes((int)originalSize));
-                }
-                else
-                {
-                    while (originalSize > 0)
-                    {
-                        int decompressedSize = reader.ReadInt(Endian.Big);
-                        ushort compressionType = reader.ReadUShort();
-                        int bufferSize = reader.ReadUShort(Endian.Big);
-
-                        int flags = ((compressionType & 0xFF00) >> 8);
-
-                        if ((flags & 0x0F) != 0)
-                            bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
-                        if ((decompressedSize & 0xFF000000) != 0)
-                            decompressedSize &= 0x00FFFFFF;
-
-                        originalSize -= decompressedSize;
-
-                        compressionType = (ushort)(compressionType & 0x7F);
-                        if (compressionType == 0x00)
-                            bufferSize = decompressedSize;
-
-                        size += bufferSize + 8;
-                        reader.Position += bufferSize;
-                    }
-                }
-
-                entry.AddValue("size", size);
-                entry.AddValue("sb", true);
-            }
         }
 
         public List<object> ReadEbx(DbReader reader)
@@ -163,7 +109,7 @@ namespace FrostySdk.BaseProfile
                 uint originalSize = reader.ReadUInt(endian);
 
                 long currentPos = reader.Position;
-                reader.Position = 4 + stringsOffset + nameOffset;
+                reader.Position = stringsOffset + nameOffset;
 
                 entry.AddValue("sha1", sha1[i]);
                 entry.AddValue("name", reader.ReadNullTerminatedString());
@@ -190,7 +136,7 @@ namespace FrostySdk.BaseProfile
                 uint originalSize = reader.ReadUInt(endian);
 
                 long currentPos = reader.Position;
-                reader.Position = 4 + stringsOffset + nameOffset;
+                reader.Position = stringsOffset + nameOffset;
 
                 entry.AddValue("sha1", sha1[offset++]);
                 entry.AddValue("name", reader.ReadNullTerminatedString());
@@ -202,13 +148,13 @@ namespace FrostySdk.BaseProfile
             }
 
             foreach (DbObject res in resList)
-                res.AddValue("resType", reader.ReadUInt(Endian.Big));
+                res.AddValue("resType", reader.ReadUInt(endian));
 
             foreach (DbObject res in resList)
                 res.AddValue("resMeta", reader.ReadBytes(0x10));
 
             foreach (DbObject res in resList)
-                res.AddValue("resRid", reader.ReadLong(Endian.Big));
+                res.AddValue("resRid", reader.ReadLong(endian));
 
             return resList;
         }

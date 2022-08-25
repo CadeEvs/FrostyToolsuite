@@ -610,7 +610,7 @@ namespace FrostySdk
 
                 using (NativeReader reader = new NativeReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
                 {
-                    using (BinarySbReader sbReader = new BinarySbReader(reader.CreateViewStream(fi.offset, fi.size), 0, null))
+                    using (BinarySbReader sbReader = new BinarySbReader(reader.CreateViewStream(fi.offset, fi.size), null))
                     {
                         DbObject bundle = sbReader.ReadDbObject();
                         System.Diagnostics.Debug.Assert(bundle != null);

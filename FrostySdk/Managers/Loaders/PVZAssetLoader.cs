@@ -274,7 +274,7 @@ namespace FrostySdk.Managers
                                     Stream stream = baseMf.CreateViewStream(bi.Offset, bi.Size);
 
                                     DbObject bundle = null;
-                                    using (BinarySbReader bundleReader = new BinarySbReader(stream, 0, parent.fs.CreateDeobfuscator()))
+                                    using (BinarySbReader bundleReader = new BinarySbReader(stream, parent.fs.CreateDeobfuscator()))
                                     {
                                         uint headerSize = bundleReader.ReadUInt(Endian.Big);
                                         uint dataOffset = bundleReader.ReadUInt(Endian.Big) + headerSize;
@@ -382,7 +382,7 @@ namespace FrostySdk.Managers
                                     Stream stream = patchMf.CreateViewStream(bi.Offset, bi.Size);
 
                                     DbObject bundle = null;
-                                    using (BinarySbReader bundleReader = new BinarySbReader(stream, 0, parent.fs.CreateDeobfuscator()))
+                                    using (BinarySbReader bundleReader = new BinarySbReader(stream, parent.fs.CreateDeobfuscator()))
                                     {
                                         uint headerSize = bundleReader.ReadUInt(Endian.Big);
                                         uint dataOffset = bundleReader.ReadUInt(Endian.Big) + headerSize;
