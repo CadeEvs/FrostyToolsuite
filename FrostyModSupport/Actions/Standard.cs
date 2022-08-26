@@ -826,6 +826,33 @@ namespace Frosty.ModSupport
                                             isModified = true;
                                         }
                                     }
+                                    foreach (string name in modifiedBundle.Add.Res)
+                                    {
+                                        ResAssetEntry entry = parent.modifiedRes[name];
+                                        DbObject newObj = DbObject.CreateObject();
+
+                                        newObj.SetValue("name", entry.Name);
+                                        newObj.SetValue("sha1", entry.Sha1);
+                                        newObj.SetValue("originalSize", entry.OriginalSize);
+                                        newObj.SetValue("data", parent.archiveData[entry.Sha1].Data);
+                                        newObj.SetValue("dataCompressed", true);
+                                        newObj.SetValue("resRid", entry.ResRid);
+                                        newObj.SetValue("resMeta", entry.ResMeta);
+                                        newObj.SetValue("resType", entry.ResType);
+
+                                        AssetInfo info = new AssetInfo
+                                        {
+                                            Name = entry.Name,
+                                            BaseAsset = newObj,
+                                            Modified = true,
+                                            Inserted = true,
+                                            Asset = newObj
+                                        };
+                                        info.NameHash = Fnv1.HashString(info.Name);
+                                        isModified = true;
+
+                                        resAssetInfo.Add(info);
+                                    }
                                     foreach (AssetInfo info in chunkAssetInfo)
                                     {
                                         if (modifiedBundle.Modify.Chunks.Contains(info.Id) && !info.Removed)
@@ -847,12 +874,57 @@ namespace Frosty.ModSupport
                                             newObj.SetValue("originalSize", entry.LogicalSize);
                                             newObj.SetValue("data", data);
                                             newObj.SetValue("dataCompressed", true);
+                                            if (entry.FirstMip != -1)
+                                            {
+                                                info.Meta.GetValue<DbObject>("meta").SetValue("firstMip", entry.FirstMip);
+                                            }
 
                                             info.BaseAsset = (info.Modified) ? info.BaseAsset : info.Asset;
                                             info.Modified = true;
                                             info.Asset = newObj;
                                             isModified = true;
                                         }
+                                    }
+                                    foreach (Guid id in modifiedBundle.Add.Chunks)
+                                    {
+                                        ChunkAssetEntry entry = parent.modifiedChunks[id];
+                                        DbObject newObj = DbObject.CreateObject();
+
+                                        byte[] data = parent.archiveData[entry.Sha1].Data;
+                                        if (entry.LogicalOffset != 0)
+                                        {
+                                            data = new byte[entry.RangeEnd - entry.RangeStart];
+                                            Array.Copy(parent.archiveData[entry.Sha1].Data, entry.RangeStart, data, 0, data.Length);
+                                        }
+
+                                        newObj.SetValue("id", entry.Id);
+                                        newObj.SetValue("sha1", entry.Sha1);
+                                        newObj.SetValue("logicalOffset", entry.LogicalOffset);
+                                        newObj.SetValue("logicalSize", entry.LogicalSize);
+                                        newObj.SetValue("originalSize", entry.LogicalSize);
+                                        newObj.SetValue("data", data);
+                                        newObj.SetValue("dataCompressed", true);
+
+                                        DbObject meta = new DbObject();
+                                        meta.SetValue("h32", entry.H32);
+                                        meta.SetValue("meta", new DbObject());
+                                        if (entry.FirstMip != -1)
+                                        {
+                                            meta.GetValue<DbObject>("meta").SetValue("firstMip", entry.FirstMip);
+                                        }
+
+                                        AssetInfo info = new AssetInfo
+                                        {
+                                            Id = entry.Id,
+                                            BaseAsset = newObj,
+                                            Modified = true,
+                                            Inserted = true,
+                                            Asset = newObj,
+                                            Meta = meta
+                                        };
+                                        isModified = true;
+
+                                        chunkAssetInfo.Add(info);
                                     }
                                 }
 
