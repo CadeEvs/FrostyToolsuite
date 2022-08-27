@@ -874,10 +874,10 @@ namespace Frosty.ModSupport
                                             newObj.SetValue("originalSize", entry.LogicalSize);
                                             newObj.SetValue("data", data);
                                             newObj.SetValue("dataCompressed", true);
-                                            if (entry.FirstMip != -1)
-                                            {
-                                                info.Meta.GetValue<DbObject>("meta").SetValue("firstMip", entry.FirstMip);
-                                            }
+                                            //if (entry.FirstMip != -1)
+                                            //{
+                                            //    info.Meta.GetValue<DbObject>("meta").SetValue("firstMip", entry.FirstMip);
+                                            //}
 
                                             info.BaseAsset = (info.Modified) ? info.BaseAsset : info.Asset;
                                             info.Modified = true;
