@@ -1914,7 +1914,15 @@ namespace FrostySdk.Managers
             Guid chunkId = chunk.GetValue<Guid>("id");
 
             if (chunkList.ContainsKey(chunkId))
+            {
+                chunkList[chunkId].Sha1 = chunk.GetValue<Sha1>("sha1");
+                chunkList[chunkId].LogicalOffset = chunk.GetValue<uint>("logicalOffset");
+                chunkList[chunkId].LogicalSize = chunk.GetValue<uint>("logicalSize");
+                chunkList[chunkId].RangeStart = chunk.GetValue<uint>("rangeStart");
+                chunkList[chunkId].RangeEnd = chunk.GetValue<uint>("rangeEnd");
+                chunkList[chunkId].BundledSize = chunk.GetValue<uint>("bundledSize");
                 return chunkList[chunkId];
+            }
 
             ChunkAssetEntry entry = new ChunkAssetEntry
             {
