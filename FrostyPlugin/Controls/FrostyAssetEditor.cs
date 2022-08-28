@@ -192,7 +192,9 @@ namespace Frosty.Core.Controls
         private void ViewInstances_Click(object state)
         {
             if (!(GetTemplateChild("PART_AssetPropertyGrid") is FrostyPropertyGrid pg))
+            {
                 return;
+            }
 
             AssetInstancesWindow win = new AssetInstancesWindow(asset.RootObjects, pg.SelectedClass, Asset, (EbxAssetEntry)AssetEntry);
             bool result = win.ShowDialog() == true;

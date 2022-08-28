@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using FrostySdk.Interfaces;
 using System.Windows;
 using System.Windows.Controls;
@@ -68,11 +67,6 @@ namespace LuaPlugin
             CompileButton.Click += CompileButton_Click;
 
             TextEditor.IndentText();
-        }
-
-        public override List<ToolbarItem> RegisterToolbarItems()
-        {
-            return new List<ToolbarItem>();
         }
 
         private void UpdateLua(string[] newSource)

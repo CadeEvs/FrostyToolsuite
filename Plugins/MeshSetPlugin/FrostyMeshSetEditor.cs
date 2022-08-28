@@ -2967,34 +2967,34 @@ namespace MeshSetPlugin
         private const string PART_RenderDocButton = "PART_RenderDocButton";
 #endif
 
-        private ComboBox lodComboBox;
-        private ComboBox renderModeComboBox;
-        private MeshSet meshSet;
-        private Guid meshGuid;
-        private FrostyViewport viewport;
-        private MultiMeshPreviewScreen screen = new MultiMeshPreviewScreen();
-        private FrostyPropertyGrid pgDetails;
-        private Button extractButton;
-        private ComboBox variationsComboBox;
-        private FrostyPropertyGrid pgPreviewSettings;
-        private FrostyPropertyGrid pgAsset;
-        private FrostyPropertyGrid pgMeshSettings;
-        private FrostyDetachedTabControl meshTabContent;
-        private FrostyTabControl meshTabControl;
+        private ComboBox m_lodComboBox;
+        private ComboBox m_renderModeComboBox;
+        private MeshSet m_meshSet;
+        private Guid m_meshGuid;
+        private FrostyViewport m_viewport;
+        private readonly MultiMeshPreviewScreen m_screen = new MultiMeshPreviewScreen();
+        private FrostyPropertyGrid m_pgDetails;
+        private Button m_extractButton;
+        private ComboBox m_variationsComboBox;
+        private FrostyPropertyGrid m_pgPreviewSettings;
+        private FrostyPropertyGrid m_pgAsset;
+        private FrostyPropertyGrid m_pgMeshSettings;
+        private FrostyDetachedTabControl m_meshTabContent;
+        private FrostyTabControl m_meshTabControl;
 #if FROSTY_DEVELOPER
-        private Button renderDocButton;
+        private Button m_renderDocButton;
 #endif
 
-        private bool firstTimeLoad = true;
-        private static Dictionary<uint, EbxAssetEntry> objectVariationMapping = new Dictionary<uint, EbxAssetEntry>();
-        private MeshSetPreviewSettings previewSettings = new MeshSetPreviewSettings();
-        private MeshSetMeshSettings meshSettings = new MeshSetMeshSettings();
-        private List<MeshSetVariationDetails> variations;
+        private bool m_firstTimeLoad = true;
+        private static readonly Dictionary<uint, EbxAssetEntry> ObjectVariationMapping = new Dictionary<uint, EbxAssetEntry>();
+        private readonly MeshSetPreviewSettings m_previewSettings = new MeshSetPreviewSettings();
+        private MeshSetMeshSettings m_meshSettings = new MeshSetMeshSettings();
+        private List<MeshSetVariationDetails> m_variations;
         
-        private int selectedPreviewIndex = 0;
-        private int selectedVariationsIndex = 0;
+        private int m_selectedPreviewIndex = 0;
+        private int m_selectedVariationsIndex = 0;
 
-        private List<ShaderBlockDepot> shaderBlockDepots = new List<ShaderBlockDepot>();
+        private readonly List<ShaderBlockDepot> m_shaderBlockDepots = new List<ShaderBlockDepot>();
 
         static FrostyMeshSetEditor()
         {
@@ -3017,61 +3017,61 @@ namespace MeshSetPlugin
 
             Loaded += FrostyMeshSetEditor_Loaded;
 
-            extractButton = GetTemplateChild(PART_ExtractMaterialInfoButton) as Button;
-            extractButton.Click += ExtractButton_Click;
+            m_extractButton = GetTemplateChild(PART_ExtractMaterialInfoButton) as Button;
+            m_extractButton.Click += ExtractButton_Click;
 
-            viewport = GetTemplateChild(PART_Renderer) as FrostyViewport;
+            m_viewport = GetTemplateChild(PART_Renderer) as FrostyViewport;
 
-            lodComboBox = GetTemplateChild(PART_LodComboBox) as ComboBox;
-            lodComboBox.SelectionChanged += LodComboBox_SelectionChanged;
+            m_lodComboBox = GetTemplateChild(PART_LodComboBox) as ComboBox;
+            m_lodComboBox.SelectionChanged += LodComboBox_SelectionChanged;
 
-            renderModeComboBox = GetTemplateChild(PART_RenderModeComboBox) as ComboBox;
-            renderModeComboBox.SelectionChanged += RenderModeComboBox_SelectionChanged;
+            m_renderModeComboBox = GetTemplateChild(PART_RenderModeComboBox) as ComboBox;
+            m_renderModeComboBox.SelectionChanged += RenderModeComboBox_SelectionChanged;
 
-            pgDetails = GetTemplateChild(PART_Details) as FrostyPropertyGrid;
-            pgDetails.OnModified += PgDetails_OnModified;
-            pgDetails.OnPreModified += PgDetails_OnPreModified;
+            m_pgDetails = GetTemplateChild(PART_Details) as FrostyPropertyGrid;
+            m_pgDetails.OnModified += PgDetails_OnModified;
+            m_pgDetails.OnPreModified += PgDetails_OnPreModified;
 
-            pgPreviewSettings = GetTemplateChild(PART_PreviewSettings) as FrostyPropertyGrid;
-            pgPreviewSettings.OnModified += PgPreviewSettings_OnModified;
+            m_pgPreviewSettings = GetTemplateChild(PART_PreviewSettings) as FrostyPropertyGrid;
+            m_pgPreviewSettings.OnModified += PgPreviewSettings_OnModified;
 
-            pgMeshSettings = GetTemplateChild(PART_MeshSettings) as FrostyPropertyGrid;
-            pgMeshSettings.OnPreModified += PgMeshSettings_OnPreModified;
-            pgMeshSettings.OnModified += PgMeshSettings_OnModified;
+            m_pgMeshSettings = GetTemplateChild(PART_MeshSettings) as FrostyPropertyGrid;
+            m_pgMeshSettings.OnPreModified += PgMeshSettings_OnPreModified;
+            m_pgMeshSettings.OnModified += PgMeshSettings_OnModified;
 
-            pgAsset = GetTemplateChild(PART_AssetPropertyGrid) as FrostyPropertyGrid;
-            pgAsset.OnModified += PgAsset_OnModified;
+            m_pgAsset = GetTemplateChild(PART_AssetPropertyGrid) as FrostyPropertyGrid;
+            m_pgAsset.OnModified += PgAsset_OnModified;
 
-            variationsComboBox = GetTemplateChild(PART_VariationComboBox) as ComboBox;
-            variationsComboBox.SelectionChanged += VariationsComboBox_SelectionChanged;
+            m_variationsComboBox = GetTemplateChild(PART_VariationComboBox) as ComboBox;
+            m_variationsComboBox.SelectionChanged += VariationsComboBox_SelectionChanged;
 
-            meshTabContent = GetTemplateChild(PART_MeshTabContent) as FrostyDetachedTabControl;
-            meshTabControl = GetTemplateChild(PART_MeshTabControl) as FrostyTabControl;
+            m_meshTabContent = GetTemplateChild(PART_MeshTabContent) as FrostyDetachedTabControl;
+            m_meshTabControl = GetTemplateChild(PART_MeshTabControl) as FrostyTabControl;
 
-            meshTabContent.HeaderControl = meshTabControl;
+            m_meshTabContent.HeaderControl = m_meshTabControl;
 
 #if FROSTY_DEVELOPER
-            renderDocButton = GetTemplateChild(PART_RenderDocButton) as Button;
-            renderDocButton.Click += RenderDocButton_Click;
+            m_renderDocButton = GetTemplateChild(PART_RenderDocButton) as Button;
+            m_renderDocButton.Click += RenderDocButton_Click;
 #endif
 
-            viewport.Screen = screen;
+            m_viewport.Screen = m_screen;
         }
 
         private void PgMeshSettings_OnModified(object sender, ItemModifiedEventArgs e)
         {
             if (e.Item.Path.Contains("Sections"))
             {
-                int lodIdx = getArrayIndexFromPath("Lods", e.Item.Path);
-                int sectionIdx = getArrayIndexFromPath("Sections", e.Item.Path);
+                int lodIdx = GetArrayIndexFromPath("Lods", e.Item.Path);
+                int sectionIdx = GetArrayIndexFromPath("Sections", e.Item.Path);
 
                 if (e.Item.Name == "Highlight")
                 {
-                    screen.SetMeshSectionSelected(0, lodIdx, sectionIdx, (bool)e.NewValue);
+                    m_screen.SetMeshSectionSelected(0, lodIdx, sectionIdx, (bool)e.NewValue);
                 }
                 else if (e.Item.Name == "Visible")
                 {
-                    screen.SetMeshSectionVisible(0, lodIdx, sectionIdx, (bool)e.NewValue);
+                    m_screen.SetMeshSectionVisible(0, lodIdx, sectionIdx, (bool)e.NewValue);
                 }
             }
         }
@@ -3092,11 +3092,11 @@ namespace MeshSetPlugin
                 {
                     dynamic ebxData = RootObject;
 
-                    foreach (var sbd in shaderBlockDepots)
+                    foreach (ShaderBlockDepot sbd in m_shaderBlockDepots)
                     {
-                        for (int lodIndex = 0; lodIndex < meshSet.Lods.Count; lodIndex++)
+                        for (int lodIndex = 0; lodIndex < m_meshSet.Lods.Count; lodIndex++)
                         {
-                            MeshSetLod lod = meshSet.Lods[lodIndex];
+                            MeshSetLod lod = m_meshSet.Lods[lodIndex];
                             ShaderBlockEntry sbe = sbd.GetSectionEntry(lodIndex);
 
                             int index = 0;
@@ -3163,32 +3163,36 @@ namespace MeshSetPlugin
         private void PgDetails_OnPreModified(object sender, ItemPreModifiedEventArgs e)
         {
             if (!e.Item.Path.Contains("Preview"))
+            {
                 e.Ignore = true;
+            }
         }
 
         public override List<ToolbarItem> RegisterToolbarItems()
         {
-            return new List<ToolbarItem>()
-            {
-                new ToolbarItem("Export", "Export MeshSet", "Images/Export.png", new RelayCommand((object state) => { ExportButton_Click(this, new RoutedEventArgs()); })),
-                new ToolbarItem("Import", "Import MeshSet", "Images/Import.png", new RelayCommand((object state) => { ImportButton_Click(this, new RoutedEventArgs()); })),
-            };
+            List<ToolbarItem> toolbarItems = base.RegisterToolbarItems();
+            toolbarItems.Add(new ToolbarItem("Export", "Export MeshSet", "Images/Export.png", new RelayCommand((object state) => { ExportButton_Click(this, new RoutedEventArgs()); })));
+            toolbarItems.Add(new ToolbarItem("Import", "Import MeshSet", "Images/Import.png", new RelayCommand((object state) => { ImportButton_Click(this, new RoutedEventArgs()); })));
+            
+            return toolbarItems;
         }
 
 #if FROSTY_DEVELOPER
         private void RenderDocButton_Click(object sender, RoutedEventArgs e)
         {
             // begin frame capture on the next frame
-            screen.CaptureNextFrame();
+            m_screen.CaptureNextFrame();
         }
 #endif
 
-        private int getArrayIndexFromPath(string arrayName, string path)
+        private int GetArrayIndexFromPath(string arrayName, string path)
         {
-            int idx = path.IndexOf(arrayName + ".");
+            int idx = path.IndexOf(arrayName + ".", StringComparison.Ordinal);
 
             if (idx == -1)
+            {
                 return -1;
+            }
 
             path = path.Substring(idx + arrayName.Length + 1);
             path = path.Substring(0, path.IndexOf(']')).Trim('[', ']');
@@ -3200,49 +3204,49 @@ namespace MeshSetPlugin
         {
             if (e.Item.Name.Contains("SunPosition"))
             {
-                screen.SunPosition = SharpDXUtils.FromVec3(previewSettings.SunPosition);
+                m_screen.SunPosition = SharpDXUtils.FromVec3(m_previewSettings.SunPosition);
             }
             else if (e.Item.Name.Contains("SunIntensity"))
             {
-                screen.SunIntensity = previewSettings.SunIntensity;
+                m_screen.SunIntensity = m_previewSettings.SunIntensity;
             }
             else if (e.Item.Name.Contains("SunAngularRadius"))
             {
-                screen.SunAngularRadius = previewSettings.SunAngularRadius;
+                m_screen.SunAngularRadius = m_previewSettings.SunAngularRadius;
             }
 #if FROSTY_DEVELOPER
             else if (e.Item.Name.Contains("EV100"))
             {
-                screen.MinEV100 = previewSettings.MinEV100;
-                screen.MaxEV100 = previewSettings.MaxEV100;
+                m_screen.MinEV100 = m_previewSettings.MinEV100;
+                m_screen.MaxEV100 = m_previewSettings.MaxEV100;
             }
             else if (e.Item.Path.Contains("Animation"))
             {
-                screen.SetAnimation(LoadAnim(previewSettings.Animation));
+                m_screen.SetAnimation(LoadAnim(m_previewSettings.Animation));
             }
             else if (e.Item.Name.Contains("iDepthBias") || e.Item.Name.Contains("fSlopeScaledDepthBias") || e.Item.Name.Contains("fDistanceBiasMin") || e.Item.Name.Contains("fDistanceBiasFactor") || e.Item.Name.Contains("fDistanceBiasThreshold") || e.Item.Name.Contains("fDistanceBiasPower"))
             {
-                screen.iDepthBias = previewSettings.iDepthBias;
-                screen.fSlopeScaledDepthBias = previewSettings.fSlopeScaledDepthBias;
-                screen.fDistanceBiasMin = previewSettings.fDistanceBiasMin;
-                screen.fDistanceBiasFactor = previewSettings.fDistanceBiasFactor;
-                screen.fDistanceBiasThreshold = previewSettings.fDistanceBiasThreshold;
-                screen.fDistanceBiasPower = previewSettings.fDistanceBiasPower;
+                m_screen.iDepthBias = m_previewSettings.iDepthBias;
+                m_screen.fSlopeScaledDepthBias = m_previewSettings.fSlopeScaledDepthBias;
+                m_screen.fDistanceBiasMin = m_previewSettings.fDistanceBiasMin;
+                m_screen.fDistanceBiasFactor = m_previewSettings.fDistanceBiasFactor;
+                m_screen.fDistanceBiasThreshold = m_previewSettings.fDistanceBiasThreshold;
+                m_screen.fDistanceBiasPower = m_previewSettings.fDistanceBiasPower;
             }
 #endif
             else if (e.Item.Name.Contains("CameraSpeedMultiplier"))
             {
-                screen.camera.SetMoveScaler((float)Math.Pow(previewSettings.CameraSpeedMultiplier, 5));
+                m_screen.camera.SetMoveScaler((float)Math.Pow(m_previewSettings.CameraSpeedMultiplier, 5));
             }
             else if (e.Item.Name.Contains("ColorLookupTable"))
             {
-                EbxAssetEntry entry = App.AssetManager.GetEbxEntry(previewSettings.ColorLookupTable.External.FileGuid);
-                screen.SetLookupTableTexture(entry);
+                EbxAssetEntry entry = App.AssetManager.GetEbxEntry(m_previewSettings.ColorLookupTable.External.FileGuid);
+                m_screen.SetLookupTableTexture(entry);
             }
             else if (e.Item.Path.Contains("PreviewLights"))
             {
                 string path = e.Item.Path;
-                int idx = getArrayIndexFromPath("PreviewLights", path);
+                int idx = GetArrayIndexFromPath("PreviewLights", path);
                 PreviewLightData lightEntity = null;
 
                 if (e.OldValue == null)
@@ -3254,14 +3258,14 @@ namespace MeshSetPlugin
                 {
                     // light being removed
                     lightEntity = e.OldValue as PreviewLightData;
-                    screen.RemoveLight(lightEntity.LightId);
+                    m_screen.RemoveLight(lightEntity.LightId);
                     return;
                 }
                 else if (e.NewValue is List<PreviewLightData> list)
                 {
                     if (list.Count == 0)
                     {
-                        screen.ClearLights();
+                        m_screen.ClearLights();
                         return;
                     }
                 }
@@ -3269,7 +3273,7 @@ namespace MeshSetPlugin
                 {
                     if (idx == -1)
                         return;
-                    lightEntity = previewSettings.PreviewLights[idx];
+                    lightEntity = m_previewSettings.PreviewLights[idx];
                 }
 
                 Matrix transform = SharpDXUtils.FromLinearTransform(lightEntity.Transform);
@@ -3278,22 +3282,22 @@ namespace MeshSetPlugin
                 if (lightEntity.LightId == -1)
                 {
                     // add new light to renderer
-                    lightEntity.LightId = screen.AddLight(LightRenderType.Sphere, transform, color, lightEntity.Intensity, lightEntity.AttenuationRadius, lightEntity.SphereRadius);
+                    lightEntity.LightId = m_screen.AddLight(LightRenderType.Sphere, transform, color, lightEntity.Intensity, lightEntity.AttenuationRadius, lightEntity.SphereRadius);
                 }
                 else
                 {
                     // modify existing light
-                    screen.ModifyLight(lightEntity.LightId, transform, color, lightEntity.Intensity, lightEntity.AttenuationRadius, lightEntity.SphereRadius);
+                    m_screen.ModifyLight(lightEntity.LightId, transform, color, lightEntity.Intensity, lightEntity.AttenuationRadius, lightEntity.SphereRadius);
                 }
             }
             else if (e.Item.Name == "LightProbeTexture")
             {
-                EbxAssetEntry entry = App.AssetManager.GetEbxEntry(previewSettings.LightProbeTexture.External.FileGuid);
-                screen.SetDistantLightProbeTexture(entry);
+                EbxAssetEntry entry = App.AssetManager.GetEbxEntry(m_previewSettings.LightProbeTexture.External.FileGuid);
+                m_screen.SetDistantLightProbeTexture(entry);
             }
             else if (e.Item.Name == "LightProbeIntensity")
             {
-                screen.LightProbeIntensity = previewSettings.LightProbeIntensity;
+                m_screen.LightProbeIntensity = m_previewSettings.LightProbeIntensity;
             }
             else if (e.Item.Name == "PreviewMeshes")
             {
@@ -3302,29 +3306,29 @@ namespace MeshSetPlugin
                     // mesh being removed
                     PreviewMeshData meshData = e.OldValue as PreviewMeshData;
                     if (meshData.MeshId != -1)
-                        screen.RemoveMesh(meshData.MeshId);
+                        m_screen.RemoveMesh(meshData.MeshId);
                 }
                 else if (e.NewValue is List<PreviewMeshData> list)
                 {
                     if (list.Count == 0)
-                        screen.ClearMeshes();
+                        m_screen.ClearMeshes();
                 }
             }
             else
             {
                 string path = e.Item.Path;
-                int idx = getArrayIndexFromPath("PreviewMeshes", path);
+                int idx = GetArrayIndexFromPath("PreviewMeshes", path);
 
                 if (idx == -1)
                     return;
 
-                PreviewMeshData meshData = previewSettings.PreviewMeshes[idx];
+                PreviewMeshData meshData = m_previewSettings.PreviewMeshes[idx];
                 if (e.Item.Name == "Mesh")
                 {
                     if (meshData.MeshId != -1)
                     {
                         // remove old mesh
-                        screen.RemoveMesh(meshData.MeshId);
+                        m_screen.RemoveMesh(meshData.MeshId);
                     }
 
                     // load new mesh if specified
@@ -3338,14 +3342,14 @@ namespace MeshSetPlugin
                         Matrix transform = SharpDXUtils.FromLinearTransform(meshData.Transform);
 
                         // add to renderer
-                        meshData.MeshId = screen.AddMesh(previewMeshSet, new MeshMaterialCollection(meshData.Asset, meshData.Variation), /*Matrix.Scaling(1, 1, -1) **/ transform, LoadPose(ebxEntry.Filename, meshData.Asset));
+                        meshData.MeshId = m_screen.AddMesh(previewMeshSet, new MeshMaterialCollection(meshData.Asset, meshData.Variation), /*Matrix.Scaling(1, 1, -1) **/ transform, LoadPose(ebxEntry.Filename, meshData.Asset));
                     }
                 }
                 else if (e.Item.Name == "Variation")
                 {
                     // load variation
                     if (meshData.MeshId != -1)
-                        screen.LoadMaterials(meshData.MeshId, new MeshMaterialCollection(meshData.Asset, meshData.Variation));
+                        m_screen.LoadMaterials(meshData.MeshId, new MeshMaterialCollection(meshData.Asset, meshData.Variation));
                 }
                 else if (e.Item.Path.Contains("Transform"))
                 {
@@ -3353,7 +3357,7 @@ namespace MeshSetPlugin
                     if (meshData.MeshId != -1)
                     {
                         Matrix transform = SharpDXUtils.FromLinearTransform(meshData.Transform);
-                        screen.SetTransform(meshData.MeshId, /*Matrix.Scaling(1, 1, -1) **/ transform);
+                        m_screen.SetTransform(meshData.MeshId, /*Matrix.Scaling(1, 1, -1) **/ transform);
                     }
                 }
             }
@@ -3361,9 +3365,9 @@ namespace MeshSetPlugin
 
         private void VariationsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            selectedVariationsIndex = variationsComboBox.SelectedIndex;
-            MeshSetVariationDetails variation = variations[selectedVariationsIndex];
-            pgDetails.SetClass(variation);
+            m_selectedVariationsIndex = m_variationsComboBox.SelectedIndex;
+            MeshSetVariationDetails variation = m_variations[m_selectedVariationsIndex];
+            m_pgDetails.SetClass(variation);
         }
 
         private void ExtractButton_Click(object sender, RoutedEventArgs e)
@@ -3371,7 +3375,7 @@ namespace MeshSetPlugin
             FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save material info", "*.xml (XML Files)|*.xml", "MaterialInfo");
             if (sfd.ShowDialog() == true)
             {
-                MeshMaterialCollection materials = GetVariation(selectedPreviewIndex);
+                MeshMaterialCollection materials = GetVariation(m_selectedPreviewIndex);
                 FrostyTaskWindow.Show("Extracting Material Info", "", (task) =>
                 {
                     using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create)))
@@ -3379,7 +3383,7 @@ namespace MeshSetPlugin
                         int index = 0;
                         foreach (MeshMaterial material in materials)
                         {
-                            MeshSetSection section = meshSet.Lods[0].Sections.Find((MeshSetSection a) => a.MaterialId == index);
+                            MeshSetSection section = m_meshSet.Lods[0].Sections.Find((MeshSetSection a) => a.MaterialId == index);
                             if (section == null)
                                 continue;
 
@@ -3438,44 +3442,44 @@ namespace MeshSetPlugin
 
         private void PgDetails_OnModified(object sender, ItemModifiedEventArgs e)
         {
-            if (pgDetails.SelectedClass is MeshSetVariationDetails variation && variation.Preview)
-                screen.LoadMaterials(0, GetVariation(variation));
+            if (m_pgDetails.SelectedClass is MeshSetVariationDetails variation && variation.Preview)
+                m_screen.LoadMaterials(0, GetVariation(variation));
         }
 
         protected override void InvokeOnAssetModified()
         {
             base.InvokeOnAssetModified();
-            if (selectedPreviewIndex != -1)
-                screen.LoadMaterials(0, GetVariation(selectedPreviewIndex));
+            if (m_selectedPreviewIndex != -1)
+                m_screen.LoadMaterials(0, GetVariation(m_selectedPreviewIndex));
         }
 
         private void RenderModeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (screen == null)
+            if (m_screen == null)
                 return;
-            screen.RenderMode = (DebugRenderMode)renderModeComboBox.SelectedIndex;
+            m_screen.RenderMode = (DebugRenderMode)m_renderModeComboBox.SelectedIndex;
         }
 
         private void FrostyMeshSetEditor_Loaded(object sender, RoutedEventArgs e)
         {
-            if (firstTimeLoad)
+            if (m_firstTimeLoad)
             {
                 ulong resRid = ((dynamic)RootObject).MeshSetResource;
                 ResAssetEntry rEntry = App.AssetManager.GetResEntry(resRid);
 
-                meshSet = App.AssetManager.GetResAs<MeshSet>(rEntry);
+                m_meshSet = App.AssetManager.GetResAs<MeshSet>(rEntry);
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20)
-                    meshSet.TangentSpaceCompressionType = (TangentSpaceCompressionType)((dynamic)RootObject).TangentSpaceCompressionType;
+                    m_meshSet.TangentSpaceCompressionType = (TangentSpaceCompressionType)((dynamic)RootObject).TangentSpaceCompressionType;
 
-                meshGuid = App.AssetManager.GetEbxEntry(meshSet.FullName).Guid;
+                m_meshGuid = App.AssetManager.GetEbxEntry(m_meshSet.FullName).Guid;
 
                 if (!MeshVariationDb.IsLoaded)
                 {
                     FrostyTaskWindow.Show("Loading Variations", "", MeshVariationDb.LoadVariations);
                 }
                 MeshVariationDb.LoadModifiedVariations();
-                variations = LoadVariations();
-                variations.Sort((MeshSetVariationDetails a, MeshSetVariationDetails b) =>
+                m_variations = LoadVariations();
+                m_variations.Sort((MeshSetVariationDetails a, MeshSetVariationDetails b) =>
                 {
                     if (a.Name.Equals("Default"))
                         return -1;
@@ -3485,8 +3489,8 @@ namespace MeshSetPlugin
 
                 UpdateMeshSettings();
 
-                pgPreviewSettings.SetClass(previewSettings);
-                screen.AddMesh(meshSet, GetVariation(selectedPreviewIndex), Matrix.Identity /*Matrix.Scaling(1,1,-1)*/, LoadPose(AssetEntry.Filename, asset));
+                m_pgPreviewSettings.SetClass(m_previewSettings);
+                m_screen.AddMesh(m_meshSet, GetVariation(m_selectedPreviewIndex), Matrix.Identity /*Matrix.Scaling(1,1,-1)*/, LoadPose(AssetEntry.Filename, asset));
 
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
                 {
@@ -3495,11 +3499,11 @@ namespace MeshSetPlugin
                     {
                         if (resEntry.Name.StartsWith(path))
                         {
-                            shaderBlockDepots.Add(App.AssetManager.GetResAs<ShaderBlockDepot>(resEntry));
+                            m_shaderBlockDepots.Add(App.AssetManager.GetResAs<ShaderBlockDepot>(resEntry));
                         }
                     }
 
-                    MeshSetVariationDetails variation = variations[0];
+                    MeshSetVariationDetails variation = m_variations[0];
                     int index = 0;
 
                     dynamic ebxData = RootObject;
@@ -3515,7 +3519,7 @@ namespace MeshSetPlugin
                     }
                 }
 
-                firstTimeLoad = false;
+                m_firstTimeLoad = false;
             }
 
             UpdateControls();
@@ -3523,10 +3527,10 @@ namespace MeshSetPlugin
 
         private void UpdateMeshSettings()
         {
-            meshSettings = new MeshSetMeshSettings();
+            m_meshSettings = new MeshSetMeshSettings();
             dynamic materials = ((dynamic)RootObject).Materials;
 
-            foreach (MeshSetLod lod in meshSet.Lods)
+            foreach (MeshSetLod lod in m_meshSet.Lods)
             {
                 PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
                 foreach (MeshSetSection section in lod.Sections)
@@ -3570,10 +3574,10 @@ namespace MeshSetPlugin
                         }
                     }
                 }
-                meshSettings.Lods.Add(lodData);
+                m_meshSettings.Lods.Add(lodData);
             }
 
-            pgMeshSettings.SetClass(meshSettings);
+            m_pgMeshSettings.SetClass(m_meshSettings);
         }
 
         private MeshRenderAnim LoadAnim(string name)
@@ -3867,20 +3871,20 @@ namespace MeshSetPlugin
 
         private void UpdateControls()
         {
-            lodComboBox.Items.Clear();
-            for (int i = 0; i < meshSet.Lods.Count; i++)
-                lodComboBox.Items.Add(i);
-            lodComboBox.SelectedIndex = 0;
+            m_lodComboBox.Items.Clear();
+            for (int i = 0; i < m_meshSet.Lods.Count; i++)
+                m_lodComboBox.Items.Add(i);
+            m_lodComboBox.SelectedIndex = 0;
 
-            variationsComboBox.ItemsSource = variations;
-            variationsComboBox.SelectedIndex = selectedVariationsIndex;
+            m_variationsComboBox.ItemsSource = m_variations;
+            m_variationsComboBox.SelectedIndex = m_selectedVariationsIndex;
         }
 
         private MeshMaterialCollection GetVariation(int index)
         {
-            if (index >= variations.Count)
+            if (index >= m_variations.Count)
                 return null;
-            return GetVariation(variations[index]);
+            return GetVariation(m_variations[index]);
         }
 
         private MeshMaterialCollection GetVariation(MeshSetVariationDetails variation)
@@ -3888,9 +3892,9 @@ namespace MeshSetPlugin
             int newSelectedIndex = -1;
             int i = 0;
 
-            foreach (object objClass in variations)
+            foreach (object objClass in m_variations)
             {
-                if (i == selectedPreviewIndex && objClass != variation)
+                if (i == m_selectedPreviewIndex && objClass != variation)
                 {
                     MeshSetVariationDetails mvd = objClass as MeshSetVariationDetails;
                     mvd.Preview = false;
@@ -3902,7 +3906,7 @@ namespace MeshSetPlugin
                 i++;
             }
 
-            selectedPreviewIndex = newSelectedIndex;
+            m_selectedPreviewIndex = newSelectedIndex;
             return new MeshMaterialCollection(asset, variation.Variation);
         }
 
@@ -3915,10 +3919,10 @@ namespace MeshSetPlugin
 
                 if (mvEntry != null)
                 {
-                    if (objectVariationMapping.Count == 0)
+                    if (ObjectVariationMapping.Count == 0)
                     {
                         foreach (EbxAssetEntry varEntry in App.AssetManager.EnumerateEbx(type: "ObjectVariation"))
-                            objectVariationMapping.Add((uint)Fnv1.HashString(varEntry.Name.ToLower()), varEntry);
+                            ObjectVariationMapping.Add((uint)Fnv1.HashString(varEntry.Name.ToLower()), varEntry);
                     }
 
                     List<MeshSetVariationDetails> detailsList = new List<MeshSetVariationDetails>();
@@ -3930,15 +3934,15 @@ namespace MeshSetPlugin
                     {
                         MeshSetVariationDetails variationDetails = new MeshSetVariationDetails {Name = "Default"};
 
-                        if (objectVariationMapping.ContainsKey(mv.AssetNameHash))
+                        if (ObjectVariationMapping.ContainsKey(mv.AssetNameHash))
                         {
-                            EbxAsset asset = App.AssetManager.GetEbx(objectVariationMapping[mv.AssetNameHash]);
+                            EbxAsset asset = App.AssetManager.GetEbx(ObjectVariationMapping[mv.AssetNameHash]);
                             AssetClassGuid guid = ((dynamic)asset.RootObject).GetInstanceGuid();
 
-                            variationDetails.Name = objectVariationMapping[mv.AssetNameHash].Filename;
+                            variationDetails.Name = ObjectVariationMapping[mv.AssetNameHash].Filename;
                             variationDetails.Variation = new PointerRef(new EbxImportReference()
                             {
-                                FileGuid = objectVariationMapping[mv.AssetNameHash].Guid,
+                                FileGuid = ObjectVariationMapping[mv.AssetNameHash].Guid,
                                 ClassGuid = guid.ExportedGuid
                             });
                         }
@@ -3992,7 +3996,7 @@ namespace MeshSetPlugin
 
         private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
-            viewport.SetPaused(true);
+            m_viewport.SetPaused(true);
 
             MeshExportSettings settings = (AssetEntry.Type == "SkinnedMeshAsset")
                 ? new SkinnedMeshExportSettings()
@@ -4025,19 +4029,19 @@ namespace MeshSetPlugin
                 FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save MeshSet", filter, "Mesh", AssetEntry.Filename);
                 if (sfd.ShowDialog())
                 {
-                    if (meshSet.Type == MeshType.MeshType_Skinned)
+                    if (m_meshSet.Type == MeshType.MeshType_Skinned)
                         skeleton = ((SkinnedMeshExportSettings)settings).SkeletonAsset;
 
                     EbxAssetEntry entry = App.AssetManager.GetEbxEntry(((dynamic)RootObject).Name);
 
-                    List<MeshSet> meshSets = new List<MeshSet> {meshSet};
+                    List<MeshSet> meshSets = new List<MeshSet> {m_meshSet};
 
                     if (settings.ExportAdditionalMeshes)
                     {
                         // collect all additional meshes added to the viewport
-                        foreach (var previewMesh in previewSettings.PreviewMeshes)
+                        foreach (var previewMesh in m_previewSettings.PreviewMeshes)
                         {
-                            meshSets.Add(screen.GetMesh(previewMesh.MeshId));
+                            meshSets.Add(m_screen.GetMesh(previewMesh.MeshId));
                         }
                     }
 
@@ -4065,12 +4069,12 @@ namespace MeshSetPlugin
                 }
             }
 
-            viewport.SetPaused(false);
+            m_viewport.SetPaused(false);
         }
 
         private void ImportButton_Click(object sender, RoutedEventArgs e)
         {
-            viewport.SetPaused(true);
+            m_viewport.SetPaused(true);
 
             FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import MeshSet", "*.fbx (FBX Files)|*.fbx", "Mesh");
             if (ofd.ShowDialog())
@@ -4078,7 +4082,7 @@ namespace MeshSetPlugin
                 FrostyMeshImportSettings settings = null;
                 bool bOk = false;
 
-                if (meshSet.Type == MeshType.MeshType_Skinned)
+                if (m_meshSet.Type == MeshType.MeshType_Skinned)
                 {
                     settings = new FrostyMeshImportSettings { SkeletonAsset = Config.Get<string>("MeshSetImportSkeleton", "", ConfigScope.Game) };
 
@@ -4109,7 +4113,7 @@ namespace MeshSetPlugin
                             {
                                 // import
                                 FBXImporter importer = new FBXImporter(logger);
-                                importer.ImportFBX(ofd.FileName, meshSet, localAsset, localEntry, settings);
+                                importer.ImportFBX(ofd.FileName, m_meshSet, localAsset, localEntry, settings);
                             }
                             catch (Exception exp)
                             {
@@ -4122,8 +4126,8 @@ namespace MeshSetPlugin
                     // @todo: Reload the main mesh shader block depot
 
                     // update UI
-                    screen.ClearMeshes(clearAll: true);
-                    screen.AddMesh(meshSet, GetVariation(selectedPreviewIndex), Matrix.Identity /*Matrix.Scaling(1,1,-1)*/, LoadPose(AssetEntry.Filename, asset));
+                    m_screen.ClearMeshes(clearAll: true);
+                    m_screen.AddMesh(m_meshSet, GetVariation(m_selectedPreviewIndex), Matrix.Identity /*Matrix.Scaling(1,1,-1)*/, LoadPose(AssetEntry.Filename, asset));
 
                     UpdateMeshSettings();
                     UpdateControls();
@@ -4132,19 +4136,19 @@ namespace MeshSetPlugin
                 }
             }
 
-            viewport.SetPaused(false);
+            m_viewport.SetPaused(false);
         }
 
         private void LodComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (lodComboBox.SelectedIndex == -1)
+            if (m_lodComboBox.SelectedIndex == -1)
                 return;
-            screen.CurrentLOD = lodComboBox.SelectedIndex;
+            m_screen.CurrentLOD = m_lodComboBox.SelectedIndex;
         }
 
         public override void Closed()
         {
-            viewport.Shutdown();
+            m_viewport.Shutdown();
         }
 
         //private ShaderBlockEntry FindShaderBlockEntry(int lodIndex)

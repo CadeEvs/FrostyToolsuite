@@ -97,15 +97,15 @@ namespace TexturePlugin
         }
         #endregion
 
-        private FrostyViewport renderer;
-        private TextBlock textureFormatText;
+        private FrostyViewport m_renderer;
+        private TextBlock m_textureFormatText;
         //private Label textureGroupText;
-        private Texture textureAsset;
-        private TextBox debugTextBox;
-        private ComboBox mipsComboBox;
-        private ComboBox sliceComboBox;
-        private Border sliceToolBarItem;
-        private bool textureIsSRGB;
+        private Texture m_textureAsset;
+        private TextBox m_debugTextBox;
+        private ComboBox m_mipsComboBox;
+        private ComboBox m_sliceComboBox;
+        private Border m_sliceToolBarItem;
+        private bool m_textureIsSrgb;
 
         static FrostyTextureEditor()
         {
@@ -121,57 +121,59 @@ namespace TexturePlugin
         {
             base.OnApplyTemplate();
 
-            renderer = GetTemplateChild(PART_Renderer) as FrostyViewport;
-            if (renderer != null)
+            m_renderer = GetTemplateChild(PART_Renderer) as FrostyViewport;
+            if (m_renderer != null)
             {
                 ulong resRid = ((dynamic)RootObject).Resource;
-                textureAsset = App.AssetManager.GetResAs<Texture>(App.AssetManager.GetResEntry(resRid));
-                textureIsSRGB = textureAsset.PixelFormat.Contains("SRGB") || ((textureAsset.Flags & TextureFlags.SrgbGamma) != 0);
+                m_textureAsset = App.AssetManager.GetResAs<Texture>(App.AssetManager.GetResEntry(resRid));
+                m_textureIsSrgb = m_textureAsset.PixelFormat.Contains("SRGB") || ((m_textureAsset.Flags & TextureFlags.SrgbGamma) != 0);
 
-                renderer.Screen = new TextureScreen(textureAsset);
+                m_renderer.Screen = new TextureScreen(m_textureAsset);
             }
 
-            textureFormatText = GetTemplateChild(PART_TextureFormat) as TextBlock;
-            debugTextBox = GetTemplateChild(PART_DebugText) as TextBox;
+            m_textureFormatText = GetTemplateChild(PART_TextureFormat) as TextBlock;
+            m_debugTextBox = GetTemplateChild(PART_DebugText) as TextBox;
 
-            mipsComboBox = GetTemplateChild(PART_MipsComboBox) as ComboBox;
-            mipsComboBox.SelectionChanged += MipsComboBox_SelectionChanged;
+            m_mipsComboBox = GetTemplateChild(PART_MipsComboBox) as ComboBox;
+            m_mipsComboBox.SelectionChanged += MipsComboBox_SelectionChanged;
 
-            sliceComboBox = GetTemplateChild(PART_SliceComboBox) as ComboBox;
-            sliceComboBox.SelectionChanged += SliceComboBox_SelectionChanged;
+            m_sliceComboBox = GetTemplateChild(PART_SliceComboBox) as ComboBox;
+            m_sliceComboBox.SelectionChanged += SliceComboBox_SelectionChanged;
 
-            sliceToolBarItem = GetTemplateChild(PART_SliceToolBarItem) as Border;
-            if (textureAsset.Depth == 1)
-                sliceToolBarItem.Visibility = Visibility.Collapsed;
+            m_sliceToolBarItem = GetTemplateChild(PART_SliceToolBarItem) as Border;
+            if (m_textureAsset.Depth == 1)
+            {
+                m_sliceToolBarItem.Visibility = Visibility.Collapsed;
+            }
 
             UpdateControls();
         }
 
         public override List<ToolbarItem> RegisterToolbarItems()
         {
-            return new List<ToolbarItem>()
-            {
-                new ToolbarItem("Export", "Export Texture", "Images/Export.png", new RelayCommand((object state) => { ExportButton_Click(this, new RoutedEventArgs()); })),
-                new ToolbarItem("Import", "Import Texture", "Images/Import.png", new RelayCommand((object state) => { ImportButton_Click(this, new RoutedEventArgs()); })),
-            };
+            List<ToolbarItem> toolbarItems = base.RegisterToolbarItems();
+            toolbarItems.Add(new ToolbarItem("Export", "Export Texture", "Images/Export.png", new RelayCommand((object state) => { ExportButton_Click(this, new RoutedEventArgs()); })));
+            toolbarItems.Add(new ToolbarItem("Import", "Import Texture", "Images/Import.png", new RelayCommand((object state) => { ImportButton_Click(this, new RoutedEventArgs()); })));
+            
+            return toolbarItems;
         }
 
         private void SliceComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            TextureScreen screen = renderer.Screen as TextureScreen;
-            screen.SliceLevel = sliceComboBox.SelectedIndex;
+            TextureScreen screen = m_renderer.Screen as TextureScreen;
+            screen.SliceLevel = m_sliceComboBox.SelectedIndex;
         }
 
         private void MipsComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            TextureScreen screen = renderer.Screen as TextureScreen;
-            screen.MipLevel = mipsComboBox.SelectedIndex;
+            TextureScreen screen = m_renderer.Screen as TextureScreen;
+            screen.MipLevel = m_mipsComboBox.SelectedIndex;
         }
 
         private void ImportButton_Click(object sender, RoutedEventArgs e)
         {
             FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import Texture", "PNG (*.png)|*.png|TGA (*.tga)|*.tga|HDR (*.hdr)|*.hdr|DDS (*.dds)|*.dds", "Texture");
-            if (textureAsset.Type != TextureType.TT_2d)
+            if (m_textureAsset.Type != TextureType.TT_2d)
             {
                 ofd.Multiselect = true;
                 ofd.Title = "Import Textures";
@@ -180,7 +182,7 @@ namespace TexturePlugin
             if (ofd.ShowDialog())
             {
                 FrostyTextureImportSettings settings = null;
-                if (textureAsset.Type == TextureType.TT_Cube)
+                if (m_textureAsset.Type == TextureType.TT_Cube)
                 {
                     if (ofd.FileNames.Length < 6)
                     {
@@ -226,7 +228,7 @@ namespace TexturePlugin
                     // sort the textures based on cube face
                     settings.Textures.Sort((a, b) => (((FrostyTextureCubeItem)a).Face < ((FrostyTextureCubeItem)b).Face) ? -1 : 1);
                 }
-                else if (textureAsset.Type == TextureType.TT_2dArray || textureAsset.Type == TextureType.TT_3d)
+                else if (m_textureAsset.Type == TextureType.TT_2dArray || m_textureAsset.Type == TextureType.TT_3d)
                 {
                     // collect textures and assign slices
                     settings = new FrostyTextureImportSettings();
@@ -291,9 +293,9 @@ namespace TexturePlugin
                         // convert other image types
                         TextureImportOptions options = new TextureImportOptions
                         {
-                            type = textureAsset.Type,
-                            format = TextureUtils.ToShaderFormat(textureAsset.PixelFormat, (textureAsset.Flags & TextureFlags.SrgbGamma) != 0),
-                            generateMipmaps = textureAsset.MipCount > 1,
+                            type = m_textureAsset.Type,
+                            format = TextureUtils.ToShaderFormat(m_textureAsset.PixelFormat, (m_textureAsset.Flags & TextureFlags.SrgbGamma) != 0),
+                            generateMipmaps = m_textureAsset.MipCount > 1,
                             mipmapsFilter = 0,
                             resizeTexture = false,
                             resizeFilter = 0,
@@ -301,7 +303,7 @@ namespace TexturePlugin
                             resizeWidth = 0
                         };
 
-                        if (textureAsset.Type == TextureType.TT_2d)
+                        if (m_textureAsset.Type == TextureType.TT_2d)
                         {
                             // one image to one DDS
                             byte[] buf = NativeReader.ReadInStream(new FileStream(ofd.FileName, FileMode.Open, FileAccess.Read));
@@ -357,28 +359,28 @@ namespace TexturePlugin
                                     type = TextureType.TT_3d;
                             }
 
-                            if (type != textureAsset.Type)
+                            if (type != m_textureAsset.Type)
                             {
-                                errorMsg = $"Imported texture must match original texture type. Original texture type is {textureAsset.Type}. Imported texture type is {type}";
+                                errorMsg = $"Imported texture must match original texture type. Original texture type is {m_textureAsset.Type}. Imported texture type is {type}";
                                 bFailed = true;
                             }
 
                             if (!bFailed)
                             {
-                                if (textureAsset.Type == TextureType.TT_2dArray)
+                                if (m_textureAsset.Type == TextureType.TT_2dArray)
                                 {
                                     // @todo: additional validation
                                 }
-                                else if (textureAsset.Type == TextureType.TT_3d)
+                                else if (m_textureAsset.Type == TextureType.TT_3d)
                                 {
                                     // @todo: additional validation
                                 }
-                                else if (textureAsset.Type == TextureType.TT_Cube)
+                                else if (m_textureAsset.Type == TextureType.TT_Cube)
                                 {
                                     // @todo: additional validation
                                 }
 
-                                if (!bFailed && textureIsSRGB)
+                                if (!bFailed && m_textureIsSrgb)
                                 {
                                     // dont allow changing of SRGB to non SRGB
                                     if (!header.HasExtendedHeader || !header.ExtendedHeader.dxgiFormat.ToString().ToLower().Contains("srgb"))
@@ -392,7 +394,7 @@ namespace TexturePlugin
                             GetPixelFormat(header, out string pixelFormat, out TextureFlags baseFlags);
 
                             // make sure texture mip maps can be generated
-                            if (TextureUtils.IsCompressedFormat(pixelFormat) && textureAsset.MipCount > 1)
+                            if (TextureUtils.IsCompressedFormat(pixelFormat) && m_textureAsset.MipCount > 1)
                             {
                                 if (header.dwWidth % 4 != 0 || header.dwHeight % 4 != 0)
                                 {
@@ -404,7 +406,7 @@ namespace TexturePlugin
                             if (!bFailed)
                             {
                                 ResAssetEntry resEntry = App.AssetManager.GetResEntry(resRid);
-                                ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(textureAsset.ChunkId);
+                                ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(m_textureAsset.ChunkId);
 
                                 // revert any modifications
                                 //App.AssetManager.RevertAsset(resEntry, dataOnly: true);
@@ -422,16 +424,16 @@ namespace TexturePlugin
                                 if ((header.dwCaps2 & TextureUtils.DDSCaps2.Volume) != 0)
                                     depth = (ushort)header.dwDepth;
 
-                                Texture newTextureAsset = new Texture(textureAsset.Type, pixelFormat, (ushort)header.dwWidth, (ushort)header.dwHeight, depth) {FirstMip = textureAsset.FirstMip};
-                                if (header.dwMipMapCount <= textureAsset.FirstMip)
+                                Texture newTextureAsset = new Texture(m_textureAsset.Type, pixelFormat, (ushort)header.dwWidth, (ushort)header.dwHeight, depth) {FirstMip = m_textureAsset.FirstMip};
+                                if (header.dwMipMapCount <= m_textureAsset.FirstMip)
                                     newTextureAsset.FirstMip = 0;
 
-                                newTextureAsset.TextureGroup = textureAsset.TextureGroup;
+                                newTextureAsset.TextureGroup = m_textureAsset.TextureGroup;
                                 newTextureAsset.CalculateMipData((byte)header.dwMipMapCount, TextureUtils.GetFormatBlockSize(pixelFormat), TextureUtils.IsCompressedFormat(pixelFormat), (uint)buffer.Length);
                                 newTextureAsset.Flags = baseFlags;
 
                                 // just copy old flags (minus gamma) to new texture
-                                TextureFlags oldFlags = textureAsset.Flags & ~(TextureFlags.SrgbGamma);
+                                TextureFlags oldFlags = m_textureAsset.Flags & ~(TextureFlags.SrgbGamma);
                                 newTextureAsset.Flags |= oldFlags;
 
                                 // rejig mips/slices
@@ -470,22 +472,22 @@ namespace TexturePlugin
                                 if (ProfilesLibrary.MustAddChunks && chunkEntry.Bundles.Count == 0 && !chunkEntry.IsAdded)
                                 {
                                     // DAI requires adding new chunks if in chunks bundle
-                                    textureAsset.ChunkId = App.AssetManager.AddChunk(buffer, null, (newTextureAsset.Flags & TextureFlags.OnDemandLoaded) != 0 ? null : newTextureAsset);
-                                    chunkEntry = App.AssetManager.GetChunkEntry(textureAsset.ChunkId);
+                                    m_textureAsset.ChunkId = App.AssetManager.AddChunk(buffer, null, (newTextureAsset.Flags & TextureFlags.OnDemandLoaded) != 0 ? null : newTextureAsset);
+                                    chunkEntry = App.AssetManager.GetChunkEntry(m_textureAsset.ChunkId);
                                 }
                                 else
                                 {
                                     // other games just modify
-                                    App.AssetManager.ModifyChunk(textureAsset.ChunkId, buffer, ((newTextureAsset.Flags & TextureFlags.OnDemandLoaded) != 0 || newTextureAsset.Type != TextureType.TT_2d) ? null : newTextureAsset);
+                                    App.AssetManager.ModifyChunk(m_textureAsset.ChunkId, buffer, ((newTextureAsset.Flags & TextureFlags.OnDemandLoaded) != 0 || newTextureAsset.Type != TextureType.TT_2d) ? null : newTextureAsset);
                                 }
 
                                 for (int i = 0; i < 4; i++)
-                                    newTextureAsset.Unknown3[i] = textureAsset.Unknown3[i];
-                                newTextureAsset.SetData(textureAsset.ChunkId, App.AssetManager);
+                                    newTextureAsset.Unknown3[i] = m_textureAsset.Unknown3[i];
+                                newTextureAsset.SetData(m_textureAsset.ChunkId, App.AssetManager);
                                 newTextureAsset.AssetNameHash = (uint)Fnv1.HashString(resEntry.Name);
 
-                                textureAsset.Dispose();
-                                textureAsset = newTextureAsset;
+                                m_textureAsset.Dispose();
+                                m_textureAsset = newTextureAsset;
 
                                 // modify resource
                                 App.AssetManager.ModifyRes(resRid, newTextureAsset);
@@ -508,8 +510,8 @@ namespace TexturePlugin
                 string message = "Texture " + ofd.FileName + " failed to import: " + errorMsg;
                 if (!bFailed)
                 {
-                    TextureScreen screen = renderer.Screen as TextureScreen;
-                    screen.TextureAsset = textureAsset;
+                    TextureScreen screen = m_renderer.Screen as TextureScreen;
+                    screen.TextureAsset = m_textureAsset;
 
                     UpdateControls();
                     InvokeOnAssetModified();
@@ -523,62 +525,62 @@ namespace TexturePlugin
 
         private void UpdateControls()
         {
-            float newWidth = textureAsset.Width;
-            float newHeight = textureAsset.Height;
+            float newWidth = m_textureAsset.Width;
+            float newHeight = m_textureAsset.Height;
 
             if (newWidth > 2048)
             {
                 newWidth = 2048;
-                newHeight = (newHeight * (newWidth / textureAsset.Width));
+                newHeight = (newHeight * (newWidth / m_textureAsset.Width));
             }
             if (newHeight > 2048)
             {
                 newHeight = 2048;
-                newWidth = (newWidth * (newHeight / textureAsset.Height));
+                newWidth = (newWidth * (newHeight / m_textureAsset.Height));
             }
 
-            renderer.Width = newWidth;
-            renderer.Height = newHeight;
+            m_renderer.Width = newWidth;
+            m_renderer.Height = newHeight;
 
-            string pf = textureAsset.PixelFormat;
-            if (pf.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma))
+            string pf = m_textureAsset.PixelFormat;
+            if (pf.StartsWith("BC") && m_textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma))
                 pf = pf.Replace("UNORM", "SRGB");
 
-            textureFormatText.Text = pf;
+            m_textureFormatText.Text = pf;
             //textureGroupText.Content = textureAsset.TextureGroup;
             //debugTextBox.Text = textureAsset.ToDebugString();
 
-            ushort width = textureAsset.Width;
-            ushort height = textureAsset.Height;
+            ushort width = m_textureAsset.Width;
+            ushort height = m_textureAsset.Height;
 
-            mipsComboBox.Items.Clear();
-            for (int i = 0; i < textureAsset.MipCount; i++)
+            m_mipsComboBox.Items.Clear();
+            for (int i = 0; i < m_textureAsset.MipCount; i++)
             {
-                mipsComboBox.Items.Add(string.Format("{0}x{1}", width, height));
+                m_mipsComboBox.Items.Add(string.Format("{0}x{1}", width, height));
 
                 width >>= 1;
                 height >>= 1;
             }
-            mipsComboBox.SelectedIndex = 0;
+            m_mipsComboBox.SelectedIndex = 0;
 
-            if (textureAsset.Depth > 1)
+            if (m_textureAsset.Depth > 1)
             {
-                sliceComboBox.ItemsSource = null;
-                if (textureAsset.Type == TextureType.TT_Cube)
+                m_sliceComboBox.ItemsSource = null;
+                if (m_textureAsset.Type == TextureType.TT_Cube)
                 {
                     // give cube maps actual names for the slices
                     string[] cubeItems = new string[] { "X+", "X-", "Y+", "Y-", "Z+", "Z-" };
-                    sliceComboBox.ItemsSource = cubeItems;
+                    m_sliceComboBox.ItemsSource = cubeItems;
                 }
                 else
                 {
                     // other textures just have numbered slices
-                    string[] sliceItems = new string[textureAsset.Depth];
-                    for (int i = 0; i < textureAsset.Depth; i++)
+                    string[] sliceItems = new string[m_textureAsset.Depth];
+                    for (int i = 0; i < m_textureAsset.Depth; i++)
                         sliceItems[i] = i.ToString();
-                    sliceComboBox.ItemsSource = sliceItems;
+                    m_sliceComboBox.ItemsSource = sliceItems;
                 }
-                sliceComboBox.SelectedIndex = 0;
+                m_sliceComboBox.SelectedIndex = 0;
             }
         }
 
@@ -600,7 +602,7 @@ namespace TexturePlugin
                     FileInfo fi = new FileInfo(sfd.FileName);
                     sfd.InitialDirectory = fi.DirectoryName;
 
-                    if (textureAsset.Type == TextureType.TT_2d || format == ImageFormat.DDS)
+                    if (m_textureAsset.Type == TextureType.TT_2d || format == ImageFormat.DDS)
                     {
                         if (fi.Exists)
                         {
@@ -609,10 +611,10 @@ namespace TexturePlugin
                         }
                         else break;
                     }
-                    else if (textureAsset.Type == TextureType.TT_2dArray || textureAsset.Type == TextureType.TT_Cube || textureAsset.Type == TextureType.TT_3d)
+                    else if (m_textureAsset.Type == TextureType.TT_2dArray || m_textureAsset.Type == TextureType.TT_Cube || m_textureAsset.Type == TextureType.TT_3d)
                     {
                         string[] filenames = null;
-                        if (textureAsset.Type == TextureType.TT_Cube)
+                        if (m_textureAsset.Type == TextureType.TT_Cube)
                         {
                             filenames = new string[6] { "px", "nx", "py", "ny", "pz", "nz" };
                             for (int i = 0; i < 6; i++)
@@ -620,8 +622,8 @@ namespace TexturePlugin
                         }
                         else
                         {
-                            filenames = new string[textureAsset.SliceCount];
-                            for (int i = 0; i < textureAsset.SliceCount; i++)
+                            filenames = new string[m_textureAsset.SliceCount];
+                            for (int i = 0; i < m_textureAsset.SliceCount; i++)
                                 filenames[i] = string.Format("{0}_{1}{2}", fi.FullName.Replace(fi.Extension, ""), i.ToString("D3"), fi.Extension);
                         }
 
@@ -651,7 +653,7 @@ namespace TexturePlugin
                 string[] filters = new string[] { "*.png", "*.tga", "*.hdr", "*.dds" };
 
                 TextureExporter exporter = new TextureExporter();
-                exporter.Export(textureAsset, sfd.FileName, filters[sfd.FilterIndex - 1]);
+                exporter.Export(m_textureAsset, sfd.FileName, filters[sfd.FilterIndex - 1]);
             });
             logger.Log("Texture successfully exported to " + sfd.FileName);
         }
@@ -667,10 +669,10 @@ namespace TexturePlugin
                 if (header.ddspf.dwFourCC == 0x31545844)
                 {
                     pixelFormat = "BC1_UNORM";
-                    if (textureAsset.PixelFormat.Contains("Normal"))
-                        pixelFormat = textureAsset.PixelFormat;
-                    else if (textureAsset.PixelFormat.StartsWith("BC1A"))
-                        pixelFormat = textureAsset.PixelFormat;
+                    if (m_textureAsset.PixelFormat.Contains("Normal"))
+                        pixelFormat = m_textureAsset.PixelFormat;
+                    else if (m_textureAsset.PixelFormat.StartsWith("BC1A"))
+                        pixelFormat = m_textureAsset.PixelFormat;
                 }
 
                 // ATI2 or BC5U
@@ -701,8 +703,8 @@ namespace TexturePlugin
                         case SharpDX.DXGI.Format.R8G8B8A8_UNorm: pixelFormat = "ARGB8888"; break;
                         case SharpDX.DXGI.Format.BC1_UNorm:
                             pixelFormat = "BC1_UNORM";
-                            if (textureAsset.PixelFormat.Contains("Normal") || textureAsset.PixelFormat.StartsWith("BC1A"))
-                                pixelFormat = textureAsset.PixelFormat;
+                            if (m_textureAsset.PixelFormat.Contains("Normal") || m_textureAsset.PixelFormat.StartsWith("BC1A"))
+                                pixelFormat = m_textureAsset.PixelFormat;
                             break;
                         case SharpDX.DXGI.Format.BC2_UNorm: pixelFormat = "BC2_UNORM"; break;
                         case SharpDX.DXGI.Format.BC3_UNorm: pixelFormat = "BC3_UNORM"; break;
@@ -711,7 +713,7 @@ namespace TexturePlugin
                         case SharpDX.DXGI.Format.BC1_UNorm_SRgb: pixelFormat = "BC1_UNORM"; flags = TextureFlags.SrgbGamma; break;
                         case SharpDX.DXGI.Format.BC2_UNorm_SRgb: pixelFormat = "BC2_UNORM"; flags = TextureFlags.SrgbGamma; break;
                         case SharpDX.DXGI.Format.BC3_UNorm_SRgb:
-                            pixelFormat = (textureAsset.PixelFormat == "BC3A_UNORM") ? textureAsset.PixelFormat : "BC3_UNORM";
+                            pixelFormat = (m_textureAsset.PixelFormat == "BC3A_UNORM") ? m_textureAsset.PixelFormat : "BC3_UNORM";
                             flags = TextureFlags.SrgbGamma;
                             break;
                         case SharpDX.DXGI.Format.BC7_UNorm_SRgb: pixelFormat = "BC7_UNORM"; flags = TextureFlags.SrgbGamma; break;
@@ -731,7 +733,7 @@ namespace TexturePlugin
                 else if (header.ddspf.dwFourCC == 0x31545844)
                 {
                     pixelFormat = "BC1_UNORM";
-                    if (textureAsset.PixelFormat == "BC1A_UNORM")
+                    if (m_textureAsset.PixelFormat == "BC1A_UNORM")
                         pixelFormat = "BC1A_UNORM";
                 }
 
@@ -753,7 +755,7 @@ namespace TexturePlugin
                     if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.BC1_UNorm)
                     {
                         pixelFormat = "BC1_UNORM";
-                        if (textureAsset.PixelFormat == "BC1A_UNORM")
+                        if (m_textureAsset.PixelFormat == "BC1A_UNORM")
                             pixelFormat = "BC1A_UNORM";
                     }
                     else if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.BC3_UNorm)
@@ -762,7 +764,7 @@ namespace TexturePlugin
                         pixelFormat = "BC4_UNORM";
                     else if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.BC5_UNorm)
                         pixelFormat = "BC5_UNORM";
-                    else if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.BC1_UNorm_SRgb && textureAsset.PixelFormat == "BC1A_SRGB")
+                    else if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.BC1_UNorm_SRgb && m_textureAsset.PixelFormat == "BC1A_SRGB")
                         pixelFormat = "BC1A_SRGB";
                     else if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.BC1_UNorm_SRgb)
                         pixelFormat = "BC1_SRGB";
@@ -791,7 +793,7 @@ namespace TexturePlugin
                     else if (header.ExtendedHeader.dxgiFormat == SharpDX.DXGI.Format.R16_UNorm)
                     {
                         pixelFormat = "R16_UNORM";
-                        if (textureAsset.PixelFormat == "D16_UNORM")
+                        if (m_textureAsset.PixelFormat == "D16_UNORM")
                             pixelFormat = "D16_UNORM";
                     }
                 }
@@ -802,19 +804,19 @@ namespace TexturePlugin
         {
             TextureUtils.DDSHeader header = new TextureUtils.DDSHeader
             {
-                dwHeight = textureAsset.Height,
-                dwWidth = textureAsset.Width,
-                dwPitchOrLinearSize = (int)textureAsset.MipSizes[0],
-                dwMipMapCount = textureAsset.MipCount
+                dwHeight = m_textureAsset.Height,
+                dwWidth = m_textureAsset.Width,
+                dwPitchOrLinearSize = (int)m_textureAsset.MipSizes[0],
+                dwMipMapCount = m_textureAsset.MipCount
             };
 
-            if (textureAsset.MipCount > 1)
+            if (m_textureAsset.MipCount > 1)
             {
                 header.dwFlags |= TextureUtils.DDSFlags.MipMapCount;
                 header.dwCaps |= TextureUtils.DDSCaps.MipMap | TextureUtils.DDSCaps.Complex;
             }
 
-            switch (textureAsset.Type)
+            switch (m_textureAsset.Type)
             {
                 case TextureType.TT_2d:
                     header.ExtendedHeader.resourceDimension = D3D11.ResourceDimension.Texture2D;
@@ -822,7 +824,7 @@ namespace TexturePlugin
                     break;
                 case TextureType.TT_2dArray:
                     header.ExtendedHeader.resourceDimension = D3D11.ResourceDimension.Texture2D;
-                    header.ExtendedHeader.arraySize = textureAsset.Depth;
+                    header.ExtendedHeader.arraySize = m_textureAsset.Depth;
                     break;
                 case TextureType.TT_Cube:
                     header.dwCaps2 = TextureUtils.DDSCaps2.CubeMap | TextureUtils.DDSCaps2.CubeMapAllFaces;
@@ -833,15 +835,15 @@ namespace TexturePlugin
                 case TextureType.TT_3d:
                     header.dwFlags |= TextureUtils.DDSFlags.Depth;
                     header.dwCaps2 |= TextureUtils.DDSCaps2.Volume;
-                    header.dwDepth = textureAsset.Depth;
+                    header.dwDepth = m_textureAsset.Depth;
                     header.ExtendedHeader.resourceDimension = D3D11.ResourceDimension.Texture3D;
                     header.ExtendedHeader.arraySize = 1;
                     break;
             }
 
             // handle DAI old legacy SRGB flag
-            string pixelFormat = textureAsset.PixelFormat;
-            if (pixelFormat.StartsWith("BC") && textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma))
+            string pixelFormat = m_textureAsset.PixelFormat;
+            if (pixelFormat.StartsWith("BC") && m_textureAsset.Flags.HasFlag(TextureFlags.SrgbGamma))
                 pixelFormat = pixelFormat.Replace("UNORM", "SRGB");
 
             switch (pixelFormat)
@@ -889,7 +891,7 @@ namespace TexturePlugin
                 header.ddspf.dwFourCC = 0x30315844;
             }
 
-            MemoryStream srcStream = textureAsset.Data as MemoryStream;
+            MemoryStream srcStream = m_textureAsset.Data as MemoryStream;
             srcStream.Position = 0;
 
             byte[] buf = null;
@@ -897,24 +899,24 @@ namespace TexturePlugin
             {
                 header.Write(writer);
 
-                if (textureAsset.Type == TextureType.TT_Cube || textureAsset.Type == TextureType.TT_2dArray)
+                if (m_textureAsset.Type == TextureType.TT_Cube || m_textureAsset.Type == TextureType.TT_2dArray)
                 {
                     int sliceCount = 6;
-                    if (textureAsset.Type == TextureType.TT_2dArray)
-                        sliceCount = textureAsset.Depth;
+                    if (m_textureAsset.Type == TextureType.TT_2dArray)
+                        sliceCount = m_textureAsset.Depth;
 
                     // Need to rejig order of faces and mips
-                    uint[] mipOffsets = new uint[textureAsset.MipCount];
-                    for (int i = 0; i < textureAsset.MipCount - 1; i++)
-                        mipOffsets[i + 1] = mipOffsets[i] + (uint)(textureAsset.MipSizes[i] * sliceCount);
+                    uint[] mipOffsets = new uint[m_textureAsset.MipCount];
+                    for (int i = 0; i < m_textureAsset.MipCount - 1; i++)
+                        mipOffsets[i + 1] = mipOffsets[i] + (uint)(m_textureAsset.MipSizes[i] * sliceCount);
 
-                    byte[] tmpBuf = new byte[textureAsset.MipSizes[0]];
+                    byte[] tmpBuf = new byte[m_textureAsset.MipSizes[0]];
 
                     for (int slice = 0; slice < sliceCount; slice++)
                     {
-                        for (int mip = 0; mip < textureAsset.MipCount; mip++)
+                        for (int mip = 0; mip < m_textureAsset.MipCount; mip++)
                         {
-                            int mipSize = (int)textureAsset.MipSizes[mip];
+                            int mipSize = (int)m_textureAsset.MipSizes[mip];
 
                             srcStream.Position = mipOffsets[mip] + (mipSize * slice);
                             srcStream.Read(tmpBuf, 0, mipSize);
