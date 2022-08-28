@@ -219,7 +219,7 @@ namespace LevelEditorPlugin.Editors
             FrostyDataExplorer dataExplorer = d as FrostyDataExplorer;
             if (dataExplorer != null)
             {
-                ListView listView = ReflectionUtils.GetPrivateField(typeof(FrostyDataExplorer), App.EditorWindow.DataExplorer, "assetListView") as ListView;
+                ListView listView = ReflectionUtils.GetPrivateField(typeof(FrostyDataExplorer), App.EditorWindow.DataExplorer, "m_assetListView") as ListView;
                 listView.MouseMove += (o, args) =>
                 {
                     if (args.LeftButton == MouseButtonState.Pressed && listView.SelectedItem != null)
