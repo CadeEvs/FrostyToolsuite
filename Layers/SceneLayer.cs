@@ -132,7 +132,9 @@ namespace LevelEditorPlugin.Layers
             }
 
             foreach (SceneLayer layer in ChildLayers)
+            {
                 layer.CollectEntities(entities);
+            }
         }
 
         // temp function
@@ -144,7 +146,9 @@ namespace LevelEditorPlugin.Layers
             foreach (SceneLayer layer in ChildLayers)
             {
                 if (layer.Entity is Entities.LayerReferenceObject)
+                {
                     layer.CollectLogicEntities(entities);
+                }
             }
         }
 
@@ -178,7 +182,9 @@ namespace LevelEditorPlugin.Layers
         {
             layers.AddRange(ChildLayers);
             foreach (SceneLayer layer in ChildLayers)
+            {
                 layer.CollectLayers(layers);
+            }
         }
 
         private void AddComponents(Entities.IComponentEntity componentEntity)
