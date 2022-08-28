@@ -498,7 +498,7 @@ namespace LevelEditorPlugin.Editors
 
         protected virtual bool IsTypeValid(Type incomingType)
         {
-            return incomingType.GetCustomAttribute<EntityBindingAttribute>() != null && incomingType.IsSubclassOf(typeof(LogicEntity));
+            return incomingType.GetCustomAttribute<EntityBindingAttribute>() != null && incomingType.IsSubclassOf(typeof(Entity));
         }
 
         private void SelectedTypeChanged(object newType)
