@@ -44,7 +44,10 @@ namespace LevelEditorPlugin.Editors
 
         public override List<ToolbarItem> RegisterToolbarItems()
         {
-            return viewModel.RegisterToolbarItems();
+            List<ToolbarItem> toolbarItems = base.RegisterToolbarItems();
+            toolbarItems.AddRange(viewModel.RegisterToolbarItems());
+            
+            return toolbarItems;
         }
 
         public override void OnApplyTemplate()
