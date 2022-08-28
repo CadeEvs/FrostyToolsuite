@@ -13,5 +13,6 @@ namespace Frosty.Core.Interfaces
 
         void OpenAsset(AssetEntry asset, bool createDefaultEditor = true);
         void OpenEditor(string title, FrostyBaseEditor editor);
+        AssetEntry GetOpenedAssetEntry();
     }
 }

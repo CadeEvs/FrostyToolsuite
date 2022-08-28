@@ -182,7 +182,7 @@
     <Compile Include="Mod\RuntimeEbxResource.cs" />
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
-    <Compile Include="Utils\UpdateChecker.cs" />
+    <Compile Include="Utils\UpdateCheckerUtils.cs" />
     <Compile Include="Windows\FrostyProfileSelectWindow.xaml.cs">
       <DependentUpon>FrostyProfileSelectWindow.xaml</DependentUpon>
     </Compile>

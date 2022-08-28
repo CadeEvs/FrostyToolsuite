@@ -21,7 +21,7 @@ namespace Frosty.Core
         public Version Version;
     }
 
-    public static class UpdateChecker
+    public static class UpdateCheckerUtils
     {
         private static Release GetLatestRelease(string url, bool isArray = true)
         {
