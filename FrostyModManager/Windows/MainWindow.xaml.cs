@@ -1382,10 +1382,33 @@ namespace FrostyModManager
             appliedModsTabItem.IsSelected = true;
         }
 
+        public List<Control> AllChildren(DependencyObject parent)
+        {
+            List<Control> children = new List<Control>();
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+                if (child is Control)
+                    children.Add(child as Control);
+                children.AddRange(AllChildren(child));
+            }
+            return children;
+        }
+
         private void addModButton_Click(object sender, RoutedEventArgs e)
         {
             foreach (IFrostyMod mod in availableModsList.SelectedItems)
                 selectedPack.AddMod(mod);
+
+            foreach (IFrostyMod item in availableModsList.Items)
+            {
+                DependencyObject container = availableModsList.ItemContainerGenerator.ContainerFromItem(item);
+                ListView collectionModsList = AllChildren(container).OfType<ListView>().ToList().FirstOrDefault(x => x.Name.Equals("collectionModsList"));
+
+                if (collectionModsList != null)
+                    foreach (IFrostyMod mod in collectionModsList.SelectedItems)
+                        selectedPack.AddMod(mod);
+            }
 
             appliedModsList.Items.Refresh();
 
