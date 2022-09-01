@@ -635,37 +635,19 @@ namespace LevelEditorPlugin.Controls
             PathGeometry geometry;
             if (IsCollapsed)
             {
-                geometry = new PathGeometry(new[]
+                geometry = new PathGeometry()
                 {
-                    new PathFigure(new Point(nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 4) * state.Scale), new []
-                    {
-                        new PolyLineSegment(new []
-                        {
-                            // top right point
-                            new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y - 1) * state.Scale),
-                            // bottom right point
-                            new Point(nodePosition.X + (p.X + 6) * state.Scale, nodePosition.Y + (p.Y + 9) * state.Scale)
-                        }, true)
-
-                    }, true)
-                });
+                    Figures = state.NodeCollapseButtonCollapsedGeometry,
+                    Transform = new MatrixTransform(state.Scale, 0, 0, state.Scale, nodePosition.X + (p.X * state.Scale), nodePosition.Y + (p.Y + 4) * state.Scale)
+                };
             }
             else
             {
-                geometry = new PathGeometry(new[]
+                geometry = new PathGeometry()
                 {
-                    new PathFigure(new Point(nodePosition.X + (p.X - 2) * state.Scale, nodePosition.Y + (p.Y + 1) * state.Scale), new []
-                    {
-                        new PolyLineSegment(new []
-                        {
-                            // right point
-                            new Point(nodePosition.X + (p.X + 8) * state.Scale, nodePosition.Y + (p.Y + 1) * state.Scale),
-                            // bottom middle point
-                            new Point(nodePosition.X + (p.X + 3) * state.Scale, nodePosition.Y + (p.Y + 7) * state.Scale)
-                        }, true)
-
-                    }, true)
-                });
+                    Figures = state.NodeCollapseButtonGeometry,
+                    Transform = new MatrixTransform(state.Scale, 0, 0, state.Scale, nodePosition.X + (p.X - 2) * state.Scale, nodePosition.Y + (p.Y + 1) * state.Scale)
+                };
             }
             state.DrawingContext.DrawGeometry(IsCollapseButtonHovered ? Brushes.White : state.SchematicRealmDisabled, null, geometry);
 
@@ -676,47 +658,21 @@ namespace LevelEditorPlugin.Controls
                 Brush serverRealmBrush = Realm == 1 || Realm == 2 ? state.SchematicRealmEnabled : state.SchematicRealmDisabled;
 
                 // client
-                Point clientPoint = new Point(nodeSize.Width - 30 + 1, 6);
-                state.DrawingContext.DrawGeometry(clientRealmBrush, null, new PathGeometry(new[]
+                Point clientPoint = new Point(nodeSize.Width - 30 + 1, 5);
+                PathGeometry clientGeo = new PathGeometry()
                 {
-                    new PathFigure(new Point(nodePosition.X + (clientPoint.X + 0) * state.Scale, nodePosition.Y + (clientPoint.Y + 0) * state.Scale), new []
-                    {
-                        new PolyLineSegment(new []
-                        {
-                            new Point(nodePosition.X + (clientPoint.X + 4) * state.Scale, nodePosition.Y + (clientPoint.Y + 0) * state.Scale),
-                            new Point(nodePosition.X + (clientPoint.X + 3.75) * state.Scale, nodePosition.Y + (clientPoint.Y + 1) * state.Scale),
-                            new Point(nodePosition.X + (clientPoint.X + 1) * state.Scale, nodePosition.Y + (clientPoint.Y + 1) * state.Scale),
-                            new Point(nodePosition.X + (clientPoint.X + 1) * state.Scale, nodePosition.Y + (clientPoint.Y + 7) * state.Scale),
-                            new Point(nodePosition.X + (clientPoint.X + 3.75) * state.Scale, nodePosition.Y + (clientPoint.Y + 7) * state.Scale),
-                            new Point(nodePosition.X + (clientPoint.X + 4) * state.Scale, nodePosition.Y + (clientPoint.Y + 8) * state.Scale),
-                            new Point(nodePosition.X + (clientPoint.X + 0) * state.Scale, nodePosition.Y + (clientPoint.Y + 8) * state.Scale)
-                        }, true)
-
-                    }, true)
-                }));
+                    Figures = state.NodeClientRealmGeometry,
+                    Transform = new MatrixTransform(state.Scale, 0, 0, state.Scale, nodePosition.X + clientPoint.X * state.Scale, nodePosition.Y + clientPoint.Y * state.Scale)
+                };
+                state.DrawingContext.DrawGeometry(clientRealmBrush, null, clientGeo);
                 // server
-                Point serverPoint = new Point(nodeSize.Width - 30 + 2, 6);
-                state.DrawingContext.DrawGeometry(serverRealmBrush, null, new PathGeometry(new[]
+                Point serverPoint = new Point(nodeSize.Width - 30 + 1, 5);
+                PathGeometry serverGeo = new PathGeometry()
                 {
-                    new PathFigure(new Point(nodePosition.X + (serverPoint.X + 4) * state.Scale, nodePosition.Y + (serverPoint.Y + 0) * state.Scale), new []
-                    {
-                        new PolyLineSegment(new []
-                        {
-                            new Point(nodePosition.X + (serverPoint.X + 8) * state.Scale, nodePosition.Y + (serverPoint.Y + 0) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 7.75) * state.Scale, nodePosition.Y + (serverPoint.Y + 1) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 5) * state.Scale, nodePosition.Y + (serverPoint.Y + 1) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 5) * state.Scale, nodePosition.Y + (serverPoint.Y + 3.5) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 8) * state.Scale, nodePosition.Y + (serverPoint.Y + 3.5) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 8) * state.Scale, nodePosition.Y + (serverPoint.Y + 8) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 4) * state.Scale, nodePosition.Y + (serverPoint.Y + 8) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 4.5) * state.Scale, nodePosition.Y + (serverPoint.Y + 7) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 7) * state.Scale, nodePosition.Y + (serverPoint.Y + 7) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 7) * state.Scale, nodePosition.Y + (serverPoint.Y + 4.5) * state.Scale),
-                            new Point(nodePosition.X + (serverPoint.X + 4) * state.Scale, nodePosition.Y + (serverPoint.Y + 4.5) * state.Scale)
-                        }, true)
-
-                    }, true)
-                }));
+                    Figures = state.NodeServerRealmGeometry,
+                    Transform = new MatrixTransform(state.Scale, 0, 0, state.Scale, nodePosition.X + serverPoint.X * state.Scale, nodePosition.Y + serverPoint.Y * state.Scale),
+                };
+                state.DrawingContext.DrawGeometry(serverRealmBrush, null, serverGeo);
             }
 
             if (state.InvScale < 2.5)
