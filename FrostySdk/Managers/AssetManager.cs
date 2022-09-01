@@ -1680,11 +1680,11 @@ namespace FrostySdk.Managers
             if (sb.GetValue<DbObject>("chunks") == null)
                 return;
 
-            //int idx = 0;
+            int idx = 0;
             foreach (DbObject chunk in sb.GetValue<DbObject>("chunks"))
             {
-                //DbObject chunkMeta = sb.GetValue<DbObject>("chunkMeta")[idx++] as DbObject;
-                ChunkAssetEntry entry = AddChunk(chunk/*, chunkMeta*/);
+                DbObject chunkMeta = sb.GetValue<DbObject>("chunkMeta")[idx++] as DbObject;
+                ChunkAssetEntry entry = AddChunk(chunk, chunkMeta);
 
                 if (chunk.GetValue<bool>("cache") && entry.Location != AssetDataLocation.Cache)
                     helper.RemoveChunkData(entry.Id.ToString());
@@ -1698,8 +1698,8 @@ namespace FrostySdk.Managers
                     entry.RangeEnd = chunk.GetValue<uint>("rangeEnd");
                     entry.BundledSize = chunk.GetValue<uint>("bundledSize");
                     entry.IsInline = chunk.HasValue("idata");
-                    //entry.H32 = chunkMeta.GetValue<int>("h32");
-                    //entry.FirstMip = chunkMeta.GetValue<DbObject>("meta").GetValue<int>("firstMip");
+                    entry.H32 = chunkMeta.GetValue<int>("h32");
+                    entry.FirstMip = chunkMeta.GetValue<DbObject>("meta").GetValue<int>("firstMip");
                 }
 
                 // Add to bundle
@@ -1909,7 +1909,7 @@ namespace FrostySdk.Managers
             return entry;
         }
 
-        private ChunkAssetEntry AddChunk(DbObject chunk/*, DbObject chunkMeta*/)
+        private ChunkAssetEntry AddChunk(DbObject chunk, DbObject chunkMeta)
         {
             Guid chunkId = chunk.GetValue<Guid>("id");
 
@@ -1931,8 +1931,8 @@ namespace FrostySdk.Managers
             };
 
             //entry.OriginalSize = chunk.GetValue<long>("originalSize");
-            //entry.H32 = chunkMeta.GetValue<int>("h32");
-            //entry.FirstMip = chunkMeta.GetValue<DbObject>("meta").GetValue<int>("firstMip");
+            entry.H32 = chunkMeta.GetValue<int>("h32");
+            entry.FirstMip = chunkMeta.GetValue<DbObject>("meta").GetValue<int>("firstMip");
 
             if (chunk.HasValue("cas"))
             {
@@ -2178,8 +2178,8 @@ namespace FrostySdk.Managers
                     entry.H32 = reader.ReadInt();
                     entry.FirstMip = reader.ReadInt();
 
-                    entry.H32 = 0;
-                    entry.FirstMip = -1;
+                    //entry.H32 = 0;
+                    //entry.FirstMip = -1;
 
                     bool hasExtraData = reader.ReadBoolean();
                     if (hasExtraData)
