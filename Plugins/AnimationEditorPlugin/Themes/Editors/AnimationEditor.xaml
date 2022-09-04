@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+                    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                    xmlns:editors="clr-namespace:AnimationEditorPlugin.Editors"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/AnimationEditorPlugin;component/Themes/Editors/ViewModels/AssetBankViewModel.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <Style TargetType="{x:Type editors:AnimationEditor}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type editors:AnimationEditor}">
+                    <ContentPresenter Content="{Binding Path=ViewModel, RelativeSource={RelativeSource TemplatedParent}}"/>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>

@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                    xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+                    xmlns:editors="clr-namespace:AnimationEditorPlugin.Editors.ViewModels"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+    </ResourceDictionary.MergedDictionaries>
+
+    <DataTemplate DataType="{x:Type editors:AssetBankViewModel}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <ctrl:FrostyDockablePanel Grid.Column="0" TitleBarVisible="False">
+                <core:FrostyPropertyGrid Object="{Binding Path=Data}"/>
+            </ctrl:FrostyDockablePanel>
+
+            <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
+
+            <ctrl:FrostyDockablePanel Grid.Column="1" TitleBarVisible="False">
+                <core:FrostyDataExplorer ItemsSource="{Binding Entries}" OnDoubleClickedCommand="{Binding OnDoubleClickedCommand}"/>
+            </ctrl:FrostyDockablePanel>
+        </Grid>
+    </DataTemplate>
+    
+</ResourceDictionary>

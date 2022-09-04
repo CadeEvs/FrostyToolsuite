@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
+using AnimationEditorPlugin.Extensions;
+using AnimationEditorPlugin.Managers;
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from
@@ -24,3 +26,6 @@ using System.Windows;
 [assembly: PluginDisplayName("Animation Editor")]
 [assembly: PluginAuthor("Cade")]
 [assembly: PluginVersion("1.0.0.0")]
+
+[assembly: RegisterMenuExtension(typeof(AnimationEditorMenuExtension))]
+[assembly: RegisterCustomAssetManager("assetbank", typeof(AssetBankFileManager))]

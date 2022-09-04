@@ -9,6 +9,9 @@
 
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+        <ResourceDictionary Source="/AnimationEditorPlugin;component/Themes/Editors/ViewModels/AssetBankViewModel.xaml"/>
+        <ResourceDictionary Source="/AnimationEditorPlugin;component/Themes/Editors/AnimationEditor.xaml"/>
     </ResourceDictionary.MergedDictionaries>
 
 </ResourceDictionary>
