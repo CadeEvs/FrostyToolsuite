@@ -18,6 +18,12 @@ namespace LevelEditorPlugin.Entities
         {
         }
 
+        public override void AddEntity(Entity inEntity)
+        {
+            inEntity.SetParent(this);
+            Blueprint.Data.Objects.Add(new FrostySdk.Ebx.PointerRef(inEntity.GetRawData()));
+        }
+        
         public Layers.SceneLayer GetLayer()
         {
             if (blueprint == null)
