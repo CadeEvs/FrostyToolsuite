@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SharpDX;
 using System.ComponentModel;
 using System.Windows.Data;
+using Frosty.Core;
 using FrostySdk.Ebx;
 using LevelEditorPlugin.Editors;
 
@@ -327,8 +328,15 @@ namespace LevelEditorPlugin.Entities
 
         public virtual void Destroy()
         {
-            world.RemoveEntity(this);
-            world = null;
+            if (world != null)
+            {
+                world.RemoveEntity(this);
+                world = null;
+            }
+            else
+            {
+                App.Logger.LogWarning($"{DisplayName} failed to destroy! World was null");
+            }
         }
 
         // This function will return the appropriate data object to be displayed in the property grid

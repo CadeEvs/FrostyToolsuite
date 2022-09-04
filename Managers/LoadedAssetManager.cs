@@ -243,6 +243,15 @@ namespace LevelEditorPlugin.Managers
         
         private Asset CreateAsset(FrostySdk.Ebx.Asset assetData, Guid fileGuid)
         {
+            if (assetData == null)
+            {
+                return null;
+            }
+            else
+            {
+                App.Logger.LogWarning($"Failed to create asset! AssetData was null");
+            }
+            
             if (m_assetTypes.Count == 0)
             {
                 foreach (Type type in Assembly.GetExecutingAssembly().GetTypes().Where(t => t.GetCustomAttribute<AssetBindingAttribute>() != null))
@@ -293,7 +302,7 @@ namespace LevelEditorPlugin.Managers
             }
 
             info.ModificationState.Push(new ModificationState() { IsModified = entry.IsDirectlyModified, IsDirtied = entry.IsDirty });
-            App.EditorWindow.DataExplorer.RefreshItems();
+            //App.EditorWindow.DataExplorer.RefreshItems();
         }
 
         private void PopState(EbxAssetEntry entry, LoadedAssetInfo info, EbxAsset asset)
