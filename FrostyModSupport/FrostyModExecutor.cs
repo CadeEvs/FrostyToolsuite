@@ -38,20 +38,32 @@ namespace Frosty.ModSupport
                 public void AddEbx(string name)
                 {
                     lock (Ebx)
+                    {
                         if (!Ebx.Contains(name))
+                        {
                             Ebx.Add(name);
+                        }       
+                    }
                 }
                 public void AddRes(string name)
                 {
                     lock (Res)
+                    {
                         if (!Res.Contains(name))
+                        {
                             Res.Add(name);
+                        }
+                    }
                 }
                 public void AddChunk(Guid guid)
                 {
                     lock (Chunks)
+                    {
                         if (!Chunks.Contains(guid))
+                        {
                             Chunks.Add(guid);
+                        }
+                    }
                 }
             }
             public int Name;
