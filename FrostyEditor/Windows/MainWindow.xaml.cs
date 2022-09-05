@@ -699,7 +699,7 @@ namespace FrostyEditor.Windows
             return null;
         }
 
-        public void OpenAsset(AssetEntry asset, bool createDefaultEditor = true)
+        public void OpenAsset(AssetEntry asset, bool shouldCreateDefaultEditor = true)
         {
             if (asset == null)
             {
@@ -731,8 +731,10 @@ namespace FrostyEditor.Windows
             
             if (editor == null)
             {
-                if (!createDefaultEditor)
+                if (!shouldCreateDefaultEditor)
+                {
                     return;
+                }
 
                 editor = new FrostyBaseAssetEditor(App.Logger);
             }
