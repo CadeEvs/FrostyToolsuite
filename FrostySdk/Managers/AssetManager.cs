@@ -1050,7 +1050,7 @@ namespace FrostySdk.Managers
         public Guid AddChunk(byte[] buffer, Guid? overrideGuid = null, Texture texture = null, params int[] bundles)
         {
             ChunkAssetEntry entry = new ChunkAssetEntry {IsAdded = true, IsDirty = true};
-            CompressionType compressType = (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18) ? CompressionType.Oodle : CompressionType.Default;
+            CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18)) ? CompressionType.Oodle : CompressionType.Default;
 
             entry.ModifiedEntry = new ModifiedAssetEntry
             {
@@ -1096,18 +1096,26 @@ namespace FrostySdk.Managers
         public bool ModifyChunk(Guid chunkId, byte[] buffer, Texture texture = null)
         {
             if (!chunkList.ContainsKey(chunkId))
+            {
                 return false;
+            }
 
             ChunkAssetEntry entry = chunkList[chunkId];
-            CompressionType compressType = (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20) ? CompressionType.Oodle : CompressionType.Default;
+            CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20)) ? CompressionType.Oodle : CompressionType.Default;
             if ((ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19) && texture != null)
+            {
                 compressType = CompressionType.Oodle;
-
+            }
 
             if (entry.ModifiedEntry == null)
+            {
                 entry.ModifiedEntry = new ModifiedAssetEntry();
+            }
 
-            entry.ModifiedEntry.Data = (texture != null) ? Utils.CompressTexture(buffer, texture: texture, compressionOverride: compressType) : Utils.CompressFile(buffer, compressionOverride: compressType);
+            entry.ModifiedEntry.Data = (texture != null)
+                ? Utils.CompressTexture(buffer, texture: texture, compressionOverride: compressType)
+                : Utils.CompressFile(buffer, compressionOverride: compressType);
+            
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
             entry.ModifiedEntry.LogicalSize = (uint)buffer.Length;
 

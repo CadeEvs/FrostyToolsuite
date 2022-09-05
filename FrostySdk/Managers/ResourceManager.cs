@@ -29,12 +29,12 @@ namespace FrostySdk.Managers
             ZStd.Bind();
             Oodle.Bind(fs.BasePath);
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedEdge)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedEdge))
             {
                 LoadDas();
             }
 
-            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20))
             {
                 WriteToLog("Loading catalogs");
                 foreach (string catalogName in fs.Catalogs)
@@ -44,7 +44,9 @@ namespace FrostySdk.Managers
                 }
             }
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18,
+                    ProfileVersion.Fifa19,
+                    ProfileVersion.Fifa20))
             {
                 // load dictionary from memoryFs (used for decompressing ebx)
                 ZStd.SetDictionary(fs.GetFileFromMemoryFs("Dictionaries/ebx.dict"));

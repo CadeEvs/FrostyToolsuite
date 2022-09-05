@@ -97,7 +97,9 @@ namespace Frosty.Core.Windows
 
                     keyData = keyPromptWin.EncryptionKey;
                     using (NativeWriter writer = new NativeWriter(new FileStream(ProfilesLibrary.CacheName + ".key", FileMode.Create)))
+                    {
                         writer.Write(keyData);
+                    }
                 }
                 else
                 {
@@ -132,28 +134,21 @@ namespace Frosty.Core.Windows
 
             DirectoryInfo di = new DirectoryInfo("Caches");
             if (!Directory.Exists(di.FullName))
+            {
                 Directory.CreateDirectory(di.FullName);
 
-            // move any existing cache/sbdata.cas file over to the new caches directory
-            foreach (var cacheName in Directory.EnumerateFiles(new FileInfo(Assembly.GetEntryAssembly().FullName).DirectoryName, "*.cache"))
-            {
-                FileInfo fi = new FileInfo(cacheName);
-                File.Move(fi.FullName, ".\\Caches\\" + fi.Name);
-
-                string sbDataName = fi.FullName.Replace(".cache", ".sbdata");
-                if (File.Exists(sbDataName))
-                    File.Move(sbDataName, ".\\Caches\\" + fi.Name.Replace(".cache", ".sbdata"));
             }
-
             // move any existing cache/sbdata.cas file over to the new caches directory
-            foreach (var cacheName in Directory.EnumerateFiles(new FileInfo(Assembly.GetEntryAssembly().FullName).DirectoryName, "*.cache"))
+            foreach (string cacheName in Directory.EnumerateFiles(new FileInfo(Assembly.GetEntryAssembly().FullName).DirectoryName, "*.cache"))
             {
                 FileInfo fi = new FileInfo(cacheName);
                 File.Move(fi.FullName, ".\\Caches\\" + fi.Name);
 
                 string sbDataName = fi.FullName.Replace(".cache", "_sbdata.cas");
                 if (File.Exists(sbDataName))
+                {
                     File.Move(sbDataName, ".\\Caches\\" + fi.Name.Replace(".cache", "_sbdata.cas"));
+                }
             }
 
             AssetManagerImportResult result = new AssetManagerImportResult();
@@ -188,7 +183,7 @@ namespace Frosty.Core.Windows
             App.NotificationManager.Show("Initialization complete");
 
             // cleanup any outstanding editor mods (in case of crash)
-            if (Frosty.Core.App.IsEditor)
+            if (App.IsEditor)
             {
                 FileInfo exeInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
                 foreach (string file in Directory.EnumerateFiles(exeInfo.DirectoryName, $"Mods/{ProfilesLibrary.ProfileName}/EditorMod*"))
@@ -234,7 +229,9 @@ namespace Frosty.Core.Windows
 
                 App.FileSystem = new FileSystem(basePath);
                 foreach (FileSystemSource source in ProfilesLibrary.Sources)
+                {
                     App.FileSystem.AddSource(source.Path, source.SubDirs);
+                }
                 App.FileSystem.Initialize(key);
 
                 App.ResourceManager = new ResourceManager(App.FileSystem);
@@ -243,12 +240,19 @@ namespace Frosty.Core.Windows
 
                 App.AssetManager = new AssetManager(App.FileSystem, App.ResourceManager);
 
-                // initialize plugin extensions
                 TypeLibrary.Initialize();
+                
+                // initialize plugin extensions
                 App.PluginManager.Initialize();
 
                 // load legacy asset manager if profile uses legacy system
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville)
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17,
+                        ProfileVersion.Fifa18,
+                        ProfileVersion.Madden19,
+                        ProfileVersion.Fifa19,
+                        ProfileVersion.Madden20,
+                        ProfileVersion.Fifa20,
+                        ProfileVersion.PlantsVsZombiesBattleforNeighborville))
                 {
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManager));
                 }
@@ -256,10 +260,11 @@ namespace Frosty.Core.Windows
                 // ensure mods folder is created
                 DirectoryInfo di = new DirectoryInfo("Mods/" + ProfilesLibrary.ProfileName);
                 if (!di.Exists)
+                {
                     Directory.CreateDirectory(di.FullName);
+                }
                 
                 App.AssetManager.SetLogger(TaskLogger);
-
                 App.AssetManager.Initialize(true, result);
             });
 
