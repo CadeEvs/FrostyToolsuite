@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using FrostySdk.IO;
 using System.Reflection;
@@ -209,6 +210,11 @@ namespace FrostySdk
             return m_profiles.FindIndex((Profile a) => a.Name.Equals(profileKey, StringComparison.OrdinalIgnoreCase)) != -1;
         }
 
+        public static bool IsLoaded(params ProfileVersion[] versions)
+        {
+            return versions.Contains((ProfileVersion)DataVersion);
+        }
+        
         private static string DecodeString(NativeReader reader)
         {
             int length = reader.Read7BitEncodedInt();
@@ -220,39 +226,5 @@ namespace FrostySdk
             }
             return Encoding.UTF8.GetString(b);
         }
-
-        #region -- Is Loaded Methods --
-
-        public static bool IsLoaded(ProfileVersion version)
-        {
-            return DataVersion == (int)version;
-        }
-
-        public static bool IsLoaded(ProfileVersion version1, ProfileVersion version2)
-        {
-            return IsLoaded(version1) || IsLoaded(version2);
-        }
-        public static bool IsLoaded(ProfileVersion version1, ProfileVersion version2, ProfileVersion version3)
-        {
-            return IsLoaded(version1) || IsLoaded(version2) || IsLoaded(version3);
-        }
-        public static bool IsLoaded(ProfileVersion version1, ProfileVersion version2, ProfileVersion version3, ProfileVersion version4)
-        {
-            return IsLoaded(version1) || IsLoaded(version2) || IsLoaded(version3) || IsLoaded(version4);
-        }
-        public static bool IsLoaded(ProfileVersion version1, ProfileVersion version2, ProfileVersion version3, ProfileVersion version4, ProfileVersion version5)
-        {
-            return IsLoaded(version1) || IsLoaded(version2) || IsLoaded(version3) || IsLoaded(version4) || IsLoaded(version5);
-        }
-        public static bool IsLoaded(ProfileVersion version1, ProfileVersion version2, ProfileVersion version3, ProfileVersion version4, ProfileVersion version5, ProfileVersion version6)
-        {
-            return IsLoaded(version1) || IsLoaded(version2) || IsLoaded(version3) || IsLoaded(version4) || IsLoaded(version5) || IsLoaded(version6);
-        }
-        public static bool IsLoaded(ProfileVersion version1, ProfileVersion version2, ProfileVersion version3, ProfileVersion version4, ProfileVersion version5, ProfileVersion version6, ProfileVersion version7)
-        {
-            return IsLoaded(version1) || IsLoaded(version2) || IsLoaded(version3) || IsLoaded(version4) || IsLoaded(version5) || IsLoaded(version6) || IsLoaded(version7);
-        }
-
-        #endregion
     }
 }

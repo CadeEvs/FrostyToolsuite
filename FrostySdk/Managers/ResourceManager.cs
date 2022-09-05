@@ -34,7 +34,7 @@ namespace FrostySdk.Managers
                 LoadDas();
             }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20))
+            if (!ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20))
             {
                 WriteToLog("Loading catalogs");
                 foreach (string catalogName in fs.Catalogs)
