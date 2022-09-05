@@ -253,6 +253,12 @@ namespace Frosty.ModSupport
         }
         private void ProcessModResources(IResourceContainer fmod)
         {
+            // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
+            if (App.WhitelistBundles.Count != 0 && !App.WhitelistBundles.Contains(chunksBundleHash))
+            {
+                App.WhitelistBundles.Add(chunksBundleHash);
+            }
+
             Parallel.ForEach(fmod.Resources, resource =>
             {
                 // pull existing bundles from asset manager
@@ -637,6 +643,12 @@ namespace Frosty.ModSupport
                 // modified bundle actions (these are pulled from the asset manager during applying)
                 foreach (int bundleHash in bundles)
                 {
+                    // Skips bundle if the whitelist has more than one element and doesn't contain the bundle hash
+                    if (App.WhitelistBundles.Count != 0 && !App.WhitelistBundles.Contains(bundleHash))
+                    {
+                        continue;
+                    }
+
                     modifiedBundles.TryAdd(bundleHash, new ModBundleInfo() { Name = bundleHash });
 
                     ModBundleInfo modBundle = modifiedBundles[bundleHash];
@@ -651,6 +663,12 @@ namespace Frosty.ModSupport
                 // add bundle actions (these are stored in the mod)
                 foreach (int bundleHash in resource.AddedBundles)
                 {
+                    // Skips bundle if the whitelist has more than one element and doesn't contain the bundle hash
+                    if (App.WhitelistBundles.Count != 0 && !App.WhitelistBundles.Contains(bundleHash))
+                    {
+                        continue;
+                    }
+
                     modifiedBundles.TryAdd(bundleHash, new ModBundleInfo() { Name = bundleHash });
 
                     ModBundleInfo modBundle = modifiedBundles[bundleHash];

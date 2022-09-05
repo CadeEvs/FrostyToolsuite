@@ -7,6 +7,7 @@ using System;
 using System.Windows;
 using Frosty.Controls;
 using Frosty.Core.Windows;
+using System.Collections.Generic;
 
 namespace Frosty.Core
 {
@@ -18,6 +19,8 @@ namespace Frosty.Core
         public static FileSystem FileSystem;
         public static PluginManager PluginManager;
         public static NotificationManager NotificationManager;
+
+        public static List<int> WhitelistBundles = new List<int>();
 
         public static EbxAssetEntry SelectedAsset;
         public static string SelectedProfile;
