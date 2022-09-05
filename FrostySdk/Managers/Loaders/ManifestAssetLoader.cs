@@ -10,26 +10,26 @@
                 parent.WriteToLog("Loading data from manifest");
 
                 // @todo: Get proper superbundle names
-                parent.superBundles.Add(new SuperBundleEntry { Name = "<none>" });
+                parent.m_superBundles.Add(new SuperBundleEntry { Name = "<none>" });
 
-                foreach (DbObject bundle in parent.fs.EnumerateBundles())
+                foreach (DbObject bundle in parent.m_fs.EnumerateBundles())
                 {
                     BundleEntry be = new BundleEntry { Name = bundle.GetValue<string>("name"), SuperBundleId = 0 };
-                    parent.bundles.Add(be);
+                    parent.m_bundles.Add(be);
 
                     if (bundle == null)
                         continue;
 
                     // process assets
-                    parent.ProcessBundleEbx(bundle, parent.bundles.Count - 1, helper);
-                    parent.ProcessBundleRes(bundle, parent.bundles.Count - 1, helper);
-                    parent.ProcessBundleChunks(bundle, parent.bundles.Count - 1, helper);
+                    parent.ProcessBundleEbx(bundle, parent.m_bundles.Count - 1, helper);
+                    parent.ProcessBundleRes(bundle, parent.m_bundles.Count - 1, helper);
+                    parent.ProcessBundleChunks(bundle, parent.m_bundles.Count - 1, helper);
                 }
 
-                foreach (ChunkAssetEntry entry in parent.fs.ProcessManifestChunks())
+                foreach (ChunkAssetEntry entry in parent.m_fs.ProcessManifestChunks())
                 {
-                    if (!parent.chunkList.ContainsKey(entry.Id))
-                        parent.chunkList.Add(entry.Id, entry);
+                    if (!parent.m_chunkList.ContainsKey(entry.Id))
+                        parent.m_chunkList.Add(entry.Id, entry);
                 }
             }
         }

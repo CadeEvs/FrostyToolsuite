@@ -9,14 +9,14 @@ namespace FrostySdk.Managers
         {
             public void Load(AssetManager parent, BinarySbDataHelper helper)
             {
-                foreach (string superBundleName in parent.fs.SuperBundles)
+                foreach (string superBundleName in parent.m_fs.SuperBundles)
                 {
                     DbObject toc = parent.ProcessTocChunks(string.Format("{0}.toc", superBundleName), helper, false);
                     if (toc == null)
                         continue;
 
                     parent.WriteToLog("Loading data ({0})", superBundleName);
-                    using (NativeReader sbReader = new NativeReader(new FileStream(parent.fs.ResolvePath(string.Format("{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read)))
+                    using (NativeReader sbReader = new NativeReader(new FileStream(parent.m_fs.ResolvePath(string.Format("{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read)))
                     {
                         DbObject bundles = toc.GetValue<DbObject>("bundles");
                         for (int i = 0; i < bundles.GetValue<DbObject>("names").Count; i++)
@@ -26,11 +26,11 @@ namespace FrostySdk.Managers
                             int size = (int)bundles.GetValue<DbObject>("sizes")[i];
 
                             // add new bundle entry
-                            parent.bundles.Add(new BundleEntry() { Name = bundleName, SuperBundleId = parent.superBundles.Count - 1 });
-                            int bundleId = parent.bundles.Count - 1;
+                            parent.m_bundles.Add(new BundleEntry() { Name = bundleName, SuperBundleId = parent.m_superBundles.Count - 1 });
+                            int bundleId = parent.m_bundles.Count - 1;
 
                             DbObject sb = null;
-                            using (DbReader reader = new DbReader(sbReader.CreateViewStream(offset, size), parent.fs.CreateDeobfuscator()))
+                            using (DbReader reader = new DbReader(sbReader.CreateViewStream(offset, size), parent.m_fs.CreateDeobfuscator()))
                                 sb = reader.ReadDbObject();
 
                             // process assets
