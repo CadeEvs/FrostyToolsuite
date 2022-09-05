@@ -956,10 +956,21 @@ namespace Frosty.ModSupport
 
             string modDataPath = fs.BasePath + modDirName + "\\";
             string patchPath = "Patch";
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.NeedForSpeedRivals))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, 
+                ProfileVersion.DragonAgeInquisition, 
+                ProfileVersion.Battlefield4, 
+                ProfileVersion.NeedForSpeed, 
+                ProfileVersion.PlantsVsZombiesGardenWarfare2,
+                ProfileVersion.NeedForSpeedRivals))
+            {
                 patchPath = "Update\\Patch\\Data";
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Battlefield5)) //bfn and bfv dont have a patch directory
+            }
+
+            // bfn and bfv dont have a patch directory
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Battlefield5))
+            {
                 patchPath = "Data";
+            } 
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden20))
             {
@@ -1148,7 +1159,11 @@ namespace Frosty.ModSupport
                             cmdArgs.Add(new SymLinkStruct(modDataPath + "Data", fs.BasePath + "Data", true));
                         }
 
-                        if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.NeedForSpeedRivals))
+                        if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                            ProfileVersion.Battlefield4, 
+                            ProfileVersion.NeedForSpeed, 
+                            ProfileVersion.PlantsVsZombiesGardenWarfare2, 
+                            ProfileVersion.NeedForSpeedRivals))
                         {
                             // create update dir if it does not exist
                             if (!Directory.Exists(modDataPath + "Update"))
@@ -1170,7 +1185,11 @@ namespace Frosty.ModSupport
                             cmdArgs.Add(new SymLinkStruct(modDataPath + "Update", fs.BasePath + "Update", true));
                         }
 
-                        if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20, ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat, ProfileVersion.PlantsVsZombiesBattleforNeighborville))
+                        if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, 
+                            ProfileVersion.Madden20, 
+                            ProfileVersion.Fifa20, 
+                            ProfileVersion.NeedForSpeedHeat, 
+                            ProfileVersion.PlantsVsZombiesBattleforNeighborville))
                         {
                             foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
                             {
@@ -1604,7 +1623,14 @@ namespace Frosty.ModSupport
                                 writer.Write(reader.ReadBytes(0x23C));
                                 writer.Write(0x00);
                                 writer.Write(0x00);
-                                if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.Fifa18, ProfileVersion.StarWarsBattlefrontII, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19, ProfileVersion.Battlefield5 , ProfileVersion.StarWarsSquadrons))
+                                if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, 
+                                    ProfileVersion.Fifa17, 
+                                    ProfileVersion.Fifa18, 
+                                    ProfileVersion.StarWarsBattlefrontII, 
+                                    ProfileVersion.NeedForSpeedPayback, 
+                                    ProfileVersion.Madden19, 
+                                    ProfileVersion.Battlefield5, 
+                                    ProfileVersion.StarWarsSquadrons))
                                 {
                                     writer.Write(0x00);
                                     writer.Write(0x00);
@@ -1632,7 +1658,11 @@ namespace Frosty.ModSupport
                 CopyFileIfRequired(fs.BasePath + patchPath + "/initfs_win32", modDataPath + patchPath + "/initfs_win32");
                 
                 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.NeedForSpeedRivals))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                    ProfileVersion.Battlefield4, 
+                    ProfileVersion.NeedForSpeed, 
+                    ProfileVersion.PlantsVsZombiesGardenWarfare2, 
+                    ProfileVersion.NeedForSpeedRivals))
                 {
                     // modify layout.toc for any new superbundles added
                     DbObject layout = null;
@@ -1714,7 +1744,12 @@ namespace Frosty.ModSupport
                 }
 
                 // fifa17, dai, bf4, nfs, nfsr, gw2
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals, ProfileVersion.PlantsVsZombiesGardenWarfare2))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, 
+                    ProfileVersion.DragonAgeInquisition, 
+                    ProfileVersion.Battlefield4, 
+                    ProfileVersion.NeedForSpeed, 
+                    ProfileVersion.NeedForSpeedRivals, 
+                    ProfileVersion.PlantsVsZombiesGardenWarfare2))
                 {
                     // copy additional files
                     CopyFileIfRequired(fs.BasePath + patchPath + "/../package.mft", modDataPath + patchPath + "/../package.mft");
@@ -1736,7 +1771,10 @@ namespace Frosty.ModSupport
             cancelToken.ThrowIfCancellationRequested();
 
             // DAI and NFS dont require bcrypt
-            if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals))
+            if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                ProfileVersion.Battlefield4, 
+                ProfileVersion.NeedForSpeed, 
+                ProfileVersion.NeedForSpeedRivals))
             {
                 // delete old useless bcrypt
                 if (File.Exists(fs.BasePath + "bcrypt.dll"))
@@ -1748,7 +1786,10 @@ namespace Frosty.ModSupport
             CopyFileIfRequired(fs.BasePath + "user.cfg", modDataPath + "user.cfg");
 
             // FIFA games require a fifaconfig workaround
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.Fifa18, ProfileVersion.Fifa19, ProfileVersion.Fifa20))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, 
+                ProfileVersion.Fifa18, 
+                ProfileVersion.Fifa19, 
+                ProfileVersion.Fifa20))
             {
                 FileInfo fi = new FileInfo(fs.BasePath + "FIFASetup\\fifaconfig_orig.exe");
                 if (!fi.Exists)
@@ -1927,7 +1968,11 @@ namespace Frosty.ModSupport
                 for (int i = 0; i < reader.ResourceCount; i++)
                     entries.Add(reader.ReadResourceEntry());
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.Fifa18, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, 
+                    ProfileVersion.Fifa17, 
+                    ProfileVersion.Fifa18, 
+                    ProfileVersion.NeedForSpeedPayback, 
+                    ProfileVersion.Madden19))
                 {
                     for (int i = 0; i < reader.EncryptedCount; i++)
                         encEntries.Add(reader.ReadEncryptedEntry());
@@ -1958,8 +2003,13 @@ namespace Frosty.ModSupport
                         tmpWriter.Write(entry.Sha1);
                         tmpWriter.Write(entry.Offset);
                         tmpWriter.Write(entry.Size);
-                        if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals))
+                        if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                            ProfileVersion.Battlefield4, 
+                            ProfileVersion.NeedForSpeed, 
+                            ProfileVersion.NeedForSpeedRivals))
+                        {
                             tmpWriter.Write(entry.LogicalOffset);
+                        }
                         tmpWriter.Write(entry.ArchiveIndex);
                         numEntries++;
                     }
@@ -1970,23 +2020,37 @@ namespace Frosty.ModSupport
                     // new entries
                     foreach (Sha1 sha1 in casDataEntry.EnumerateDataRefs())
                     {
-                        if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals))
+                        if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                            ProfileVersion.Battlefield4, 
+                            ProfileVersion.NeedForSpeed, 
+                            ProfileVersion.NeedForSpeedRivals))
+                        {
                             offset += 0x20;
+                        }
 
                         ArchiveInfo info = archiveData[sha1];
 
                         tmpWriter.Write(sha1);
                         tmpWriter.Write(offset);
                         tmpWriter.Write(info.Data.Length);
-                        if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals))
+                        if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                            ProfileVersion.Battlefield4, 
+                            ProfileVersion.NeedForSpeed, 
+                            ProfileVersion.NeedForSpeedRivals))
+                        {
                             tmpWriter.Write(0x00);
+                        }
                         tmpWriter.Write(casEntries[index++]);
 
                         offset += info.Data.Length;
                         numEntries++;
                     }
 
-                    if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.Fifa18, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19))
+                    if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, 
+                        ProfileVersion.Fifa17, 
+                        ProfileVersion.Fifa18, 
+                        ProfileVersion.NeedForSpeedPayback, 
+                        ProfileVersion.Madden19))
                     {
                         // encrypted entries
                         foreach (CatResourceEntry entry in encEntries)
@@ -2015,14 +2079,29 @@ namespace Frosty.ModSupport
                     }
 
                     // write it to file
-                    if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals))
+                    if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                        ProfileVersion.Battlefield4, 
+                        ProfileVersion.NeedForSpeed, 
+                        ProfileVersion.NeedForSpeedRivals))
+                    {
                         writer.Write(header);
+                    }
                     writer.WriteFixedSizedString("NyanNyanNyanNyan", 16);
-                    if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed, ProfileVersion.NeedForSpeedRivals))
+                    if (!ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, 
+                        ProfileVersion.Battlefield4, 
+                        ProfileVersion.NeedForSpeed, 
+                        ProfileVersion.NeedForSpeedRivals))
                     {
                         writer.Write(numEntries);
                         writer.Write(numPatchEntries);
-                        if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.Fifa18, ProfileVersion.StarWarsBattlefrontII, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+                        if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, 
+                            ProfileVersion.Fifa17, 
+                            ProfileVersion.Fifa18, 
+                            ProfileVersion.StarWarsBattlefrontII, 
+                            ProfileVersion.NeedForSpeedPayback, 
+                            ProfileVersion.Madden19, 
+                            ProfileVersion.Battlefield5, 
+                            ProfileVersion.StarWarsSquadrons))
                         {
                             writer.Write(encEntries.Count);
                             writer.Write(0x00);
@@ -2056,7 +2135,9 @@ namespace Frosty.ModSupport
 
                             // delete if cas does not exist in base patch OR is not a symbolic link
                             if (!File.Exists(basePatchCatalog + "/" + fi.Name) || (fi.Attributes & FileAttributes.ReparsePoint) == 0)
+                            {
                                 File.Delete(fi.FullName);
+                            }
                         }
                     }
                 }
@@ -2070,12 +2151,15 @@ namespace Frosty.ModSupport
         {
             string baseLayoutPath = fs.ResolvePath("native_patch/layout.toc");
             if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+            {
                 baseLayoutPath = fs.ResolvePath("native_data/layout.toc");
+            }
 
             string modLayoutPath = modPath + "/layout.toc";
             if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+            {
                 modLayoutPath = Directory.GetParent(modPath).FullName + "/Data/layout.toc";
-                //modLayoutPath = modPath + "../Data/layout.toc";
+            }
 
             if (!File.Exists(baseLayoutPath))
                 return false;
