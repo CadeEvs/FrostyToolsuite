@@ -1021,7 +1021,7 @@ namespace Frosty.Core.Sdk
             using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Frosty.Core.Sdk.Classes.txt"))
             {
                 if (stream != null)
-                    classMetaList = TypeLibrary.LoadClassesSDK(stream);
+                    classMetaList = TypeLibrary.LoadClassesSdk(stream);
             }
 
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem)
