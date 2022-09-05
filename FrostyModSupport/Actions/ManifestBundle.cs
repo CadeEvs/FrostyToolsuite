@@ -22,7 +22,6 @@ namespace Frosty.ModSupport
             public List<CasFileEntry> FileInfos { get; } = new List<CasFileEntry>();
             public List<byte[]> BundleBuffers { get; } = new List<byte[]>();
 
-            public bool HasErrored => Exception != null;
             public Exception Exception { get; private set; }
 
             private List<ModBundleInfo> bundles;

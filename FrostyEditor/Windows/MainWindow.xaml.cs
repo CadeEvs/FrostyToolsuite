@@ -372,9 +372,6 @@ namespace FrostyEditor.Windows
             if (!ProfilesLibrary.EnableExecution)
                 return;
 
-            App.Logger.Log("Launching game");
-            App.NotificationManager.Show("Launching game");
-
             // setup ability to cancel the process
             CancellationTokenSource cancelToken = new CancellationTokenSource();
 
@@ -434,8 +431,8 @@ namespace FrostyEditor.Windows
             catch (OperationCanceledException)
             {
                 // process was cancelled
-                App.Logger.Log("Launch cancelled");
-                App.NotificationManager.Show("Launch cancelled");
+                App.Logger.Log("Launch Cancelled");
+                App.NotificationManager.Show("Launch Cancelled");
             }
 
             // remove editor mod
@@ -444,8 +441,8 @@ namespace FrostyEditor.Windows
                 editorMod.Delete();
 
             LaunchButton.IsEnabled = true;
-            App.Logger.Log("Launch complete");
-            App.NotificationManager.Show("Launch complete");
+
+            GC.Collect();
         }
 
         public void ExportMod(ModSettings modSettings, string filename, bool bSilent)

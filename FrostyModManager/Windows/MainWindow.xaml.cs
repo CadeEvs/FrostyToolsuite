@@ -651,6 +651,9 @@ namespace FrostyModManager
 
                     foreach (var executionAction in App.PluginManager.ExecutionActions)
                         executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+
+                    // process was cancelled
+                    App.Logger.Log("Launch Cancelled");
                 }
 
             }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
@@ -661,6 +664,8 @@ namespace FrostyModManager
             // kill the application if launched from the command line
             if (App.LaunchGameImmediately)
                 Close();
+
+            GC.Collect();
         }
 
         private void FrostyWindow_Closing(object sender, CancelEventArgs e)
