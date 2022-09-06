@@ -173,6 +173,12 @@ namespace LevelEditorPlugin.Controls
             public Brush SchematicRealmEnabled { get; private set; }
             public Brush SchematicRealmDisabled { get; private set; }
 
+            // Geometry
+            public PathFigureCollection NodeCollapseButtonGeometry { get; private set; }
+            public PathFigureCollection NodeCollapseButtonCollapsedGeometry { get; private set; }
+            public PathFigureCollection NodeClientRealmGeometry { get; private set; }
+            public PathFigureCollection NodeServerRealmGeometry { get; private set; }
+
             public long LastFrameCount { get; private set; }
 
             public static DrawingContextState CreateFromValues(DrawingContext inContext, MatrixTransform worldMatrix, double inScale)
@@ -194,10 +200,80 @@ namespace LevelEditorPlugin.Controls
                 state.SchematicEventBrush = new SolidColorBrush(Color.FromArgb(0xff, 0xf8, 0xf8, 0xf8));
                 state.SchematicPropertyBrush = new SolidColorBrush(Color.FromArgb(0xff, 0x5f, 0xd9, 0x5f));
                 state.SchematicRealmEnabled = new SolidColorBrush(Color.FromRgb(255, 255, 0));
-                state.SchematicRealmDisabled = new SolidColorBrush(Color.FromRgb(155, 155, 155));
+                state.SchematicRealmDisabled = new SolidColorBrush(Color.FromArgb(77, 255, 255, 255));
 
                 state.LargeFont = FontData.MakeFont(new Typeface("Consolas"), 10);
                 state.SmallFont = FontData.MakeFont(new Typeface("Consolas"), 7);
+
+                state.NodeCollapseButtonGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(0, 0), new[]
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            // right point
+                            new Point(10, 0),
+                            // bottom middle point
+                            new Point(5, 6)
+                        }, true)
+                    },
+                    true)
+                }); state.NodeCollapseButtonGeometry.Freeze();
+                state.NodeCollapseButtonCollapsedGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(0, 0), new[]
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            // top right point
+                            new Point(6, -5),
+                            // bottom right point
+                            new Point(6, 5)
+                        }, true)
+
+                    }, true)
+                }); state.NodeCollapseButtonCollapsedGeometry.Freeze();
+
+                state.NodeClientRealmGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(5, 2), new []
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            new Point(5, 0),
+                            new Point(0, 0),
+                            new Point(0, 7),
+                            new Point(0, 9),
+                            new Point(5, 9),
+                            new Point(5, 7),
+                            new Point(2, 7),
+                            new Point(2, 2)
+                        }, true)
+                    }, true)
+                }); state.NodeClientRealmGeometry.Freeze();
+                state.NodeServerRealmGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(12, 2), new []
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            new Point(12, 0),
+                            new Point(6, 0),
+                            new Point(6, 2),
+                            new Point(6, 4),
+                            new Point(6, 5.5),
+                            new Point(10, 5.5),
+                            new Point(10, 7),
+                            new Point(6, 7),
+                            new Point(6, 9),
+                            new Point(12, 9),
+                            new Point(12, 6),
+                            new Point(12, 3.5),
+                            new Point(8, 3.5),
+                            new Point(8, 2)
+                        }, true)
+                    }, true)
+                }); state.NodeServerRealmGeometry.Freeze();
 
                 return state;
             }
@@ -241,7 +317,77 @@ namespace LevelEditorPlugin.Controls
                 SchematicEventBrush = owner.SchematicEventBrush;
                 SchematicPropertyBrush = owner.SchematicPropertyBrush;
                 SchematicRealmEnabled = new SolidColorBrush(Color.FromRgb(255, 255, 0));
-                SchematicRealmDisabled = new SolidColorBrush(Color.FromRgb(155, 155, 155));
+                SchematicRealmDisabled = new SolidColorBrush(Color.FromArgb(77, 255, 255, 255));
+
+                NodeCollapseButtonGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(0, 0), new[]
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            // right point
+                            new Point(10, 0),
+                            // bottom middle point
+                            new Point(5, 6)
+                        }, true)
+                    },
+                    true)
+                }); NodeCollapseButtonGeometry.Freeze();
+                NodeCollapseButtonCollapsedGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(0, 0), new[]
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            // top right point
+                            new Point(6, -5),
+                            // bottom right point
+                            new Point(6, 5)
+                        }, true)
+
+                    }, true)
+                }); NodeCollapseButtonCollapsedGeometry.Freeze();
+
+                NodeClientRealmGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(5, 2), new []
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            new Point(5, 0),
+                            new Point(0, 0),
+                            new Point(0, 7),
+                            new Point(0, 9),
+                            new Point(5, 9),
+                            new Point(5, 7),
+                            new Point(2, 7),
+                            new Point(2, 2)
+                        }, true)
+                    }, true)
+                }); NodeClientRealmGeometry.Freeze();
+                NodeServerRealmGeometry = new PathFigureCollection(new[]
+                {
+                    new PathFigure(new Point(12, 2), new []
+                    {
+                        new PolyLineSegment(new []
+                        {
+                            new Point(12, 0),
+                            new Point(6, 0),
+                            new Point(6, 2),
+                            new Point(6, 4),
+                            new Point(6, 5.5),
+                            new Point(10, 5.5),
+                            new Point(10, 7),
+                            new Point(6, 7),
+                            new Point(6, 9),
+                            new Point(12, 9),
+                            new Point(12, 6),
+                            new Point(12, 3.5),
+                            new Point(8, 3.5),
+                            new Point(8, 2)
+                        }, true)
+                    }, true)
+                }); NodeServerRealmGeometry.Freeze();
 
                 LastFrameCount = owner.m_lastFrameCount;
 
@@ -259,7 +405,7 @@ namespace LevelEditorPlugin.Controls
                 return WorldMatrix.Transform(p);
             }
 
-            public GlyphRun ConvertTextLinesToGlyphRun(Point position, bool large, string line)
+            public GlyphRun ConvertTextLinesToGlyphRun(Point position, bool large, string line, bool isBold = false)
             {
                 FontData fontData = (large) ? LargeFont : SmallFont;
 
@@ -483,7 +629,7 @@ namespace LevelEditorPlugin.Controls
             m_wirePropertyPen = new Pen(SchematicPropertyBrush, 2.0); m_wirePropertyPen.Freeze();
             m_wireHitTestPen = new Pen(Brushes.Transparent, 4.0); m_wireHitTestPen.Freeze();
             m_shortcutWirePen = new Pen(Brushes.WhiteSmoke, 2.0) { DashStyle = DashStyles.Dash }; m_shortcutWirePen.Freeze();
-            m_wireSelectedPen = new Pen(Brushes.PaleGoldenrod, 2.0); m_wireSelectedPen.Freeze();
+            m_wireSelectedPen = new Pen(Brushes.Yellow, 2.0); m_wireSelectedPen.Freeze();
             m_wireDeletingPen = new Pen(Brushes.Red, 2.0); m_wireDeletingPen.Freeze();
             m_marqueePen = new Pen(Brushes.White, 2.0) { DashStyle = DashStyles.Dash }; m_marqueePen.Freeze();
             m_glowPen = new Pen(Brushes.Yellow, 5.0); m_glowPen.Freeze();
