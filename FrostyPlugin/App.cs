@@ -20,7 +20,7 @@ namespace Frosty.Core
         public static PluginManager PluginManager;
         public static NotificationManager NotificationManager;
 
-        public static List<int> WhitelistBundles = new List<int>();
+        public static List<int> WhitelistedBundles = new List<int>();
 
         public static EbxAssetEntry SelectedAsset;
         public static string SelectedProfile;

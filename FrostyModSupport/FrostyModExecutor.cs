@@ -254,9 +254,9 @@ namespace Frosty.ModSupport
         private void ProcessModResources(IResourceContainer fmod)
         {
             // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
-            if (App.WhitelistBundles.Count != 0 && !App.WhitelistBundles.Contains(chunksBundleHash))
+            if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(chunksBundleHash))
             {
-                App.WhitelistBundles.Add(chunksBundleHash);
+                App.WhitelistedBundles.Add(chunksBundleHash);
             }
 
             Parallel.ForEach(fmod.Resources, resource =>
@@ -644,7 +644,7 @@ namespace Frosty.ModSupport
                 foreach (int bundleHash in bundles)
                 {
                     // Skips bundle if the whitelist has more than one element and doesn't contain the bundle hash
-                    if (App.WhitelistBundles.Count != 0 && !App.WhitelistBundles.Contains(bundleHash))
+                    if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(bundleHash))
                     {
                         continue;
                     }
@@ -664,7 +664,7 @@ namespace Frosty.ModSupport
                 foreach (int bundleHash in resource.AddedBundles)
                 {
                     // Skips bundle if the whitelist has more than one element and doesn't contain the bundle hash
-                    if (App.WhitelistBundles.Count != 0 && !App.WhitelistBundles.Contains(bundleHash))
+                    if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(bundleHash))
                     {
                         continue;
                     }
