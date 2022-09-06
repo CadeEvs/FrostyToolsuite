@@ -42,6 +42,12 @@ namespace Frosty.Core.Controls
             object copyOfData = DeepCopyValue(Data, asset, entry, ref oldNewMapping);
             return copyOfData;
         }
+        public object GetData()
+        {
+            Dictionary<object, object> oldNewMapping = new Dictionary<object, object>();
+            object copyOfData = DeepCopyValue(Data, null, null, ref oldNewMapping);
+            return copyOfData;
+        }
         public void Clear()
         {
             Data = null;
@@ -89,6 +95,11 @@ namespace Frosty.Core.Controls
             else
             {
                 newData = TypeLibrary.CreateObject(dataType.Name);
+                // the type most likely comes from a plugin if CreateObject returns null, so just create a new instance here
+                if (newData == null)
+                {
+                    newData = Activator.CreateInstance(dataType);
+                }
             }
 
             foreach (PropertyInfo pi in dataType.GetProperties(BindingFlags.Instance | BindingFlags.Public))

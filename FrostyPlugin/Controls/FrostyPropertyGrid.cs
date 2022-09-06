@@ -1287,7 +1287,17 @@ namespace Frosty.Core.Controls
                     if (FrostyClipboard.Current.IsType(item.Value.GetType()))
                     {
                         FrostyPropertyGrid pg = GetPropertyGrid();
-                        item.Value = FrostyClipboard.Current.GetData(pg.Asset, App.AssetManager.GetEbxEntry(pg.Asset.FileGuid));
+
+                        if (pg.Asset != null)
+                        {
+                            // property grid is displaying an asset
+                            item.Value = FrostyClipboard.Current.GetData(pg.Asset, App.AssetManager.GetEbxEntry(pg.Asset.FileGuid));
+                        }
+                        else
+                        {
+                            // property grid is displaying a custom EBX class
+                            item.Value = FrostyClipboard.Current.GetData();
+                        }
                     }
                 }
             }
