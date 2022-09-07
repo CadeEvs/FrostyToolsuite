@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
+using AnimationEditorPlugin.Formats;
 using Frosty.Core;
 using Frosty.Hash;
 using FrostySdk.Interfaces;
+using FrostySdk.IO;
 using FrostySdk.Managers;
 
 namespace AnimationEditorPlugin.Managers
@@ -10,7 +12,9 @@ namespace AnimationEditorPlugin.Managers
     public class AssetBankFileManager : ICustomAssetManager
     {
         private Dictionary<int, AssetBankFileEntry> m_entries = new Dictionary<int, AssetBankFileEntry>();
-        
+
+        #region -- ICustomAssetManager --
+
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading asset banks");
@@ -27,9 +31,27 @@ namespace AnimationEditorPlugin.Managers
                 //if (!resEntry.Name.Contains("level_rush_suburbia_win32_antstate")) 
                 //    continue;
 
-                Stream resStream = App.AssetManager.GetRes(resEntry);
-                
-                // @TODO: read asset bank
+                using (NativeReader reader = new NativeReader(App.AssetManager.GetRes(resEntry)))
+                {
+                    uint version = reader.ReadUInt(Endian.Big);
+                    if (version == 3)
+                    {
+                        uint size = reader.ReadUInt(Endian.Big);
+                        
+                        // actual start of asset bank data (potentially?)
+                        reader.Position = size + 4;
+                        
+                        SectionHeader header = new SectionHeader();
+                        header.Read(reader);
+                        
+                        // STRM
+                        if (header.Format == SectionFormat.STRM)
+                        {
+                            Section_STRM strm = new Section_STRM(header);
+                            strm.Read(reader);
+                        }
+                    }
+                }
 
                 index++;
             }
@@ -73,5 +95,7 @@ namespace AnimationEditorPlugin.Managers
         {
             throw new System.NotImplementedException();
         }
+        
+        #endregion
     }
 }
