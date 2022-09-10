@@ -460,7 +460,7 @@ namespace FrostySdk.Managers
                 if (totalCount == 0)
                     return;
 
-                FileInfo fi = new FileInfo(am.m_fs.CacheName + "_sbdata.cas");
+                FileInfo fi = new FileInfo(am.m_fileSystem.CacheName + "_sbdata.cas");
                 if (!Directory.Exists(fi.DirectoryName))
                     Directory.CreateDirectory(fi.DirectoryName);
 
@@ -554,8 +554,8 @@ namespace FrostySdk.Managers
         private const ulong CacheMagic = 0x02005954534F5246;
         private const uint CacheVersion = 2;
 
-        private FileSystem m_fs;
-        private ResourceManager m_rm;
+        private FileSystem m_fileSystem;
+        private ResourceManager m_resourceManager;
         private ILogger m_logger;
 
         private List<SuperBundleEntry> m_superBundles = new List<SuperBundleEntry>();
@@ -570,10 +570,10 @@ namespace FrostySdk.Managers
 
         private Dictionary<string, ICustomAssetManager> m_customAssetManagers = new Dictionary<string, ICustomAssetManager>();
 
-        public AssetManager(FileSystem inFs, ResourceManager inRm)
+        public AssetManager(FileSystem inFileSystem, ResourceManager inResourceManager)
         {
-            m_fs = inFs;
-            m_rm = inRm;
+            m_fileSystem = inFileSystem;
+            m_resourceManager = inResourceManager;
         }
 
         public void RegisterCustomAssetManager(string type, Type managerType)
@@ -737,7 +737,7 @@ namespace FrostySdk.Managers
 
                 if (stream != null)
                 {
-                    using (EbxReader reader = EbxReader.CreateReader(stream, m_fs, patched))
+                    using (EbxReader reader = EbxReader.CreateReader(stream, m_fileSystem, patched))
                     {
                         entry.Type = reader.RootType;
                         entry.Guid = reader.FileGuid;
@@ -771,7 +771,7 @@ namespace FrostySdk.Managers
                 else
                 {
                     // Mark as encrypted or remove (Both are unloadable types)
-                    if (m_rm.IsEncrypted(entry.Sha1)) { entry.Type = "EncryptedAsset"; }
+                    if (m_resourceManager.IsEncrypted(entry.Sha1)) { entry.Type = "EncryptedAsset"; }
                     else { ebxToRemove.Add(entry); }
                 }
 
@@ -1570,7 +1570,7 @@ namespace FrostySdk.Managers
                     patched = true;
             }
 
-            using (EbxReader reader = EbxReader.CreateReader(GetAsset(entry), m_fs, patched))
+            using (EbxReader reader = EbxReader.CreateReader(GetAsset(entry), m_fileSystem, patched))
             {
                 T asset = reader.ReadAsset<T>();
                 if (modifiedResource != null)
@@ -1604,7 +1604,7 @@ namespace FrostySdk.Managers
                 }
             }
 
-            using (EbxReader reader = EbxReader.CreateReader(GetAsset(entry), m_fs, patched))
+            using (EbxReader reader = EbxReader.CreateReader(GetAsset(entry), m_fileSystem, patched))
             {
                 return reader.ReadAsset<EbxAsset>();
             }
@@ -1662,16 +1662,16 @@ namespace FrostySdk.Managers
                 case AssetDataLocation.Cas:
                     return (entry.ExtraData != null)
                         ? null
-                        : m_rm.GetRawResourceData(entry.Sha1);
+                        : m_resourceManager.GetRawResourceData(entry.Sha1);
 
                 case AssetDataLocation.SuperBundle:
-                    return m_rm.GetRawResourceData(((entry.ExtraData.IsPatch) ? "native_patch/" : "native_data/") + m_superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
+                    return m_resourceManager.GetRawResourceData(((entry.ExtraData.IsPatch) ? "native_patch/" : "native_data/") + m_superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
 
                 case AssetDataLocation.Cache:
-                    return m_rm.GetRawResourceData(entry.ExtraData.DataOffset, entry.Size);
+                    return m_resourceManager.GetRawResourceData(entry.ExtraData.DataOffset, entry.Size);
 
                 case AssetDataLocation.CasNonIndexed:
-                    return m_rm.GetRawResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size);
+                    return m_resourceManager.GetRawResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size);
             }
 
             return null;
@@ -1681,24 +1681,24 @@ namespace FrostySdk.Managers
         {
             // return modified data
             if (entry.ModifiedEntry != null && entry.ModifiedEntry.Data != null)
-                return m_rm.GetResourceData(entry.ModifiedEntry.Data);
+                return m_resourceManager.GetResourceData(entry.ModifiedEntry.Data);
 
             // otherwise, find and return original data
             switch (entry.Location)
             {
                 case AssetDataLocation.Cas:
                     return (entry.ExtraData != null)
-                        ? m_rm.GetResourceData(entry.ExtraData.BaseSha1, entry.ExtraData.DeltaSha1)
-                        : m_rm.GetResourceData(entry.Sha1);
+                        ? m_resourceManager.GetResourceData(entry.ExtraData.BaseSha1, entry.ExtraData.DeltaSha1)
+                        : m_resourceManager.GetResourceData(entry.Sha1);
 
                 case AssetDataLocation.SuperBundle:
-                    return m_rm.GetResourceData(((entry.ExtraData.IsPatch) ? "native_patch/" : "native_data/") + m_superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
+                    return m_resourceManager.GetResourceData(((entry.ExtraData.IsPatch) ? "native_patch/" : "native_data/") + m_superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
 
                 case AssetDataLocation.Cache:
-                    return m_rm.GetResourceData(entry.ExtraData.DataOffset, entry.Size);
+                    return m_resourceManager.GetResourceData(entry.ExtraData.DataOffset, entry.Size);
 
                 case AssetDataLocation.CasNonIndexed:
-                    return m_rm.GetResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size);
+                    return m_resourceManager.GetResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size);
             }
 
             return null;
@@ -1802,12 +1802,12 @@ namespace FrostySdk.Managers
 
         private DbObject ProcessTocChunks(string superBundleName, BinarySbDataHelper helper, bool isBase = false)
         {
-            string filename = m_fs.ResolvePath(superBundleName);
+            string filename = m_fileSystem.ResolvePath(superBundleName);
             if (filename == "")
                 return null;
 
             DbObject toc = null;
-            using (DbReader reader = new DbReader(new FileStream(filename, FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
+            using (DbReader reader = new DbReader(new FileStream(filename, FileMode.Open, FileAccess.Read), m_fileSystem.CreateDeobfuscator()))
                 toc = reader.ReadDbObject();
 
             if (isBase && !(ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals ||
@@ -1878,7 +1878,7 @@ namespace FrostySdk.Managers
                 Location = AssetDataLocation.Cas
             };
 
-            entry.BaseSha1 = m_rm.GetBaseSha1(entry.Sha1);
+            entry.BaseSha1 = m_resourceManager.GetBaseSha1(entry.Sha1);
 
             if (ebx.HasValue("cas"))
             {
@@ -1888,8 +1888,8 @@ namespace FrostySdk.Managers
                 {
                     DataOffset = ebx.GetValue<long>("offset"),
                     CasPath = (ebx.HasValue("catalog"))
-                        ? m_fs.GetFilePath(ebx.GetValue<int>("catalog"), ebx.GetValue<int>("cas"), ebx.HasValue("patch"))
-                        : m_fs.GetFilePath(ebx.GetValue<int>("cas"))
+                        ? m_fileSystem.GetFilePath(ebx.GetValue<int>("catalog"), ebx.GetValue<int>("cas"), ebx.HasValue("patch"))
+                        : m_fileSystem.GetFilePath(ebx.GetValue<int>("cas"))
                 };
             }
             else if (ebx.GetValue<bool>("sb"))
@@ -1956,7 +1956,7 @@ namespace FrostySdk.Managers
                 Location = AssetDataLocation.Cas
             };
 
-            entry.BaseSha1 = m_rm.GetBaseSha1(entry.Sha1);
+            entry.BaseSha1 = m_resourceManager.GetBaseSha1(entry.Sha1);
 
             if (res.HasValue("cas"))
             {
@@ -1966,8 +1966,8 @@ namespace FrostySdk.Managers
                 {
                     DataOffset = res.GetValue<long>("offset"),
                     CasPath = (res.HasValue("catalog"))
-                        ? m_fs.GetFilePath(res.GetValue<int>("catalog"), res.GetValue<int>("cas"), res.HasValue("patch"))
-                        : m_fs.GetFilePath(res.GetValue<int>("cas"))
+                        ? m_fileSystem.GetFilePath(res.GetValue<int>("catalog"), res.GetValue<int>("cas"), res.HasValue("patch"))
+                        : m_fileSystem.GetFilePath(res.GetValue<int>("cas"))
                 };
             }
             else if (res.GetValue<bool>("sb"))
@@ -2043,8 +2043,8 @@ namespace FrostySdk.Managers
                 {
                     DataOffset = chunk.GetValue<long>("offset"),
                     CasPath = (chunk.HasValue("catalog"))
-                        ? m_fs.GetFilePath(chunk.GetValue<int>("catalog"), chunk.GetValue<int>("cas"), chunk.HasValue("patch"))
-                        : m_fs.GetFilePath(chunk.GetValue<int>("cas"))
+                        ? m_fileSystem.GetFilePath(chunk.GetValue<int>("catalog"), chunk.GetValue<int>("cas"), chunk.HasValue("patch"))
+                        : m_fileSystem.GetFilePath(chunk.GetValue<int>("cas"))
                 };
             }
             else if (chunk.GetValue<bool>("sb"))
@@ -2079,13 +2079,13 @@ namespace FrostySdk.Managers
         private bool ReadFromCache(out List<EbxAssetEntry> prePatchCache)
         {
             prePatchCache = null;
-            if (!File.Exists(m_fs.CacheName + ".cache"))
+            if (!File.Exists(m_fileSystem.CacheName + ".cache"))
                 return false;
 
-            WriteToLog("Loading data (" + m_fs.CacheName + ".cache)");
+            WriteToLog("Loading data (" + m_fileSystem.CacheName + ".cache)");
             bool bIsPatched = false;
 
-            using (NativeReader reader = new NativeReader(new FileStream(m_fs.CacheName + ".cache", FileMode.Open, FileAccess.Read)))
+            using (NativeReader reader = new NativeReader(new FileStream(m_fileSystem.CacheName + ".cache", FileMode.Open, FileAccess.Read)))
             {
                 ulong magic = reader.ReadULong();
                 if (magic != CacheMagic)
@@ -2100,7 +2100,7 @@ namespace FrostySdk.Managers
                     return false;
 
                 uint head = reader.ReadUInt();
-                if (head != m_fs.Head)
+                if (head != m_fileSystem.Head)
                 {
                     bIsPatched = true;
                     prePatchCache = new List<EbxAssetEntry>();  
@@ -2152,7 +2152,7 @@ namespace FrostySdk.Managers
                         Name = reader.ReadNullTerminatedString(),
                         Sha1 = reader.ReadSha1()
                     };
-                    entry.BaseSha1 = m_rm.GetBaseSha1(entry.Sha1);
+                    entry.BaseSha1 = m_resourceManager.GetBaseSha1(entry.Sha1);
                     entry.Size = reader.ReadLong();
                     entry.OriginalSize = reader.ReadLong();
                     entry.Location = (AssetDataLocation)reader.ReadInt();
@@ -2219,7 +2219,7 @@ namespace FrostySdk.Managers
                         ResMeta = reader.ReadBytes(reader.ReadInt())
                     };
 
-                    entry.BaseSha1 = m_rm.GetBaseSha1(entry.Sha1);
+                    entry.BaseSha1 = m_resourceManager.GetBaseSha1(entry.Sha1);
 
                     bool hasExtraData = reader.ReadBoolean();
                     if (hasExtraData)
@@ -2265,7 +2265,7 @@ namespace FrostySdk.Managers
                         LogicalSize = reader.ReadUInt()
                     };
 
-                    entry.BaseSha1 = m_rm.GetBaseSha1(entry.Sha1);
+                    entry.BaseSha1 = m_resourceManager.GetBaseSha1(entry.Sha1);
 
                     // these two values are actually read wrong from the initial scan, this is because
                     // the chunk meta is not stored in the same layout as the chunks (which the inital
@@ -2310,7 +2310,7 @@ namespace FrostySdk.Managers
 
         private void WriteToCache()
         {
-            FileInfo fi = new FileInfo(m_fs.CacheName + ".cache");
+            FileInfo fi = new FileInfo(m_fileSystem.CacheName + ".cache");
             if (!Directory.Exists(fi.DirectoryName))
                 Directory.CreateDirectory(fi.DirectoryName);
 
@@ -2319,7 +2319,7 @@ namespace FrostySdk.Managers
                 writer.Write(CacheMagic);
                 writer.Write(CacheVersion);
                 writer.Write(Fnv1.HashString(ProfilesLibrary.ProfileName));
-                writer.Write(m_fs.Head);
+                writer.Write(m_fileSystem.Head);
 
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
                 {

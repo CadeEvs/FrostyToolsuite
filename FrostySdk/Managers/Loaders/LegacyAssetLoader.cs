@@ -12,7 +12,7 @@ namespace FrostySdk.Managers
             public void Load(AssetManager parent, BinarySbDataHelper helper)
             {
                 // all other games read from superbundles
-                foreach (string superBundleName in parent.m_fs.SuperBundles)
+                foreach (string superBundleName in parent.m_fileSystem.SuperBundles)
                 {
                     parent.m_superBundles.Add(new SuperBundleEntry() { Name = superBundleName });
                     bool patchFileExists = false;
@@ -62,11 +62,11 @@ namespace FrostySdk.Managers
                     }
 
                     // open superbundles for processing
-                    NativeReader baseMf = new NativeReader(new FileStream(parent.m_fs.ResolvePath(string.Format("native_data/{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read));
+                    NativeReader baseMf = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(string.Format("native_data/{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read));
                     NativeReader patchMf = baseMf;
 
                     if (patchFileExists)
-                        patchMf = new NativeReader(new FileStream(parent.m_fs.ResolvePath(string.Format("native_patch/{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read));
+                        patchMf = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(string.Format("native_patch/{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read));
 
                     // iterate bundles in superbundle
                     foreach (DbObject bundle in patchBundleList)
@@ -99,13 +99,13 @@ namespace FrostySdk.Managers
                                 //    Console.WriteLine("TEST");
 
                                 // patched binary super bundle
-                                using (BinarySbReader reader = new LegacyBinarySbReader(baseStream, stream, parent.m_fs.CreateDeobfuscator()))
+                                using (BinarySbReader reader = new LegacyBinarySbReader(baseStream, stream, parent.m_fileSystem.CreateDeobfuscator()))
                                     sb = reader.ReadDbObject();
 
                                 DbObject baseSb = null;
                                 if (bi != null)
                                 {
-                                    using (BinarySbReader reader = new LegacyBinarySbReader(baseMf.CreateViewStream(bi.Offset, bi.Size), bi.Offset, parent.m_fs.CreateDeobfuscator()))
+                                    using (BinarySbReader reader = new LegacyBinarySbReader(baseMf.CreateViewStream(bi.Offset, bi.Size), bi.Offset, parent.m_fileSystem.CreateDeobfuscator()))
                                         baseSb = reader.ReadDbObject();
                                 }
 
@@ -115,14 +115,14 @@ namespace FrostySdk.Managers
                             else
                             {
                                 // binary super bundle
-                                using (BinarySbReader reader = new LegacyBinarySbReader(stream, offset, parent.m_fs.CreateDeobfuscator()))
+                                using (BinarySbReader reader = new LegacyBinarySbReader(stream, offset, parent.m_fileSystem.CreateDeobfuscator()))
                                     sb = reader.ReadDbObject();
                             }
                         }
                         else
                         {
                             // normal superbundle
-                            using (DbReader reader = new DbReader(stream, parent.m_fs.CreateDeobfuscator()))
+                            using (DbReader reader = new DbReader(stream, parent.m_fileSystem.CreateDeobfuscator()))
                                 sb = reader.ReadDbObject();
                         }
 

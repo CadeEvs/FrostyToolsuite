@@ -29,7 +29,7 @@ namespace FrostySdk.Managers
             {
                 // get second encryption key
                 byte[] key = KeyManager.Instance.GetKey("Key2");
-                foreach (CatalogInfo catalog in parent.m_fs.EnumerateCatalogInfos())
+                foreach (CatalogInfo catalog in parent.m_fileSystem.EnumerateCatalogInfos())
                 {
                     foreach (string sbName in catalog.SuperBundles.Keys)
                     {
@@ -58,7 +58,7 @@ namespace FrostySdk.Managers
                         if (tocPath == "")
                             tocPath = parent.fs.ResolvePath(string.Format("{0}.toc", sbPath));
 #else
-                        string tocPath = parent.m_fs.ResolvePath(string.Format("{0}.toc", sbPath));
+                        string tocPath = parent.m_fileSystem.ResolvePath(string.Format("{0}.toc", sbPath));
 #endif
 
                         if (tocPath != "")
@@ -67,7 +67,7 @@ namespace FrostySdk.Managers
                             int chunksOffset = 0;
                             byte[] buffer = null;
 
-                            using (NativeReader reader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.m_fs.CreateDeobfuscator()))
+                            using (NativeReader reader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.m_fileSystem.CreateDeobfuscator()))
                             {
                                 uint magic = reader.ReadUInt();
                                 bundlesOffset = reader.ReadInt() - 0x0C;
@@ -125,7 +125,7 @@ namespace FrostySdk.Managers
                                                 int fileOffset = reader.ReadInt();
                                                 int fileSize = reader.ReadInt();
 
-                                                using (NativeReader casReader = new NativeReader(new FileStream(parent.m_fs.ResolvePath(parent.m_fs.GetFilePath(fileIndex & 0x7FFFFFFF)), FileMode.Open, FileAccess.Read)))
+                                                using (NativeReader casReader = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(parent.m_fileSystem.GetFilePath(fileIndex & 0x7FFFFFFF)), FileMode.Open, FileAccess.Read)))
                                                 {
                                                     casReader.Position = fileOffset;
                                                     ms.Write(casReader.ReadBytes(fileSize), 0, fileSize);
@@ -159,7 +159,7 @@ namespace FrostySdk.Managers
                                             BundleEntry be = new BundleEntry { Name = bundleName, SuperBundleId = sbIndex };
                                             parent.m_bundles.Add(be);
 
-                                            using (BinarySbReader bundleReader = new BinarySbReader(ms, parent.m_fs.CreateDeobfuscator()))
+                                            using (BinarySbReader bundleReader = new BinarySbReader(ms, parent.m_fileSystem.CreateDeobfuscator()))
                                             {
                                                 DbObject bundle = bundleReader.ReadDbObject();
 
@@ -255,7 +255,7 @@ namespace FrostySdk.Managers
                                             chunk.Location = AssetDataLocation.CasNonIndexed;
                                             chunk.ExtraData = new AssetExtraData
                                             {
-                                                CasPath = parent.m_fs.GetFilePath(fileIndex),
+                                                CasPath = parent.m_fileSystem.GetFilePath(fileIndex),
                                                 DataOffset = dataOffset
                                             };
 
