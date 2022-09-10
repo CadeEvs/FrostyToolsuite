@@ -54,12 +54,12 @@ namespace RootInstanceEntiresPlugin
 
         public static bool ReadCache(FrostyTaskWindow task)
         {
-            if (!File.Exists($"{App.FileSystem.CacheName}_rootinstances.cache"))
+            if (!File.Exists($"{App.FileSystemManager.CacheName}_rootinstances.cache"))
                 return false;
 
-            task.Update($"Loading data ({App.FileSystem.CacheName}_rootinstances.cache)");
+            task.Update($"Loading data ({App.FileSystemManager.CacheName}_rootinstances.cache)");
 
-            using (NativeReader reader = new NativeReader(new FileStream($"{App.FileSystem.CacheName}_rootinstances.cache", FileMode.Open, FileAccess.Read)))
+            using (NativeReader reader = new NativeReader(new FileStream($"{App.FileSystemManager.CacheName}_rootinstances.cache", FileMode.Open, FileAccess.Read)))
             {
                 uint version = reader.ReadUInt();
                 if (version != cacheVersion)
@@ -84,7 +84,7 @@ namespace RootInstanceEntiresPlugin
 
         public static void WriteToCache(FrostyTaskWindow task)
         {
-            FileInfo fi = new FileInfo($"{App.FileSystem.CacheName}_rootinstances.cache");
+            FileInfo fi = new FileInfo($"{App.FileSystemManager.CacheName}_rootinstances.cache");
             if (!Directory.Exists(fi.DirectoryName))
                 Directory.CreateDirectory(fi.DirectoryName);
 

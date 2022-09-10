@@ -191,7 +191,7 @@ namespace Frosty.ModSupport
         [DllImport("kernel32.dll")]
         static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags);
 
-        private FileSystem fs;
+        private FileSystemManager fs;
         private ResourceManager rm;
         private AssetManager am;
         private ILogger logger;
@@ -219,7 +219,7 @@ namespace Frosty.ModSupport
 
         private void ReportProgress(int current, int total) => Logger.Log("progress:" + current / (float)total * 100d);
 
-        private Dictionary<int, Dictionary<uint, CatResourceEntry>> LoadCatalog(FileSystem fs, string filename, out int catFileHash)
+        private Dictionary<int, Dictionary<uint, CatResourceEntry>> LoadCatalog(FileSystemManager fs, string filename, out int catFileHash)
         {
             catFileHash = 0;
             string fullPath = fs.ResolvePath(filename);
@@ -974,7 +974,7 @@ namespace Frosty.ModSupport
             }
         }
 
-        public int Run(FileSystem inFs, CancellationToken cancelToken, ILogger inLogger, string rootPath, string modPackName, string additionalArgs, params string[] modPaths)
+        public int Run(FileSystemManager inFs, CancellationToken cancelToken, ILogger inLogger, string rootPath, string modPackName, string additionalArgs, params string[] modPaths)
         {
             modDirName = "ModData\\" + modPackName;
             cancelToken.ThrowIfCancellationRequested();

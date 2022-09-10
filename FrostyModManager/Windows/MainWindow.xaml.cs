@@ -279,7 +279,7 @@ namespace FrostyModManager
         private List<IFrostyMod> availableMods = new List<IFrostyMod>();
         private List<FrostyPack> packs = new List<FrostyPack>();
         private FrostyPack selectedPack;
-        private FileSystem fs;
+        private FileSystemManager fs;
 
         private static int manifestVersion = 1;
 
@@ -306,7 +306,7 @@ namespace FrostyModManager
                 return;
             }
 
-            fs = new FileSystem(gamePath);
+            fs = new FileSystemManager(gamePath);
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 fs.AddSource(source.Path, source.SubDirs);
             fs.Initialize();
@@ -607,10 +607,10 @@ namespace FrostyModManager
             Config.Save();
 
             // initialize
-            Frosty.Core.App.FileSystem = new FileSystem(Config.Get<string>("GamePath", "", ConfigScope.Game));
+            Frosty.Core.App.FileSystemManager = new FileSystemManager(Config.Get<string>("GamePath", "", ConfigScope.Game));
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
-                Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);
-            Frosty.Core.App.FileSystem.Initialize();
+                Frosty.Core.App.FileSystemManager.AddSource(source.Path, source.SubDirs);
+            Frosty.Core.App.FileSystemManager.Initialize();
 
             // Set selected pack
             App.SelectedPack = selectedPack.Name;

@@ -1075,7 +1075,7 @@ namespace Frosty.Core.Sdk
             mapping = new Dictionary<string, Tuple<EbxClass, DbObject>>();
             fieldMapping = new Dictionary<string, List<EbxField>>();
 
-            if (App.FileSystem.HasFileInMemoryFs("SharedTypeDescriptors.ebx"))
+            if (App.FileSystemManager.HasFileInMemoryFs("SharedTypeDescriptors.ebx"))
             {
                 List<Guid> guids = new List<Guid>();
                 LoadSharedTypeDescriptors("SharedTypeDescriptors.ebx", mapping, guids);
@@ -1228,7 +1228,7 @@ namespace Frosty.Core.Sdk
 
             //TypeLibrary.BuildModule(ProfilesLibrary.SDKFilename, finalList);
             using (ModuleWriter writer = new ModuleWriter("EbxClasses.dll", finalList))
-                writer.Write(App.FileSystem.Head);
+                writer.Write(App.FileSystemManager.Head);
 
             if (File.Exists("EbxClasses.dll"))
             {
@@ -1247,15 +1247,15 @@ namespace Frosty.Core.Sdk
             }
 
             // delete type info cache if there is one
-            if (File.Exists($"{App.FileSystem.CacheName}_typeinfo.cache"))
-                File.Delete($"{App.FileSystem.CacheName}_typeinfo.cache");
+            if (File.Exists($"{App.FileSystemManager.CacheName}_typeinfo.cache"))
+                File.Delete($"{App.FileSystemManager.CacheName}_typeinfo.cache");
 
             return true;
         }
 
         private void LoadSharedTypeDescriptors(string name, Dictionary<string, Tuple<EbxClass, DbObject>> mapping, List<Guid> existingClasses)
         {
-            byte[] typeDescData = App.FileSystem.GetFileFromMemoryFs(name);
+            byte[] typeDescData = App.FileSystemManager.GetFileFromMemoryFs(name);
             if (typeDescData == null)
                 return;
 

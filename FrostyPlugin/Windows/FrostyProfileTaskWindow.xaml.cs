@@ -156,7 +156,7 @@ namespace Frosty.Core.Windows
             await LoadData(KeyManager.Instance.GetKey("Key1"), result);
 
             // check to make sure SDK is up to date
-            if (TypeLibrary.GetSdkVersion() != App.FileSystem.Head)
+            if (TypeLibrary.GetSdkVersion() != App.FileSystemManager.Head)
             {
                 // requires updating
                 SdkUpdateWindow sdkWin = new SdkUpdateWindow(this);
@@ -227,18 +227,18 @@ namespace Frosty.Core.Windows
             {
                 string basePath = Config.Get<string>("GamePath", null, ConfigScope.Game);
 
-                App.FileSystem = new FileSystem(basePath);
+                App.FileSystemManager = new FileSystemManager(basePath);
                 foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 {
-                    App.FileSystem.AddSource(source.Path, source.SubDirs);
+                    App.FileSystemManager.AddSource(source.Path, source.SubDirs);
                 }
-                App.FileSystem.Initialize(key);
+                App.FileSystemManager.Initialize(key);
 
-                App.ResourceManager = new ResourceManager(App.FileSystem);
+                App.ResourceManager = new ResourceManager(App.FileSystemManager);
                 App.ResourceManager.SetLogger(TaskLogger);
                 App.ResourceManager.Initialize();
 
-                App.AssetManager = new AssetManager(App.FileSystem, App.ResourceManager);
+                App.AssetManager = new AssetManager(App.FileSystemManager, App.ResourceManager);
 
                 TypeLibrary.Initialize();
                 

@@ -131,20 +131,20 @@ namespace FrostyModManager.Windows
 
             // load filesystem to gather details on game version
             string basePath = Config.Get<string>("GamePath", "", ConfigScope.Game);
-            Frosty.Core.App.FileSystem = new FileSystem(basePath);
+            Frosty.Core.App.FileSystemManager = new FileSystemManager(basePath);
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
-                Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);
-            Frosty.Core.App.FileSystem.Initialize(KeyManager.Instance.GetKey("Key1"));
+                Frosty.Core.App.FileSystemManager.AddSource(source.Path, source.SubDirs);
+            Frosty.Core.App.FileSystemManager.Initialize(KeyManager.Instance.GetKey("Key1"));
 
             // check to make sure SDK is up to date
-            if (!File.Exists(Frosty.Core.App.FileSystem.CacheName + ".cache"))
+            if (!File.Exists(Frosty.Core.App.FileSystemManager.CacheName + ".cache"))
             {
                 ILogger logger = new SplashWindowLogger(this);
 
                 // load data from game or cache
                 await LoadData(logger);
 
-                if (TypeLibrary.GetSdkVersion() != Frosty.Core.App.FileSystem.Head)
+                if (TypeLibrary.GetSdkVersion() != Frosty.Core.App.FileSystemManager.Head)
                 {
                     // requires updating
                     SdkUpdateWindow sdkWin = new SdkUpdateWindow(this);
@@ -155,7 +155,7 @@ namespace FrostyModManager.Windows
             // clear out all global managers
             Frosty.Core.App.AssetManager = null;
             Frosty.Core.App.ResourceManager = null;
-            Frosty.Core.App.FileSystem = null;
+            Frosty.Core.App.FileSystemManager = null;
             GC.Collect();
 
             // show the main editor window
@@ -191,11 +191,11 @@ namespace FrostyModManager.Windows
                 // need to load the managers into the global core app class as the SDK updater
                 // requires them to be valid
 
-                Frosty.Core.App.ResourceManager = new ResourceManager(Frosty.Core.App.FileSystem);
+                Frosty.Core.App.ResourceManager = new ResourceManager(Frosty.Core.App.FileSystemManager);
                 Frosty.Core.App.ResourceManager.SetLogger(logger);
                 Frosty.Core.App.ResourceManager.Initialize();
 
-                Frosty.Core.App.AssetManager = new AssetManager(Frosty.Core.App.FileSystem, Frosty.Core.App.ResourceManager);
+                Frosty.Core.App.AssetManager = new AssetManager(Frosty.Core.App.FileSystemManager, Frosty.Core.App.ResourceManager);
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville)
                     Frosty.Core.App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManager));
                 Frosty.Core.App.AssetManager.SetLogger(logger);

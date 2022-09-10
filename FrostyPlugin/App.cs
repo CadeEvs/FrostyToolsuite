@@ -16,7 +16,7 @@ namespace Frosty.Core
         // managers
         public static AssetManager AssetManager;
         public static ResourceManager ResourceManager;
-        public static FileSystem FileSystem;
+        public static FileSystemManager FileSystemManager;
         public static PluginManager PluginManager;
         public static NotificationManager NotificationManager;
 
@@ -42,7 +42,7 @@ namespace Frosty.Core
             // clear out all global managers
             AssetManager = null;
             ResourceManager = null;
-            FileSystem = null;
+            FileSystemManager = null;
 
             PluginManager.Clear();
             

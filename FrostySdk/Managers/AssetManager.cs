@@ -554,7 +554,7 @@ namespace FrostySdk.Managers
         private const ulong CacheMagic = 0x02005954534F5246;
         private const uint CacheVersion = 2;
 
-        private FileSystem m_fileSystem;
+        private FileSystemManager m_fileSystem;
         private ResourceManager m_resourceManager;
         private ILogger m_logger;
 
@@ -570,7 +570,7 @@ namespace FrostySdk.Managers
 
         private Dictionary<string, ICustomAssetManager> m_customAssetManagers = new Dictionary<string, ICustomAssetManager>();
 
-        public AssetManager(FileSystem inFileSystem, ResourceManager inResourceManager)
+        public AssetManager(FileSystemManager inFileSystem, ResourceManager inResourceManager)
         {
             m_fileSystem = inFileSystem;
             m_resourceManager = inResourceManager;

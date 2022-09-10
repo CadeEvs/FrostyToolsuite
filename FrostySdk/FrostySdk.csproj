@@ -92,7 +92,6 @@
     <Compile Include="Ebx\PointerRef.cs" />
     <Compile Include="Ebx\ResourceRef.cs" />
     <Compile Include="Ebx\TypeRef.cs" />
-    <Compile Include="FileSystem.cs" />
     <Compile Include="Interfaces\IBinarySbReader.cs" />
     <Compile Include="Interfaces\IBinarySbWriter.cs" />
     <Compile Include="Interfaces\ICompressionUtils.cs" />
@@ -115,6 +114,7 @@
     <Compile Include="DbObject.cs" />
     <Compile Include="IO\NativeWriter.cs" />
     <Compile Include="Managers\AssetManager.cs" />
+    <Compile Include="Managers\FileSystemManager.cs" />
     <Compile Include="Managers\KeyManager.cs" />
     <Compile Include="Managers\Loaders\EdgeAssetLoader.cs" />
     <Compile Include="Managers\Loaders\AnthemAssetLoader.cs" />

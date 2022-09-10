@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using FrostySdk.Managers;
 using Frosty.Hash;
 
-namespace FrostySdk
+namespace FrostySdk.Managers
 {
     public struct ManifestFileRef
     {
@@ -55,7 +55,7 @@ namespace FrostySdk
         public Dictionary<string, bool> SuperBundles = new Dictionary<string, bool>();
     }
 
-    public class FileSystem
+    public class FileSystemManager
     {
         public int SuperBundleCount => superBundles.Count;
 
@@ -93,7 +93,7 @@ namespace FrostySdk
         private List<string> casFiles = new List<string>();
         private readonly Type deobfuscatorType;
 
-        public FileSystem(string inBasePath)
+        public FileSystemManager(string inBasePath)
         {
             BasePath = inBasePath;
             if (!BasePath.EndsWith("\\") || !BasePath.EndsWith("/"))

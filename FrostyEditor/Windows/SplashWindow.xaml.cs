@@ -199,7 +199,7 @@ namespace FrostyEditor.Windows
             {
                 string basePath = Config.Get<string>("GamePath", null, ConfigScope.Game);
 
-                App.FileSystem = new FileSystem(basePath);
+                App.FileSystem = new FileSystemManager(basePath);
                 foreach (FileSystemSource source in ProfilesLibrary.Sources)
                     App.FileSystem.AddSource(source.Path, source.SubDirs);
                 App.FileSystem.Initialize(key);

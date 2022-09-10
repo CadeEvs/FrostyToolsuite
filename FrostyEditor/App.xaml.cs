@@ -26,7 +26,7 @@ namespace FrostyEditor
     {
         public static AssetManager AssetManager { get => Frosty.Core.App.AssetManager; set => Frosty.Core.App.AssetManager = value; }
         public static ResourceManager ResourceManager { get => Frosty.Core.App.ResourceManager; set => Frosty.Core.App.ResourceManager = value; }
-        public static FileSystem FileSystem { get => Frosty.Core.App.FileSystem; set => Frosty.Core.App.FileSystem = value; }
+        public static FileSystemManager FileSystem { get => Frosty.Core.App.FileSystemManager; set => Frosty.Core.App.FileSystemManager = value; }
         public static PluginManager PluginManager { get => Frosty.Core.App.PluginManager; set => Frosty.Core.App.PluginManager = value; }
         public static NotificationManager NotificationManager { get => Frosty.Core.App.NotificationManager; set => Frosty.Core.App.NotificationManager = value; }
 

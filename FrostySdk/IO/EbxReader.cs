@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using FrostySdk.Managers;
 
 namespace FrostySdk.IO
 {
@@ -534,7 +535,7 @@ namespace FrostySdk.IO
             return new EbxReader(inStream);
         }
 
-        public static EbxReader CreateReader(Stream inStream, FileSystem fs = null, bool patched = false)
+        public static EbxReader CreateReader(Stream inStream, FileSystemManager fs = null, bool patched = false)
         {
             return (ProfilesLibrary.EbxVersion & 1) != 0 ? new EbxReaderV2(inStream, fs, patched) : new EbxReader(inStream);
         }
@@ -1176,7 +1177,7 @@ namespace FrostySdk.IO
         private List<EbxField> fields = new List<EbxField>();
         private List<Guid> guids = new List<Guid>();
 
-        public EbxSharedTypeDescriptors(FileSystem fs, string name, bool patch)
+        public EbxSharedTypeDescriptors(FileSystemManager fs, string name, bool patch)
         {
             using (NativeReader reader = new NativeReader(new MemoryStream(fs.GetFileFromMemoryFs(name))))
             {
@@ -1278,7 +1279,7 @@ namespace FrostySdk.IO
         internal static EbxSharedTypeDescriptors patchStd = null;
         private readonly bool patched = false;
 
-        public EbxReaderV2(Stream InStream, FileSystem fs, bool inPatched)
+        public EbxReaderV2(Stream InStream, FileSystemManager fs, bool inPatched)
             : base(InStream, true)
         {
             if (std == null)

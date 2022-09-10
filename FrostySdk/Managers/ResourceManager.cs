@@ -9,7 +9,7 @@ namespace FrostySdk.Managers
 {
     public class ResourceManager : ILoggable
     {
-        private readonly FileSystem fs;
+        private readonly FileSystemManager fs;
         private ILogger logger;
 
         private Dictionary<Sha1, CatResourceEntry> resourceEntries = new Dictionary<Sha1, CatResourceEntry>();
@@ -17,7 +17,7 @@ namespace FrostySdk.Managers
         private Dictionary<int, string> casFiles = new Dictionary<int, string>();
         //private Dictionary<string, byte[]> keys = new Dictionary<string, byte[]>();
 
-        public ResourceManager(FileSystem inFs)
+        public ResourceManager(FileSystemManager inFs)
         {
             fs = inFs;
         }

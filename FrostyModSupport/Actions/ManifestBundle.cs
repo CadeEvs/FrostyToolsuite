@@ -41,7 +41,7 @@ namespace Frosty.ModSupport
             {
                 try
                 {
-                    FileSystem fs = parent.fs;
+                    FileSystemManager fs = parent.fs;
 
                     foreach (ModBundleInfo bundle in bundles)
                     {

@@ -224,7 +224,7 @@ namespace Frosty.Core
                 return;
             }
 
-            using (EbxReader reader = EbxReader.CreateReader(new FileStream(path, FileMode.Open, FileAccess.Read), App.FileSystem, true))
+            using (EbxReader reader = EbxReader.CreateReader(new FileStream(path, FileMode.Open, FileAccess.Read), App.FileSystemManager, true))
             {
                 var asset = reader.ReadAsset<EbxAsset>();
                 App.AssetManager.ModifyEbx(entry.Name, asset);
