@@ -1028,11 +1028,11 @@ namespace Frosty.Core.Sdk
 
         private List<ClassInfo> m_classInfos = new List<ClassInfo>();
         private List<string> m_alreadyProcessedClasses = new List<string>();
-        private Dictionary<long, ClassInfo> m_offsetClassInfoMapping = new Dictionary<long, ClassInfo>();
+        private Dictionary<long, ClassInfo> m_offsetClassInfoMappings = new Dictionary<long, ClassInfo>();
 
-        private List<EbxClass> m_processed = new List<EbxClass>();
-        private Dictionary<string, List<EbxField>> m_fieldMapping;
-        private Dictionary<string, Tuple<EbxClass, DbObject>> m_mapping;
+        private List<EbxClass> m_processedClasses = new List<EbxClass>();
+        private Dictionary<string, List<EbxField>> m_fieldMappings;
+        private Dictionary<string, Tuple<EbxClass, DbObject>> m_classMappings;
         
         private List<Tuple<EbxClass, DbObject>> m_values = null;
         private DbObject m_classList = null;
@@ -1103,14 +1103,14 @@ namespace Frosty.Core.Sdk
 
         public bool CrossReferenceAssets(SdkUpdateTask task)
         {
-            m_mapping = new Dictionary<string, Tuple<EbxClass, DbObject>>();
-            m_fieldMapping = new Dictionary<string, List<EbxField>>();
+            m_classMappings = new Dictionary<string, Tuple<EbxClass, DbObject>>();
+            m_fieldMappings = new Dictionary<string, List<EbxField>>();
 
             if (App.FileSystemManager.HasFileInMemoryFs("SharedTypeDescriptors.ebx"))
             {
                 List<Guid> guids = new List<Guid>();
-                LoadSharedTypeDescriptors("SharedTypeDescriptors.ebx", m_mapping, guids);
-                LoadSharedTypeDescriptors("SharedTypeDescriptors_patch.ebx", m_mapping, guids);
+                LoadSharedTypeDescriptors("SharedTypeDescriptors.ebx", m_classMappings, guids);
+                LoadSharedTypeDescriptors("SharedTypeDescriptors_patch.ebx", m_classMappings, guids);
             }
             else
             {
@@ -1135,7 +1135,7 @@ namespace Frosty.Core.Sdk
                         {
                             if (cl.Name != "array")
                             {
-                                if (!m_mapping.ContainsKey(cl.Name))
+                                if (!m_classMappings.ContainsKey(cl.Name))
                                 {
                                     DbObject foundObj = null;
                                     int idx = 0;
@@ -1150,13 +1150,13 @@ namespace Frosty.Core.Sdk
                                         idx++;
                                     }
 
-                                    m_mapping.Add(cl.Name, new Tuple<EbxClass, DbObject>(cl, foundObj));
-                                    m_fieldMapping.Add(cl.Name, new List<EbxField>());
+                                    m_classMappings.Add(cl.Name, new Tuple<EbxClass, DbObject>(cl, foundObj));
+                                    m_fieldMappings.Add(cl.Name, new List<EbxField>());
 
                                     for (int fieldId = 0; fieldId < cl.FieldCount; fieldId++)
                                     {
                                         EbxField field = fields[cl.FieldIndex + fieldId];
-                                        m_fieldMapping[cl.Name].Add(field);
+                                        m_fieldMappings[cl.Name].Add(field);
                                     }
                                 }
                             }
@@ -1172,7 +1172,7 @@ namespace Frosty.Core.Sdk
         {
             DbObject finalList = new DbObject(false);
 
-            m_values = m_mapping.Values.ToList();
+            m_values = m_classMappings.Values.ToList();
             m_values.Sort((Tuple<EbxClass, DbObject> a, Tuple<EbxClass, DbObject> b) => { return a.Item1.Name.CompareTo(b.Item1.Name); });
 
             Console.WriteLine("Creating SDK");
@@ -1191,13 +1191,13 @@ namespace Frosty.Core.Sdk
                 int offset = (cl.DebugType == EbxFieldType.Pointer) ? 8 : 0;
                 int fieldIndex = 0;
 
-                ProcessClass(cl, obj, m_fieldMapping[cl.Name], finalList, ref offset, ref fieldIndex);
+                ProcessClass(cl, obj, m_fieldMappings[cl.Name], finalList, ref offset, ref fieldIndex);
             }
 
             List<DbObject> supportedClasses = new List<DbObject>();
             foreach (DbObject classObj in m_classList)
             {
-                if (m_fieldMapping.ContainsKey(classObj.GetValue<string>("name")))
+                if (m_fieldMappings.ContainsKey(classObj.GetValue<string>("name")))
                 {
                     continue;
                 }
@@ -1238,7 +1238,7 @@ namespace Frosty.Core.Sdk
                 }
 
                 m_values.Add(new Tuple<EbxClass, DbObject>(tmpClass, classObj));
-                m_fieldMapping.Add(tmpClass.Name, tmpFields);
+                m_fieldMappings.Add(tmpClass.Name, tmpFields);
                 supportedClasses.Add(classObj);
             }
 
@@ -1255,7 +1255,7 @@ namespace Frosty.Core.Sdk
                 int offset = 0;
                 int fieldIndex = 0;
 
-                ProcessClass(p.Item1, p.Item2, m_fieldMapping[p.Item1.Name], finalList, ref offset, ref fieldIndex);
+                ProcessClass(p.Item1, p.Item2, m_fieldMappings[p.Item1.Name], finalList, ref offset, ref fieldIndex);
 
                 //if(p.Item1.DebugType == EbxFieldType.Pointer)
                 //    Console.WriteLine(p.Item1.Name);
@@ -1409,7 +1409,7 @@ namespace Frosty.Core.Sdk
                         if (mapping.ContainsKey(classObj.GetValue("name", "")))
                         {
                             mapping.Remove(classObj.GetValue("name", ""));
-                            m_fieldMapping.Remove(classObj.GetValue("name", ""));
+                            m_fieldMappings.Remove(classObj.GetValue("name", ""));
                         }
 
                         if (!classObj.HasValue("typeInfoGuid"))
@@ -1443,7 +1443,7 @@ namespace Frosty.Core.Sdk
                         //}                     
 
                         mapping.Add(ebxClass.Name, new Tuple<EbxClass, DbObject>(ebxClass, classObj));
-                        m_fieldMapping.Add(ebxClass.Name, new List<EbxField>());
+                        m_fieldMappings.Add(ebxClass.Name, new List<EbxField>());
 
                         DbObject fieldObjs = classObj.GetValue<DbObject>("fields");
                         DbObject newFieldObjs = DbObject.CreateList();
@@ -1492,7 +1492,7 @@ namespace Frosty.Core.Sdk
                                 }
                             }
 
-                            m_fieldMapping[ebxClass.Name].Add(field);
+                            m_fieldMappings[ebxClass.Name].Add(field);
                             fieldIdx++;
                         }
 
@@ -1512,7 +1512,7 @@ namespace Frosty.Core.Sdk
             if (parent != "")
             {
                 Tuple<EbxClass, DbObject> p = m_values.Find((Tuple<EbxClass, DbObject> a) => { return a.Item1.Name == parent; });
-                offset = ProcessClass(p.Item1, p.Item2, m_fieldMapping[p.Item1.Name], outList, ref offset, ref fieldIndex);
+                offset = ProcessClass(p.Item1, p.Item2, m_fieldMappings[p.Item1.Name], outList, ref offset, ref fieldIndex);
 
                 if (p.Item1.Name == "DataContainer" && pclass.Name != "Asset")
                 {
@@ -1520,7 +1520,7 @@ namespace Frosty.Core.Sdk
                 }
             }
 
-            if (m_processed.Contains(pclass))
+            if (m_processedClasses.Contains(pclass))
             {
                 foreach (DbObject t in outList)
                 {
@@ -1532,7 +1532,7 @@ namespace Frosty.Core.Sdk
                 }
                 return 0;
             }
-            m_processed.Add(pclass);
+            m_processedClasses.Add(pclass);
 
             int index = m_classMetaList.FindIndex((object o) => { return ((DbObject)o).GetValue<string>("name") == pclass.Name; });
             DbObject classMeta = null;
@@ -1712,7 +1712,7 @@ namespace Frosty.Core.Sdk
                                 int structOffset = 0;
                                 int structFieldIndex = 0;
 
-                                offset += ProcessClass(s.Item1, s.Item2, m_fieldMapping[s.Item1.Name], outList, ref structOffset, ref structFieldIndex);
+                                offset += ProcessClass(s.Item1, s.Item2, m_fieldMappings[s.Item1.Name], outList, ref structOffset, ref structFieldIndex);
                             }
                             break;
                         case EbxFieldType.Pointer: offset += 4; break;
@@ -1813,11 +1813,11 @@ namespace Frosty.Core.Sdk
             reader = new MemoryReader(m_state.Process, origOffset);
 
             // cleanup
-            m_offsetClassInfoMapping.Clear();
+            m_offsetClassInfoMappings.Clear();
             m_classInfos.Clear();
             m_alreadyProcessedClasses.Clear();
-            m_processed.Clear();
-            m_fieldMapping?.Clear();
+            m_processedClasses.Clear();
+            m_fieldMappings?.Clear();
 
             Offset = origOffset;
             int count = 0;
@@ -1831,7 +1831,7 @@ namespace Frosty.Core.Sdk
                 info.Read(reader);
 
                 m_classInfos.Add(info);
-                m_offsetClassInfoMapping.Add(origOffset, info);
+                m_offsetClassInfoMappings.Add(origOffset, info);
 
                 if (Offset != 0)
                 {
@@ -1870,7 +1870,7 @@ namespace Frosty.Core.Sdk
             int alignment = classInfo.TypeInfo.Alignment;
             int size = (int)classInfo.TypeInfo.Size;
 
-            ClassInfo arrayType = (m_offsetClassInfoMapping.ContainsKey(classInfo.TypeInfo.ArrayTypeOffset)) ? m_offsetClassInfoMapping[classInfo.TypeInfo.ArrayTypeOffset] : null;
+            ClassInfo arrayType = (m_offsetClassInfoMappings.ContainsKey(classInfo.TypeInfo.ArrayTypeOffset)) ? m_offsetClassInfoMappings[classInfo.TypeInfo.ArrayTypeOffset] : null;
 
             DbObject classObj = DbObject.CreateObject();
             classObj.SetValue("name", classInfo.TypeInfo.Name);
@@ -1892,7 +1892,7 @@ namespace Frosty.Core.Sdk
             classObj.SetValue("parent", "");
             classObj.SetValue("basic", true);
 
-            classInfo.TypeInfo.Modify(classObj, m_offsetClassInfoMapping);
+            classInfo.TypeInfo.Modify(classObj, m_offsetClassInfoMappings);
             classList.Add(classObj);
         }
 
@@ -1903,8 +1903,8 @@ namespace Frosty.Core.Sdk
                 return;
             }
 
-            ClassInfo parent = (m_offsetClassInfoMapping.ContainsKey(classInfo.ParentClass)) ? m_offsetClassInfoMapping[classInfo.ParentClass] : null;
-            ClassInfo arrayType = (m_offsetClassInfoMapping.ContainsKey(classInfo.TypeInfo.ArrayTypeOffset)) ? m_offsetClassInfoMapping[classInfo.TypeInfo.ArrayTypeOffset] : null;
+            ClassInfo parent = (m_offsetClassInfoMappings.ContainsKey(classInfo.ParentClass)) ? m_offsetClassInfoMappings[classInfo.ParentClass] : null;
+            ClassInfo arrayType = (m_offsetClassInfoMappings.ContainsKey(classInfo.TypeInfo.ArrayTypeOffset)) ? m_offsetClassInfoMappings[classInfo.TypeInfo.ArrayTypeOffset] : null;
             if (parent != null)
             {
                 CreateClassObject(parent, ref classList);
@@ -1932,7 +1932,7 @@ namespace Frosty.Core.Sdk
                 classObj.AddValue("arrayGuid", arrayType.TypeInfo.Guid);
             }
 
-            classInfo.TypeInfo.Modify(classObj, m_offsetClassInfoMapping);
+            classInfo.TypeInfo.Modify(classObj, m_offsetClassInfoMappings);
 
             DbObject fieldList = new DbObject(false);
             foreach (FieldInfo field in classInfo.TypeInfo.Fields)
@@ -1945,7 +1945,7 @@ namespace Frosty.Core.Sdk
                 }
                 else
                 {
-                    ClassInfo fieldType = m_offsetClassInfoMapping[field.TypeOffset];
+                    ClassInfo fieldType = m_offsetClassInfoMappings[field.TypeOffset];
                     fieldObj.AddValue("name", field.Name);
                     fieldObj.AddValue("type", fieldType.TypeInfo.Type);
                     fieldObj.AddValue("flags", (int)fieldType.TypeInfo.Flags);
@@ -1957,7 +1957,7 @@ namespace Frosty.Core.Sdk
                     }
                     else if (fieldType.TypeInfo.Type == 4)
                     {
-                        fieldType = m_offsetClassInfoMapping[fieldType.ParentClass];
+                        fieldType = m_offsetClassInfoMappings[fieldType.ParentClass];
                         fieldObj.AddValue("baseType", fieldType.TypeInfo.Name);
                         fieldObj.AddValue("arrayFlags", (int)fieldType.TypeInfo.Flags);
                     }
