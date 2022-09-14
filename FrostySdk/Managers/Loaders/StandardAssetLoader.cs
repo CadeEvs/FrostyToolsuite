@@ -1,5 +1,6 @@
 ﻿using FrostySdk.IO;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Managers
 {

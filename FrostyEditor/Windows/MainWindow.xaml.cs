@@ -24,6 +24,7 @@ using FrostyCore;
 using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using Microsoft.Win32;
 using Bookmarks = Frosty.Core.Bookmarks;
 

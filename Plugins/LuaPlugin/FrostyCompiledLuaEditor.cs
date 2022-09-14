@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using Frosty.Core.Controls;
 using Frosty.Core;
 using FrostySdk.IO;
+using FrostySdk.Managers.Entries;
 
 namespace LuaPlugin
 {

@@ -18,6 +18,7 @@ using Frosty.Core.Windows;
 using Vector2 = SharpDX.Vector2;
 using TestPlugin.Resources;
 using FrostySdk.IO;
+using FrostySdk.Managers.Entries;
 
 namespace TestPlugin.Controls
 {

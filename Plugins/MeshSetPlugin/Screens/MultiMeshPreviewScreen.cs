@@ -6,6 +6,7 @@ using MeshSetPlugin.Resources;
 using SharpDX;
 using System;
 using System.Collections.Generic;
+using FrostySdk.Managers.Entries;
 using DXUT = Frosty.Core.Viewport.DXUT;
 
 namespace MeshSetPlugin.Screens

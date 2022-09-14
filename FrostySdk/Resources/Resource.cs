@@ -2,6 +2,7 @@
 using FrostySdk.Managers;
 using System;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Resources
 {

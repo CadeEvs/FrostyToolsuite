@@ -5,6 +5,7 @@ using FrostySdk.Resources;
 using SharpDX;
 using System.Collections.Generic;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace TestPlugin.Resources
 {

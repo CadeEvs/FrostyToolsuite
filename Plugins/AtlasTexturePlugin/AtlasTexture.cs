@@ -4,6 +4,7 @@ using FrostySdk.Managers;
 using FrostySdk.Resources;
 using System;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace AtlasTexturePlugin
 {

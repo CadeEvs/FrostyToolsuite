@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using FrostySdk.Managers.Entries;
 using TestPlugin.Controls;
 using TestPlugin.Resources;
 

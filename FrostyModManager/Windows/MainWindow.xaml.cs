@@ -27,6 +27,7 @@ using Frosty.Core.IO;
 using FrostyCore;
 using Frosty.Core.Controls;
 using System.IO.Compression;
+using FrostySdk.Managers.Entries;
 using Newtonsoft.Json;
 
 namespace FrostyModManager

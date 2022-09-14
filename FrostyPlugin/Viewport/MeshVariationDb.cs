@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using Frosty.Core.Windows;
 using System.IO;
 using System.Linq;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Viewport
 {

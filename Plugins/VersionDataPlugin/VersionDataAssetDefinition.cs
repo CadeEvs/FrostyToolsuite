@@ -7,6 +7,7 @@ using Frosty.Core.Controls;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 
 namespace VersionDataPlugin
 {

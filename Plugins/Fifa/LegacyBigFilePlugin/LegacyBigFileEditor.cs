@@ -13,6 +13,7 @@ using System.Windows.Data;
 using Frosty.Core.Controls;
 using Frosty.Core.Windows;
 using Frosty.Core;
+using FrostySdk.Managers.Entries;
 
 namespace LegacyBigFilePlugin
 {

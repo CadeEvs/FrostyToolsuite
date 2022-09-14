@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using Frosty.Core.Controls;
 using Frosty.Core;
 using Frosty.Core.Windows;
+using FrostySdk.Managers.Entries;
 
 namespace AtlasTexturePlugin
 {

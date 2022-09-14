@@ -8,6 +8,7 @@ using System.Windows;
 using Frosty.Controls;
 using Frosty.Core.Windows;
 using System.Collections.Generic;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {

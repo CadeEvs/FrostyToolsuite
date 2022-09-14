@@ -17,6 +17,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.ModSupport
 {

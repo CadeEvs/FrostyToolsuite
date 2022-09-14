@@ -9,6 +9,7 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using Frosty.Core.Mod;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {
@@ -392,21 +393,27 @@ namespace Frosty.Core
         public ICustomActionHandler GetCustomHandler(uint handlerHash)
         {
             if (!customHandlers.ContainsKey(handlerHash))
+            {
                 return null;
+            }
             return (ICustomActionHandler)Activator.CreateInstance(customHandlers[handlerHash]);
         }
 
         public ICustomActionHandler GetCustomHandler(ResourceType resType)
         {
             if (!resCustomHandlers.ContainsKey(resType))
+            {
                 return null;
+            }
             return (ICustomActionHandler)Activator.CreateInstance(resCustomHandlers[resType]);
         }
 
         public ICustomAssetCustomActionHandler GetCustomAssetHandler(string type)
         {
             if (!customAssetHandlers.ContainsKey(type))
+            {
                 return null;
+            }
             return (ICustomAssetCustomActionHandler)Activator.CreateInstance(customAssetHandlers[type]);
         }
 
@@ -419,7 +426,9 @@ namespace Frosty.Core
         public byte[] GetShader(ShaderType type, string name)
         {
             if (!shaders.ContainsKey(name))
+            {
                 return null;
+            }
 
             ShaderDefinition shaderDef = null;
             switch (type)

@@ -12,6 +12,7 @@ using System.Linq;
 using Frosty.Hash;
 using Frosty.Core.Commands;
 using System.Windows.Data;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Controls
 {

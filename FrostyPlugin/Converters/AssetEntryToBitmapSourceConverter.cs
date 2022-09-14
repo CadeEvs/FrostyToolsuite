@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using Frosty.Core.Windows;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Converters
 {

@@ -11,6 +11,7 @@ using Frosty.Core.Controls;
 using Frosty.Core.Windows;
 using Frosty.Core;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace DelayLoadBundlePlugin
 {

@@ -6,6 +6,7 @@ using FrostySdk.Managers;
 using FrostySdk.Resources;
 using System.Collections.Generic;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace TexturePlugin
 {

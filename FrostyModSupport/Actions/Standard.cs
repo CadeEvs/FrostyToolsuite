@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.ModSupport
 {

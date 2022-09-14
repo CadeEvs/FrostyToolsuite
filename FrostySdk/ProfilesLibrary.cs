@@ -99,7 +99,7 @@ namespace FrostySdk
 
         public static Dictionary<int, string> SharedBundles => m_effectiveProfile.SharedBundles;
 
-        public static bool IsResTypeIgnored(Managers.ResourceType resType)
+        public static bool IsResTypeIgnored(Managers.Entries.ResourceType resType)
         {
             return m_effectiveProfile.IgnoredResTypes.Contains((uint)resType);
         }

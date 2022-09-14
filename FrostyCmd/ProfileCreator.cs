@@ -6,6 +6,7 @@ using FrostySdk;
 using FrostySdk.Deobfuscators;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 
 namespace FrostyCmd
 {

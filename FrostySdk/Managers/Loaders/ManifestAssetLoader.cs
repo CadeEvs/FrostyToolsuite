@@ -1,4 +1,6 @@
-﻿namespace FrostySdk.Managers
+﻿using FrostySdk.Managers.Entries;
+
+namespace FrostySdk.Managers
 {
     public partial class AssetManager
     {

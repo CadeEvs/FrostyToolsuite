@@ -1,6 +1,7 @@
 ﻿using Frosty.Core.Converters;
 using FrostySdk.Managers;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Bookmarks
 {

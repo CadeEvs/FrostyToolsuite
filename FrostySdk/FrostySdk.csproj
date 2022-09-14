@@ -114,6 +114,13 @@
     <Compile Include="DbObject.cs" />
     <Compile Include="IO\NativeWriter.cs" />
     <Compile Include="Managers\AssetManager.cs" />
+    <Compile Include="Managers\Entries\AssetEntry.cs" />
+    <Compile Include="Managers\Entries\BundleEntry.cs" />
+    <Compile Include="Managers\Entries\ChunkAssetEntry.cs" />
+    <Compile Include="Managers\Entries\EbxAssetEntry.cs" />
+    <Compile Include="Managers\Entries\ModifiedAssetEntry.cs" />
+    <Compile Include="Managers\Entries\ResAssetEntry.cs" />
+    <Compile Include="Managers\Entries\SuperBundleEntry.cs" />
     <Compile Include="Managers\FileSystemManager.cs" />
     <Compile Include="Managers\KeyManager.cs" />
     <Compile Include="Managers\Loaders\EdgeAssetLoader.cs" />

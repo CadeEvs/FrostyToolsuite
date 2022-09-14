@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {

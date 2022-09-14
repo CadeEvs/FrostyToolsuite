@@ -16,6 +16,7 @@ using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using FrostySdk.Managers.Entries;
 
 namespace FrostyEditor
 {

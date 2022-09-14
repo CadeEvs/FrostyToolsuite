@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using FrostySdk.Managers.Entries;
 
 namespace DuplicationPlugin.Windows
 {

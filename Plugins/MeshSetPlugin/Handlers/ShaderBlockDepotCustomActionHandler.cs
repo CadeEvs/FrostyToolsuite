@@ -6,6 +6,7 @@ using FrostySdk.Managers;
 using FrostySdk.Resources;
 using MeshSetPlugin.Resources;
 using System.Collections.Generic;
+using FrostySdk.Managers.Entries;
 
 namespace MeshSetPlugin.Handlers
 {
