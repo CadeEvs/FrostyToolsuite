@@ -711,7 +711,9 @@ namespace FrostySdk.Managers
         public void DoEbxIndexing()
         {
             if (m_ebxGuidList.Count > 0)
+            {
                 return;
+            }
 
             List<EbxAssetEntry> ebxToRemove = new List<EbxAssetEntry>();
             int assetCount = m_ebxList.Count;
@@ -729,7 +731,9 @@ namespace FrostySdk.Managers
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem)
                 {
                     if (entry.ExtraData.CasPath.StartsWith("native_patch"))
+                    {
                         patched = true;
+                    }
                 }
 
                 Stream stream = GetEbxStream(entry);
@@ -756,8 +760,9 @@ namespace FrostySdk.Managers
                         foreach (EbxImportReference import in reader.imports)
                         {
                             if (!entry.ContainsDependency(import.FileGuid))
+                            {
                                 entry.DependentAssets.Add(import.FileGuid);
-
+                            }
                         }
 
                         if (m_ebxGuidList.ContainsKey(entry.Guid))
@@ -771,8 +776,14 @@ namespace FrostySdk.Managers
                 else
                 {
                     // Mark as encrypted or remove (Both are unloadable types)
-                    if (m_resourceManager.IsEncrypted(entry.Sha1)) { entry.Type = "EncryptedAsset"; }
-                    else { ebxToRemove.Add(entry); }
+                    if (m_resourceManager.IsEncrypted(entry.Sha1))
+                    {
+                        entry.Type = "EncryptedAsset";
+                    }
+                    else
+                    {
+                        ebxToRemove.Add(entry);
+                    }
                 }
 
                 // SWBF2/BFV
