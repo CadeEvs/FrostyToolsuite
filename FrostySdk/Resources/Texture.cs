@@ -3,6 +3,7 @@ using FrostySdk.Managers;
 using System;
 using System.Diagnostics;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Resources
 {

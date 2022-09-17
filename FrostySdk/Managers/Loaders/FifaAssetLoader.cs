@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Managers
 {

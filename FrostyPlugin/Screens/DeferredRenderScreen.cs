@@ -11,6 +11,7 @@ using FrostySdk.Resources;
 using System.Runtime.InteropServices;
 using System.Windows.Input;
 using Frosty.Hash;
+using FrostySdk.Managers.Entries;
 using DXUT = Frosty.Core.Viewport.DXUT;
 
 namespace Frosty.Core.Screens

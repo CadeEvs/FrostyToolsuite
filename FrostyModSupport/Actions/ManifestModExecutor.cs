@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.ModSupport
 {

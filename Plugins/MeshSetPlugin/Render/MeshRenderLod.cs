@@ -10,6 +10,7 @@ using SharpDX.Direct3D;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FrostySdk.Managers.Entries;
 using D3D11 = SharpDX.Direct3D11;
 
 namespace MeshSetPlugin.Render

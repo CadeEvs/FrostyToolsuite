@@ -6,6 +6,7 @@ using Frosty.Hash;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 
 namespace AnimationEditorPlugin.Managers
 {

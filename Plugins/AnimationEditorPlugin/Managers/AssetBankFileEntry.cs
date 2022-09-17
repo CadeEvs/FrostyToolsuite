@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 
 namespace AnimationEditorPlugin.Managers
 {

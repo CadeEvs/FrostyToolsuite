@@ -4,6 +4,7 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using System.Windows;
+using FrostySdk.Managers.Entries;
 using TestPlugin.Resources;
 
 namespace TestPlugin.Controls

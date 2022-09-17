@@ -29,6 +29,7 @@ using MeshSetPlugin.Render;
 using MeshSetPlugin.Resources;
 using MeshSetPlugin.Editors;
 using Frosty.Controls;
+using FrostySdk.Managers.Entries;
 
 namespace MeshSetPlugin
 {

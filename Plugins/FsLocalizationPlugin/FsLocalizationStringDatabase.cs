@@ -15,6 +15,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Diagnostics.Contracts;
 using System.Text;
+using FrostySdk.Managers.Entries;
 
 namespace FsLocalizationPlugin
 {

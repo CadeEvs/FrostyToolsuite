@@ -6,6 +6,7 @@ using FrostySdk.Resources;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using FrostySdk.Managers.Entries;
 
 namespace BiowareLocalizationPlugin
 {

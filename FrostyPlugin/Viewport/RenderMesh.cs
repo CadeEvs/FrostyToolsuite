@@ -19,6 +19,7 @@ using System.Windows;
 using System.Globalization;
 using Frosty.Hash;
 using Frosty.Core.Screens;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Viewport
 {

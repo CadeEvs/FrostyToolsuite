@@ -18,6 +18,7 @@ using Frosty.Core;
 using Frosty.Core.Windows;
 using Frosty.Core.Screens;
 using System.Runtime.InteropServices;
+using FrostySdk.Managers.Entries;
 
 namespace TexturePlugin
 {

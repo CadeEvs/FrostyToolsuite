@@ -15,6 +15,7 @@ using System.Xml;
 using Frosty.Core.Controls;
 using Frosty.Core;
 using Frosty.Core.Windows;
+using FrostySdk.Managers.Entries;
 using Vector2 = SharpDX.Vector2;
 
 namespace SvgImagePlugin

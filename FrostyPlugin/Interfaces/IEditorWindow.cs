@@ -1,6 +1,7 @@
 ﻿using Frosty.Core.Controls;
 using FrostySdk.Managers;
 using System.Windows.Controls;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Interfaces
 {

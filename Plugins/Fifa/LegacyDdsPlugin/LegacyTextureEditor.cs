@@ -13,6 +13,7 @@ using Frosty.Core.Controls;
 using Frosty.Core;
 using Frosty.Core.Windows;
 using Frosty.Core.Screens;
+using FrostySdk.Managers.Entries;
 using TexturePlugin;
 
 namespace LegacyDdsPlugin

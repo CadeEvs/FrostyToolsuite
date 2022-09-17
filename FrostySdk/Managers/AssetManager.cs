@@ -7,426 +7,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Managers
 {
-    public enum ResourceType : uint
-    {
-        Texture = 0x6BDE20BA,
-        PcaComponentWeightsResource = 0x8D9E6F01,
-        AtlasTexture = 0x957C32B1,
-        MeshSet = 0x49B156D4,
-        IShaderDatabase = 0x36F3F2C0,
-        EAClothAssetData = 0x85AC783D,
-        MeshAdjancencyResource = 0xBA02FEE0,
-        MorphTargetsResource = 0x1091C8C5,
-        EAClothEntityData = 0x85EA8656,
-        FaceFxResource = 0x59C79990,
-        HavokPhysicsData = 0x91043F65,
-        OccluderMesh = 0x30B4A553,
-        EnlightenDatabase = 0x70C5CB3E,
-        EnlightenStaticDatabase = 0xC6CD3286,
-        LargeParticleCloud = 0xAD1AC4FD,
-        Dx11ShaderProgramDatabase = 0xF04F0C81,
-        RenderTexture = 0x41D57E10,
-        UITtfFontFile = 0x9D00966A,
-        RimeTtfFontFile = 0x063994C5,
-        AssetBank = 0x51A3C853,
-        IesResource = 0x0DEAFE10,
-        MorphResource = 0xEB228507,
-        PlayerPresetResource = 0x52EE0D39,
-        TerrainDecals = 0x15E1F32E,
-        TerrainLayerCombinations = 0xA23E75DB,
-        VisualTerrain = 0x1CA38E06,
-        TerrainStreamingTree = 0x22FE8AC8,
-        ZoneStreamerGrid = 0xEFC70728,
-        CompiledLuaResource = 0xAFECB022,
-        LinearMediaAsset = 0x86521D6C,
-        EnlightenShaderDatabase = 0x59CEEB57,
-        AnimTrackData = 0xD070EED1,
-        LocalizedStringResource = 0x5E862E05,
-        GtsoLut = 0xCB8BCD07,
-        MeshEmitterResource = 0xC611F34A,
-        EAClothData = 0x387CA0AD,
-        PamReplayResource = 0xC664A660,
-        HavokClothPhysicsData = 0xE36F0D59,
-        HeightfieldDecal = 0x9C4FAA17,
-        DxTexture = 0x5C4954A6,
-        DelayLoadBundleResource = 0x76742DC8,
-        MorphMaterialResource = 0x24A019CC,
-        RagdollResource = 0x319D8CD0,
-        SwfMovie = 0x2D47A5FF,
-        DxShaderProgramDatabase = 0x10F0E5A1,
-        BundleRefTableResource = 0x428EC9D4,
-        FifaPhysicsResourceData = 0xEF23407C,
-        NewWaveResource = 0xB2C465F6,
-        EnlightenShaderDatabaseResource = 0xB15AD3FD,
-        SvgImage = 0x89983F10,
-        RawFileData = 0x3568E2B7,
-        PhysicsResource = 0x41759364,
-        PersistenceDefRuntimeResource = 0x0EE85483,
-        ScenarioDefRuntimeResource = 0x2EEC1D7A,
-        SerializedExpressionNodeGraph = 0x7DD4CC89,
-        MeshComputeFaceAdjacencyResource = 0x0EDE7594,
-        MeshComputeIndexBufferResource = 0x2C3E1E37,
-        MeshComputeMeshDefinitionResource = 0x81F0E34F,
-        AntResource = 0xEC1B7BF4,
-        Dx12PcRvmDatabase = 0x6B4B6E85,
-        Dx12NvRvmDatabase = 0x50E8E7EE,
-        Dx11NvRvmDatabase = 0xF7CC814D,
-        Dx11RvmDatabase = 0x8DA16895,
-        PathfindingRuntimeResource = 0x4B803D3B,
-        AtlasGroupResource = 0x1445F2DB,
-        EmitterGraphResource = 0x78791C75,
-        RaceGroundTextureResource = 0xD41D60,
-        MetaMorphTargetMeshResourceAsset = 0x39173AB8,
-        FootballMetaMorphVertexRegionWeightsResource = 0x59BBF1E8,
-        FootballMetaMorphMeshDeltaPositionsResource = 0x4C4D624A,
-        PSDResource = 0x3B9D1688,
-        CompressedClipData = 0x85548684,
-        ShaderBlockDepotAsset = 0xDDB3E17F,
-        CompiledBytecode = 0xE2B02F7,
-        ShaderBlockDepot = 0xD8F5DAAF,
-        DestructionResource = 0x41CBC351,
-        ExpressionShaderBindingSignature = 0x6A5BE5DB,
-        ExpressionShaderComputePermutation = 0x95CE62DD,
-        ExpressionShaderPassBinding = 0x589BB36E,
-        ExpressionShaderPermutationGroup = 0x42AF5937,
-        ExpressionShaderRasterPermutation = 0xD489FACB,
-        ExpressionShaderStreamableTextureSet = 0x7A630735,
-        ExpressionShaderStreamableTextureSetLookupTable = 0x2D254A89,
-        FbAclCompressedClipData = 0x1190E82E,
-        FbRawCompressedClipData = 0x185E69A4,
-        MeshComputeAttachmentJointsResource = 0x904A0035,
-        MeshComputeBlendShapesResource = 0xD45AF954,
-        MeshComputeCalcProceduralChannelsResource = 0x969D0D11,
-        ShaderBlockDepotResource = 0x73312045,
-        ShaderStateAssetId = 0x2FEC6526,
-        StrandHairResource = 0xC4841A63,
-        StrandHairBindResource = 0x8C8D0A22,
-        SvgImageData = 0x89983F10,
-        Invalid = 0xFFFFFFFF
-    }
-
-    public enum AssetDataLocation
-    {
-        Cas,
-        SuperBundle,
-        Cache,
-        CasNonIndexed
-    }
-
-    public enum BundleType
-    {
-        None = -1,
-        SubLevel,
-        BlueprintBundle,
-        SharedBundle
-    }
-
-    public class SuperBundleEntry
-    {
-        public string Name;
-        public bool Added;
-    }
-
-    public class BundleEntry
-    {
-        public string DisplayName => Name;
-
-        public string Name;
-        public int SuperBundleId;
-        public EbxAssetEntry Blueprint;
-        public BundleType Type;
-        public bool Added;
-    }
-
-    public class AssetExtraData
-    {
-        public Sha1 BaseSha1;
-        public Sha1 DeltaSha1;
-        public long DataOffset;
-        public int SuperBundleId;
-        public bool IsPatch;
-        public string CasPath = "";
-    }
-
-    public class AssetEntry
-    {
-        public virtual string Name { get; set; }
-        public virtual string Type { get; set; }
-        public virtual string AssetType { get; }
-
-        public virtual string DisplayName => Filename + ((IsDirty) ? "*" : "");
-        public virtual string Filename
-        {
-            get
-            {
-                int id = Name.LastIndexOf('/');
-                return id == -1 ? Name : Name.Substring(id + 1);
-            }
-        }
-        public virtual string Path
-        {
-            get
-            {
-                int id = Name.LastIndexOf('/');
-                return id == -1 ? "" : Name.Substring(0, id);
-            }
-        }
-
-        public Sha1 Sha1;
-        public Sha1 BaseSha1;
-
-        public long Size;
-        public long OriginalSize;
-        public bool IsInline;
-        public AssetDataLocation Location;
-        public AssetExtraData ExtraData;
-
-        public List<int> Bundles = new List<int>();
-        public List<int> AddedBundles = new List<int>();
-        public List<int> RemBundles = new List<int>();
-
-        public ModifiedAssetEntry ModifiedEntry;
-        public List<AssetEntry> LinkedAssets = new List<AssetEntry>();
-
-        /// <summary>
-        /// returns true if this asset was added
-        /// </summary>
-        public bool IsAdded { get; set; }
-
-        /// <summary>
-        /// returns true if this asset or any asset linked to it is modified
-        /// </summary>
-        public virtual bool IsModified => IsDirectlyModified || IsIndirectlyModified;
-
-        /// <summary>
-        /// returns true if this asset (and only this asset) is modified
-        /// </summary>
-        public bool IsDirectlyModified => ModifiedEntry != null || AddedBundles.Count != 0 || RemBundles.Count != 0;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool HasModifiedData => ModifiedEntry != null && (ModifiedEntry.Data != null || ModifiedEntry.DataObject != null);
-
-        /// <summary>
-        /// returns true if this asset is considered modified through another linked asset
-        /// ie. An ebx would be considered modified if its linked resource has been modified
-        /// </summary>
-        public bool IsIndirectlyModified
-        {
-            get
-            {
-                foreach (AssetEntry entry in LinkedAssets)
-                {
-                    if (entry.IsModified)
-                        return true;
-                }
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// returns true if this asset, or any asset linked to it is dirty
-        /// </summary>
-        public virtual bool IsDirty
-        {
-            get
-            {
-                if (dirty)
-                    return true;
-
-                foreach (AssetEntry entry in LinkedAssets)
-                {
-                    if (entry.IsDirty)
-                        return true;
-                }
-                return false;
-            }
-            set
-            {
-                if (dirty != value)
-                {
-                    dirty = value;
-                    if (dirty)
-                        OnModified();
-                }
-            }
-        }
-        private bool dirty;
-
-        /// <summary>
-        /// Links the current asset to another
-        /// </summary>
-        public void LinkAsset(AssetEntry assetToLink)
-        {
-            if (!LinkedAssets.Contains(assetToLink))
-                LinkedAssets.Add(assetToLink);
-
-            if (assetToLink is ChunkAssetEntry entry)
-            {
-                if (entry.HasModifiedData)
-                {
-                    // store the res/ebx name in the chunk
-                    entry.ModifiedEntry.H32 = Fnv1.HashString(Name.ToLower());
-                }
-                else
-                {
-                    // asset was added to bundle (so no ModifiedEntry)
-                    entry.H32 = Fnv1.HashString(Name.ToLower());
-                }
-            }
-        }
-
-        /// <summary>
-        /// Adds the current asset to the specified bundle
-        /// </summary>
-        public bool AddToBundle(int bid)
-        {
-            if (IsInBundle(bid))
-                return false;
-
-            AddedBundles.Add(bid);
-            IsDirty = true;
-
-            return true;
-        }
-
-        /// <summary>
-        /// Adds the current asset to the specified bundles
-        /// </summary>
-        public bool AddToBundles(IEnumerable<int> bundles)
-        {
-            bool added = false;
-            foreach (int bid in bundles)
-            {
-                if (!Bundles.Contains(bid) && !AddedBundles.Contains(bid))
-                {
-                    AddedBundles.Add(bid);
-                    IsDirty = true;
-                    added = true;
-                }
-            }
-
-            return added;
-        }
-
-        /// <summary>
-        /// Returns true if asset is in the specified bundle
-        /// </summary>
-        public bool IsInBundle(int bid) => Bundles.Contains(bid) || AddedBundles.Contains(bid);
-
-        /// <summary>
-        /// Iterates through all bundles that the asset is a part of
-        /// </summary>
-        public IEnumerable<int> EnumerateBundles(bool addedOnly = false)
-        {
-            if (!addedOnly)
-            {
-                for (int i = 0; i < Bundles.Count; i++)
-                {
-                    if (!RemBundles.Contains(Bundles[i]))
-                        yield return Bundles[i];
-                }
-            }
-
-            for (int i = 0; i < AddedBundles.Count; i++)
-                yield return AddedBundles[i];
-        }
-
-        public virtual void ClearModifications() => ModifiedEntry = null;
-
-        public event EventHandler AssetModified;
-        public void OnModified() => AssetModified?.Invoke(this, new EventArgs());
-    }
-
-    public class ModifiedAssetEntry
-    {
-        public Sha1 Sha1;
-        public byte[] Data;
-        public object DataObject;
-        public long OriginalSize;
-
-        public byte[] ResMeta;
-
-        public uint LogicalOffset;
-        public uint LogicalSize;
-        public uint RangeStart;
-        public uint RangeEnd;
-        public int FirstMip = -1;
-
-        public bool IsInline;
-
-        public bool AddToChunkBundle = true;
-        public bool IsTransientModified = false;
-        public int H32;
-
-        public List<Guid> DependentAssets = new List<Guid>();
-        public string UserData = "";
-    }
-
-    public class EbxAssetEntry : AssetEntry
-    {
-        public Guid Guid;
-        public List<Guid> DependentAssets = new List<Guid>();
-        public override string AssetType => "ebx";
-
-        public bool ContainsDependency(Guid guid)
-        {
-            return HasModifiedData ? ModifiedEntry.DependentAssets.Contains(guid) : DependentAssets.Contains(guid);
-        }
-
-        public IEnumerable<Guid> EnumerateDependencies()
-        {
-            if (HasModifiedData)
-            {
-                foreach (Guid guid in ModifiedEntry.DependentAssets)
-                    yield return guid;
-            }
-            else
-            {
-                foreach (Guid guid in DependentAssets)
-                    yield return guid;
-            }
-        }
-    }
-
-    public class ResAssetEntry : AssetEntry
-    {
-        public override string Type => ((ResourceType)ResType).ToString();
-        public override string AssetType => "res";
-
-        //#if FROSTY_DEVELOPER
-        //        // @tmp
-        //        public override string DisplayName => ("(" + (OriginalSize / 1024.0d).ToString("F2") + "kb) ".PadRight(6) + Filename) + ((IsDirty) ? "*" : "");
-        //#endif
-
-        public ulong ResRid;
-        public uint ResType;
-        public byte[] ResMeta;
-    }
-
-    public class ChunkAssetEntry : AssetEntry
-    {
-        public override string Name => Id.ToString();
-        public override string Type => "Chunk";
-        public override string AssetType => "chunk";
-
-        public Guid Id;
-        public uint BundledSize;
-        public uint LogicalOffset;
-        public uint LogicalSize;
-        public uint RangeStart;
-        public uint RangeEnd;
-
-        public int H32;
-        public int FirstMip;
-        public bool IsTocChunk;
-        public bool TocChunkSpecialHack;
-    }
-
     public class AssetManagerImportResult
     {
         public bool InvalidatedDueToPatch { get; internal set; }
@@ -737,7 +321,9 @@ namespace FrostySdk.Managers
         public void DoEbxIndexing()
         {
             if (m_ebxGuidList.Count > 0)
+            {
                 return;
+            }
 
             List<EbxAssetEntry> ebxToRemove = new List<EbxAssetEntry>();
             int assetCount = m_ebxList.Count;
@@ -755,7 +341,9 @@ namespace FrostySdk.Managers
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem)
                 {
                     if (entry.ExtraData.CasPath.StartsWith("native_patch"))
+                    {
                         patched = true;
+                    }
                 }
 
                 Stream stream = GetEbxStream(entry);
@@ -782,8 +370,9 @@ namespace FrostySdk.Managers
                         foreach (EbxImportReference import in reader.imports)
                         {
                             if (!entry.ContainsDependency(import.FileGuid))
+                            {
                                 entry.DependentAssets.Add(import.FileGuid);
-
+                            }
                         }
 
                         if (m_ebxGuidList.ContainsKey(entry.Guid))
@@ -797,8 +386,14 @@ namespace FrostySdk.Managers
                 else
                 {
                     // Mark as encrypted or remove (Both are unloadable types)
-                    if (m_resourceManager.IsEncrypted(entry.Sha1)) { entry.Type = "EncryptedAsset"; }
-                    else { ebxToRemove.Add(entry); }
+                    if (m_resourceManager.IsEncrypted(entry.Sha1))
+                    {
+                        entry.Type = "EncryptedAsset";
+                    }
+                    else
+                    {
+                        ebxToRemove.Add(entry);
+                    }
                 }
 
                 // SWBF2/BFV/SWS
@@ -1529,31 +1124,31 @@ namespace FrostySdk.Managers
         #endregion
 
         #region -- Get Functions --
-        public int GetSuperBundleId(SuperBundleEntry sbentry)
+        public int GetSuperBundleId(SuperBundleEntry sbentry) 
             => m_superBundles.FindIndex((SuperBundleEntry sbe) => sbe.Name.Equals(sbentry.Name));
 
-        public int GetSuperBundleId(string sbname)
+        public int GetSuperBundleId(string sbname) 
             => m_superBundles.FindIndex((SuperBundleEntry sbe) => sbe.Name.Equals(sbname, StringComparison.OrdinalIgnoreCase));
 
-        public SuperBundleEntry GetSuperBundle(int id)
+        public SuperBundleEntry GetSuperBundle(int id) 
             => id >= m_superBundles.Count ? null : m_superBundles[id];
 
-        public int GetBundleId(BundleEntry bentry)
+        public int GetBundleId(BundleEntry bentry) 
             => m_bundles.FindIndex((BundleEntry be) => be.Name.Equals(bentry.Name));
 
-        public int GetBundleId(string name)
+        public int GetBundleId(string name) 
             => m_bundles.FindIndex((BundleEntry be) => be.Name.Equals(name));
 
-        public BundleEntry GetBundleEntry(int bundleId)
+        public BundleEntry GetBundleEntry(int bundleId) 
             => bundleId >= m_bundles.Count ? null : m_bundles[bundleId];
 
-        public AssetEntry GetCustomAssetEntry(string type, string key)
+        public AssetEntry GetCustomAssetEntry(string type, string key) 
             => !m_customAssetManagers.ContainsKey(type) ? null : m_customAssetManagers[type].GetAssetEntry(key);
 
-        public T GetCustomAssetEntry<T>(string type, string key) where T : AssetEntry
+        public T GetCustomAssetEntry<T>(string type, string key) where T : AssetEntry 
             => (T)GetCustomAssetEntry(type, key);
 
-        public EbxAssetEntry GetEbxEntry(Guid ebxGuid)
+        public EbxAssetEntry GetEbxEntry(Guid ebxGuid) 
             => !m_ebxGuidList.ContainsKey(ebxGuid) ? null : m_ebxGuidList[ebxGuid];
 
         public EbxAsset GetEbx(string name, bool getUnmodifiedData = false) => GetEbx(GetEbxEntry(name), getUnmodifiedData);
@@ -1670,7 +1265,9 @@ namespace FrostySdk.Managers
                 if (modifiedData == null)
                 {
                     if (entry.ModifiedEntry?.DataObject != null)
+                    {
                         modifiedData = entry.ModifiedEntry.DataObject as ModifiedResource;
+                    }
                 }
 
                 T retVal = new T();
@@ -1766,7 +1363,9 @@ namespace FrostySdk.Managers
             {
                 ResourceType resType = (ResourceType)res.GetValue<long>("resType");
                 if (ProfilesLibrary.IsResTypeIgnored(resType))
+                {
                     continue;
+                }
 
                 ResAssetEntry entry = AddRes(res);
                 if (entry.Sha1 != res.GetValue<Sha1>("sha1") && res.GetValue<int>("casPatchType") != 0)
@@ -2129,7 +1728,7 @@ namespace FrostySdk.Managers
                 if (head != m_fileSystem.Head)
                 {
                     bIsPatched = true;
-                    prePatchCache = new List<EbxAssetEntry>();
+                    prePatchCache = new List<EbxAssetEntry>();  
                 }
 
                 int count = reader.ReadInt();
@@ -2165,7 +1764,7 @@ namespace FrostySdk.Managers
                     if (bentry.Name.StartsWith("win32/Win32"))
                         bentry.Name = bentry.Name.Remove(0, 6);
 
-                    if (!bIsPatched)
+                    if(!bIsPatched)
                         m_bundles.Add(bentry);
                 }
 
@@ -2326,7 +1925,7 @@ namespace FrostySdk.Managers
                     for (int j = 0; j < subCount; j++)
                         entry.Bundles.Add(reader.ReadInt());
 
-                    if (!bIsPatched)
+                    if(!bIsPatched)
                         m_chunkList.Add(entry.Id, entry);
                 }
             }

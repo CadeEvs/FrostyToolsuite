@@ -3,6 +3,7 @@ using Frosty.Core.Controls;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace LegacyTextPlugin
 {

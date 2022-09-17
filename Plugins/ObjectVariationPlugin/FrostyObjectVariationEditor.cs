@@ -11,6 +11,7 @@ using Frosty.Hash;
 using Frosty.Core.Controls;
 using Frosty.Core.Windows;
 using Frosty.Core;
+using FrostySdk.Managers.Entries;
 using MeshSetPlugin.Resources;
 
 namespace ObjectVariationPlugin

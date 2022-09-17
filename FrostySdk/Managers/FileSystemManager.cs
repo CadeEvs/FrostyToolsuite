@@ -6,6 +6,7 @@ using FrostySdk.IO;
 using System.Security.Cryptography;
 using FrostySdk.Managers;
 using Frosty.Hash;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk
 {

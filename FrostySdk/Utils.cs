@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk
 {

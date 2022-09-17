@@ -12,6 +12,7 @@ using Frosty.Core.IO;
 using Frosty.Controls;
 using Frosty.Core.Windows;
 using System.Windows;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {

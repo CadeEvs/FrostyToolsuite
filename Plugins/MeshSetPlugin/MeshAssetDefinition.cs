@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Frosty.Core.Windows;
 using Frosty.Core.Controls;
 using FrostySdk.Interfaces;
+using FrostySdk.Managers.Entries;
 using MeshSetPlugin.Resources;
 using MeshSetPlugin.Editors;
 
