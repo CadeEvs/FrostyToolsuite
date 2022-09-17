@@ -457,10 +457,10 @@
     <Resource Include="Images\Assets\StatFileType.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Sdk\Anthem-Strings.txt" />
+    <EmbeddedResource Include="Sdk\Anthem-Strings.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Sdk\Bf2042-Strings.txt" />
+    <EmbeddedResource Include="Sdk\Bf2042-Strings.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
