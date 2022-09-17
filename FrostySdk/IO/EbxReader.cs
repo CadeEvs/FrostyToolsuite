@@ -1001,6 +1001,10 @@ namespace FrostySdk.IO
                     return ReadPointerRef(dontRefCount);
                 case EbxFieldType.DbObject:
                     throw new InvalidDataException("DbObject");
+                case EbxFieldType.Delegate:
+                    // TODO: temp fix
+                    Position += 16;
+                    return null;
                 default:
                     throw new InvalidDataException("Unknown");
             }
