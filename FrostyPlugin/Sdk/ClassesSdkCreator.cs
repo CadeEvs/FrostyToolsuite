@@ -1716,12 +1716,14 @@ namespace Frosty.Core.Sdk
                                     break;
                                 }
                             }
-
+                            if (m_values[idx].Item1.Alignment != 0)
+                            {
                             while (offset % m_values[idx].Item1.Alignment != 0)
                             {
                                 offset++;
                             }
                         }
+                    }
                     }
                     else if (field.DebugType == EbxFieldType.Array)
                     {
@@ -1817,10 +1819,12 @@ namespace Frosty.Core.Sdk
                     }
                 }
             }
-
+            if (pclass.Alignment != 0)
+            {
             while (offset % pclass.Alignment != 0)
             {
                 offset++;
+            }
             }
 
             pobj.SetValue("flags", (int)pclass.Type);
