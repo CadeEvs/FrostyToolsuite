@@ -44,7 +44,7 @@ namespace FrostySdk.Managers
                 }
             }
 
-            if (fs.HasFileInMemoryFs("Dictionaries/ebx.dict"))
+            if (m_fileSystem.HasFileInMemoryFs("Dictionaries/ebx.dict"))
             {
                 // load dictionary from memoryFs (used for decompressing ebx)
                 ZStd.SetDictionary(m_fileSystem.GetFileFromMemoryFs("Dictionaries/ebx.dict"));

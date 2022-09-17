@@ -34,7 +34,6 @@ using FrostySdk;
 [assembly: PluginNotValidForProfile((int)ProfileVersion.Fifa19)]
 [assembly: PluginNotValidForProfile((int)ProfileVersion.Fifa20)]
 [assembly: PluginNotValidForProfile((int)ProfileVersion.Fifa21)]
-[assembly: PluginNotValidForProfile((int)ProfileVersion.Madden22)]
 [assembly: PluginNotValidForProfile((int)ProfileVersion.Fifa22)]
 
 [assembly: RegisterCustomHandler(CustomHandlerType.Ebx, typeof(FsLocalizationCustomActionHandler), ebxType: "UITextDatabase")]

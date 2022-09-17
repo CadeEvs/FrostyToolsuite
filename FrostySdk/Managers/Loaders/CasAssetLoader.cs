@@ -1,4 +1,5 @@
 ﻿using FrostySdk.IO;
+using FrostySdk.Managers.Entries;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
