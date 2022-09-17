@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using FrostySdk.Managers;
 using Frosty.Hash;
 
-namespace FrostySdk.Managers
+namespace FrostySdk
 {
     public struct ManifestFileRef
     {
@@ -23,7 +23,7 @@ namespace FrostySdk.Managers
         }
 
         public static implicit operator ManifestFileRef(int inValue) => new ManifestFileRef { value = inValue };
-        public static implicit operator int(ManifestFileRef inRef)   => inRef.value;
+        public static implicit operator int(ManifestFileRef inRef) => inRef.value;
     }
 
     public class ManifestFileInfo
@@ -47,6 +47,18 @@ namespace FrostySdk.Managers
         public int fileIndex;
     }
 
+    public class SuperBundleInfo
+    {
+        public string Name { get; set; }
+        public List<string> SplitSuperBundles { get; set; }
+
+        public SuperBundleInfo(string inName)
+        {
+            Name = inName;
+            SplitSuperBundles = new List<string>();
+        }
+    }
+
     public class CatalogInfo
     {
         public Guid Id;
@@ -64,7 +76,7 @@ namespace FrostySdk.Managers
             get
             {
                 for (int i = 0; i < superBundles.Count; i++)
-                    yield return superBundles[i];
+                    yield return superBundles[i].Name;
             }
         }
 
@@ -87,7 +99,7 @@ namespace FrostySdk.Managers
         public string BasePath { get; }
 
         private List<string> paths = new List<string>();
-        private List<string> superBundles = new List<string>();
+        private List<SuperBundleInfo> superBundles = new List<SuperBundleInfo>();
         private List<CatalogInfo> catalogs = new List<CatalogInfo>();
         private Dictionary<string, byte[]> memoryFs = new Dictionary<string, byte[]>();
         private List<string> casFiles = new List<string>();
@@ -208,10 +220,20 @@ namespace FrostySdk.Managers
 
         public string GetCatalog(ManifestFileRef fileRef) => catalogs[fileRef.CatalogIndex].Name;
 
+        public int GetCatalogIndex(CatalogInfo catalogInfo) => catalogs.IndexOf(catalogInfo);
+
         public IEnumerable<CatalogInfo> EnumerateCatalogInfos()
         {
             foreach (CatalogInfo ci in catalogs)
                 yield return ci;
+        }
+
+        public IEnumerable<SuperBundleInfo> EnumerateSuperBundleInfos()
+        {
+            foreach (SuperBundleInfo si in superBundles)
+            {
+                yield return si;
+            }
         }
 
         public ManifestFileRef GetFileRef(string path)
@@ -238,7 +260,7 @@ namespace FrostySdk.Managers
             return new ManifestFileRef();
         }
 
-        public bool HasFileInMemoryFs(string name)     =>  memoryFs.ContainsKey(name);
+        public bool HasFileInMemoryFs(string name) => memoryFs.ContainsKey(name);
         public byte[] GetFileFromMemoryFs(string name) => !memoryFs.ContainsKey(name) ? null : memoryFs[name];
 
         public IEnumerable<string> EnumerateFilesInMemoryFs()
@@ -266,9 +288,13 @@ namespace FrostySdk.Managers
             using (DbReader reader = new DbReader(new FileStream(path, FileMode.Open, FileAccess.Read), CreateDeobfuscator()))
             {
                 DbObject initfs = reader.ReadDbObject();
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
-                 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
-                    )
+                
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa19,
+                    ProfileVersion.Anthem, ProfileVersion.Fifa20,
+                    ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat,
+                    ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                    ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
+                    ProfileVersion.Madden23))
                 {
                     byte[] buffer = initfs.GetValue<byte[]>("encrypted");
                     if (buffer != null)
@@ -399,7 +425,7 @@ namespace FrostySdk.Managers
 
                 using (DbWriter writer = new DbWriter(new FileStream(dest, FileMode.Create, FileAccess.Write), true))
                 {
-                    DbObject initFs = new DbObject(false);
+                    DbObject initFs = DbObject.CreateList();
 
                     foreach (KeyValuePair<string, DbObject> kv in fsFiles)
                         initFs.Add(kv.Value);
@@ -428,7 +454,7 @@ namespace FrostySdk.Managers
                                     cryptoStream.Write(buffer, 0, buffer.Length);
                                 }
 
-                                initFs = new DbObject();
+                                initFs = DbObject.CreateObject();
                                 initFs.AddValue("encrypted", encryptStream.ToArray());
                             }
                             encryptor.Dispose();
@@ -451,7 +477,7 @@ namespace FrostySdk.Managers
                 baseLayout = reader.ReadDbObject();
 
             foreach (DbObject superBundle in baseLayout.GetValue<DbObject>("superBundles"))
-                superBundles.Add(superBundle.GetValue<string>("name").ToLower());
+                superBundles.Add(new SuperBundleInfo(superBundle.GetValue<string>("name").ToLower()));
 
             if (patchLayoutPath != "")
             {
@@ -464,8 +490,8 @@ namespace FrostySdk.Managers
                 {
                     // Merge super bundles
                     string superBundleName = superBundle.GetValue<string>("name").ToLower();
-                    if (!superBundles.Contains(superBundleName))
-                        superBundles.Add(superBundleName);
+                    if (superBundles.FindIndex(si => si.Name == superBundleName) == -1)
+                        superBundles.Add(new SuperBundleInfo(superBundleName));
                 }
 
                 Base = patchLayout.GetValue<uint>("base");
@@ -514,20 +540,28 @@ namespace FrostySdk.Managers
                     string path = "win32/" + installChunk.GetValue<string>("name");
 
                     // @hack: Ensure that BFV can pass correctly (catalog doesnt exist)
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                    if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+                    {
                         if (path == "win32/installation/default")
+                        {
                             continue;
+                        }
+                    }
 
                     if (!File.Exists(ResolvePath(path + "/cas.cat")))
                     {
                         // FIFA19 - Doesnt have Cat files
-                        if ((!installChunk.HasValue("files") || installChunk.GetValue<DbObject>("files").Count == 0) && (ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem
-                            && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedHeat
-                            ))
+                        if ((!installChunk.HasValue("files") || installChunk.GetValue<DbObject>("files").Count == 0) &&
+                            (!ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
+                            ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21,
+                            ProfileVersion.Madden22, ProfileVersion.Fifa22,
+                            ProfileVersion.Battlefield2042, ProfileVersion.Madden23)))
                         {
                             // BFV needs even non existent catalogs to be in the list for indexing to work
-                            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+                            if (!ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+                            {
                                 continue;
+                            }
                         }
                     }
 
@@ -548,7 +582,21 @@ namespace FrostySdk.Managers
                             info.SuperBundles.Add(superBundle.ToLower(), false);
                     }
 
-                    catalogs.Add(info);
+                    if (installChunk.HasValue("persistentIndex"))
+                    {
+                        if (catalogs.Count == 0)
+                        {
+                            foreach (DbObject ic in installManifest.GetValue<DbObject>("installChunks"))
+                            {
+                                catalogs.Add(new CatalogInfo());
+                            }
+                        }
+                        catalogs[installChunk.GetValue<int>("persistentIndex")] = info;
+                    }
+                    else
+                    {
+                        catalogs.Add(info);
+                    }
 
                     if (installChunk.HasValue("files"))
                     {
@@ -556,7 +604,9 @@ namespace FrostySdk.Managers
                         {
                             int index = fileObj.GetValue<int>("id");
                             while (casFiles.Count <= index)
+                            {
                                 casFiles.Add("");
+                            }
 
                             string casPath = fileObj.GetValue<string>("path").Trim('/');
                             casPath = casPath.Replace("native_data/Data", "native_data");
@@ -572,7 +622,12 @@ namespace FrostySdk.Managers
                         {
                             string superBundle = superBundleContainer.GetValue<string>("superBundle").ToLower();
                             if (!info.SuperBundles.ContainsKey(superBundle))
+                            {
                                 info.SuperBundles.Add(superBundle, true);
+                            }
+
+                            info.SuperBundles[superBundle] = true;
+                            superBundles.Find(si => si.Name == superBundle).SplitSuperBundles.Add(path);
                         }
                     }
 
@@ -582,7 +637,12 @@ namespace FrostySdk.Managers
                         {
                             string superBundle = "win32/" + superBundleContainer.GetValue<string>("superbundle").ToLower();
                             if (!info.SuperBundles.ContainsKey(superBundle))
+                            {
                                 info.SuperBundles.Add(superBundle, true);
+                            }
+
+                            info.SuperBundles[superBundle] = true;
+                            superBundles.Find(si => si.Name == superBundle).SplitSuperBundles.Add(path);
                         }
                     }
                 }
@@ -591,8 +651,11 @@ namespace FrostySdk.Managers
             {
                 // Otherwise default to /data
                 CatalogInfo ci = new CatalogInfo() { Name = "" };
-                foreach (string sbName in superBundles)
-                    ci.SuperBundles.Add(sbName, false);
+                foreach (SuperBundleInfo si in superBundles)
+                {
+                    ci.SuperBundles.Add(si.Name, false);
+                }
+
                 catalogs.Add(ci);
             }
         }
@@ -633,12 +696,11 @@ namespace FrostySdk.Managers
             foreach (ManifestChunkInfo ci in manifestChunks)
             {
                 ManifestFileInfo fi = ci.file;
-                ChunkAssetEntry entry = new ChunkAssetEntry {Id = ci.guid};
+                ChunkAssetEntry entry = new ChunkAssetEntry { Id = ci.guid };
 
                 string path = (fi.file.IsInPatch ? "native_patch/" : "native_data/") + catalogs[fi.file.CatalogIndex].Name + "/cas_" + fi.file.CasIndex.ToString("D2") + ".cas";
                 entry.Location = AssetDataLocation.CasNonIndexed;
                 entry.Size = fi.size;
-
                 entry.ExtraData = new AssetExtraData
                 {
                     DataOffset = fi.offset,
@@ -760,7 +822,7 @@ namespace FrostySdk.Managers
                     writer.Write(ci.fileIndex);
                 }
 
-                return writer.ToByteArray();;
+                return writer.ToByteArray(); ;
             }
         }
 
@@ -802,7 +864,7 @@ namespace FrostySdk.Managers
                     // bundles
                     for (uint i = 0; i < bundleCount; i++)
                     {
-                        ManifestBundleInfo bi = new ManifestBundleInfo {hash = reader.ReadInt()};
+                        ManifestBundleInfo bi = new ManifestBundleInfo { hash = reader.ReadInt() };
 
                         int startIndex = reader.ReadInt();
                         int count = reader.ReadInt();

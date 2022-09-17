@@ -132,8 +132,11 @@ namespace Frosty.Core.Sdk.Madden20
             long thisOffset = reader.Position;
 
             long typeInfoOffset = reader.ReadLong();
-            ClassesSdkCreator.Offset = reader.ReadLong();
+
+            ClassesSdkCreator.NextOffset = reader.ReadLong();
             Guid guid = Guid.Empty;
+
+            long prevOffset = reader.ReadLong();
 
             Id = reader.ReadUShort();
             IsDataContainer = reader.ReadUShort();

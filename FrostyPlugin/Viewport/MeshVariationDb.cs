@@ -25,8 +25,12 @@ namespace Frosty.Core.Viewport
             MaterialVariationClassGuid = MaterialVariation.External.ClassGuid;
 
             // @hack
-            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield1 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Anthem && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20
-             && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedHeat)
+            if (!ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield1, ProfileVersion.Anthem,
+                ProfileVersion.Battlefield5, ProfileVersion.Fifa20,
+                ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
+                ProfileVersion.Madden23))
             {
                 TextureParameters = ebxEntry.TextureParameters;
             }
@@ -128,8 +132,12 @@ namespace Frosty.Core.Viewport
             int mvdbVersion = 1;
 
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
-             || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19 , ProfileVersion.Madden20,
+                ProfileVersion.Fifa20, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
+                ProfileVersion.NeedForSpeedHeat,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
+                ProfileVersion.Madden23))
             {
                 IsLoaded = true;
                 return;
@@ -286,8 +294,12 @@ namespace Frosty.Core.Viewport
         public static void LoadModifiedVariations()
         {
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
-             || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20,
+                ProfileVersion.Fifa20, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
+                ProfileVersion.NeedForSpeedHeat,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
+                ProfileVersion.Madden23))
             {
                 IsLoaded = true;
                 return;

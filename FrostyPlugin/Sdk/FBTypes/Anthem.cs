@@ -11,7 +11,7 @@ namespace Frosty.Core.Sdk.Anthem
             long thisOffset = reader.Position;
 
             long typeInfoOffset = reader.ReadLong();
-            ClassesSdkCreator.Offset = reader.ReadLong();
+            ClassesSdkCreator.NextOffset = reader.ReadLong();
             Id = reader.ReadUShort();
             IsDataContainer = reader.ReadUShort();
             Padding = new byte[] { reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte() };

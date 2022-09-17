@@ -2663,7 +2663,7 @@ namespace MeshSetPlugin
                                                 chunkWriter.Write(HalfUtils.Pack(normal.X));
                                                 chunkWriter.Write(HalfUtils.Pack(normal.Y));
                                                 chunkWriter.Write(HalfUtils.Pack(normal.Z));
-                                                chunkWriter.Write(HalfUtils.Pack(binormal.Y));
+                                                chunkWriter.Write(HalfUtils.Pack(1.0f));
                                             }
                                             break;
 
@@ -2672,7 +2672,7 @@ namespace MeshSetPlugin
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.X));
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.Y));
                                                 chunkWriter.Write(HalfUtils.Pack(tangent.Z));
-                                                chunkWriter.Write(HalfUtils.Pack(binormal.Z));
+                                                chunkWriter.Write(HalfUtils.Pack(1.0f));
                                             }
                                             break;
 

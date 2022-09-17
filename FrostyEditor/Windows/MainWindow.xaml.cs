@@ -260,8 +260,15 @@ namespace FrostyEditor.Windows
 
         private void InitGameSpecificMenus()
         {
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.Fifa18,
+                ProfileVersion.Madden19, ProfileVersion.Fifa19,
+                ProfileVersion.Madden20, ProfileVersion.Fifa20,
+                ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa21,
+                ProfileVersion.Madden22, ProfileVersion.Fifa22,
+                ProfileVersion.Madden23))
+            {
                 InitFifaMenu();
+            }
         }
 
         private void InitFifaMenu()

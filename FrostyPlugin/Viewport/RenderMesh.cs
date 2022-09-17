@@ -689,7 +689,7 @@ namespace Frosty.Core.Viewport
                 PointerRef value = textureParam.Value;
 
                 // MEA
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda)
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda))
                 {
                     if (paramName.Equals("Diffuse") || paramName.Equals("BaseColor") || paramName.Equals("diff_mean")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                     else if (paramName.Equals("Norm") || paramName.Equals("Normal") || paramName.Equals("norm_mean"))
@@ -719,7 +719,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // MEC
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.MirrorsEdgeCatalyst))
                 {
                     if (paramName.StartsWith("Diffuse")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); TintColorA.W = 1.0f; }
                     else if (paramName.StartsWith("Normal")) { NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -739,7 +739,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // SWBF
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefront)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefront))
                 {
                     paramName = paramName.ToLower();
                     if (shaderAsset != null)
@@ -808,7 +808,10 @@ namespace Frosty.Core.Viewport
                 }
 
                 // Fifa
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.Fifa18,
+                    ProfileVersion.Fifa19, ProfileVersion.Fifa20,
+                    ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21,
+                    ProfileVersion.Fifa22))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.StartsWith("colortexture") || paramName.StartsWith("diffuse") || paramName.Contains("basecolor"))
@@ -841,7 +844,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // Madden
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden19, ProfileVersion.Madden20, ProfileVersion.Madden21, ProfileVersion.Madden22, ProfileVersion.Madden23))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.StartsWith("colortexture")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -867,14 +870,14 @@ namespace Frosty.Core.Viewport
                 }
 
                 // BF1
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield1)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield1))
                 {
                     if (paramName.StartsWith("BaseColor") || paramName.StartsWith("Diffuse")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                     else if (paramName.Equals("Normal")) { NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                 }
 
                 // SWBF2
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.StarWarsSquadrons))
                 {
                     string shaderFilename = (shaderAsset != null) ? shaderAsset.Filename.ToLower() : "";
                     if (shaderFilename.Contains("2uv") || shaderFilename.Contains("ss_vehicle") || shaderFilename.Contains("ss_weapons") || shaderFilename.Contains("ss_propspreset"))
@@ -962,7 +965,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // PVZ2
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2))
                 {
                     if (paramName.Contains("Diffuse") || paramName.Contains("Color")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                     else if (paramName.Contains("Normal")) { NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -970,7 +973,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // PVZ
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.Equals("diffuse")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -979,7 +982,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // DAI/BF4
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.Equals("diffuse") || paramName.Equals("d1_diffuse") || paramName.Equals("diffuse_alpha")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -996,7 +999,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // NFS Payback
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedPayback))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.StartsWith("color") || paramName.Contains("diffuse")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -1005,7 +1008,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // Anthem
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem))
                 {
                     if (paramName.Contains("Diffuse") || paramName.Contains("BaseColor")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                     else if (paramName.Contains("Normal")) { NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
@@ -1013,7 +1016,7 @@ namespace Frosty.Core.Viewport
                 }
 
                 // BFV
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5))
                 {
                     if (paramName.Contains("BaseColor")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                     else if (paramName.Contains("Normal"))
@@ -1027,14 +1030,14 @@ namespace Frosty.Core.Viewport
                 }
 
                 // NFS14
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedRivals))
                 {
                     if (paramName.Contains("Diffuse")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                     else if (paramName.Contains("Normal")) { NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                 }
 
                 // PVZ3
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesBattleforNeighborville))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.Contains("color")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }

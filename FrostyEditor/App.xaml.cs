@@ -58,7 +58,7 @@ namespace FrostyEditor
             Logger = new FrostyLogger();
             Logger.Log("Frosty Editor v{0}", Frosty.Core.App.Version);
 
-            FileUnblocker.UnblockDirectory(".\\");
+            //FileUnblocker.UnblockDirectory(".\\");
             AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
 
             TypeLibrary.Initialize();

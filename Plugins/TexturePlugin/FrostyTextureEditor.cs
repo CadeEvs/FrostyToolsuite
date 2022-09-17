@@ -424,7 +424,7 @@ namespace TexturePlugin
                                 if ((header.dwCaps2 & TextureUtils.DDSCaps2.Volume) != 0)
                                     depth = (ushort)header.dwDepth;
 
-                                Texture newTextureAsset = new Texture(m_textureAsset.Type, pixelFormat, (ushort)header.dwWidth, (ushort)header.dwHeight, depth) {FirstMip = m_textureAsset.FirstMip};
+                                Texture newTextureAsset = new Texture(m_textureAsset.Type, pixelFormat, (ushort)header.dwWidth, (ushort)header.dwHeight, depth, m_textureAsset.Version, m_textureAsset.ResourceMeta) {FirstMip = m_textureAsset.FirstMip};
                                 if (header.dwMipMapCount <= m_textureAsset.FirstMip)
                                     newTextureAsset.FirstMip = 0;
 

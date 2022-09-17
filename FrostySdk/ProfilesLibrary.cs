@@ -40,7 +40,13 @@ namespace FrostySdk
         PlantsVsZombiesBattleforNeighborville = 20190905,
         Fifa20 = 20190911,
         NeedForSpeedHeat = 20191101,
-        StarWarsSquadrons = 20201001
+        StarWarsSquadrons = 20201001,
+        Madden21 = 20200828,
+        Fifa21 = 20201009,
+        Madden22 = 20210820,
+        Fifa22 = 20210927,
+        Battlefield2042 = 20211119,
+        Madden23 = 20220819
     }
 
     public struct Profile
@@ -214,7 +220,7 @@ namespace FrostySdk
         {
             return versions.Contains((ProfileVersion)DataVersion);
         }
-        
+
         private static string DecodeString(NativeReader reader)
         {
             int length = reader.Read7BitEncodedInt();

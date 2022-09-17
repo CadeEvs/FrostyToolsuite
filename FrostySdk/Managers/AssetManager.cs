@@ -30,6 +30,7 @@ namespace FrostySdk.Managers
         Dx11ShaderProgramDatabase = 0xF04F0C81,
         RenderTexture = 0x41D57E10,
         UITtfFontFile = 0x9D00966A,
+        RimeTtfFontFile = 0x063994C5,
         AssetBank = 0x51A3C853,
         IesResource = 0x0DEAFE10,
         MorphResource = 0xEB228507,
@@ -86,6 +87,24 @@ namespace FrostySdk.Managers
         ShaderBlockDepotAsset = 0xDDB3E17F,
         CompiledBytecode = 0xE2B02F7,
         ShaderBlockDepot = 0xD8F5DAAF,
+        DestructionResource = 0x41CBC351,
+        ExpressionShaderBindingSignature = 0x6A5BE5DB,
+        ExpressionShaderComputePermutation = 0x95CE62DD,
+        ExpressionShaderPassBinding = 0x589BB36E,
+        ExpressionShaderPermutationGroup = 0x42AF5937,
+        ExpressionShaderRasterPermutation = 0xD489FACB,
+        ExpressionShaderStreamableTextureSet = 0x7A630735,
+        ExpressionShaderStreamableTextureSetLookupTable = 0x2D254A89,
+        FbAclCompressedClipData = 0x1190E82E,
+        FbRawCompressedClipData = 0x185E69A4,
+        MeshComputeAttachmentJointsResource = 0x904A0035,
+        MeshComputeBlendShapesResource = 0xD45AF954,
+        MeshComputeCalcProceduralChannelsResource = 0x969D0D11,
+        ShaderBlockDepotResource = 0x73312045,
+        ShaderStateAssetId = 0x2FEC6526,
+        StrandHairResource = 0xC4841A63,
+        StrandHairBindResource = 0x8C8D0A22,
+        SvgImageData = 0x89983F10,
         Invalid = 0xFFFFFFFF
     }
 
@@ -380,9 +399,9 @@ namespace FrostySdk.Managers
         public override string AssetType => "res";
 
         //#if FROSTY_DEVELOPER
-//        // @tmp
-//        public override string DisplayName => ("(" + (OriginalSize / 1024.0d).ToString("F2") + "kb) ".PadRight(6) + Filename) + ((IsDirty) ? "*" : "");
-//#endif
+        //        // @tmp
+        //        public override string DisplayName => ("(" + (OriginalSize / 1024.0d).ToString("F2") + "kb) ".PadRight(6) + Filename) + ((IsDirty) ? "*" : "");
+        //#endif
 
         public ulong ResRid;
         public uint ResType;
@@ -541,8 +560,10 @@ namespace FrostySdk.Managers
         internal class BaseBundleInfo
         {
             public string Name;
+            public string SbName;
             public long Offset;
             public long Size;
+            public bool IsPatch;
         }
 
         internal interface IAssetLoader
@@ -638,7 +659,7 @@ namespace FrostySdk.Managers
                     manager.Initialize(m_logger);
                 }
 
-                if (result != null && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20)
+                if (result != null && !ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20, ProfileVersion.Fifa20))
                 {
                     result.InvalidatedDueToPatch = prePatchCache != null;
                     if (prePatchCache != null)
@@ -695,7 +716,12 @@ namespace FrostySdk.Managers
                         ProfileVersion.Madden20,
                         ProfileVersion.Fifa20,
                         ProfileVersion.NeedForSpeedHeat,
-                        ProfileVersion.PlantsVsZombiesBattleforNeighborville))
+                        ProfileVersion.PlantsVsZombiesBattleforNeighborville,
+                        ProfileVersion.Fifa21,
+                        ProfileVersion.Madden22,
+                        ProfileVersion.Fifa22,
+                        ProfileVersion.Battlefield2042,
+                        ProfileVersion.Madden23))
                 {
                     // load class infos
                     WriteToLog("Loading type info");
@@ -775,7 +801,7 @@ namespace FrostySdk.Managers
                     else { ebxToRemove.Add(entry); }
                 }
 
-                // SWBF2/BFV
+                // SWBF2/BFV/SWS
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                 {
                     // need to work out bundle here (as bundles are hashed names only)
@@ -830,7 +856,7 @@ namespace FrostySdk.Managers
             {
                 modifiedCustom += (uint)mgr.EnumerateAssets(modifiedOnly: true).Count();
             }
-            
+
             return modifiedEbx + modifiedRes + modifiedChunks + modifiedCustom;
         }
 
@@ -844,7 +870,7 @@ namespace FrostySdk.Managers
             {
                 dirtyCustom += (uint)mgr.EnumerateAssets(modifiedOnly: true).Count((AssetEntry a) => a.IsDirty);
             }
-            
+
             return dirtyEbx + dirtyRes + dirtyChunks + dirtyCustom;
         }
 
@@ -1094,7 +1120,7 @@ namespace FrostySdk.Managers
         /// </summary>
         public Guid AddChunk(byte[] buffer, Guid? overrideGuid = null, Texture texture = null, params int[] bundles)
         {
-            ChunkAssetEntry entry = new ChunkAssetEntry {IsAdded = true, IsDirty = true};
+            ChunkAssetEntry entry = new ChunkAssetEntry { IsAdded = true, IsDirty = true };
             CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18)) ? CompressionType.Oodle : CompressionType.Default;
 
             entry.ModifiedEntry = new ModifiedAssetEntry
@@ -1160,7 +1186,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.Data = (texture != null)
                 ? Utils.CompressTexture(buffer, texture: texture, compressionOverride: compressType)
                 : Utils.CompressFile(buffer, compressionOverride: compressType);
-            
+
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
             entry.ModifiedEntry.LogicalSize = (uint)buffer.Length;
 
@@ -1503,31 +1529,31 @@ namespace FrostySdk.Managers
         #endregion
 
         #region -- Get Functions --
-        public int GetSuperBundleId(SuperBundleEntry sbentry) 
+        public int GetSuperBundleId(SuperBundleEntry sbentry)
             => m_superBundles.FindIndex((SuperBundleEntry sbe) => sbe.Name.Equals(sbentry.Name));
 
-        public int GetSuperBundleId(string sbname) 
+        public int GetSuperBundleId(string sbname)
             => m_superBundles.FindIndex((SuperBundleEntry sbe) => sbe.Name.Equals(sbname, StringComparison.OrdinalIgnoreCase));
 
-        public SuperBundleEntry GetSuperBundle(int id) 
+        public SuperBundleEntry GetSuperBundle(int id)
             => id >= m_superBundles.Count ? null : m_superBundles[id];
 
-        public int GetBundleId(BundleEntry bentry) 
+        public int GetBundleId(BundleEntry bentry)
             => m_bundles.FindIndex((BundleEntry be) => be.Name.Equals(bentry.Name));
 
-        public int GetBundleId(string name) 
+        public int GetBundleId(string name)
             => m_bundles.FindIndex((BundleEntry be) => be.Name.Equals(name));
 
-        public BundleEntry GetBundleEntry(int bundleId) 
+        public BundleEntry GetBundleEntry(int bundleId)
             => bundleId >= m_bundles.Count ? null : m_bundles[bundleId];
 
-        public AssetEntry GetCustomAssetEntry(string type, string key) 
+        public AssetEntry GetCustomAssetEntry(string type, string key)
             => !m_customAssetManagers.ContainsKey(type) ? null : m_customAssetManagers[type].GetAssetEntry(key);
 
-        public T GetCustomAssetEntry<T>(string type, string key) where T : AssetEntry 
+        public T GetCustomAssetEntry<T>(string type, string key) where T : AssetEntry
             => (T)GetCustomAssetEntry(type, key);
 
-        public EbxAssetEntry GetEbxEntry(Guid ebxGuid) 
+        public EbxAssetEntry GetEbxEntry(Guid ebxGuid)
             => !m_ebxGuidList.ContainsKey(ebxGuid) ? null : m_ebxGuidList[ebxGuid];
 
         public EbxAsset GetEbx(string name, bool getUnmodifiedData = false) => GetEbx(GetEbxEntry(name), getUnmodifiedData);
@@ -1906,7 +1932,7 @@ namespace FrostySdk.Managers
             {
                 entry.Location = AssetDataLocation.Cache;
 
-                entry.ExtraData = new AssetExtraData {DataOffset = 0xdeadbeef};
+                entry.ExtraData = new AssetExtraData { DataOffset = 0xdeadbeef };
             }
             else if (ebx.GetValue<int>("casPatchType") == 2)
             {
@@ -1984,7 +2010,7 @@ namespace FrostySdk.Managers
             {
                 entry.Location = AssetDataLocation.Cache;
 
-                entry.ExtraData = new AssetExtraData {DataOffset = 0xdeadbeef};
+                entry.ExtraData = new AssetExtraData { DataOffset = 0xdeadbeef };
             }
             else if (res.GetValue<int>("casPatchType") == 2)
             {
@@ -2061,7 +2087,7 @@ namespace FrostySdk.Managers
             {
                 entry.Location = AssetDataLocation.Cache;
 
-                entry.ExtraData = new AssetExtraData {DataOffset = 0xdeadbeef};
+                entry.ExtraData = new AssetExtraData { DataOffset = 0xdeadbeef };
             }
 
             m_chunkList.Add(chunkId, entry);
@@ -2103,7 +2129,7 @@ namespace FrostySdk.Managers
                 if (head != m_fileSystem.Head)
                 {
                     bIsPatched = true;
-                    prePatchCache = new List<EbxAssetEntry>();  
+                    prePatchCache = new List<EbxAssetEntry>();
                 }
 
                 int count = reader.ReadInt();
@@ -2117,7 +2143,7 @@ namespace FrostySdk.Managers
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        SuperBundleEntry sbentry = new SuperBundleEntry {Name = reader.ReadNullTerminatedString()};
+                        SuperBundleEntry sbentry = new SuperBundleEntry { Name = reader.ReadNullTerminatedString() };
                         m_superBundles.Add(sbentry);
                     }
                 }
@@ -2139,7 +2165,7 @@ namespace FrostySdk.Managers
                     if (bentry.Name.StartsWith("win32/Win32"))
                         bentry.Name = bentry.Name.Remove(0, 6);
 
-                    if(!bIsPatched)
+                    if (!bIsPatched)
                         m_bundles.Add(bentry);
                 }
 
@@ -2300,7 +2326,7 @@ namespace FrostySdk.Managers
                     for (int j = 0; j < subCount; j++)
                         entry.Bundles.Add(reader.ReadInt());
 
-                    if(!bIsPatched)
+                    if (!bIsPatched)
                         m_chunkList.Add(entry.Id, entry);
                 }
             }
@@ -2459,7 +2485,7 @@ namespace FrostySdk.Managers
                 { "FifaAssetLoader", typeof(FifaAssetLoader) },
                 { "EdgeAssetLoader", typeof(EdgeAssetLoader) },
                 { "AnthemAssetLoader", typeof(AnthemAssetLoader) },
-                { "PVZAssetLoader", typeof(PVZAssetLoader) }
+                { "CasAssetLoader", typeof(CasAssetLoader) }
             };
 
             return loaderTypes[name].Name;

@@ -257,7 +257,7 @@ namespace FrostySdk.IO
 
                 Write(HashString(classType.Name));
                 Write(classType.FieldIndex);
-                Write(classType.FieldCount);
+                Write((byte)classType.FieldCount);
                 Write(classType.Alignment);
                 Write(type);
                 Write(classType.Size);
@@ -1937,7 +1937,7 @@ namespace FrostySdk.IO
             //});
             EbxClass ebxClass = GetClass(classType);
             classTypes.Add(ebxClass);
-            classGuids.Add(EbxReaderV2.std.GetGuid(ebxClass));
+            classGuids.Add(EbxReaderV2.std.GetGuid(ebxClass).Value);
 
             //for (int i = 0; i < ebxClass.FieldCount; i++)
             //{
@@ -2015,6 +2015,6 @@ namespace FrostySdk.IO
 
         internal EbxClass GetClass(Guid guid) => EbxReaderV2.std.GetClass(guid).Value;
 
-        internal EbxField GetField(EbxClass classType, int index) => EbxReaderV2.std.GetField(index);
+        internal EbxField GetField(EbxClass classType, int index) => EbxReaderV2.std.GetField(index).Value;
     }
 }
