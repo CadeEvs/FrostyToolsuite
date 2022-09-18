@@ -985,6 +985,7 @@ namespace FrostySdk.IO
                     return ReadCString(ReadUInt());
                 case EbxFieldType.FileRef:
                     return ReadFileRef();
+                case EbxFieldType.Delegate:
                 case EbxFieldType.TypeRef:
                     return ReadTypeRef();
                 case EbxFieldType.BoxedValueRef:
@@ -1001,10 +1002,6 @@ namespace FrostySdk.IO
                     return ReadPointerRef(dontRefCount);
                 case EbxFieldType.DbObject:
                     throw new InvalidDataException("DbObject");
-                case EbxFieldType.Delegate:
-                    // TODO: temp fix
-                    Position += 16;
-                    return null;
                 default:
                     throw new InvalidDataException("Unknown");
             }
