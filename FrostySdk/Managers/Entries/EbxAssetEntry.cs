@@ -5,6 +5,21 @@ namespace FrostySdk.Managers.Entries
 {
     public class EbxAssetEntry : AssetEntry
     {
+        public override string Name
+        {
+            get
+            {
+                // TODO: @techdebt find better method to move blueprint bundles to sub-folder, this will most likely break writing.
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042) &&
+                    (base.Name.Contains("cd_") || base.Name.Contains("md_")))
+                {
+                    return $"Bundles/{base.Name}";
+                }
+
+                return base.Name;
+            }
+        }
+        
         public Guid Guid;
         public List<Guid> DependentAssets = new List<Guid>();
         public override string AssetType => "ebx";
