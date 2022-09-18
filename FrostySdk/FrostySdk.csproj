@@ -107,6 +107,9 @@
     <Compile Include="IO\DbReader.cs" />
     <Compile Include="IO\DbWriter.cs" />
     <Compile Include="IO\EbxReader.cs" />
+    <Compile Include="IO\EbxReaderRiff.cs" />
+    <Compile Include="IO\EbxReaderV2.cs" />
+    <Compile Include="IO\EbxSharedTypeDescriptors.cs" />
     <Compile Include="IO\EbxWriter.cs" />
     <Compile Include="IO\EbxXmlWriter.cs" />
     <Compile Include="IO\LegacyBinarySbReader.cs" />
@@ -123,6 +126,7 @@
     <Compile Include="Managers\Entries\SuperBundleEntry.cs" />
     <Compile Include="Managers\FileSystemManager.cs" />
     <Compile Include="Managers\KeyManager.cs" />
+    <Compile Include="Managers\Loaders\CasAssetLoader.cs" />
     <Compile Include="Managers\Loaders\EdgeAssetLoader.cs" />
     <Compile Include="Managers\Loaders\AnthemAssetLoader.cs" />
     <Compile Include="Managers\Loaders\PVZAssetLoader.cs" />
@@ -173,10 +177,22 @@
     <Content Include="Profiles\FIFA20SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Profiles\FIFA21SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Profiles\FIFA22SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Profiles\MADDEN19SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Profiles\MADDEN20SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Profiles\MADDEN22SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Profiles\MADDEN23SDK.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Profiles\MassEffectSDK.dll">
@@ -224,6 +240,11 @@
       <Project>{d1a29bf8-2e2e-47be-845f-a6dd66d175ba}</Project>
       <Name>FrostyHash</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Profiles\BF2042SDK.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

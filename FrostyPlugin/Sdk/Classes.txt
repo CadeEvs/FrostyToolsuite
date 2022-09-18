@@ -310,8 +310,10 @@ BeginClass KitLimitationGroup
 			BeginAccessor
 				get 
 				{
+#if !DV_20211119
 					if (_MaxCount.IsNull())
 						_MaxCount = Utils.GetString(_MaxCountProperty);
+#endif
 					return _MaxCount; 
 				}
 				set 
@@ -319,6 +321,7 @@ BeginClass KitLimitationGroup
 					_MaxCount=value; 
 					
 					string strValue = value;
+#if !DV_20211119
 					if (strValue.StartsWith("0x"))
 					{
 						strValue = strValue.Remove(0, 2);
@@ -326,6 +329,7 @@ BeginClass KitLimitationGroup
 						return;
 					}
 					_MaxCountProperty=Utils.HashString(strValue); 
+#endif
 				}
 			EndAccessor
 		EndField
@@ -720,7 +724,7 @@ BeginClass UIElementLayerEntityData
 	{
 		if (__id != "")
 			return __id;
-#if DV_20171117 || DV_20160927 || DV_20170929 || DV_20180914 || DV_20180807 || DV_20170321 || DV_20181207 || DV_20171110 || DV_20190729 || DV_20190905 || DV_20190911 || DV_20191101 || DV_20201001
+#if DV_20171117 || DV_20160927 || DV_20170929 || DV_20180914 || DV_20180807 || DV_20170321 || DV_20181207 || DV_20171110 || DV_20190729 || DV_20190905 || DV_20190911 || DV_20191101 || DV_20201001 || DV_20201009 || DV_20210820 || DV_20211119 || DV_20210927 || DV_20220819
 		if (_InternalLayerName != "")
 			return _InternalLayerName.Sanitize();
 #elif DV_20180628

@@ -256,6 +256,10 @@ namespace Frosty.Core.Windows
                 {
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManager));
                 }
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Madden23))
+                {
+                    App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManagerV2));
+                }
 
                 // ensure mods folder is created
                 DirectoryInfo di = new DirectoryInfo("Mods/" + ProfilesLibrary.ProfileName);

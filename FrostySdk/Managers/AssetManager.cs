@@ -144,8 +144,10 @@ namespace FrostySdk.Managers
         internal class BaseBundleInfo
         {
             public string Name;
+            public string SbName;
             public long Offset;
             public long Size;
+            public bool IsPatch;
         }
 
         internal interface IAssetLoader
@@ -241,7 +243,7 @@ namespace FrostySdk.Managers
                     manager.Initialize(m_logger);
                 }
 
-                if (result != null && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20)
+                if (result != null && !ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20, ProfileVersion.Fifa20))
                 {
                     result.InvalidatedDueToPatch = prePatchCache != null;
                     if (prePatchCache != null)
@@ -298,7 +300,12 @@ namespace FrostySdk.Managers
                         ProfileVersion.Madden20,
                         ProfileVersion.Fifa20,
                         ProfileVersion.NeedForSpeedHeat,
-                        ProfileVersion.PlantsVsZombiesBattleforNeighborville))
+                        ProfileVersion.PlantsVsZombiesBattleforNeighborville,
+                        ProfileVersion.Fifa21,
+                        ProfileVersion.Madden22,
+                        ProfileVersion.Fifa22,
+                        ProfileVersion.Battlefield2042,
+                        ProfileVersion.Madden23))
                 {
                     // load class infos
                     WriteToLog("Loading type info");
@@ -389,7 +396,7 @@ namespace FrostySdk.Managers
                     }
                 }
 
-                // SWBF2/BFV
+                // SWBF2/BFV/SWS
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                 {
                     // need to work out bundle here (as bundles are hashed names only)
@@ -444,7 +451,7 @@ namespace FrostySdk.Managers
             {
                 modifiedCustom += (uint)mgr.EnumerateAssets(modifiedOnly: true).Count();
             }
-            
+
             return modifiedEbx + modifiedRes + modifiedChunks + modifiedCustom;
         }
 
@@ -458,7 +465,7 @@ namespace FrostySdk.Managers
             {
                 dirtyCustom += (uint)mgr.EnumerateAssets(modifiedOnly: true).Count((AssetEntry a) => a.IsDirty);
             }
-            
+
             return dirtyEbx + dirtyRes + dirtyChunks + dirtyCustom;
         }
 
@@ -708,7 +715,7 @@ namespace FrostySdk.Managers
         /// </summary>
         public Guid AddChunk(byte[] buffer, Guid? overrideGuid = null, Texture texture = null, params int[] bundles)
         {
-            ChunkAssetEntry entry = new ChunkAssetEntry {IsAdded = true, IsDirty = true};
+            ChunkAssetEntry entry = new ChunkAssetEntry { IsAdded = true, IsDirty = true };
             CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18)) ? CompressionType.Oodle : CompressionType.Default;
 
             entry.ModifiedEntry = new ModifiedAssetEntry
@@ -774,7 +781,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.Data = (texture != null)
                 ? Utils.CompressTexture(buffer, texture: texture, compressionOverride: compressType)
                 : Utils.CompressFile(buffer, compressionOverride: compressType);
-            
+
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
             entry.ModifiedEntry.LogicalSize = (uint)buffer.Length;
 
@@ -1524,7 +1531,7 @@ namespace FrostySdk.Managers
             {
                 entry.Location = AssetDataLocation.Cache;
 
-                entry.ExtraData = new AssetExtraData {DataOffset = 0xdeadbeef};
+                entry.ExtraData = new AssetExtraData { DataOffset = 0xdeadbeef };
             }
             else if (ebx.GetValue<int>("casPatchType") == 2)
             {
@@ -1602,7 +1609,7 @@ namespace FrostySdk.Managers
             {
                 entry.Location = AssetDataLocation.Cache;
 
-                entry.ExtraData = new AssetExtraData {DataOffset = 0xdeadbeef};
+                entry.ExtraData = new AssetExtraData { DataOffset = 0xdeadbeef };
             }
             else if (res.GetValue<int>("casPatchType") == 2)
             {
@@ -1679,7 +1686,7 @@ namespace FrostySdk.Managers
             {
                 entry.Location = AssetDataLocation.Cache;
 
-                entry.ExtraData = new AssetExtraData {DataOffset = 0xdeadbeef};
+                entry.ExtraData = new AssetExtraData { DataOffset = 0xdeadbeef };
             }
 
             m_chunkList.Add(chunkId, entry);
@@ -1735,7 +1742,7 @@ namespace FrostySdk.Managers
                 {
                     for (int i = 0; i < count; i++)
                     {
-                        SuperBundleEntry sbentry = new SuperBundleEntry {Name = reader.ReadNullTerminatedString()};
+                        SuperBundleEntry sbentry = new SuperBundleEntry { Name = reader.ReadNullTerminatedString() };
                         m_superBundles.Add(sbentry);
                     }
                 }
@@ -2077,7 +2084,7 @@ namespace FrostySdk.Managers
                 { "FifaAssetLoader", typeof(FifaAssetLoader) },
                 { "EdgeAssetLoader", typeof(EdgeAssetLoader) },
                 { "AnthemAssetLoader", typeof(AnthemAssetLoader) },
-                { "PVZAssetLoader", typeof(PVZAssetLoader) }
+                { "CasAssetLoader", typeof(CasAssetLoader) }
             };
 
             return loaderTypes[name].Name;

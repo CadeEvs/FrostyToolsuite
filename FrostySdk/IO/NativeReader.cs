@@ -313,8 +313,15 @@ namespace FrostySdk.IO
 
         public void Pad(int alignment)
         {
+            if (alignment == 0)
+            {
+                return;
+            }
+
             while (Position % alignment != 0)
+            {
                 Position++;
+            }
         }
 
         #endregion

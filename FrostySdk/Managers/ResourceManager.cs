@@ -44,14 +44,12 @@ namespace FrostySdk.Managers
                 }
             }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18,
-                    ProfileVersion.Fifa19,
-                    ProfileVersion.Fifa20))
+            if (m_fileSystem.HasFileInMemoryFs("Dictionaries/ebx.dict"))
             {
                 // load dictionary from memoryFs (used for decompressing ebx)
                 ZStd.SetDictionary(m_fileSystem.GetFileFromMemoryFs("Dictionaries/ebx.dict"));
             }
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda))
+            if (m_fileSystem.HasFileInMemoryFs("Scripts/CasEncrypt.yaml"))
             {
                 // load casencrypt.yaml from memoryFs
                 using (NativeReader reader = new NativeReader(new MemoryStream(m_fileSystem.GetFileFromMemoryFs("Scripts/CasEncrypt.yaml"))))

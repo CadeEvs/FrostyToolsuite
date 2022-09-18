@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
-using FrostySdk.Managers;
 
 namespace FrostySdk.IO
 {
@@ -23,6 +22,7 @@ namespace FrostySdk.IO
         Struct = 0x02,
         Pointer = 0x03,
         Array = 0x04,
+        FixedArray = 0x05,
         String = 0x06,
         CString = 0x07,
         Enum = 0x08,
@@ -41,15 +41,31 @@ namespace FrostySdk.IO
         Guid = 0x15,
         Sha1 = 0x16,
         ResourceRef = 0x17,
-        Delegate = 0x18,
+        Function = 0x18,
         TypeRef = 0x19,
-        BoxedValueRef = 0x1A
+        BoxedValueRef = 0x1A,
+        Interface = 0x1B,
+        Delegate = 0x1C
+    }
+
+    public enum EbxFieldCategory : byte
+    {
+        None = 0,
+        Pointer = 1,
+        Struct = 2,
+        PrimitiveType = 3,
+        ArrayType = 4,
+        EnumType = 5,
+        FunctionType = 6,
+        InterfaceType = 7,
+        DelegateType = 8
     }
 
     internal enum EbxVersion
     {
         Version2 = 0x0FB2D1CE,
-        Version4 = 0x0FB4D1CE
+        Version4 = 0x0FB4D1CE,
+        Version6 = 0x46464952 // RIFF LE
     }
 
     public struct EbxField
@@ -62,6 +78,7 @@ namespace FrostySdk.IO
         public uint SecondOffset;
 
         public EbxFieldType DebugType => (EbxFieldType)((Type >> 4) & 0x1F);
+        public EbxFieldCategory DebugCategory => (EbxFieldCategory)(Type & 0xF);
     }
 
     public struct EbxClass
@@ -69,7 +86,7 @@ namespace FrostySdk.IO
         public string Name;
         public uint NameHash;
         public int FieldIndex;
-        public byte FieldCount;
+        public ushort FieldCount;
         public byte Alignment;
         public ushort Type;
         public ushort Size;
@@ -78,6 +95,7 @@ namespace FrostySdk.IO
         public int Index;
 
         public EbxFieldType DebugType => (EbxFieldType)((Type >> 4) & 0x1F);
+        public EbxFieldCategory DebugCategory => (EbxFieldCategory)(Type & 0xF);
     }
 
     public struct EbxInstance
@@ -297,7 +315,7 @@ namespace FrostySdk.IO
                 return;
 
             refCounts[idx]--;
-            if(refCounts[idx] <= 0)
+            if (refCounts[idx] <= 0)
             {
                 refCounts.RemoveAt(idx);
                 objects.RemoveAt(idx);
@@ -356,7 +374,7 @@ namespace FrostySdk.IO
             //    }
             //}
 
-            for (int i = newRefCnts.Count-1; i >= 0; i--)
+            for (int i = newRefCnts.Count - 1; i >= 0; i--)
             {
                 if (nonRootObjs.Contains(i))
                     continue;
@@ -537,7 +555,7 @@ namespace FrostySdk.IO
 
         public static EbxReader CreateReader(Stream inStream, FileSystemManager fs = null, bool patched = false)
         {
-            return (ProfilesLibrary.EbxVersion & 1) != 0 ? new EbxReaderV2(inStream, fs, patched) : new EbxReader(inStream);
+            return ProfilesLibrary.EbxVersion == 6 ? new EbxReaderRiff(inStream, fs, patched) : (ProfilesLibrary.EbxVersion & 1) != 0 ? new EbxReaderV2(inStream, fs, patched) : new EbxReader(inStream);
         }
 
         public Guid FileGuid => fileGuid;
@@ -566,7 +584,7 @@ namespace FrostySdk.IO
         internal long stringsAndDataLen;
         internal uint guidCount;
         internal ushort instanceCount;
-        internal ushort exportedCount;
+        internal uint exportedCount;
         internal ushort uniqueClassCount;
         internal ushort classTypeCount;
         internal ushort fieldTypeCount;
@@ -659,7 +677,7 @@ namespace FrostySdk.IO
                 fieldType.DataOffset = ReadUInt();
                 fieldType.SecondOffset = ReadUInt();
                 fieldType.Name = typeNames[hash];
-                
+
                 fieldTypes.Add(fieldType);
             }
 
@@ -678,7 +696,7 @@ namespace FrostySdk.IO
                 classTypes.Add(classType);
             }
 
-            ushort tmpExportedCount = exportedCount;
+            uint tmpExportedCount = exportedCount;
             for (int i = 0; i < instanceCount; i++)
             {
                 EbxInstance inst = new EbxInstance
@@ -831,13 +849,12 @@ namespace FrostySdk.IO
             }
         }
 
-        internal object ReadClass(EbxClass classType, object obj, long startOffset)
+        internal virtual object ReadClass(EbxClass classType, object obj, long startOffset)
         {
             if (obj == null)
             {
                 Position += classType.Size;
-                while (Position % classType.Alignment != 0)
-                    Position++;
+                Pad(classType.Alignment);
                 return null;
             }
             Type objType = obj.GetType();
@@ -866,14 +883,12 @@ namespace FrostySdk.IO
                         || fieldType.DebugType == EbxFieldType.Float64)
                     {
                         // Structure alignment
-                        while (Position % 8 != 0)
-                            Position++;
+                        Pad(8);
                     }
                     else if (fieldType.DebugType == EbxFieldType.Array
                         || fieldType.DebugType == EbxFieldType.Pointer)
                     {
-                        while (Position % 4 != 0)
-                            Position++;
+                        Pad(4);
                     }
 
                     // @temp
@@ -917,8 +932,7 @@ namespace FrostySdk.IO
                 }
             }
 
-            while (Position % classType.Alignment != 0)
-                Position++;
+            Pad(classType.Alignment);
 
             return null;
         }
@@ -937,57 +951,60 @@ namespace FrostySdk.IO
         {
             switch (fieldType)
             {
-                case EbxFieldType.Boolean: return ReadByte() > 0;
-                case EbxFieldType.Int8: return (sbyte)ReadByte();
-                case EbxFieldType.UInt8: return ReadByte();
-                case EbxFieldType.Int16: return ReadShort();
-                case EbxFieldType.UInt16: return ReadUShort();
-                case EbxFieldType.Int32: return ReadInt();
-                case EbxFieldType.UInt32: return ReadUInt();
-                case EbxFieldType.Int64: return ReadLong();
-                case EbxFieldType.UInt64: return ReadULong();
-                case EbxFieldType.Float32: return ReadFloat();
-                case EbxFieldType.Float64: return ReadDouble();
-                case EbxFieldType.Guid: return ReadGuid();
-                case EbxFieldType.ResourceRef: return ReadResourceRef();
-                case EbxFieldType.Sha1: return ReadSha1();
-                case EbxFieldType.String: return ReadSizedString(32);
-                case EbxFieldType.CString: return ReadCString(ReadUInt());
-                case EbxFieldType.FileRef: return ReadFileRef();
-                case EbxFieldType.TypeRef: return ReadTypeRef();
-                case EbxFieldType.BoxedValueRef: return ReadBoxedValueRef();
+                case EbxFieldType.Boolean:
+                    return ReadBoolean();
+                case EbxFieldType.Int8:
+                    return (sbyte)ReadByte();
+                case EbxFieldType.UInt8:
+                    return ReadByte();
+                case EbxFieldType.Int16:
+                    return ReadShort();
+                case EbxFieldType.UInt16:
+                    return ReadUShort();
+                case EbxFieldType.Int32:
+                    return ReadInt();
+                case EbxFieldType.UInt32:
+                    return ReadUInt();
+                case EbxFieldType.Int64:
+                    return ReadLong();
+                case EbxFieldType.UInt64: 
+                    return ReadULong();
+                case EbxFieldType.Float32:
+                    return ReadFloat();
+                case EbxFieldType.Float64:
+                    return ReadDouble();
+                case EbxFieldType.Guid:
+                    return ReadGuid();
+                case EbxFieldType.ResourceRef:
+                    return ReadResourceRef();
+                case EbxFieldType.Sha1:
+                    return ReadSha1();
+                case EbxFieldType.String:
+                    return ReadSizedString(32);
+                case EbxFieldType.CString:
+                    return ReadCString(ReadUInt());
+                case EbxFieldType.FileRef:
+                    return ReadFileRef();
+                case EbxFieldType.TypeRef:
+                    return ReadTypeRef();
+                case EbxFieldType.BoxedValueRef:
+                    return ReadBoxedValueRef();
                 case EbxFieldType.Struct:
                     EbxClass structType = GetClass(parentClass, fieldClassRef);
-                    while (Position % structType.Alignment != 0)
-                        Position++;
+                    Pad(structType.Alignment);
                     object structObj = CreateObject(structType);
                     ReadClass(structType, structObj, Position);
                     return structObj;
                 case EbxFieldType.Enum:
                     return ReadInt();
                 case EbxFieldType.Pointer:
-                    uint index = ReadUInt();
-                    if ((index >> 0x1F) == 1)
-                    {
-                        EbxImportReference import = imports[(int)(index & 0x7FFFFFFF)];
-                        //if (dontRefCount && !dependencies.Contains(import.FileGuid))
-                        //    dependencies.Add(import.FileGuid);
-
-                        return new PointerRef(import);
-                    }
-                    else if (index == 0)
-                    {
-                        return new PointerRef();
-                    }
-                    else
-                    {
-                        if (!dontRefCount)
-                            refCounts[(int)(index - 1)]++;
-                        return new PointerRef(objects[(int)(index - 1)]);
-                    }
-
+                    return ReadPointerRef(dontRefCount);
                 case EbxFieldType.DbObject:
                     throw new InvalidDataException("DbObject");
+                case EbxFieldType.Delegate:
+                    // TODO: temp fix
+                    Position += 16;
+                    return null;
                 default:
                     throw new InvalidDataException("Unknown");
             }
@@ -1052,7 +1069,9 @@ namespace FrostySdk.IO
                     EbxClass enumType = classTypes[fieldType.ClassRef];
                     List<Tuple<string, int>> enumValues = new List<Tuple<string, int>>();
                     for (int i = 0; i < enumType.FieldCount; i++)
+                    {
                         enumValues.Add(new Tuple<string, int>(fieldTypes[enumType.FieldIndex + i].Name, (int)fieldTypes[enumType.FieldIndex + i].DataOffset));
+                    }
                     return TypeLibrary.AddEnum(enumType.Name, enumValues, enumType);
 
                 case EbxFieldType.DbObject: return null;
@@ -1060,7 +1079,7 @@ namespace FrostySdk.IO
             return null;
         }
 
-        internal string ReadString(uint offset)
+        internal virtual string ReadString(uint offset)
         {
             if (offset == 0xFFFFFFFF)
                 return "";
@@ -1086,7 +1105,31 @@ namespace FrostySdk.IO
             return new FileRef(ReadString(index));
         }
 
-        internal TypeRef ReadTypeRef()
+        internal virtual PointerRef ReadPointerRef(bool dontRefCount)
+        {
+            uint index = ReadUInt();
+            if ((index >> 0x1F) == 1)
+            {
+                EbxImportReference import = imports[(int)(index & 0x7FFFFFFF)];
+
+                return new PointerRef(import);
+            }
+            else if (index == 0)
+            {
+                return new PointerRef();
+            }
+            else
+            {
+                if (!dontRefCount)
+                {
+                    refCounts[(int)(index - 1)]++;
+                }
+
+                return new PointerRef(objects[(int)(index - 1)]);
+            }
+        }
+
+        internal virtual TypeRef ReadTypeRef()
         {
             string str = ReadString(ReadUInt());
             Position += 4;
@@ -1104,7 +1147,7 @@ namespace FrostySdk.IO
             return new TypeRef(str);
         }
 
-        internal BoxedValueRef ReadBoxedValueRef()
+        internal virtual BoxedValueRef ReadBoxedValueRef()
         {
             int index = ReadInt();
             Position += 12;
@@ -1122,7 +1165,7 @@ namespace FrostySdk.IO
             if ((EbxFieldType)boxedValue.Type == EbxFieldType.Array)
             {
                 EbxClass arrayType = GetClass(null, boxedValue.ClassRef);
-                var arrayField = GetField(arrayType, arrayType.FieldIndex);
+                EbxField arrayField = GetField(arrayType, arrayType.FieldIndex);
 
                 value = Activator.CreateInstance(typeof(List<>).MakeGenericType(GetTypeFromEbxField(arrayField)));
 
@@ -1166,495 +1209,6 @@ namespace FrostySdk.IO
             }
 
             return hash;
-        }
-    }
-
-    internal class EbxSharedTypeDescriptors
-    {
-        public int ClassCount => classes.Count;
-        private List<EbxClass?> classes = new List<EbxClass?>();
-        private Dictionary<Guid, int> mapping = new Dictionary<Guid, int>();
-        private List<EbxField> fields = new List<EbxField>();
-        private List<Guid> guids = new List<Guid>();
-
-        public EbxSharedTypeDescriptors(FileSystemManager fs, string name, bool patch)
-        {
-            using (NativeReader reader = new NativeReader(new MemoryStream(fs.GetFileFromMemoryFs(name))))
-            {
-                uint magic = reader.ReadUInt();
-                ushort numClasses = reader.ReadUShort();
-                ushort numFields = reader.ReadUShort();
-
-                for (int i = 0; i < numFields; i++)
-                {
-                    uint hash = reader.ReadUInt();
-
-                    EbxField field = new EbxField
-                    {
-                        NameHash = hash,
-                        Type = (ushort)(reader.ReadUShort() >> 1),
-                        ClassRef = reader.ReadUShort(),
-                        DataOffset = reader.ReadUInt(),
-                        SecondOffset = reader.ReadUInt()
-                    };
-                    fields.Add(field);
-                }
-
-                int fieldIdx = 0;
-                for (int i = 0; i < numClasses; i++)
-                {
-                    Guid guid = reader.ReadGuid();
-                    Guid guid2 = reader.ReadGuid();
-
-                    if (guid == guid2)
-                    {
-                        mapping.Add(guid, classes.Count);
-                        classes.Add(null);
-                        guids.Add(guid);
-                        continue;
-                    }
-
-                    reader.Position -= 0x10;
-                    uint hash = reader.ReadUInt();
-                    uint fieldOffset = reader.ReadUInt();
-                    int fieldCount = reader.ReadByte();
-                    byte alignment = reader.ReadByte();
-                    ushort type = reader.ReadUShort();
-                    uint size = reader.ReadUInt();
-
-                    if ((alignment & 0x80) != 0)
-                    {
-                        fieldCount += 0x100;
-                        alignment &= 0x7F;
-                    }
-
-                    EbxClass ebxClass = new EbxClass
-                    {
-                        NameHash = hash,
-                        FieldIndex = fieldIdx,
-                        FieldCount = (byte)fieldCount,
-                        Alignment = alignment,
-                        Size = (ushort)(size),
-                        Type = (ushort)(type >> 1),
-                        Index = i
-                    };
-                    if (patch)
-                        ebxClass.SecondSize = 1;
-
-                    mapping.Add(guid, classes.Count);
-                    classes.Add(ebxClass);
-                    guids.Add(guid);
-
-                    fieldIdx += fieldCount;
-                }
-            }
-        }
-
-        public bool HasClass(Guid guid) => mapping.ContainsKey(guid);
-
-        public EbxClass? GetClass(Guid guid) => !mapping.ContainsKey(guid) ? null : classes[mapping[guid]];
-
-        public EbxClass? GetClass(int index) => classes[index];
-
-        public Guid GetGuid(EbxClass classType) => guids[classType.Index];
-
-        public Guid GetGuid(int index) => guids[index];
-
-        public EbxField GetField(int index) => fields[index];
-    }
-
-    public class EbxReaderV2 : EbxReader
-    {
-        public override string RootType
-        { 
-            get
-            {
-                Type type = TypeLibrary.GetType(classGuids[instances[0].ClassRef]);
-                return type != null ? type.Name : "";
-            }
-        }
-        private List<Guid> classGuids = new List<Guid>();
-
-        internal static EbxSharedTypeDescriptors std = null;
-        internal static EbxSharedTypeDescriptors patchStd = null;
-        private readonly bool patched = false;
-
-        public EbxReaderV2(Stream InStream, FileSystemManager fs, bool inPatched)
-            : base(InStream, true)
-        {
-            if (std == null)
-            {
-                std = new EbxSharedTypeDescriptors(fs, "SharedTypeDescriptors.ebx", false);
-                if (fs.HasFileInMemoryFs("SharedTypeDescriptors_patch.ebx"))
-                    patchStd = new EbxSharedTypeDescriptors(fs, "SharedTypeDescriptors_patch.ebx", true);
-            }
-
-            patched = inPatched;
-            magic = (EbxVersion)ReadUInt();
-            if (magic != EbxVersion.Version2 && magic != EbxVersion.Version4)
-                return;
-
-            stringsOffset = ReadUInt();
-            stringsAndDataLen = ReadUInt();
-            guidCount = ReadUInt();
-            instanceCount = ReadUShort();
-            exportedCount = ReadUShort();
-            uniqueClassCount = ReadUShort();
-            classTypeCount = ReadUShort();
-            fieldTypeCount = ReadUShort();
-            typeNamesLen = ReadUShort();
-
-            stringsLen = ReadUInt();
-            arrayCount = ReadUInt();
-            dataLen = ReadUInt();
-
-            arraysOffset = stringsOffset + stringsLen + dataLen;
-
-            fileGuid = ReadGuid();
-
-            boxedValuesCount = ReadUInt();
-            boxedValuesOffset = ReadUInt();
-            boxedValuesOffset += stringsOffset + stringsLen;
-
-            for (int i = 0; i < guidCount; i++)
-            {
-                EbxImportReference import = new EbxImportReference
-                {
-                    FileGuid = ReadGuid(),
-                    ClassGuid = ReadGuid()
-                };
-
-
-                imports.Add(import);
-                if (!dependencies.Contains(import.FileGuid))
-                    dependencies.Add(import.FileGuid);
-            }
-
-            Dictionary<int, string> typeNames = new Dictionary<int, string>();
-
-            long typeNamesOffset = Position;
-            while (Position - typeNamesOffset < typeNamesLen)
-            {
-                string typeName = ReadNullTerminatedString();
-                int hash = HashString(typeName);
-
-                if (!typeNames.ContainsKey(hash))
-                    typeNames.Add(hash, typeName);
-            }
-
-            for (int i = 0; i < fieldTypeCount; i++)
-            {
-                EbxField fieldType = new EbxField();
-
-                int hash = ReadInt();
-                fieldType.Type = (magic == EbxVersion.Version2) ? (ushort)(ReadUShort()) : (ushort)(ReadUShort() >> 1);
-                fieldType.ClassRef = ReadUShort();
-                fieldType.DataOffset = ReadUInt();
-                fieldType.SecondOffset = ReadUInt();
-                fieldType.Name = typeNames[hash];
-
-                fieldTypes.Add(fieldType);
-            }
-
-            for (int i = 0; i < classTypeCount; i++)
-            {
-                Guid guid = ReadGuid();
-                classGuids.Add(guid);
-            }
-
-            ushort tmpExportedCount = exportedCount;
-            for (int i = 0; i < instanceCount; i++)
-            {
-                EbxInstance inst = new EbxInstance
-                {
-                    ClassRef = ReadUShort(),
-                    Count = ReadUShort()
-                };
-
-                if (tmpExportedCount != 0)
-                {
-                    inst.IsExported = true;
-                    tmpExportedCount--;
-                }
-
-                instances.Add(inst);
-            }
-
-            while (Position % 16 != 0)
-                Position++;
-
-            for (int i = 0; i < arrayCount; i++)
-            {
-                EbxArray array = new EbxArray
-                {
-                    Offset = ReadUInt(),
-                    Count = ReadUInt(),
-                    ClassRef = ReadInt()
-                };
-
-                arrays.Add(array);
-            }
-
-            Pad(16);
-
-            for (int i = 0; i < boxedValuesCount; i++)
-            {
-                EbxBoxedValue boxedValue = new EbxBoxedValue
-                {
-                    Offset = ReadUInt(),
-                    ClassRef = ReadUShort(),
-                    Type = ReadUShort()
-                };
-
-                boxedValues.Add(boxedValue);
-            }
-
-            Position = stringsOffset + stringsLen;
-            isValid = true;
-        }
-
-        internal override void InternalReadObjects()
-        {
-            List<Type> types = new List<Type>();
-            foreach (EbxInstance inst in instances)
-            {
-                Type objType = TypeLibrary.GetType(classGuids[inst.ClassRef]);
-                for (int i = 0; i < inst.Count; i++)
-                {
-                    objects.Add(TypeLibrary.CreateObject(objType));
-                    refCounts.Add(0);
-                }
-            }
-
-            int typeId = 0;
-            int index = 0;
-
-            foreach (EbxInstance inst in instances)
-            {
-                for (int i = 0; i < inst.Count; i++)
-                {
-                    dynamic obj = objects[typeId++];
-                    Type objType = obj.GetType();
-                    EbxClass classType = GetClass(objType);
-
-                    while (Position % classType.Alignment != 0)
-                        Position++;
-
-                    Guid instanceGuid = Guid.Empty;
-                    if (inst.IsExported)
-                        instanceGuid = ReadGuid();
-
-                    if (classType.Alignment != 0x04)
-                        Position += 8;
-
-                    obj.SetInstanceGuid(new AssetClassGuid(instanceGuid, index++));
-                    ReadClass(classType, obj, Position - 8);
-                }
-            }
-        }
-
-        internal EbxClass GetClass(Type objType)
-        {
-            EbxClass? classType = null;
-            foreach (TypeInfoGuidAttribute attr in objType.GetCustomAttributes<TypeInfoGuidAttribute>())
-            {
-                if (classGuids.Contains(attr.Guid))
-                {
-                    if (patched && patchStd != null)
-                        classType = patchStd.GetClass(attr.Guid);
-                    if (classType == null)
-                        classType = std.GetClass(attr.Guid);
-                    break;
-                }
-            }
-            return classType.Value;
-        }
-
-        internal override PropertyInfo GetProperty(Type objType, EbxField field)
-        {
-            if (field.NameHash == 0xb95a6ae7)
-                return null;
-
-            foreach (PropertyInfo pi in objType.GetProperties())
-            {
-                HashAttribute attr = pi.GetCustomAttribute<HashAttribute>();
-                if (attr == null)
-                    continue;
-
-                int hash = attr.Hash;
-                if (hash == (int)field.NameHash)
-                    return pi;
-            }
-            return null;
-        }
-
-        internal override EbxClass GetClass(EbxClass? classType, int index)
-        {
-            EbxClass? newClassType = null;
-            Guid? guid = null;
-
-            if (!classType.HasValue)
-            {
-                guid = classGuids[index];
-                newClassType = patchStd?.GetClass(guid.Value);
-                if (!newClassType.HasValue)
-                    newClassType = std.GetClass(guid.Value);
-            }
-            else
-            {
-                int idx = (short)index + ((classType.HasValue) ? classType.Value.Index : 0);
-                guid = std.GetGuid(idx);
-
-                if (classType.Value.SecondSize == 1)
-                {
-                    guid = patchStd.GetGuid(idx);
-                    newClassType = patchStd.GetClass(idx);
-
-                    if (newClassType == null)
-                        newClassType = std.GetClass(guid.Value);
-                }
-                else
-                    newClassType = std.GetClass(idx);
-            }
-
-            if (newClassType.HasValue)
-                TypeLibrary.AddType(newClassType.Value.Name, guid);
-
-            return newClassType.Value;
-        }
-
-        internal override EbxField GetField(EbxClass classType, int index)
-        {
-            return classType.SecondSize == 1 ? patchStd.GetField(index) : std.GetField(index);
-        }
-        
-        internal override object CreateObject(EbxClass classType)
-        {
-            return TypeLibrary.CreateObject(classType.SecondSize == 1 ? patchStd.GetGuid(classType) : std.GetGuid(classType));
-        }
-
-        internal override Type GetType(EbxClass classType)
-        {
-            return TypeLibrary.GetType(classType.SecondSize == 1 ? patchStd.GetGuid(classType) : std.GetGuid(classType));
-        }
-
-        internal object ReadClass(EbxClassMetaAttribute classMeta, object obj, Type objType, long startOffset)
-        {
-            if (obj == null)
-            {
-                Position += classMeta.Size;
-                while (Position % classMeta.Alignment != 0)
-                    Position++;
-                return null;
-            }
-
-            if (objType.BaseType != typeof(object))
-            {
-                ReadClass(objType.BaseType.GetCustomAttribute<EbxClassMetaAttribute>(), obj, objType.BaseType, startOffset);
-            }
-
-            PropertyInfo[] pis = objType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
-            foreach (PropertyInfo pi in pis)
-            {
-                if (pi.GetCustomAttribute<IsTransientAttribute>() != null)
-                    continue;
-
-                IsReferenceAttribute attr = pi.GetCustomAttribute<IsReferenceAttribute>();
-                EbxFieldMetaAttribute fieldMeta = pi.GetCustomAttribute<EbxFieldMetaAttribute>();
-
-                Position = startOffset + fieldMeta.Offset;
-                if (fieldMeta.Type == EbxFieldType.Array)
-                {
-                    int index = ReadInt();
-                    EbxArray array = arrays[index];
-
-                    long arrayPos = Position;
-                    Position = arraysOffset + array.Offset;
-
-                    // @temp: since constructors can add elements to an array, need to clear
-                    //        before attempting to read in new elements
-
-                    pi?.GetValue(obj).GetType().GetMethod("Clear").Invoke(pi.GetValue(obj), new object[] { });
-
-                    // read in array elements
-                    for (int i = 0; i < array.Count; i++)
-                    {
-                        object value = ReadField(fieldMeta.ArrayType, fieldMeta.BaseType, (attr != null));
-                        pi?.GetValue(obj).GetType().GetMethod("Add").Invoke(pi.GetValue(obj), new object[] { value });
-                    }
-                    Position = arrayPos;
-                }
-                else
-                {
-                    object value = ReadField(fieldMeta.Type, pi.PropertyType, (attr != null));
-                    pi?.SetValue(obj, value);
-                }
-            }
-
-            while (Position - startOffset != classMeta.Size)
-                Position++;
-
-            return null;
-        }
-
-        internal object ReadField(EbxFieldType type, Type baseType, bool dontRefCount = false)
-        {
-            switch (type)
-            {
-                case EbxFieldType.Boolean: return ReadByte() > 0;
-                case EbxFieldType.Int8: return (sbyte)ReadByte();
-                case EbxFieldType.UInt8: return ReadByte();
-                case EbxFieldType.Int16: return ReadShort();
-                case EbxFieldType.UInt16: return ReadUShort();
-                case EbxFieldType.Int32: return ReadInt();
-                case EbxFieldType.UInt32: return ReadUInt();
-                case EbxFieldType.Int64: return ReadLong();
-                case EbxFieldType.UInt64: return ReadULong();
-                case EbxFieldType.Float32: return ReadFloat();
-                case EbxFieldType.Float64: return ReadDouble();
-                case EbxFieldType.Guid: return ReadGuid();
-                case EbxFieldType.ResourceRef: return ReadResourceRef();
-                case EbxFieldType.Sha1: return ReadSha1();
-                case EbxFieldType.String: return ReadSizedString(32);
-                case EbxFieldType.CString: return ReadCString(ReadUInt());
-                case EbxFieldType.FileRef: return ReadFileRef();
-                case EbxFieldType.TypeRef: return ReadTypeRef();
-                case EbxFieldType.BoxedValueRef: return ReadBoxedValueRef();
-                case EbxFieldType.Struct:
-                    object structObj = TypeLibrary.CreateObject(baseType);
-                    EbxClassMetaAttribute classMeta = structObj.GetType().GetCustomAttribute<EbxClassMetaAttribute>();
-                    while (Position % classMeta.Alignment != 0)
-                        Position++;
-                    ReadClass(classMeta, structObj, structObj.GetType(), Position);
-                    return structObj;
-                case EbxFieldType.Enum:
-                    return ReadInt();
-                case EbxFieldType.Pointer:
-                    uint index = ReadUInt();
-                    if ((index >> 0x1F) == 1)
-                    {
-                        EbxImportReference import = imports[(int)(index & 0x7FFFFFFF)];
-                        if (dontRefCount && !dependencies.Contains(import.FileGuid))
-                            dependencies.Add(import.FileGuid);
-
-                        return new PointerRef(import);
-                    }
-                    else if (index == 0)
-                    {
-                        return new PointerRef();
-                    }
-                    else
-                    {
-                        if (!dontRefCount)
-                            refCounts[(int)(index - 1)]++;
-                        return new PointerRef(objects[(int)(index - 1)]);
-                    }
-
-                case EbxFieldType.DbObject:
-                    throw new InvalidDataException("DbObject");
-                default:
-                    throw new InvalidDataException("Unknown");
-            }
         }
     }
 }

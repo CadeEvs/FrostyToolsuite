@@ -45,6 +45,7 @@ namespace FrostySdk.BaseProfile
                 case (int)ProfileVersion.Fifa19:
                 case (int)ProfileVersion.Madden20:
                 case (int)ProfileVersion.Fifa20:
+                case (int)ProfileVersion.Madden21:
                     return Magic.Fifa;
                 default:
                     return Magic.Standard;

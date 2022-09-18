@@ -65,7 +65,10 @@ namespace FrostySdk.IO
             byte[] buffer = null;
 
             if ((flags & 0x0F) != 0)
+            {
                 bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
+            }
+
             if ((decompressedSize & 0xFF000000) != 0)
             {
                 decompressedSize &= 0x00FFFFFF;
@@ -76,17 +79,33 @@ namespace FrostySdk.IO
             compressionType = (ushort)(compressionType & 0x7F);
 
             if (compressionType == 0x00) // No Compression
+            {
                 buffer = ReadUncompressed(bufferSize, unobfuscate);
+            }
             else if (compressionType == 0x02) // ZLib compression
+            {
                 buffer = DecompressBlockZLib(bufferSize, decompressedSize);
+            }
             else if (compressionType == 0x0f) // ZStd Compression
+            {
                 buffer = DecompressBlockZStd(bufferSize, decompressedSize, useDictionary, unobfuscate);
+            }
             else if (compressionType == 0x09) // Diff
+            {
                 buffer = DecompressBlockLZ4(bufferSize, decompressedSize);
+            }
             else if (compressionType == 0x11) // Oodle (v6)
+            {
                 buffer = DecompressOodle(bufferSize, decompressedSize, unobfuscate);
+            }
             else if (compressionType == 0x15) // Oodle (v4)
+            {
                 buffer = DecompressOodle(bufferSize, decompressedSize, unobfuscate);
+            }
+            else if (compressionType == 0x19) // Oodle (v8)
+            {
+                buffer = DecompressOodle(bufferSize, decompressedSize, unobfuscate);
+            }
 
             return buffer;
         }
