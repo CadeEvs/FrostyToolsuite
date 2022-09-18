@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using AnimationEditorPlugin.Managers;
 using FrostySdk.IO;
@@ -18,10 +19,14 @@ namespace AnimationEditorPlugin.Formats
     public abstract class Section
     {
         protected Endian m_endian;
+        protected int m_headerSize;
+        protected long m_endPosition;
         
         public Section(SectionHeader inHeader)
         {
             m_endian = inHeader.Endian;
+            m_headerSize = inHeader.Size;
+            m_endPosition = inHeader.ReaderPosition + (inHeader.Size - 12);
         }
         
         public abstract void Read(NativeReader reader);
@@ -33,6 +38,9 @@ namespace AnimationEditorPlugin.Formats
         public Endian Endian { get; private set; }
         public int Size { get; private set; }
 
+        // save this so section can get end position
+        public long ReaderPosition { get; private set; }
+        
         public void Read(NativeReader reader)
         {
             // format
@@ -63,34 +71,9 @@ namespace AnimationEditorPlugin.Formats
 
             // size
             Size = reader.ReadInt(Endian);
-        }
-    }
-    
-    public class Section_STRM : Section
-    {
-        public uint LargestSectionSize { get; private set; }
-
-        public Section_STRM(SectionHeader inHeader)
-            : base(inHeader)
-        {
-        }
-        
-        public override void Read(NativeReader reader)
-        {
-            LargestSectionSize = reader.ReadUInt(m_endian);
-        }
-    }
-
-    public class Section_REFL : Section
-    {
-        public Section_REFL(SectionHeader inHeader)
-            : base(inHeader)
-        {
-        }
-
-        public override void Read(NativeReader reader)
-        {
-            throw new NotImplementedException();
+            
+            // reader position
+            ReaderPosition = reader.BaseStream.Position;
         }
     }
 }

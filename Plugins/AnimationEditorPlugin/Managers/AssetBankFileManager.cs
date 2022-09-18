@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using AnimationEditorPlugin.Formats;
+using AnimationEditorPlugin.Formats.Sections;
 using Frosty.Core;
 using Frosty.Hash;
+using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -27,11 +29,33 @@ namespace AnimationEditorPlugin.Managers
                 uint progress = (uint)((index / (float)totalCount) * 100);
                 logger.Log("progress:" + progress);
 
-                if (!resEntry.Name.Contains("arctic_01_win32_antstate")) 
+                // temporarily get specific res from testing games
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII))
+                {
+                    if (!resEntry.Name.Contains("deathstar02_01_win32_antstate"))
+                    {
+                        continue;
+                    }
+                }
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefront))
+                {
+                    if (!resEntry.Name.Contains("arctic_01_win32_antstate"))
+                    {
+                        continue;
+                    }
+                }
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2))
+                {
+                    if (!resEntry.Name.Contains("level_rush_suburbia_win32_antstate"))
+                    {
+                        continue;
+                    }
+                }
+                else
+                {
                     continue;
-                //if (!resEntry.Name.Contains("level_rush_suburbia_win32_antstate")) 
-                //    continue;
-
+                }
+                
                 using (NativeReader reader = new NativeReader(App.AssetManager.GetRes(resEntry)))
                 {
                     uint version = reader.ReadUInt(Endian.Big);
@@ -50,6 +74,36 @@ namespace AnimationEditorPlugin.Managers
                         {
                             Section_STRM strm = new Section_STRM(header);
                             strm.Read(reader);
+                            
+                            List<Bank> banks;
+                            
+                            // REFL / REF2
+                            header.Read(reader);
+                            if (header.Format == SectionFormat.REFL)
+                            {
+                                Section_REFL refl = new Section_REFL(header);
+                                refl.Read(reader);
+
+                                banks = refl.Banks;
+                            }
+                            else if (header.Format == SectionFormat.REF2)
+                            {
+                                Section_REF2 ref2 = new Section_REF2(header);
+                                ref2.Read(reader);
+                                
+                                banks = ref2.Banks;
+                            }
+                            else
+                            {
+                                banks = new List<Bank>();
+                            }
+
+                            foreach (Bank bank in banks)
+                            {
+                                int hash = Fnv1.HashString(bank.Name);
+                                
+                                m_entries.Add(hash, new AssetBankFileEntry() { Bank = bank});
+                            }
                         }
                     }
                 }
