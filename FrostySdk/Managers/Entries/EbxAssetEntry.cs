@@ -13,7 +13,7 @@ namespace FrostySdk.Managers.Entries
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042) &&
                     (base.Name.Contains("cd_") || base.Name.Contains("md_")))
                 {
-                    return $"Bundles/{base.Name}";
+                    return $"win32/{base.Name}";
                 }
 
                 return base.Name;
