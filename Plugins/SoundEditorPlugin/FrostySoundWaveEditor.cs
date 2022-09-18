@@ -48,6 +48,10 @@ namespace SoundEditorPlugin
 
                 dynamic soundDataChunk = soundWave.Chunks[runtimeVariation.ChunkIndex];
                 ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(soundDataChunk.ChunkId);
+                if (chunkEntry == null)
+                {
+                    continue;
+                }
 
                 using (NativeReader reader = new NativeReader(App.AssetManager.GetChunk(chunkEntry)))
                 {
@@ -257,6 +261,10 @@ namespace SoundEditorPlugin
                 int chunkIndex = newWave.Segments[(int)runtimeVariation.FirstSegmentIndex].SamplesOffsetFlag == 1 ? (int)runtimeVariation.MemoryChunkIndex : (int)runtimeVariation.StreamChunkIndex;
                 dynamic soundDataChunk = newWave.Chunks[chunkIndex];
                 ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(soundDataChunk.ChunkId);
+                if (chunkEntry == null)
+                {
+                    continue;
+                }
                 using (NativeReader reader = new NativeReader(App.AssetManager.GetChunk(chunkEntry)))
                 {
                     List<short> decodedSoundBuf = new List<short>();

@@ -192,8 +192,13 @@ namespace FrostySdk.Resources
                 Unknown3[0] = reader.ReadUInt();
             }
 
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+            {
+                reader.ReadLong();
+            }
+
 #if FROSTY_DEVELOPER
-            Debug.Assert(reader.Position == reader.Length);
+                Debug.Assert(reader.Position == reader.Length);
 #endif
 
             Data = am.GetChunk(am.GetChunkEntry(m_chunkId));
