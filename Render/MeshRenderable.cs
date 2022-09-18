@@ -17,6 +17,7 @@ using System.IO;
 using FrostySdk;
 using SharpDX.Direct3D11;
 using Frosty.Core.Screens;
+using FrostySdk.Managers.Entries;
 using LevelEditorPlugin.Screens;
 
 namespace LevelEditorPlugin.Render

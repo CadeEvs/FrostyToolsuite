@@ -3,6 +3,7 @@ using Frosty.Core;
 using FrostySdk.Managers;
 using LevelEditorPlugin.Controls;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace LevelEditorPlugin.Definitions
 {

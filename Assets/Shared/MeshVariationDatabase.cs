@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FrostySdk.IO;
+using FrostySdk.Managers.Entries;
 
 namespace LevelEditorPlugin.Assets
 {
