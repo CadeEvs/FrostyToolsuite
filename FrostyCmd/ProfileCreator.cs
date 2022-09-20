@@ -102,6 +102,8 @@ namespace FrostyCmd
 
         #endregion
 
+        #region -- Profiles --
+        
         private void CreateBF4Profile()
         {
             string key = "bf4";
@@ -1133,7 +1135,8 @@ namespace FrostyCmd
                 blobs.Add(key, writer.ToByteArray());
             }
         }
-
+#endregion
+        
         public ProfileCreator()
         {
         }
