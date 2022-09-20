@@ -21,6 +21,8 @@ namespace FrostySdk.Managers
 
     public interface ICustomAssetManager
     {
+        bool ShouldInitializeOnStartup { get; }
+        
         void Initialize(ILogger logger);
         AssetEntry GetAssetEntry(string key);
         Stream GetAsset(AssetEntry entry);
@@ -240,7 +242,10 @@ namespace FrostySdk.Managers
                 // now initialize any custom asset managers
                 foreach (ICustomAssetManager manager in m_customAssetManagers.Values)
                 {
-                    manager.Initialize(m_logger);
+                    if (manager.ShouldInitializeOnStartup)
+                    {
+                        manager.Initialize(m_logger);
+                    }
                 }
 
                 if (result != null && !ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20, ProfileVersion.Fifa20))

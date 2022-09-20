@@ -22,6 +22,8 @@ namespace Frosty.Core.Legacy
         private bool cacheMode = false;
 
         /* Load in legacy files */
+        public bool ShouldInitializeOnStartup => true;
+
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading legacy files");

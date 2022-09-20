@@ -18,6 +18,8 @@ namespace AnimationEditorPlugin.Managers
 
         #region -- ICustomAssetManager --
 
+        public bool ShouldInitializeOnStartup => false;
+
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading asset banks");
@@ -148,7 +150,10 @@ namespace AnimationEditorPlugin.Managers
 
         public void OnCommand(string command, params object[] value)
         {
-            throw new System.NotImplementedException();
+            switch (command)
+            {
+                case "initialize": Initialize((ILogger)value[0]); break;
+            }
         }
         
         #endregion

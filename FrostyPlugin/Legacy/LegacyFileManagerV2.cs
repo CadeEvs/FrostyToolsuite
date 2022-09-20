@@ -30,6 +30,8 @@ namespace Frosty.Core.Legacy
          */
         private Dictionary<Guid, byte[]> cachedChunks = new Dictionary<Guid, byte[]>();
         private bool cacheMode = false;
+        
+        public bool ShouldInitializeOnStartup => true;
 
         /* Load in legacy files */
         public void Initialize(ILogger logger)

@@ -76,6 +76,8 @@ namespace TestPlugin.Managers
             return entries.ContainsKey(Fnv1.HashString(key)) ? entries[Fnv1.HashString(key)] : null;
         }
 
+        public bool ShouldInitializeOnStartup => true;
+
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading fs files");

@@ -58,6 +58,10 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Profiles" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy /Y $(TargetPath) $(SolutionDir)$(OutDir)Plugins\" />
   </Target>
