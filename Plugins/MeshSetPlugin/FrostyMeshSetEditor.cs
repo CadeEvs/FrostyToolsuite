@@ -638,7 +638,11 @@ namespace MeshSetPlugin
                 boneNodes.Add(boneNode);
             }
 
-            if ((ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville) || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons && meshAsset != null)
+            if ((ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII 
+                || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 
+                || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield2042 
+                || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville) 
+                || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons && meshAsset != null)
             {
                 int procIndex = 0;
                 dynamic skinnedProcAnim = meshAsset.SkinnedProceduralAnimation;
@@ -830,7 +834,11 @@ namespace MeshSetPlugin
                     if (boneWeights[j] > 0.0f)
                     {
                         int subIndex = boneIndices[j];
-                        if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                        if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5 
+                            && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield2042
+                            && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII 
+                            && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville 
+                            && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
                             subIndex = boneList[subIndex];
 
                         // account for proc bones
