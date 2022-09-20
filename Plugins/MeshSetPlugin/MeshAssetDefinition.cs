@@ -114,7 +114,7 @@ namespace MeshSetPlugin
             settings.Version = (MeshExportVersion)Enum.Parse(typeof(MeshExportVersion), Version);
             settings.Scale = (MeshExportScale)Enum.Parse(typeof(MeshExportScale), Scale);
             settings.FlattenHierarchy = flattenHierarchy;
-
+            settings.ExportSingleLod = exportSingleLod;
             settings.ExportAdditionalMeshes = exportAdditionalMeshes;
 
             if (settings is SkinnedMeshExportSettings exportSettings)
