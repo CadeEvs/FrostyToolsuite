@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
+using System.Text;
+using AnimationEditorPlugin.Formats;
 using AnimationEditorPlugin.Managers;
 using Frosty.Core;
 using Frosty.Core.Controls;
@@ -44,6 +47,16 @@ namespace AnimationEditorPlugin.Editors.ViewModels
 
         private void AssetExplorerDoubleClicked(object args)
         {
+            AssetBankFileEntry asset = ((AssetDoubleClickedEventArgs)args).SelectedAsset as AssetBankFileEntry;
+            
+            // all temp just to show type properties
+            StringBuilder properties = new StringBuilder();
+            foreach (Bank.Entry entry in asset.Bank.Entries)
+            {
+                properties.AppendLine(entry.Name);
+            }
+
+            Data = properties.ToString();
         }
         
         #region -- INotifyPropertyChanged --

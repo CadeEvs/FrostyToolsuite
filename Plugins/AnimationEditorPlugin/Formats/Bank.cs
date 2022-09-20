@@ -27,15 +27,19 @@ namespace AnimationEditorPlugin.Formats
             public int Type;
             public int Size;
             public int Position;
+            public int NameOffset;
             
             public uint BankHash;
             public Bank Bank;
+            
+            public override string ToString() => Name != "" ? Name : "Empty";
         }
         
         public string Name => m_name;
+        public Entry[] Entries => m_entries;
         
         private string m_name;
-        private List<Entry> m_entries;
+        private Entry[] m_entries;
         private uint m_type;
         private int m_minEntryNum;
         private int m_maxEntryNum;
@@ -73,26 +77,36 @@ namespace AnimationEditorPlugin.Formats
 
             m_type = reader.ReadUInt(endian);
             
+            //
             // entries
+            //
+            
+            // entry setup
             int entryCount = (m_maxEntryNum - m_minEntryNum) + 1;
+            m_entries = new Bank.Entry[entryCount];
+            
+            // create and add entry
             for (int i = 0; i < entryCount; i++)
             {
                 Bank.Entry entry = new Entry();
                 entry.BankHash = reader.ReadUInt(endian);
                 entry.Size = reader.ReadInt(endian);
                 entry.Position = reader.ReadInt(endian);
+                entry.NameOffset = reader.ReadInt(endian);
                 // unknowns
-                reader.ReadInt(endian); // name
-                reader.ReadUInt(endian); // count / flags
-                reader.ReadUShort(endian); // element align
-                reader.ReadShort(endian); // RLE
+                reader.ReadUInt(endian);
+                reader.ReadUShort(endian);
+                reader.ReadShort(endian);
 
+                // set entry within bank
+                m_entries[i] = entry;
+                
                 if (bankVersion == 1)
                 {
                     long position = reader.ReadLong(endian);
                     if (position != 0)
                     {
-                        entry.Bank = banks[position];
+                        m_entries[i].Bank = banks[position];
                     }
                 }
                 else if (bankVersion == 2)
@@ -107,10 +121,20 @@ namespace AnimationEditorPlugin.Formats
                 entry.Type = m_minEntryNum + i;
             }
             
+            //
             // names
+            //
+            
             m_nameTable = reader.ReadBytes(m_nameTableSize);
 
+            // bank
             m_name = GetName(1);
+            
+            // entries
+            for (int i = 0; i < entryCount; i++)
+            {
+                m_entries[i].Name = GetName(m_entries[i].NameOffset);
+            }
         }
 
         private string GetName(int offset)
