@@ -39,6 +39,8 @@ namespace AnimationEditorPlugin.Formats
             public int Size;
             public int Position;
             public int NameOffset;
+
+            public bool IsArray;
             
             public uint BankHash;
             public Bank Bank;
@@ -104,8 +106,11 @@ namespace AnimationEditorPlugin.Formats
                 entry.Size = reader.ReadInt(endian);
                 entry.Position = reader.ReadInt(endian);
                 entry.NameOffset = reader.ReadInt(endian);
-                // unknowns
-                reader.ReadUInt(endian);
+                // unknown
+                reader.ReadUShort(endian);
+                
+                entry.IsArray = reader.ReadUShort(endian) != 0;
+                // unknown
                 reader.ReadUShort(endian);
                 reader.ReadShort(endian);
 
