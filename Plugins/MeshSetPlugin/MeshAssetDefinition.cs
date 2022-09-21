@@ -40,6 +40,7 @@ namespace MeshSetPlugin
 
         [DisplayName("Flatten Hierarchy (Blender)")]
         public bool FlattenHierarchy { get; set; }
+        public bool ExportSingleLod { get; set; }
         [DisplayName("Export Additional Meshes")]
         public bool ExportAdditionalMeshes { get; set; }
     }
@@ -105,6 +106,7 @@ namespace MeshSetPlugin
             string Version = Config.Get<string>("MeshSetExportVersion", "FBX_2012", ConfigScope.Game);
             string Scale = Config.Get<string>("MeshSetExportScale", "Centimeters", ConfigScope.Game);
             bool flattenHierarchy = Config.Get<bool>("MeshSetExportFlattenHierarchy", false, ConfigScope.Game);
+            bool exportSingleLod = Config.Get<bool>("MeshSetExportExportSingleLod", false, ConfigScope.Game);
             bool exportAdditionalMeshes = Config.Get<bool>("MeshSetExportExportAdditionalMeshes", false, ConfigScope.Game);
             string skeleton = Config.Get<string>("MeshSetExportSkeleton", "", ConfigScope.Game);
 
@@ -117,6 +119,7 @@ namespace MeshSetPlugin
             settings.Version = (MeshExportVersion)Enum.Parse(typeof(MeshExportVersion), Version);
             settings.Scale = (MeshExportScale)Enum.Parse(typeof(MeshExportScale), Scale);
             settings.FlattenHierarchy = flattenHierarchy;
+            settings.ExportSingleLod = exportSingleLod;
             settings.ExportAdditionalMeshes = exportAdditionalMeshes;
 
             if (settings is SkinnedMeshExportSettings exportSettings)
@@ -145,7 +148,7 @@ namespace MeshSetPlugin
             FrostyTaskWindow.Show("Exporting MeshSet", "", (task) =>
             {
                 FBXExporter exporter = new FBXExporter(task);
-                exporter.ExportFBX(meshAsset, path, settings.Version.ToString().Replace("FBX_", ""), settings.Scale.ToString(), settings.FlattenHierarchy, skeleton, (filterType == "fbx") ? "binary" : "obj", meshSet);
+                exporter.ExportFBX(meshAsset, path, settings.Version.ToString().Replace("FBX_", ""), settings.Scale.ToString(), settings.FlattenHierarchy, settings.ExportSingleLod, skeleton, (filterType == "fbx") ? "binary" : "obj", meshSet);
             });
         }
 
@@ -154,6 +157,7 @@ namespace MeshSetPlugin
             Config.Add("MeshSetExportVersion", settings.Version.ToString(), ConfigScope.Game);
             Config.Add("MeshSetExportScale", settings.Scale.ToString(), ConfigScope.Game);
             Config.Add("MeshSetExportFlattenHierarchy", settings.FlattenHierarchy, ConfigScope.Game);
+            Config.Add("MeshSetExportExportSingleLod", settings.ExportSingleLod, ConfigScope.Game);
             Config.Add("MeshSetExportExportAdditionalMeshes", settings.ExportAdditionalMeshes, ConfigScope.Game);
 
             //Config.Add("MeshSetExport", "Version", settings.Version.ToString());
