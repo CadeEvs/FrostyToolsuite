@@ -5,18 +5,29 @@ using FrostySdk.IO;
 
 namespace AnimationEditorPlugin.Formats
 {
+    // @todo: figure out the other types
     public enum BankType
     {
         Invalid,
         Bool,
         Int8,
-        Uint8,
+        UInt8,
         Int16,
         Uint16,
         Int32,
         UInt32,
         Int64,
-        UInt64
+        UInt64,
+        Float,
+        Vector2,
+        Vector3,
+        Vector4,
+        Quaternion,
+        Matrix,
+        Guid,
+        String,
+        Reference,
+        Double
     }
 
     public class Bank

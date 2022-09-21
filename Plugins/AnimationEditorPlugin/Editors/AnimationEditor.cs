@@ -27,7 +27,7 @@ namespace AnimationEditorPlugin.Editors
             m_logger = inLogger;
             
             // initialize asset bank manager
-            FrostyTaskWindow.Show("Importing File", "", (task) =>
+            FrostyTaskWindow.Show("Initializing Asset Banks", "", (task) =>
             {
                 App.AssetManager.SendManagerCommand("assetbank", "initialize", task.TaskLogger);
             });

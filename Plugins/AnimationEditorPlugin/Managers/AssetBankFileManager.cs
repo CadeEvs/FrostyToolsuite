@@ -103,8 +103,11 @@ namespace AnimationEditorPlugin.Managers
                             foreach (Bank bank in banks)
                             {
                                 int hash = Fnv1.HashString(bank.Name);
-                                
-                                m_entries.Add(hash, new AssetBankFileEntry() { Bank = bank});
+
+                                if (!m_entries.ContainsKey(hash))
+                                {
+                                    m_entries.Add(hash, new AssetBankFileEntry() { Bank = bank});
+                                }
                             }
                         }
                     }

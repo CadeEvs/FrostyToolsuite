@@ -53,7 +53,7 @@ namespace AnimationEditorPlugin.Editors.ViewModels
             StringBuilder properties = new StringBuilder();
             foreach (Bank.Entry entry in asset.Bank.Entries)
             {
-                properties.AppendLine(entry.Name);
+                properties.AppendLine($"{entry.Name} ({(BankType)entry.BankHash})");
             }
 
             Data = properties.ToString();
