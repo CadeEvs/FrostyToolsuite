@@ -9,7 +9,7 @@ namespace AnimationEditorPlugin.Formats
     public enum BankType
     {
         Invalid,
-        Bool,
+        Boolean,
         Int8,
         UInt8,
         Int16,

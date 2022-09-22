@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using AnimationEditorPlugin.Formats;
@@ -71,15 +72,25 @@ namespace AnimationEditorPlugin.Managers
                         SectionHeader header = new SectionHeader();
                         header.Read(reader);
                         
-                        // STRM
+                        //
+                        // STRM section
+                        //
                         if (header.Format == SectionFormat.STRM)
                         {
                             Section_STRM strm = new Section_STRM(header);
+                            
+                            // end of section position, we need this later to iterate on data sections
+                            long endSectionPosition = strm.EndPosition;
+                            
                             strm.Read(reader);
                             
                             List<Bank> banks;
                             
-                            // REFL / REF2
+                            /*
+                             * REFL or REF2 section
+                             * 
+                             * Contains all of the asset types within the game. This should only be necessary to read when generating an sdk.
+                             */
                             header.Read(reader);
                             if (header.Format == SectionFormat.REFL)
                             {
@@ -100,10 +111,52 @@ namespace AnimationEditorPlugin.Managers
                                 banks = new List<Bank>();
                             }
 
+                            using (AssetBankModuleWriter writer = new AssetBankModuleWriter("AssetBankClasses.dll", banks))
+                            {
+                                writer.Write(App.FileSystemManager.Head);
+                            }
+                            
+                            if (File.Exists("AssetBankClasses.dll"))
+                            {
+                                FileInfo fi = new FileInfo(".\\AssetBankProfiles\\" + ProfilesLibrary.SDKFilename + ".dll");
+                                if (!fi.Directory.Exists)
+                                {
+                                    Directory.CreateDirectory(fi.Directory.FullName);
+                                }
+                                if (fi.Exists)
+                                {
+                                    File.Delete(fi.FullName);
+                                }
+
+                                File.Move("AssetBankClasses.dll", fi.FullName);
+                            }
+                            else
+                            {
+                                Console.WriteLine("Failed to produce SDK");
+                            }
+                            
+                            /*
+                             * DATA or DAT2 section.
+                             * 
+                             * Contains the file system, so all assets within the game.
+                             */
+                            /*while (reader.BaseStream.Position < endSectionPosition)
+                            {
+                                header.Read(reader);
+                                if (header.Format == SectionFormat.DATA)
+                                {
+                                    
+                                }
+                                else if (header.Format == SectionFormat.DAT2)
+                                {
+                                    
+                                }
+                            }*/
+                            
                             foreach (Bank bank in banks)
                             {
                                 int hash = Fnv1.HashString(bank.Name);
-
+                            
                                 if (!m_entries.ContainsKey(hash))
                                 {
                                     m_entries.Add(hash, new AssetBankFileEntry() { Bank = bank});

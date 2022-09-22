@@ -18,6 +18,8 @@ namespace AnimationEditorPlugin.Formats
 
     public abstract class Section
     {
+        public long EndPosition => m_endPosition;
+        
         protected Endian m_endian;
         protected int m_headerSize;
         protected long m_endPosition;
