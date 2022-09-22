@@ -19,11 +19,14 @@ namespace AnimationEditorPlugin.Managers
 
         #region -- ICustomAssetManager --
 
-        public bool ShouldInitializeOnStartup => false;
+        public bool ShouldInitializeOnStartup => true;
 
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading asset banks");
+            
+            // initial type library
+            AssetBankTypeLibrary.Initialize();
             
             uint totalCount = App.AssetManager.GetResCount((uint)ResourceType.AssetBank);
             uint index = 0;
@@ -111,28 +114,10 @@ namespace AnimationEditorPlugin.Managers
                                 banks = new List<Bank>();
                             }
 
-                            using (AssetBankModuleWriter writer = new AssetBankModuleWriter("AssetBankClasses.dll", banks))
+                            // write sdk if one doesn't exist
+                            if (!File.Exists("AssetBankProfiles/" + ProfilesLibrary.SDKFilename + ".dll"))
                             {
-                                writer.Write(App.FileSystemManager.Head);
-                            }
-                            
-                            if (File.Exists("AssetBankClasses.dll"))
-                            {
-                                FileInfo fi = new FileInfo(".\\AssetBankTmpProfiles\\" + ProfilesLibrary.SDKFilename + ".dll");
-                                if (!fi.Directory.Exists)
-                                {
-                                    Directory.CreateDirectory(fi.Directory.FullName);
-                                }
-                                if (fi.Exists)
-                                {
-                                    File.Delete(fi.FullName);
-                                }
-
-                                File.Move("AssetBankClasses.dll", fi.FullName);
-                            }
-                            else
-                            {
-                                Console.WriteLine("Failed to produce SDK");
+                                WriteSdk(banks);
                             }
                             
                             /*
@@ -213,5 +198,32 @@ namespace AnimationEditorPlugin.Managers
         }
         
         #endregion
+
+        private void WriteSdk(List<Bank> banks)
+        {
+            using (AssetBankModuleWriter writer = new AssetBankModuleWriter("AssetBankClasses.dll", banks))
+            {
+                writer.Write(App.FileSystemManager.Head);
+            }
+                            
+            if (File.Exists("AssetBankClasses.dll"))
+            {
+                FileInfo fi = new FileInfo(".\\AssetBankTmpProfiles\\" + ProfilesLibrary.SDKFilename + ".dll");
+                if (!fi.Directory.Exists)
+                {
+                    Directory.CreateDirectory(fi.Directory.FullName);
+                }
+                if (fi.Exists)
+                {
+                    File.Delete(fi.FullName);
+                }
+
+                File.Move("AssetBankClasses.dll", fi.FullName);
+            }
+            else
+            {
+                Console.WriteLine("Failed to produce SDK");
+            }
+        }
     }
 }

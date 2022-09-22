@@ -37,9 +37,7 @@ namespace AnimationEditorPlugin.Editors.ViewModels
         public AssetBankViewModel(FrostyBaseEditor inOwner)
         {
             m_owner = inOwner;
-            
-            AssetBankTypeLibrary.Initialize();
-            
+
             m_entries = new List<AssetBankFileEntry>();
             foreach (AssetBankFileEntry entry in App.AssetManager.EnumerateCustomAssets("assetbank"))
             {
