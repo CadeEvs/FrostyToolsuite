@@ -35,14 +35,14 @@ namespace AnimationEditorPlugin.Formats
         public class Entry
         {
             public string Name;
-            public int Type;
+            public int Index;
             public int Size;
             public int Position;
             public int NameOffset;
 
             public bool IsArray;
             
-            public uint BankHash;
+            public BankType BankHash;
             public Bank Bank;
             
             public override string ToString() => Name != "" ? Name : "Empty";
@@ -50,10 +50,11 @@ namespace AnimationEditorPlugin.Formats
         
         public string Name => m_name;
         public Entry[] Entries => m_entries;
+        public BankType Type => m_type;
         
         private string m_name;
         private Entry[] m_entries;
-        private uint m_type;
+        private BankType m_type;
         private int m_minEntryNum;
         private int m_maxEntryNum;
         private int m_size;
@@ -88,7 +89,7 @@ namespace AnimationEditorPlugin.Formats
             reader.ReadBoolean();
             reader.ReadUShort(endian);
 
-            m_type = reader.ReadUInt(endian);
+            m_type = (BankType)reader.ReadUInt(endian);
             
             //
             // entries
@@ -102,10 +103,11 @@ namespace AnimationEditorPlugin.Formats
             for (int i = 0; i < entryCount; i++)
             {
                 Bank.Entry entry = new Entry();
-                entry.BankHash = reader.ReadUInt(endian);
+                entry.BankHash = (BankType)reader.ReadUInt(endian);
                 entry.Size = reader.ReadInt(endian);
                 entry.Position = reader.ReadInt(endian);
                 entry.NameOffset = reader.ReadInt(endian);
+                entry.Index = m_minEntryNum + i;
                 // unknown
                 reader.ReadUShort(endian);
                 
@@ -133,8 +135,6 @@ namespace AnimationEditorPlugin.Formats
                         entry.Bank = banks[pointer.GetPosition()];
                     }
                 }
-                
-                entry.Type = m_minEntryNum + i;
             }
             
             //

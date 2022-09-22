@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using AnimationEditorPlugin.Formats;
 using AnimationEditorPlugin.Formats.Sections;
 using Frosty.Core;
@@ -87,12 +88,14 @@ namespace AnimationEditorPlugin.Managers
                             
                             strm.Read(reader);
                             
-                            List<Bank> banks;
+                            Dictionary<BankType, Bank> banks;
                             
                             /*
                              * REFL or REF2 section
                              * 
                              * Contains all of the asset types within the game. This should only be necessary to read when generating an sdk.
+                             *
+                             * @todo: only read when sdk isn't created
                              */
                             header.Read(reader);
                             if (header.Format == SectionFormat.REFL)
@@ -111,13 +114,13 @@ namespace AnimationEditorPlugin.Managers
                             }
                             else
                             {
-                                banks = new List<Bank>();
+                                banks = new Dictionary<BankType, Bank>();
                             }
 
                             // write sdk if one doesn't exist
-                            if (!File.Exists("AssetBankProfiles/" + ProfilesLibrary.SDKFilename + ".dll"))
+                            if (banks.Count != 0 && !File.Exists("AssetBankProfiles/" + ProfilesLibrary.SDKFilename + ".dll"))
                             {
-                                WriteSdk(banks);
+                                WriteSdk(banks.Values.ToList());
                             }
                             
                             /*
@@ -125,7 +128,7 @@ namespace AnimationEditorPlugin.Managers
                              * 
                              * Contains the file system, so all assets within the game.
                              */
-                            /*while (reader.BaseStream.Position < endSectionPosition)
+                            if (reader.BaseStream.Position < endSectionPosition)
                             {
                                 header.Read(reader);
                                 if (header.Format == SectionFormat.DATA)
@@ -136,9 +139,9 @@ namespace AnimationEditorPlugin.Managers
                                 {
                                     
                                 }
-                            }*/
+                            }
                             
-                            foreach (Bank bank in banks)
+                            foreach (Bank bank in banks.Values)
                             {
                                 int hash = Fnv1.HashString(bank.Name);
                             

@@ -48,25 +48,29 @@ namespace AnimationEditorPlugin.Formats.Sections
             long bankStartPosition = reader.Position;
             
             ulong bankCount = reader.ReadULong(m_endian);
-            Dictionary<long, Bank> banks = new Dictionary<long, Bank>();
+            Dictionary<long, Bank> banksPositions = new Dictionary<long, Bank>();
             for (ulong i = 0; i < bankCount; i++)
             {
                 // this is always in little endian, not sure why
                 Pointer pointer = new Pointer(reader.Position - bankStartPosition, reader.ReadLong(Endian.Little));
                 
-                banks.Add(pointer.GetPosition(), new Bank(m_endian));
+                banksPositions.Add(pointer.GetPosition(), new Bank(m_endian));
             }
             
             // parse banks
-            foreach (KeyValuePair<long, Bank> bank in banks)
+            Dictionary<BankType, Bank> banks = new Dictionary<BankType, Bank>();
+            foreach (KeyValuePair<long, Bank> bank in banksPositions)
             {
                 reader.Position = bankStartPosition + bank.Key;
                 
-                bank.Value.Read(reader, m_endian, bankStartPosition, banks, 2);
+                bank.Value.Read(reader, m_endian, bankStartPosition, banksPositions, 2);
+                
+                banks.Add(bank.Value.Type, bank.Value);
             }
             
             reader.BaseStream.Position = m_endPosition;
-            Banks = banks.Values.ToList();
+            
+            Banks = banks;
         }
     }
 }

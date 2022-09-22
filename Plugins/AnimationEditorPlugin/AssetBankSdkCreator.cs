@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows.Controls.Primitives;
 using AnimationEditorPlugin.Formats;
 using FrostySdk;
+using FrostySdk.Attributes;
 using FrostySdk.IO;
 using Microsoft.CSharp;
 
@@ -122,11 +123,12 @@ namespace AnimationEditorPlugin
                 string fieldName = ReplaceBadCharacters(fieldObj.Name);
                 string fieldType = "";
                 
-                BankType objType = (BankType)fieldObj.BankHash;
+                BankType objType = fieldObj.BankHash;
                 fieldType = fieldObj.IsArray
                     ? $"List<{GetFieldType(objType)}>"
                     : GetFieldType(objType);
                 
+                sb.AppendLine("[" + typeof(FieldIndexAttribute).Name + "(" + fieldObj.Index + ")]");
                 sb.AppendLine("public " + fieldType + " " + fieldName + " { get { return _" + fieldName + "; } set { _" + fieldName + " = value; } }");
 
                 bool requiresDeclaration = fieldObj.IsArray

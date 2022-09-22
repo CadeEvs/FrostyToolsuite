@@ -7,7 +7,7 @@ namespace AnimationEditorPlugin.Formats.Sections
     public class Section_REFL : Section
     {
         public int Size { get; protected set; }
-        public List<Bank> Banks { get; protected set; }
+        public Dictionary<BankType, Bank> Banks { get; protected set; }
         
         public Section_REFL(SectionHeader inHeader)
             : base(inHeader)
@@ -25,23 +25,27 @@ namespace AnimationEditorPlugin.Formats.Sections
 
             // setup banks
             ulong bankCount = reader.ReadULong(m_endian);
-            Dictionary<long, Bank> banks = new Dictionary<long, Bank>();
+            Dictionary<long, Bank> banksPositions = new Dictionary<long, Bank>();
             for (ulong i = 0; i < bankCount; i++)
             {
                 long bankPosition = reader.ReadLong(m_endian);
-                banks.Add(bankPosition, new Bank(m_endian));
+                banksPositions.Add(bankPosition, new Bank(m_endian));
             }
             
             // parse banks
-            foreach (KeyValuePair<long, Bank> bank in banks)
+            Dictionary<BankType, Bank> banks = new Dictionary<BankType, Bank>();
+            foreach (KeyValuePair<long, Bank> bank in banksPositions)
             {
                 reader.Position = bankStartPosition + bank.Key;
                 
-                bank.Value.Read(reader, m_endian, bankStartPosition, banks, 1);
+                bank.Value.Read(reader, m_endian, bankStartPosition, banksPositions, 1);
+                
+                banks.Add(bank.Value.Type, bank.Value);
             }
             
             reader.BaseStream.Position = m_endPosition;
-            Banks = banks.Values.ToList();
+
+            Banks = banks;
         }
     }
 }
