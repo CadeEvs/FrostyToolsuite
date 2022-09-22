@@ -121,14 +121,21 @@ namespace AnimationEditorPlugin
                 
                 string fieldName = ReplaceBadCharacters(fieldObj.Name);
                 string fieldType = "";
-
+                
+                BankType objType = (BankType)fieldObj.Type;
                 fieldType = fieldObj.IsArray
-                    ? $"List<{GetFieldType((BankType)fieldObj.Type)}>"
-                    : GetFieldType((BankType)fieldObj.Type);
+                    ? $"List<{GetFieldType(objType)}>"
+                    : GetFieldType(objType);
                 
                 sb.AppendLine("public " + fieldType + " " + fieldName + " { get { return _" + fieldName + "; } set { _" + fieldName + " = value; } }");
-                
-                sb.AppendLine("protected " + fieldType + " _" + fieldName + ";");
+
+                bool requiresDeclaration = fieldObj.IsArray
+                                           || objType == BankType.Vector2
+                                           || objType == BankType.Vector3
+                                           || objType == BankType.Vector4
+                                           || objType == BankType.String;
+
+                sb.AppendLine("protected " + fieldType + " _" + fieldName + ((requiresDeclaration) ? " = new " + fieldType + "()" : "") + ";");
             }
             return sb.ToString();
         }
@@ -137,7 +144,7 @@ namespace AnimationEditorPlugin
         {
             switch (type)
             {
-                case BankType.Invalid: return "object";
+                case BankType.Invalid: return "float";
                 case BankType.Boolean: return "bool";
                 case BankType.Int8: return "sbyte";
                 case BankType.UInt8: return "byte";
@@ -151,19 +158,16 @@ namespace AnimationEditorPlugin
                 case BankType.Vector2: return "Vec2";
                 case BankType.Vector3: return "Vec3";
                 case BankType.Vector4: return "Vec4";
-                case BankType.Quaternion:
-                    break;
-                case BankType.Matrix:
-                    break;
+                case BankType.Quaternion: break;
+                case BankType.Matrix: break;
                 case BankType.Guid: return "Guid";
                 case BankType.String: return "string";
-                case BankType.Reference:
-                    break;
+                case BankType.Reference: break;
                 case BankType.Double: return "double";
-                default: return "object";
+                default: return "string";
             }
 
-            return "object";
+            return "string";
         }
 
         private string ReplaceBadCharacters(string name)

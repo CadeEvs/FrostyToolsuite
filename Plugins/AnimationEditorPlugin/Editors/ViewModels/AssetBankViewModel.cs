@@ -38,6 +38,8 @@ namespace AnimationEditorPlugin.Editors.ViewModels
         {
             m_owner = inOwner;
             
+            AssetBankTypeLibrary.Initialize();
+            
             m_entries = new List<AssetBankFileEntry>();
             foreach (AssetBankFileEntry entry in App.AssetManager.EnumerateCustomAssets("assetbank"))
             {
@@ -48,17 +50,12 @@ namespace AnimationEditorPlugin.Editors.ViewModels
         private void AssetExplorerDoubleClicked(object args)
         {
             AssetBankFileEntry asset = ((AssetDoubleClickedEventArgs)args).SelectedAsset as AssetBankFileEntry;
-            
-            // all temp just to show type properties
-            StringBuilder properties = new StringBuilder();
-            foreach (Bank.Entry entry in asset.Bank.Entries)
-            {
-                string array = entry.IsArray ? "[]" : "";
-                
-                properties.AppendLine($"{entry.Name} ({(BankType)entry.BankHash + array})");
-            }
 
-            Data = properties.ToString();
+            // all temp just to show type properties
+            Type assetBankType = AssetBankTypeLibrary.GetType(asset.Bank.Name);
+            object assetBankObject = Activator.CreateInstance(assetBankType);
+
+            Data = assetBankObject;
         }
         
         #region -- INotifyPropertyChanged --

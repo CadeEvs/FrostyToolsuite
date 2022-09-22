@@ -16,8 +16,7 @@
             </Grid.ColumnDefinitions>
 
             <ctrl:FrostyDockablePanel Grid.Column="0" TitleBarVisible="False">
-                <TextBlock Text="{Binding Data}"/>
-                <!--<core:FrostyPropertyGrid Object="{Binding Path=Data}"/>-->
+                <core:FrostyPropertyGrid Object="{Binding Path=Data}"/>
             </ctrl:FrostyDockablePanel>
 
             <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>

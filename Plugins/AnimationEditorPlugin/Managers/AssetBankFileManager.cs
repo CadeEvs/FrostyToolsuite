@@ -118,7 +118,7 @@ namespace AnimationEditorPlugin.Managers
                             
                             if (File.Exists("AssetBankClasses.dll"))
                             {
-                                FileInfo fi = new FileInfo(".\\AssetBankProfiles\\" + ProfilesLibrary.SDKFilename + ".dll");
+                                FileInfo fi = new FileInfo(".\\AssetBankTmpProfiles\\" + ProfilesLibrary.SDKFilename + ".dll");
                                 if (!fi.Directory.Exists)
                                 {
                                     Directory.CreateDirectory(fi.Directory.FullName);

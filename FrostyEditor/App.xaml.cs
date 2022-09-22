@@ -121,6 +121,12 @@ namespace FrostyEditor
                 return Assembly.LoadFile(fi.DirectoryName + "/Profiles/" + ProfilesLibrary.SDKFilename + ".dll");
             }
             
+            if (dllname.Equals("AssetBankClasses"))
+            {
+                FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
+                return Assembly.LoadFile(fi.DirectoryName + "/AssetBankProfiles/" + ProfilesLibrary.SDKFilename + ".dll");
+            }
+            
             if (PluginManager != null)
             {
                 if (PluginManager.IsThirdPartyDll(dllname))
