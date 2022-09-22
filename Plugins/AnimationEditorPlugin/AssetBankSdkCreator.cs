@@ -122,7 +122,7 @@ namespace AnimationEditorPlugin
                 string fieldName = ReplaceBadCharacters(fieldObj.Name);
                 string fieldType = "";
                 
-                BankType objType = (BankType)fieldObj.Type;
+                BankType objType = (BankType)fieldObj.BankHash;
                 fieldType = fieldObj.IsArray
                     ? $"List<{GetFieldType(objType)}>"
                     : GetFieldType(objType);
@@ -133,6 +133,7 @@ namespace AnimationEditorPlugin
                                            || objType == BankType.Vector2
                                            || objType == BankType.Vector3
                                            || objType == BankType.Vector4
+                                           || objType == BankType.Guid
                                            || objType == BankType.String;
 
                 sb.AppendLine("protected " + fieldType + " _" + fieldName + ((requiresDeclaration) ? " = new " + fieldType + "()" : "") + ";");
@@ -158,16 +159,14 @@ namespace AnimationEditorPlugin
                 case BankType.Vector2: return "Vec2";
                 case BankType.Vector3: return "Vec3";
                 case BankType.Vector4: return "Vec4";
-                case BankType.Quaternion: break;
-                case BankType.Matrix: break;
+                case BankType.Quaternion: return "float";
+                case BankType.Matrix: return "float";
                 case BankType.Guid: return "Guid";
-                case BankType.String: return "string";
-                case BankType.Reference: break;
+                case BankType.String: return "CString";
+                case BankType.Reference: return "float";
                 case BankType.Double: return "double";
-                default: return "string";
+                default: return "float";
             }
-
-            return "string";
         }
 
         private string ReplaceBadCharacters(string name)
