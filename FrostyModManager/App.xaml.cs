@@ -219,10 +219,10 @@ namespace FrostyModManager
             }
             catch (Exception e)
             {
-                System.Threading.Tasks.Task.Run(() =>
-                {
-                    FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Mod Manager", MessageBoxButton.OK);
-                });
+                // System.Threading.Tasks.Task.Run(() =>
+                // {
+                //     FrostyMessageBox.Show("Frosty Update Checker returned with an error:" + Environment.NewLine + e.Message, "Frosty Mod Manager", MessageBoxButton.OK);
+                // });
             }
         }
     }
