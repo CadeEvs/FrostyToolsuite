@@ -43,7 +43,7 @@ namespace Frosty.Core
                 : GetLatestRelease("https://api.github.com/repos/CadeEvs/FrostyToolsuite/releases/latest", false);
 
             // check if local version isn't the latest
-            if (localVersion.CompareTo(release.Version) < 0)
+            /*if (localVersion.CompareTo(release.Version) < 0)
             {
                 return true;
             }
@@ -57,7 +57,7 @@ namespace Frosty.Core
                 {
                     return true;
                 }
-            }
+            }*/
 
             return false;
         }
