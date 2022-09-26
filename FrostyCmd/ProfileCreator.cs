@@ -899,7 +899,7 @@ namespace FrostyCmd
 #if FROSTY_DEVELOPER || FROSTY_ALPHA
                 ProfileFlags pf = new ProfileFlags(0, 4, 1);
 #else
-                ProfileFlags pf = new ProfileFlags(0, 4, 1, 1);
+                ProfileFlags pf = new ProfileFlags(0, 4, 1, 0);
 #endif
                 pf.Write(writer);
 
