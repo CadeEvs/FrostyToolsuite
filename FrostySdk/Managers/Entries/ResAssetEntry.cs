@@ -74,6 +74,7 @@ namespace FrostySdk.Managers.Entries
         PSDResource = 0x3B9D1688,
         CompressedClipData = 0x85548684,
         ShaderBlockDepotAsset = 0xDDB3E17F,
+        ShaderBlockDepotResource = 0x73312045,
         CompiledBytecode = 0xE2B02F7,
         ShaderBlockDepot = 0xD8F5DAAF,
         Invalid = 0xFFFFFFFF
