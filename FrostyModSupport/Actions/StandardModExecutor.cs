@@ -159,6 +159,17 @@ namespace Frosty.ModSupport
                                 foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
                                     chunkList.Add(chunk);
 
+                                if (isBase)
+                                {
+                                    // readd bundles to toc, so that they can be modified
+                                    // TODO: check if all bundles need to be added or just the modified ones
+                                    DbObject bundleList = new DbObject(false);
+                                    foreach (DbObject bundle in baseToc.GetValue<DbObject>("bundles"))
+                                        bundleList.Add(bundle);
+                                    toc.SetValue("bundles", bundleList);
+                                }
+
+
                                 // update chunk list with patch chunks
                                 foreach (DbObject chunk in toc.GetValue<DbObject>("chunks"))
                                 {
