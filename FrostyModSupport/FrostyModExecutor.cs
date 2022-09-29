@@ -1629,7 +1629,10 @@ namespace Frosty.ModSupport
 
                 int totalEntries = casData.CountEntries();
                 int currentEntry = 0;
-                ReportProgress(currentEntry, totalEntries);
+                if (totalEntries > 0)
+                {
+                    ReportProgress(currentEntry, totalEntries);
+                }
 
                 // write out cas and modify cats
                 foreach (CasDataEntry entry in casData.EnumerateEntries())
