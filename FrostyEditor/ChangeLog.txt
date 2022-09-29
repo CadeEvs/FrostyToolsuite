@@ -1,4 +1,9 @@
-﻿v1.0.6
+﻿v1.0.6.1
+--------
+- Fixed NFS: Heat profile being read only
+- Temporarily disabled Update Checker
+
+v1.0.6
 --------
 - Added plugin support
 - Added Sound Import functionality
