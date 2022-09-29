@@ -138,9 +138,16 @@ namespace Frosty.Core.Controls.Editors
 
             // then convert...
 
-            float val = (float)(Math.PI / 180.0);
-            Matrix m = Matrix.RotationYawPitchRoll(-obj.Rotation.x * val, obj.Rotation.y * val, obj.Rotation.z * val);
-            m = m * Matrix.Scaling(obj.Scale.x, obj.Scale.y, obj.Scale.z);
+            Vector3 scaleVec = new Vector3(obj.Scale.x, obj.Scale.y, obj.Scale.z);
+            float val = (float)(Math.PI / 180.0f);
+            Vector3 center = default(Vector3);
+            Quaternion rotScale = new Quaternion(0f, 0f, 0f, 1f);
+            Quaternion rot = Quaternion.RotationYawPitchRoll(-obj.Rotation.x * val, obj.Rotation.y * val, obj.Rotation.z * val);
+            Matrix m = Matrix.Transformation(center, rotScale, scaleVec, center, rot, center);
+
+            //float val = (float)(Math.PI / 180.0);
+            //Matrix m = Matrix.RotationYawPitchRoll(-obj.Rotation.x * val, obj.Rotation.y * val, obj.Rotation.z * val);
+            //m = m * Matrix.Scaling(obj.Scale.x, obj.Scale.y, obj.Scale.z);
 
             trns.trans.x = obj.Translation.x;
             trns.trans.y = obj.Translation.y;
