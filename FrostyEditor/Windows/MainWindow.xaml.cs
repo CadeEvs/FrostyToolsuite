@@ -469,6 +469,9 @@ namespace FrostyEditor.Windows
         {
             Frosty.Core.App.ClearProfileData();
             Frosty.Core.App.LoadProfile(profile);
+
+            App.InitDiscordRpc();
+            App.UpdateDiscordRpc("Initializing");
         }
 
         private void UpdateUI(bool newProject = false)
