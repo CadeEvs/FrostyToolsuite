@@ -13,6 +13,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using FrostySdk.Managers.Entries;
+using System.Text;
 
 namespace FrostySdk
 {
@@ -688,6 +689,16 @@ namespace FrostySdk
 
     public static class Utils
     {
+        public static string ToHex(this Guid guid)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (byte b in guid.ToByteArray())
+            {
+                sb.Append(b.ToString("x2"));
+            }
+            return sb.ToString();
+        }
+
         public static Guid GenerateDeterministicGuid(IEnumerable<object> objects, string type, Guid fileGuid)
         {
             return GenerateDeterministicGuid(objects, TypeLibrary.GetType(type), fileGuid);

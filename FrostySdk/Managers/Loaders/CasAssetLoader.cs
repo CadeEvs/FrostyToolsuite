@@ -297,7 +297,8 @@ namespace FrostySdk.Managers
                                 CasPath = parent.m_fileSystem.GetFilePath(catalogIndex, casIndex, isPatch),
                                 DataOffset = offset,
                                 SuperBundleId = parent.m_superBundles.Count - 1
-                            }
+                            },
+                            FirstMip = -1
                         };
                         if (parent.m_chunkList.ContainsKey(chunk.Id))
                             parent.m_chunkList.Remove(chunk.Id);

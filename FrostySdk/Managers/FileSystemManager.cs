@@ -707,6 +707,7 @@ namespace FrostySdk
                     DataOffset = fi.offset,
                     CasPath = path
                 };
+                entry.FirstMip = -1;
 
                 chunks.Add(entry);
             }
