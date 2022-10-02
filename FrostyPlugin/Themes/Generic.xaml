@@ -802,6 +802,8 @@
                                                         <Button x:Name="PART_FindButton" Content="Find in data explorer" Style="{StaticResource MenuButtonStyle}" FontFamily="MS Reference Sans Serif" Height="22"/>
                                                         <Button x:Name="PART_CreateButton" Content="Create new ..." Style="{StaticResource MenuButtonStyle}" FontFamily="MS Reference Sans Serif" Height="22"/>
 
+                                                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" Margin="1,0,1,1" WatermarkText="Filter" BorderThickness="1"/>
+
                                                         <Border x:Name="PART_Separator" Height="22">
                                                             <Separator Margin="1,0,1,0"/>
                                                         </Border>

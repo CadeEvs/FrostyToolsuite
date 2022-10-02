@@ -15,6 +15,7 @@ using FrostySdk.Attributes;
 using System.Windows.Media;
 using Frosty.Core.Windows;
 using System.Linq;
+using System.Windows.Input;
 
 //using System.IO;
 
@@ -219,7 +220,18 @@ namespace Frosty.Core.Controls.Editors
 
             RefreshUI();
         }
-
+        private void Filter_TextChanged(object sender, RoutedEventArgs e)
+        {
+            TextBox filter = sender as TextBox;
+            if (filter.Text == "")
+                popup.Items.Filter = null;
+            else
+            {
+                string filterText = filter.Text.ToLower();
+                popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+            }
+            popup.IsDropDownOpen = true;
+        }
         private void FrostyPointerRefControl_TargetUpdated(object sender, DataTransferEventArgs e)
         {
             RefreshName();
@@ -240,6 +252,7 @@ namespace Frosty.Core.Controls.Editors
             TextBlock textBlock = (popupMenu.FindName("PART_TextBlock") as TextBlock);
             Border separator = (popupMenu.FindName("PART_Separator") as Border);
             Border tbborder = (popupMenu.FindName("PART_TBBorder") as Border);
+            TextBox filter = (popupMenu.FindName("PART_FilterTextBox") as TextBox);
 
             clearButton.Click -= ClearButton_Click;
             findButton.Click -= FindButton_Click;
@@ -250,6 +263,7 @@ namespace Frosty.Core.Controls.Editors
             findButton.Click += FindButton_Click;
             openButton.Click += OpenButton_Click;
             createButton.Click += CreateButton_Click;
+            filter.TextChanged += Filter_TextChanged;
 
             PointerRef ptrRef = (PointerRef)Value;
             clearButton.IsEnabled = ptrRef.Type != PointerRefType.Null;
@@ -259,6 +273,7 @@ namespace Frosty.Core.Controls.Editors
             textBlock.Text = "Assign from " + ((isInternal) ? "self" : App.AssetManager.GetEbxEntry(assignFileGuid).Name);
             separator.Visibility = (assignObjs.Count != 0 && isInternal) ? Visibility.Visible : Visibility.Collapsed;
             tbborder.Visibility = (assignObjs.Count != 0) ? Visibility.Visible : Visibility.Collapsed;
+            filter.Visibility = (assignObjs.Count != 0) ? Visibility.Visible : Visibility.Collapsed;
             clearButton.Visibility = (isInternal) ? Visibility.Visible : Visibility.Collapsed;
             findButton.Visibility = (isInternal) ? Visibility.Visible : Visibility.Collapsed;
             createButton.Visibility = (isInternal) ? Visibility.Visible : Visibility.Collapsed;
