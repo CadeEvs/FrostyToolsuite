@@ -158,10 +158,10 @@ namespace Frosty.ModSupport
             {
                 ModInfo modInfo = obj as ModInfo;
 
-                if (this.Name == modInfo.Name 
-                    && this.Version == modInfo.Version 
-                    && this.Category == modInfo.Category
-                    && this.FileName == modInfo.FileName)
+                if (Name == modInfo.Name 
+                    && Version == modInfo.Version 
+                    && Category == modInfo.Category
+                    && FileName == modInfo.FileName)
                     return true;
 
                 return false;
