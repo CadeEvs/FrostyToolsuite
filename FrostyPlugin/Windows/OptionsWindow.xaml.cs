@@ -316,7 +316,9 @@ namespace Frosty.Core.Windows
             Config.Add("DeleteCollectionMods", DeleteCollectionMods);
 
             if (Directory.Exists(CustomModsDirectory))
+            {
                 Config.Add("CustomModsDirectory", CustomModsDirectory);
+            }
 
             Config.Add("UpdateCheck", UpdateCheck);
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);

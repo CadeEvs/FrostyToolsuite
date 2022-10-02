@@ -334,9 +334,13 @@ namespace FrostyModManager
             App.PluginManager.Initialize();
 
             if (Directory.Exists(Config.Get<string>("CustomModsDirectory", "")))
+            {
                 modsDir = new DirectoryInfo(Path.Combine(Config.Get<string>("CustomModsDirectory", ""), ProfilesLibrary.ProfileName));
+            }
             else
+            {
                 App.Logger.LogWarning("Custom Mods Directory does not exist, using default instead");
+            }
 
             FrostyTaskWindow.Show("Loading Mods", "", (task) =>
             {
@@ -476,9 +480,13 @@ namespace FrostyModManager
             LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
 
             if (Config.Get("ApplyModOrder", "List") == "List")
+            {
                 orderComboBox.SelectedIndex = 0;
+            }
             else if (Config.Get("ApplyModOrder", "List") == "Priority")
+            {
                 orderComboBox.SelectedIndex = 1;
+            }
 
             GC.Collect();
         }
@@ -551,18 +559,26 @@ namespace FrostyModManager
             if (orderComboBox.SelectedIndex == 0)
             {
                 for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                {
                     selectedPack.MoveModsUp(appliedModsList.SelectedItems);
+                }
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                {
                     selectedPack.MoveModsTop(appliedModsList.SelectedItems);
+                }
             }
             else if (orderComboBox.SelectedIndex == 1)
             {
                 for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                {
                     selectedPack.MoveModsDown(appliedModsList.SelectedItems);
+                }
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                {
                     selectedPack.MoveModsBottom(appliedModsList.SelectedItems);
+                }
             }
             appliedModsList.Items.Refresh();
 
@@ -574,18 +590,26 @@ namespace FrostyModManager
             if (orderComboBox.SelectedIndex == 0)
             {
                 for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                {
                     selectedPack.MoveModsDown(appliedModsList.SelectedItems);
+                }
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                {
                     selectedPack.MoveModsBottom(appliedModsList.SelectedItems);
+                }
             }
             else if (orderComboBox.SelectedIndex == 1)
             {
                 for (int i = 0; i < (Keyboard.IsKeyDown(Key.LeftShift) ? 4 : 1); i++)
+                {
                     selectedPack.MoveModsUp(appliedModsList.SelectedItems);
+                }
 
                 if (Keyboard.IsKeyDown(Key.LeftShift) && Keyboard.IsKeyDown(Key.LeftCtrl))
+                {
                     selectedPack.MoveModsTop(appliedModsList.SelectedItems);
+                }
             }
             appliedModsList.Items.Refresh();
 
@@ -800,7 +824,10 @@ namespace FrostyModManager
 
             if (mod.GameVersion != fs.Head)
                 mod.AddWarning("Mod was designed for a different game version");
-            lock (availableMods) availableMods.Add(mod);
+            lock (availableMods)
+            {
+                availableMods.Add(mod);
+            }
 
             return mod;
         }
@@ -818,14 +845,15 @@ namespace FrostyModManager
                 return null;
             }
 
-            foreach (var mod in collection.Mods)
+            foreach (FrostyMod mod in collection.Mods)
             {
                 lock (availableMods)
                 {
                     int index = availableMods.FindIndex((IFrostyMod a) => a.Filename == mod.Filename);
                     if (index != -1)
+                    {
                         availableMods.RemoveAt(index);
-
+                    }
                 }
             }
 
@@ -1022,7 +1050,9 @@ namespace FrostyModManager
                                 {
                                     availableMods.Remove(existingMod);
                                     foreach (FileInfo archiveFi in modsDir.GetFiles(mod.Replace(".fbmod", "") + "*.archive"))
+                                    {
                                         File.Delete(archiveFi.FullName);
+                                    }
                                 }
                             }
 
@@ -1238,7 +1268,9 @@ namespace FrostyModManager
                                 modObject.AddValue("actions", actionsList);
 
                                 using (DbWriter writer = new DbWriter(new FileStream(Path.Combine(modsDir.FullName, fi.Name.Replace(".daimod", ".fbmod")), FileMode.Create)))
+                                {
                                     writer.Write(modObject);
+                                }
                                 using (NativeWriter writer = new NativeWriter(new FileStream(Path.Combine(modsDir.FullName, fi.Name.Replace(".daimod", "_01.archive")), FileMode.Create)))
                                 {
                                     for (int i = 0; i < resources.Count; i++)
@@ -1310,7 +1342,9 @@ namespace FrostyModManager
                                 {
                                     availableMods.Remove(existingMod);
                                     foreach (FileInfo archiveFi in modsDir.GetFiles(fi.Name.Replace(".fbmod", "") + "_*.archive"))
+                                    {
                                         File.Delete(archiveFi.FullName);
+                                    }
                                     File.Delete(modsDir.FullName + "/" + fi.Name);
                                 }
                             }
@@ -1318,7 +1352,9 @@ namespace FrostyModManager
                             // copy mod over
                             File.Copy(fi.FullName, Path.Combine(modsDir.FullName, fi.Name));
                             foreach (FileInfo archiveFi in fi.Directory.GetFiles(fi.Name.Replace(".fbmod", "") + "_*.archive"))
+                            {
                                 File.Copy(archiveFi.FullName, Path.Combine(modsDir.FullName, archiveFi.Name));
+                            }
 
                             // add mod to manager
                             fi = new FileInfo(Path.Combine(modsDir.FullName, fi.Name));
