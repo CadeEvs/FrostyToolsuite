@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.IO
 {
@@ -211,7 +212,7 @@ namespace Frosty.Core.IO
                 else
                 {
                     // special chunks bundle
-                    if (App.FileSystem.GetManifestChunk(new Guid(name)) != null)
+                    if (App.FileSystemManager.GetManifestChunk(new Guid(name)) != null)
                     {
                         // not required?
                         flags |= 0x04;
@@ -257,7 +258,7 @@ namespace Frosty.Core.IO
             Write(0xDEADBEEFDEADBEEF);
             Write(0xDEADBEEF);
             Write(ProfilesLibrary.ProfileName);
-            Write(App.FileSystem.Head);
+            Write(App.FileSystemManager.Head);
 
             ModSettings settings = overrideSettings ?? project.ModSettings;
 

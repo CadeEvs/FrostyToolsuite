@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {
@@ -224,7 +225,7 @@ namespace Frosty.Core
                 return;
             }
 
-            using (EbxReader reader = EbxReader.CreateReader(new FileStream(path, FileMode.Open, FileAccess.Read), App.FileSystem, true))
+            using (EbxReader reader = EbxReader.CreateReader(new FileStream(path, FileMode.Open, FileAccess.Read), App.FileSystemManager, true))
             {
                 var asset = reader.ReadAsset<EbxAsset>();
                 App.AssetManager.ModifyEbx(entry.Name, asset);

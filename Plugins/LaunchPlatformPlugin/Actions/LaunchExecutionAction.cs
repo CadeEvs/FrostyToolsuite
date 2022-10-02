@@ -99,7 +99,7 @@ namespace LaunchPlatformPlugin.Actions
                 {
                     // run platfrom with the needed environmental variables
                     string modPath = $"ModData\\{App.SelectedPack}";
-                    RunPlatformProcess(selectedPlatform.Path, App.FileSystem.BasePath + modPath);
+                    RunPlatformProcess(selectedPlatform.Path, App.FileSystemManager.BasePath + modPath);
                 }
                 else
                 {

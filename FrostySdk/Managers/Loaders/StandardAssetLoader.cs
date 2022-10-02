@@ -1,5 +1,6 @@
 ﻿using FrostySdk.IO;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Managers
 {
@@ -9,16 +10,16 @@ namespace FrostySdk.Managers
         {
             public void Load(AssetManager parent, BinarySbDataHelper helper)
             {
-                foreach (string superBundleName in parent.fs.SuperBundles)
+                foreach (string superBundleName in parent.m_fileSystem.SuperBundles)
                 {
                     DbObject toc = parent.ProcessTocChunks(string.Format("{0}.toc", superBundleName), helper, false);
                     if (toc == null)
                         continue;
 
                     parent.WriteToLog("Loading data ({0})", superBundleName);
-                    parent.superBundles.Add(new SuperBundleEntry() { Name = superBundleName });
+                    parent.m_superBundles.Add(new SuperBundleEntry() { Name = superBundleName });
 
-                    using (NativeReader sbReader = new NativeReader(new FileStream(parent.fs.ResolvePath(string.Format("{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read)))
+                    using (NativeReader sbReader = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(string.Format("{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read)))
                     {
                         foreach (DbObject bundle in toc.GetValue<DbObject>("bundles"))
                         {
@@ -29,11 +30,11 @@ namespace FrostySdk.Managers
                             bool isBaseBundle = bundle.GetValue<bool>("base");
 
                             // add new bundle entry
-                            parent.bundles.Add(new BundleEntry { Name = bundleName, SuperBundleId = parent.superBundles.Count - 1 });
-                            int bundleId = parent.bundles.Count - 1;
+                            parent.m_bundles.Add(new BundleEntry { Name = bundleName, SuperBundleId = parent.m_superBundles.Count - 1 });
+                            int bundleId = parent.m_bundles.Count - 1;
 
                             DbObject sb = null;
-                            using (DbReader reader = new DbReader(sbReader.CreateViewStream(offset, size), parent.fs.CreateDeobfuscator()))
+                            using (DbReader reader = new DbReader(sbReader.CreateViewStream(offset, size), parent.m_fileSystem.CreateDeobfuscator()))
                                 sb = reader.ReadDbObject();
 
                             // process assets

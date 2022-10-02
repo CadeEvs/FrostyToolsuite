@@ -7,6 +7,7 @@ using System.IO;
 using System.Reflection;
 using Frosty.Hash;
 using FrostySdk;
+using FrostySdk.Managers.Entries;
 using FrostySdk.Resources;
 
 #region -- Old ShaderBlocks --

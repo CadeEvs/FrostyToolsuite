@@ -21,6 +21,7 @@ using Frosty.Hash;
 using LegacyDatabasePlugin.IO;
 using LegacyDatabasePlugin.Database;
 using Frosty.Core.Misc;
+using FrostySdk.Managers.Entries;
 using ImageSource = System.Windows.Media.ImageSource;
 using MeshSetPlugin.Screens;
 using MeshSetPlugin.Render;

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FrostySdk.Managers.Entries;
 
 namespace TestPlugin.Managers
 {
@@ -62,7 +63,7 @@ namespace TestPlugin.Managers
                     buf = dbObject.GetValue<DbObject>("$file").GetValue<byte[]>("payload");
                 }
                 else
-                    buf = App.FileSystem.GetFileFromMemoryFs(entry.Name);
+                    buf = App.FileSystemManager.GetFileFromMemoryFs(entry.Name);
 
                 return new MemoryStream(buf);
             }
@@ -75,13 +76,15 @@ namespace TestPlugin.Managers
             return entries.ContainsKey(Fnv1.HashString(key)) ? entries[Fnv1.HashString(key)] : null;
         }
 
+        public bool ShouldInitializeOnStartup => true;
+
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading fs files");
 
-            uint totalCount = App.FileSystem.GetFsCount();
+            uint totalCount = App.FileSystemManager.GetFsCount();
             uint index = 0;
-            foreach (string fsFileName in App.FileSystem.EnumerateFilesInMemoryFs())
+            foreach (string fsFileName in App.FileSystemManager.EnumerateFilesInMemoryFs())
             {
                 uint progress = (uint)((index / (float)totalCount) * 100);
                 logger.Log("progress:" + progress);

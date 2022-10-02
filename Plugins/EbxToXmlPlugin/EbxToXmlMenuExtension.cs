@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Windows.Forms;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace EbxToXmlPlugin
 {

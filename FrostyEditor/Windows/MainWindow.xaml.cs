@@ -24,6 +24,7 @@ using FrostyCore;
 using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using Microsoft.Win32;
 using Bookmarks = Frosty.Core.Bookmarks;
 
@@ -36,14 +37,14 @@ namespace FrostyEditor.Windows
     {
         public FrostyDataExplorer DataExplorer => dataExplorer;
         public FrostyDataExplorer LegacyExplorer => legacyExplorer;
-        public FrostyDataExplorer VisibleExplorer => currentExplorer;
+        public FrostyDataExplorer VisibleExplorer => m_currentExplorer;
         public TabControl MiscTabControl => miscTabControl;
 
-        public FrostyProject Project => project;
+        public FrostyProject Project => m_project;
         
-        private FrostyProject project;
-        private System.Timers.Timer autoSaveTimer;
-        private FrostyDataExplorer currentExplorer;
+        private FrostyProject m_project;
+        private System.Timers.Timer m_autoSaveTimer;
+        private FrostyDataExplorer m_currentExplorer;
 
         public ItemDoubleClickCommand BookmarkItemDoubleClickCommand { get; private set; }
 
@@ -52,7 +53,7 @@ namespace FrostyEditor.Windows
             FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", false);
             BookmarkItemDoubleClickCommand = new ItemDoubleClickCommand(BookmarkTreeView_MouseDoubleClick);
 
-            project = new FrostyProject();
+            m_project = new FrostyProject();
 
             InitializeComponent();
 
@@ -109,7 +110,7 @@ namespace FrostyEditor.Windows
             BookmarkContextPicker.SelectedItem = Bookmarks.BookmarkDb.CurrentContext;
             TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo();
 
-            currentExplorer = dataExplorer;
+            m_currentExplorer = dataExplorer;
         }
 
         #region PluginExtensions
@@ -220,7 +221,8 @@ namespace FrostyEditor.Windows
             }
         }
         #endregion
-
+        
+        
         private void tabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateDiscordState();
@@ -259,8 +261,15 @@ namespace FrostyEditor.Windows
 
         private void InitGameSpecificMenus()
         {
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.Fifa18,
+                ProfileVersion.Madden19, ProfileVersion.Fifa19,
+                ProfileVersion.Madden20, ProfileVersion.Fifa20,
+                ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa21,
+                ProfileVersion.Madden22, ProfileVersion.Fifa22,
+                ProfileVersion.Madden23))
+            {
                 InitFifaMenu();
+            }
         }
 
         private void InitFifaMenu()
@@ -270,7 +279,7 @@ namespace FrostyEditor.Windows
 
         private void explorerTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            currentExplorer = Equals(explorerTabControl.SelectedItem, dataExplorerTabItem) ? dataExplorer : legacyExplorer;
+            m_currentExplorer = Equals(explorerTabControl.SelectedItem, dataExplorerTabItem) ? dataExplorer : legacyExplorer;
         }
 
         private void UpdateWindowTitle()
@@ -280,7 +289,7 @@ namespace FrostyEditor.Windows
                 Title = "Frosty Editor - " + Frosty.Core.App.Version + " (" + ProfilesLibrary.DisplayName + ") ";
 
                 if (ProfilesLibrary.EnableExecution)
-                    Title += "[" + project.DisplayName + "]";
+                    Title += "[" + m_project.DisplayName + "]";
                 else
                     Title += "[Read Only]";
             }
@@ -301,10 +310,10 @@ namespace FrostyEditor.Windows
                 int timerInterval = Config.Get<int>("AutosavePeriod", 5) * 60 * 1000;
                 if (timerInterval > 0)
                 {
-                    autoSaveTimer = new System.Timers.Timer {Interval = timerInterval};
-                    autoSaveTimer.Elapsed += AutoSaveTimer_Elapsed;
-                    autoSaveTimer.AutoReset = false;
-                    autoSaveTimer.Start();
+                    m_autoSaveTimer = new System.Timers.Timer {Interval = timerInterval};
+                    m_autoSaveTimer.Elapsed += AutoSaveTimer_Elapsed;
+                    m_autoSaveTimer.AutoReset = false;
+                    m_autoSaveTimer.Start();
                 }
             }
 
@@ -342,23 +351,23 @@ namespace FrostyEditor.Windows
         private int lastSaveIndex;
         private void AutoSaveTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (project.IsDirty)
+            if (m_project.IsDirty)
             {
                 ++lastSaveIndex;
                 if (lastSaveIndex > Config.Get<int>("AutosaveMaxCount", 10)) // Config.Get<int>("Autosave", "MaxCount", 10)
                     lastSaveIndex = 1;
 
-                string projectName = project.DisplayName.Remove(project.DisplayName.Length - 10);
+                string projectName = m_project.DisplayName.Remove(m_project.DisplayName.Length - 10);
                 FileInfo fi = new FileInfo("Autosave/" + projectName + "_" + lastSaveIndex.ToString("D3") + ".fbproject");
 
                 App.Logger.Log("Initiated autosave of project to " + fi.FullName);
 
                 // save project but dont update dirty state
-                project.Save(overrideFilename: fi.FullName, updateDirtyState: false);
+                m_project.Save(overrideFilename: fi.FullName, updateDirtyState: false);
             }
 
             // begin timer again
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void exitMenuItem_Click(object sender, RoutedEventArgs e)
@@ -370,9 +379,6 @@ namespace FrostyEditor.Windows
         {
             if (!ProfilesLibrary.EnableExecution)
                 return;
-
-            App.Logger.Log("Launching game");
-            App.NotificationManager.Show("Launching game");
 
             // setup ability to cancel the process
             CancellationTokenSource cancelToken = new CancellationTokenSource();
@@ -433,8 +439,8 @@ namespace FrostyEditor.Windows
             catch (OperationCanceledException)
             {
                 // process was cancelled
-                App.Logger.Log("Launch cancelled");
-                App.NotificationManager.Show("Launch cancelled");
+                App.Logger.Log("Launch Cancelled");
+                App.NotificationManager.Show("Launch Cancelled");
             }
 
             // remove editor mod
@@ -443,13 +449,13 @@ namespace FrostyEditor.Windows
                 editorMod.Delete();
 
             LaunchButton.IsEnabled = true;
-            App.Logger.Log("Launch complete");
-            App.NotificationManager.Show("Launch complete");
+
+            GC.Collect();
         }
 
         public void ExportMod(ModSettings modSettings, string filename, bool bSilent)
         {
-            project.WriteToMod(filename, modSettings);
+            m_project.WriteToMod(filename, modSettings);
             if (!bSilent)
                 App.Logger.Log("Mod saved to {0}", filename);
         }
@@ -463,11 +469,14 @@ namespace FrostyEditor.Windows
         {
             Frosty.Core.App.ClearProfileData();
             Frosty.Core.App.LoadProfile(profile);
+
+            App.InitDiscordRpc();
+            App.UpdateDiscordRpc("Initializing");
         }
 
         private void UpdateUI(bool newProject = false)
         {
-            if (project.RequiresNewProfile || newProject)
+            if (m_project.RequiresNewProfile || newProject)
             {
                 LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
 
@@ -490,11 +499,11 @@ namespace FrostyEditor.Windows
         
         private void NewProject()
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
 
-            if (project.IsDirty)
+            if (m_project.IsDirty)
             {
-                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
+                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + m_project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
                 if (result == MessageBoxResult.Cancel)
                     return;
 
@@ -502,8 +511,8 @@ namespace FrostyEditor.Windows
                 {
                     if (SaveProject(false))
                     {
-                        FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
-                        App.Logger.Log("Project saved to {0}", project.Filename);
+                        FrostyTaskWindow.Show("Saving Project", m_project.Filename, (task) => m_project.Save());
+                        App.Logger.Log("Project saved to {0}", m_project.Filename);
                     }
                 }
             }
@@ -517,7 +526,7 @@ namespace FrostyEditor.Windows
             legacyExplorer.RefreshAll();
 
             // create a new blank project
-            project = new FrostyProject();
+            m_project = new FrostyProject();
 
             App.Logger.Log("New project started");
             App.NotificationManager.Show("New project started");
@@ -529,7 +538,7 @@ namespace FrostyEditor.Windows
             dataExplorer.ShowOnlyModified = false;
             legacyExplorer.ShowOnlyModified = false;
 
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void openModMenuItem_Click(object sender, RoutedEventArgs e)
@@ -540,9 +549,9 @@ namespace FrostyEditor.Windows
             if (!ofd.ShowDialog())
                 return; 
             
-            if (project.IsDirty)
+            if (m_project.IsDirty)
             {
-                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
+                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + m_project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
                 switch (result)
                 {
                     case MessageBoxResult.Cancel:
@@ -566,50 +575,50 @@ namespace FrostyEditor.Windows
 
         private void saveModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
             if (SaveProject(false))
             {
-                FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
+                FrostyTaskWindow.Show("Saving Project", m_project.Filename, (task) => m_project.Save());
 
                 dataExplorer.RefreshItems();
                 legacyExplorer.RefreshItems();
                 RefreshTabs();
 
-                App.Logger.Log("Project saved to {0}", project.Filename);
+                App.Logger.Log("Project saved to {0}", m_project.Filename);
 
                 UpdateWindowTitle();
                 UpdateDiscordState();
             }
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void saveAsModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
             if (SaveProject(true))
             {
-                FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
+                FrostyTaskWindow.Show("Saving Project", m_project.Filename, (task) => m_project.Save());
 
                 dataExplorer.RefreshItems();
                 legacyExplorer.RefreshItems();
                 RefreshTabs();
 
-                App.Logger.Log("Project saved to {0}", project.Filename);
+                App.Logger.Log("Project saved to {0}", m_project.Filename);
 
                 UpdateWindowTitle();
                 UpdateDiscordState();
             }
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void LoadProject(string filename, bool saveProject)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
 
             if (saveProject)
             {
-                project.Save();
-                App.Logger.Log("Project saved to {0}", project.Filename);
+                m_project.Save();
+                App.Logger.Log("Project saved to {0}", m_project.Filename);
             }
 
             // load project
@@ -628,7 +637,7 @@ namespace FrostyEditor.Windows
                 // close all open tabs
                 RemoveAllTabs();
                 
-                project = newProject;
+                m_project = newProject;
 
                 UpdateUI();
 
@@ -639,25 +648,25 @@ namespace FrostyEditor.Windows
                 dataExplorer.ShowOnlyModified = true;
 
                 // report success
-                App.Logger.Log("Loaded {0}", project.Filename);
-                App.NotificationManager.Show($"Loaded {project.Filename}");
+                App.Logger.Log("Loaded {0}", m_project.Filename);
+                App.NotificationManager.Show($"Loaded {m_project.Filename}");
 
                 UpdateWindowTitle();
                 UpdateDiscordState();
             }
 
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private bool SaveProject(bool forceSaveAs)
         {
-            if (project.Filename == "" || forceSaveAs)
+            if (m_project.Filename == "" || forceSaveAs)
             {
                 FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Project As", "*.fbproject (Frosty Project)|*.fbproject", "Project");
                 if (!sfd.ShowDialog())
                     return false;
 
-                project.Filename = sfd.FileName;
+                m_project.Filename = sfd.FileName;
             }
 
             return true;
@@ -686,14 +695,29 @@ namespace FrostyEditor.Windows
 
             AddTab(ti);
         }
+        
+        public AssetEntry GetOpenedAssetEntry()
+        {
+            FrostyTabItem firstTabItem = TabControl.SelectedItem as FrostyTabItem;
+            if (firstTabItem?.Content is FrostyAssetEditor editor)
+            {
+                return editor.AssetEntry;
+            }
 
-        public void OpenAsset(AssetEntry asset, bool createDefaultEditor = true)
+            return null;
+        }
+
+        public void OpenAsset(AssetEntry asset, bool shouldCreateDefaultEditor = true)
         {
             if (asset == null)
+            {
                 return;
+            }
 
             if (asset.Type == "EncryptedAsset")
+            {
                 return;
+            }
 
             foreach (FrostyTabItem currentTi in TabControl.Items)
             {
@@ -707,7 +731,7 @@ namespace FrostyEditor.Windows
             FrostyTabItem ti = new FrostyTabItem();
             FrostyAssetEditor editor = null;
 
-            var definition = App.PluginManager.GetAssetDefinition(asset.Type);
+            AssetDefinition definition = App.PluginManager.GetAssetDefinition(asset.Type);
             if (definition != null)
             {
                 editor = definition.GetEditor(App.Logger);
@@ -715,22 +739,21 @@ namespace FrostyEditor.Windows
             
             if (editor == null)
             {
-                if (!createDefaultEditor)
+                if (!shouldCreateDefaultEditor)
+                {
                     return;
+                }
 
                 editor = new FrostyBaseAssetEditor(App.Logger);
             }
 
             try
             {
-                //FrostyTask.Begin("Opening Asset");
                 editor.SetAsset(asset);
-                //FrostyTask.End();
             }
             catch (Exception)
             {
                 FrostyMessageBox.Show("Unable to open asset", "Frosty Editor");
-                //FrostyTask.End();
                 return;
             }
 
@@ -873,15 +896,15 @@ namespace FrostyEditor.Windows
 
         private void FrostyWindow_Closing(object sender, CancelEventArgs e)
         {
-            if (project.IsDirty)
+            if (m_project.IsDirty)
             {
-                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNo);
+                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + m_project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNo);
                 if (result == MessageBoxResult.Yes)
                 {
                     if (SaveProject(false))
                     {
-                        FrostyTaskWindow.Show("Saving Project", "", (task) => project.Save());
-                        App.Logger.Log("Project saved to {0}", project.Filename);
+                        FrostyTaskWindow.Show("Saving Project", "", (task) => m_project.Save());
+                        App.Logger.Log("Project saved to {0}", m_project.Filename);
                     }
                 }
                 else if (result == MessageBoxResult.Cancel)
@@ -900,8 +923,8 @@ namespace FrostyEditor.Windows
 
         private void dataExplorer_SelectedAssetDoubleClick(object sender, RoutedEventArgs e)
         {
-            AssetEntry entry = currentExplorer.SelectedAsset;
-            OpenAsset(entry, currentExplorer == dataExplorer);
+            AssetEntry entry = m_currentExplorer.SelectedAsset;
+            OpenAsset(entry, m_currentExplorer == dataExplorer);
         }
 
         private void dataExplorer_SelectionChanged(object sender, RoutedEventArgs e)
@@ -916,14 +939,14 @@ namespace FrostyEditor.Windows
 
         private void contextMenuOpen_Click(object sender, RoutedEventArgs e)
         {
-            if (currentExplorer.SelectedAsset == null)
+            if (m_currentExplorer.SelectedAsset == null)
                 return;
-            OpenAsset(currentExplorer.SelectedAsset, currentExplorer == dataExplorer);
+            OpenAsset(m_currentExplorer.SelectedAsset, m_currentExplorer == dataExplorer);
         }
 
         private void contextMenuRevert_Click(object sender, RoutedEventArgs e)
         {
-            AssetEntry entry = currentExplorer.SelectedAsset;
+            AssetEntry entry = m_currentExplorer.SelectedAsset;
             if (!entry.IsModified)
                 return;
 

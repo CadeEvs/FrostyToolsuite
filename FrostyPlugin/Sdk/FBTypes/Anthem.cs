@@ -11,25 +11,25 @@ namespace Frosty.Core.Sdk.Anthem
             long thisOffset = reader.Position;
 
             long typeInfoOffset = reader.ReadLong();
-            ClassesSdkCreator.offset = reader.ReadLong();
-            id = reader.ReadUShort();
-            isDataContainer = reader.ReadUShort();
-            padding = new byte[] { reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte() };
-            parentClass = reader.ReadLong();
+            ClassesSdkCreator.NextOffset = reader.ReadLong();
+            Id = reader.ReadUShort();
+            IsDataContainer = reader.ReadUShort();
+            Padding = new byte[] { reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte() };
+            ParentClass = reader.ReadLong();
 
             reader.Position = typeInfoOffset;
             //if (typeInfoOffset == 0x145029EB0)
             //    Console.WriteLine();
 
-            typeInfo = new TypeInfo();
-            typeInfo.Read(reader);
+            TypeInfo = new TypeInfo();
+            TypeInfo.Read(reader);
 
-            if (typeInfo.parentClass != 0)
-                parentClass = typeInfo.parentClass;
+            if (TypeInfo.ParentClass != 0)
+                ParentClass = TypeInfo.ParentClass;
 
-            reader.Position = parentClass;
+            reader.Position = ParentClass;
             if (reader.Position == thisOffset)
-                parentClass = 0;
+                ParentClass = 0;
         }
     }
     public class TypeInfo : ClassesSdkCreator.TypeInfo
@@ -40,46 +40,46 @@ namespace Frosty.Core.Sdk.Anthem
         {
             nameHash = reader.ReadUInt();
 
-            flags = reader.ReadUShort();
-            flags >>= 1;
+            Flags = reader.ReadUShort();
+            Flags >>= 1;
 
-            size = reader.ReadUShort();
-            guid = reader.ReadGuid();
+            Size = reader.ReadUShort();
+            Guid = reader.ReadGuid();
 
             long nameSpaceOffset = reader.ReadLong();
             long arrayTypeOffset = arrayTypeOffset = reader.ReadLong();
 
-            alignment = reader.ReadUShort();
-            fieldCount = reader.ReadUShort();
-            padding3 = reader.ReadUInt();
+            Alignment = reader.ReadUShort();
+            FieldCount = reader.ReadUShort();
+            Padding3 = reader.ReadUInt();
 
             long[] offsets = new long[7];
             for (int i = 0; i < 7; i++)
                 offsets[i] = reader.ReadLong();
 
             reader.Position = nameSpaceOffset;
-            nameSpace = reader.ReadNullTerminatedString();
+            NameSpace = reader.ReadNullTerminatedString();
 
-            name = "Class_" + nameHash.ToString("x8");
+            Name = "Class_" + nameHash.ToString("x8");
             if (AnthemDemo.Strings.classHash.ContainsKey(nameHash))
-                name = AnthemDemo.Strings.classHash[nameHash];
+                Name = AnthemDemo.Strings.classHash[nameHash];
             else if (AnthemDemo.Strings.stringHash.ContainsKey(nameHash))
-                name = AnthemDemo.Strings.stringHash[nameHash];
+                Name = AnthemDemo.Strings.stringHash[nameHash];
             else
             {
-                if (Type == 2) name = "Struct_" + nameHash.ToString("x8");
-                else if (Type == 3) name = "Class_" + nameHash.ToString("x8");
-                else if (Type == 8) name = "Enum_" + nameHash.ToString("x8");
-                else name = "Unknown_" + nameHash.ToString("x8");
+                if (Type == 2) Name = "Struct_" + nameHash.ToString("x8");
+                else if (Type == 3) Name = "Class_" + nameHash.ToString("x8");
+                else if (Type == 8) Name = "Enum_" + nameHash.ToString("x8");
+                else Name = "Unknown_" + nameHash.ToString("x8");
             }
 
             bool bReadFields = false;
-            parentClass = offsets[0];
+            ParentClass = offsets[0];
             if (Type == 2 /* Structure */) { reader.Position = offsets[6]; bReadFields = true; }
             else if (Type == 3 /* Class */) { reader.Position = offsets[1]; bReadFields = true; }
             else if (Type == 8 /* Enum */)
             {
-                parentClass = 0;
+                ParentClass = 0;
                 reader.Position = offsets[0];
                 {
                     reader.Position = offsets[0];
@@ -89,13 +89,13 @@ namespace Frosty.Core.Sdk.Anthem
 
             if (bReadFields)
             {
-                for (int i = 0; i < fieldCount; i++)
+                for (int i = 0; i < FieldCount; i++)
                 {
                     FieldInfo fi = new FieldInfo();
                     fi.Read(reader, this.nameHash);
-                    fi.index = i;
+                    fi.Index = i;
 
-                    fields.Add(fi);
+                    Fields.Add(fi);
                 }
             }
         }
@@ -112,20 +112,20 @@ namespace Frosty.Core.Sdk.Anthem
         public void Read(MemoryReader reader, uint classHash)
         {
             nameHash = reader.ReadUInt();
-            name = "Field_" + nameHash.ToString("x8");
+            Name = "Field_" + nameHash.ToString("x8");
             if (AnthemDemo.Strings.fieldHash.ContainsKey(classHash))
             {
                 if (AnthemDemo.Strings.fieldHash[classHash].ContainsKey(nameHash))
-                    name = AnthemDemo.Strings.fieldHash[classHash][nameHash];
+                    Name = AnthemDemo.Strings.fieldHash[classHash][nameHash];
                 else if (AnthemDemo.Strings.stringHash.ContainsKey(nameHash))
-                    name = AnthemDemo.Strings.stringHash[nameHash];
+                    Name = AnthemDemo.Strings.stringHash[nameHash];
             }
             else if (AnthemDemo.Strings.stringHash.ContainsKey(nameHash))
-                name = AnthemDemo.Strings.stringHash[nameHash];
+                Name = AnthemDemo.Strings.stringHash[nameHash];
 
-            flags = reader.ReadUShort();
-            offset = reader.ReadUShort();
-            typeOffset = reader.ReadLong();
+            Flags = reader.ReadUShort();
+            Offset = reader.ReadUShort();
+            TypeOffset = reader.ReadLong();
         }
 
         public override void Modify(DbObject fieldObj)

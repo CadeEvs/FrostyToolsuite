@@ -5,6 +5,7 @@ using Frosty.Controls;
 using FrostySdk.IO;
 using System.IO;
 using Frosty.Core.Controls;
+using FrostySdk.Managers.Entries;
 
 namespace FrostyEditor.Windows
 {

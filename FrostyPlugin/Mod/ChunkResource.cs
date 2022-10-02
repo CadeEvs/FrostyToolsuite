@@ -1,6 +1,7 @@
 ﻿using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Mod
 {

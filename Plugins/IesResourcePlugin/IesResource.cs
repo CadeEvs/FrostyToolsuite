@@ -2,6 +2,7 @@
 using FrostySdk.Managers;
 using FrostySdk.Resources;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace IesResourcePlugin
 {

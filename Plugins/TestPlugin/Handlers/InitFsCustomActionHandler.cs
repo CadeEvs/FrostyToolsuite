@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FrostySdk.Managers.Entries;
 using TestPlugin.Managers;
 
 namespace TestPlugin.Handlers

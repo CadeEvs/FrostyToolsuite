@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Security.Cryptography;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Managers
 {
@@ -29,25 +30,25 @@ namespace FrostySdk.Managers
             {
                 // get second encryption key
                 byte[] key = KeyManager.Instance.GetKey("Key2");
-                foreach (CatalogInfo catalog in parent.fs.EnumerateCatalogInfos())
+                foreach (CatalogInfo catalog in parent.m_fileSystem.EnumerateCatalogInfos())
                 {
                     foreach (string sbName in catalog.SuperBundles.Keys)
                     {
-                        SuperBundleEntry sbe = parent.superBundles.Find((SuperBundleEntry a) => a.Name == sbName);
+                        SuperBundleEntry sbe = parent.m_superBundles.Find((SuperBundleEntry a) => a.Name == sbName);
                         int sbIndex = -1;
 
                         if (sbe != null)
                         {
-                            sbIndex = parent.superBundles.IndexOf(sbe);
+                            sbIndex = parent.m_superBundles.IndexOf(sbe);
                         }
                         else
                         {
-                            parent.superBundles.Add(new SuperBundleEntry { Name = sbName });
-                            sbIndex = parent.superBundles.Count - 1;
+                            parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
+                            sbIndex = parent.m_superBundles.Count - 1;
                         }
 
                         parent.WriteToLog("Loading data ({0})", sbName);
-                        parent.superBundles.Add(new SuperBundleEntry { Name = sbName });
+                        parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
 
                         string sbPath = sbName;
                         if (catalog.SuperBundles[sbName])
@@ -58,7 +59,7 @@ namespace FrostySdk.Managers
                         if (tocPath == "")
                             tocPath = parent.fs.ResolvePath(string.Format("{0}.toc", sbPath));
 #else
-                        string tocPath = parent.fs.ResolvePath(string.Format("{0}.toc", sbPath));
+                        string tocPath = parent.m_fileSystem.ResolvePath(string.Format("{0}.toc", sbPath));
 #endif
 
                         if (tocPath != "")
@@ -67,7 +68,7 @@ namespace FrostySdk.Managers
                             int chunksOffset = 0;
                             byte[] buffer = null;
 
-                            using (NativeReader reader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
+                            using (NativeReader reader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.m_fileSystem.CreateDeobfuscator()))
                             {
                                 uint magic = reader.ReadUInt();
                                 bundlesOffset = reader.ReadInt() - 0x0C;
@@ -108,7 +109,7 @@ namespace FrostySdk.Managers
 
                                         for (int i = 0; i < bundleCount; i++)
                                         {
-                                            parent.logger.Log("progress:{0}", (i / (double)bundleCount) * 100.0d);
+                                            parent.m_logger.Log("progress:{0}", (i / (double)bundleCount) * 100.0d);
                                             int offset = reader.ReadInt() - 0x0C;
 
                                             long pos = reader.Position;
@@ -125,7 +126,7 @@ namespace FrostySdk.Managers
                                                 int fileOffset = reader.ReadInt();
                                                 int fileSize = reader.ReadInt();
 
-                                                using (NativeReader casReader = new NativeReader(new FileStream(parent.fs.ResolvePath(parent.fs.GetFilePath(fileIndex & 0x7FFFFFFF)), FileMode.Open, FileAccess.Read)))
+                                                using (NativeReader casReader = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(parent.m_fileSystem.GetFilePath(fileIndex & 0x7FFFFFFF)), FileMode.Open, FileAccess.Read)))
                                                 {
                                                     casReader.Position = fileOffset;
                                                     ms.Write(casReader.ReadBytes(fileSize), 0, fileSize);
@@ -157,9 +158,9 @@ namespace FrostySdk.Managers
 
                                             // Now process bundle
                                             BundleEntry be = new BundleEntry { Name = bundleName, SuperBundleId = sbIndex };
-                                            parent.bundles.Add(be);
+                                            parent.m_bundles.Add(be);
 
-                                            using (BinarySbReader bundleReader = new BinarySbReader(ms, 0, parent.fs.CreateDeobfuscator()))
+                                            using (BinarySbReader bundleReader = new BinarySbReader(ms, parent.m_fileSystem.CreateDeobfuscator()))
                                             {
                                                 DbObject bundle = bundleReader.ReadDbObject();
 
@@ -217,9 +218,9 @@ namespace FrostySdk.Managers
                                                 Debug.Assert(sizeLeft == 0);
 
                                                 // process assets
-                                                parent.ProcessBundleEbx(bundle, parent.bundles.Count - 1, helper);
-                                                parent.ProcessBundleRes(bundle, parent.bundles.Count - 1, helper);
-                                                parent.ProcessBundleChunks(bundle, parent.bundles.Count - 1, helper);
+                                                parent.ProcessBundleEbx(bundle, parent.m_bundles.Count - 1, helper);
+                                                parent.ProcessBundleRes(bundle, parent.m_bundles.Count - 1, helper);
+                                                parent.ProcessBundleChunks(bundle, parent.m_bundles.Count - 1, helper);
                                             }
 
                                         }
@@ -246,20 +247,20 @@ namespace FrostySdk.Managers
                                             int dataOffset = reader.ReadInt();
                                             int dataSize = reader.ReadInt();
 
-                                            if (!parent.chunkList.ContainsKey(guid))
-                                                parent.chunkList.Add(guid, new ChunkAssetEntry());
+                                            if (!parent.m_chunkList.ContainsKey(guid))
+                                                parent.m_chunkList.Add(guid, new ChunkAssetEntry() { FirstMip = -1 });
 
-                                            ChunkAssetEntry chunk = parent.chunkList[guid];
+                                            ChunkAssetEntry chunk = parent.m_chunkList[guid];
                                             chunk.Id = guid;
                                             chunk.Size = dataSize;
                                             chunk.Location = AssetDataLocation.CasNonIndexed;
                                             chunk.ExtraData = new AssetExtraData
                                             {
-                                                CasPath = parent.fs.GetFilePath(fileIndex),
+                                                CasPath = parent.m_fileSystem.GetFilePath(fileIndex),
                                                 DataOffset = dataOffset
                                             };
 
-                                            parent.chunkList[guid].IsTocChunk = true;
+                                            parent.m_chunkList[guid].IsTocChunk = true;
                                             reader.Position = pos;
                                         }
                                     }

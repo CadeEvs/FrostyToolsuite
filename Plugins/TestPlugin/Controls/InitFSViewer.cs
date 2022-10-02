@@ -122,7 +122,7 @@ namespace TestPlugin.Controls
         private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             string filename = listBox.SelectedItem as string;
-            byte[] buf = App.FileSystem.GetFileFromMemoryFs(filename);
+            byte[] buf = App.FileSystemManager.GetFileFromMemoryFs(filename);
 
             using (TextReader reader = new StreamReader(new MemoryStream(buf)))
                 contentsBox.Text = reader.ReadToEnd();

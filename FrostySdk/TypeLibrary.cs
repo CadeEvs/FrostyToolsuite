@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Reflection.Emit;
 using FrostySdk.Ebx;
+using FrostySdk.Managers.Entries;
 
 namespace FrostySdk.Attributes
 {
@@ -445,7 +446,8 @@ namespace FrostySdk
         /// </summary>
         public object Original;
     }
-    public class BaseFieldOverride
+    
+    public abstract class BaseFieldOverride
     {
     }
 
@@ -636,17 +638,19 @@ namespace FrostySdk
         private const string ModuleName = "EbxClasses";
         private const string Namespace = "FrostySdk.Ebx.";
 
-        private static AssemblyBuilder assemblyBuilder;
-        private static ModuleBuilder moduleBuilder;
-        private static Assembly existingAssembly;
+        private static AssemblyBuilder m_assemblyBuilder;
+        private static ModuleBuilder m_moduleBuilder;
+        private static Assembly m_existingAssembly;
 
-        private static List<TypeBuilder> constructingTypes = new List<TypeBuilder>();
-        private static List<ConstructorBuilder> constructors = new List<ConstructorBuilder>();
-        private static List<Guid> constructingGuids = new List<Guid>();
+        private static readonly List<TypeBuilder> m_constructingTypes = new List<TypeBuilder>();
+        private static readonly List<ConstructorBuilder> m_constructors = new List<ConstructorBuilder>();
+        private static readonly List<Guid> m_constructingGuids = new List<Guid>();
 
-        public static void Initialize(bool loadSDK = true)
+        private static readonly Dictionary<Guid, Type> m_guidTypeMapping = new Dictionary<Guid, Type>();
+        
+        public static void Initialize(bool loadSdk = true)
         {
-            if (loadSDK)
+            if (loadSdk)
             {
                 // move across any newly created SDKs
                 if (File.Exists("TmpProfiles/" + ProfilesLibrary.SDKFilename + ".dll"))
@@ -662,25 +666,33 @@ namespace FrostySdk
 
                 // now try to load SDK
                 if (File.Exists("Profiles/" + ProfilesLibrary.SDKFilename + ".dll"))
-                    existingAssembly = Assembly.Load(new AssemblyName(ModuleName));
+                {
+                    m_existingAssembly = Assembly.Load(new AssemblyName(ModuleName));
+                }
             }
 
             AssemblyName name = new AssemblyName(ModuleName);
-            assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
-            moduleBuilder = assemblyBuilder.DefineDynamicModule(ModuleName);
+            m_assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Run);
+            m_moduleBuilder = m_assemblyBuilder.DefineDynamicModule(ModuleName);
         }
 
         public static uint GetSdkVersion()
         {
-            if (existingAssembly == null)
+            if (m_existingAssembly == null)
+            {
                 return 0;
-            var attr = existingAssembly.GetCustomAttribute<SdkVersionAttribute>();
+            }
+            
+            SdkVersionAttribute attr = m_existingAssembly.GetCustomAttribute<SdkVersionAttribute>();
             if (attr == null)
+            {
                 return 0;
+            }
+                
             return (uint)attr.Version;
         }
 
-        public static DbObject LoadClassesSDK(Stream sdkStream)
+        public static DbObject LoadClassesSdk(Stream sdkStream)
         {
             DbObject classList = null;
             using (NativeReader reader = new NativeReader(sdkStream))
@@ -689,158 +701,176 @@ namespace FrostySdk
                 while (reader.Position < reader.Length)
                 {
                     string line = reader.ReadLine().Trim('\t', ' ');
-                    if (line.StartsWith("BeginClass"))
+                    if (!line.StartsWith("BeginClass"))
                     {
-                        string className = line.Split(' ')[1];
+                        continue;
+                    }
+                    
+                    string className = line.Split(' ')[1];
 
-                        DbObject classObj = new DbObject();
-                        classObj.SetValue("name", className);
+                    DbObject classObj = new DbObject();
+                    classObj.SetValue("name", className);
 
-                        DbObject fieldList = new DbObject(false);
-                        classObj.SetValue("fields", fieldList);
+                    DbObject fieldList = new DbObject(false);
+                    classObj.SetValue("fields", fieldList);
 
-                        while (!line.StartsWith("EndClass"))
+                    while (!line.StartsWith("EndClass"))
+                    {
+                        line = reader.ReadLine().Trim('\t', ' ');
+                        if (line.StartsWith("//"))
                         {
-                            line = reader.ReadLine().Trim('\t', ' ');
-                            if (line.StartsWith("//"))
-                                continue;
-
-                            if (line.StartsWith("BeginFields"))
-                            {
-                                string fieldCount = line.Split(' ')[1];
-                                while (!line.StartsWith("EndFields"))
-                                {
-                                    line = reader.ReadLine().Trim('\t', ' ');
-                                    if (line.StartsWith("BeginField "))
-                                    {
-                                        string fieldName = line.Split(' ')[1];
-
-                                        DbObject fieldObj = new DbObject();
-                                        fieldObj.SetValue("name", fieldName);
-
-                                        while (!line.EndsWith("EndField"))
-                                        {
-                                            line = reader.ReadLine().Trim('\t', ' ');
-                                            string[] arr = SplitOnce(line);
-
-                                            if (arr[0].StartsWith("DisplayName")) fieldObj.SetValue("displayName", arr[1]);
-                                            else if (arr[0].StartsWith("Description")) fieldObj.SetValue("description", arr[1]);
-                                            else if (arr[0].StartsWith("Category")) fieldObj.SetValue("category", arr[1]);
-                                            else if (arr[0].StartsWith("Editor")) fieldObj.SetValue("editor", arr[1]);
-                                            else if (arr[0].StartsWith("Transient")) fieldObj.SetValue("transient", bool.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("ReadOnly")) fieldObj.SetValue("readOnly", bool.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("Reference")) fieldObj.SetValue("reference", bool.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("Added")) fieldObj.SetValue("added", bool.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("Hidden")) fieldObj.SetValue("hidden", bool.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("Index")) fieldObj.SetValue("index", int.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("HideChildren")) fieldObj.SetValue("hideChildren", bool.Parse(arr[1]));
-                                            else if (arr[0].StartsWith("InterfaceType"))
-                                            {
-                                                int it = int.Parse(arr[1]);
-                                                switch (it)
-                                                {
-                                                    case 0: fieldObj.SetValue("property", 0); break;
-                                                    case 1: fieldObj.SetValue("property", 1); break;
-                                                    case 2: fieldObj.SetValue("event", 0); break;
-                                                    case 3: fieldObj.SetValue("event", 1); break;
-                                                    case 4: fieldObj.SetValue("link", 0); break;
-                                                    case 5: fieldObj.SetValue("link", 1); break;
-                                                }
-                                            }
-                                            else if (arr[0].StartsWith("Type"))
-                                            {
-                                                DbObject typeObj = new DbObject();
-                                                string[] arr2 = arr[1].Split(',');
-
-                                                EbxFieldType fieldType = (EbxFieldType)Enum.Parse(typeof(EbxFieldType), arr2[0]);
-                                                typeObj.SetValue("flags", (int)fieldType);
-
-                                                if (arr2.Length > 1 && arr2[1] != "None")
-                                                    typeObj.SetValue("baseType", arr2[1]);
-                                                if (arr2.Length > 2)
-                                                {
-                                                    EbxFieldType arrayType = (EbxFieldType)Enum.Parse(typeof(EbxFieldType), arr2[2]);
-                                                    typeObj.SetValue("arrayType", (int)arrayType);
-                                                }
-
-                                                fieldObj.SetValue("type", typeObj);
-                                            }
-                                            else if (arr[0].StartsWith("Version"))
-                                            {
-                                                string[] arr2 = arr[1].Split(',');
-                                                DbObject verObj = new DbObject(false);
-
-                                                foreach (string ver in arr2)
-                                                    verObj.Add(int.Parse(ver));
-
-                                                fieldObj.SetValue("version", verObj);
-                                            }
-                                            else if (arr[0].StartsWith("BeginAccessor"))
-                                            {
-                                                string functionCode = "";
-                                                while (!line.StartsWith("EndAccessor"))
-                                                {
-                                                    line = reader.ReadLine().Trim('\t', ' ');
-                                                    if (line != "EndAccessor")
-                                                        functionCode += line + "\n";
-                                                }
-                                                fieldObj.SetValue("accessor", functionCode);
-                                            }
-                                        }
-
-                                        fieldList.Add(fieldObj);
-                                    }
-                                }
-                            }
-                            else if (line.StartsWith("BeginFunctions"))
-                            {
-                                string functionCode = "";
-                                while (!line.StartsWith("EndFunctions"))
-                                {
-                                    line = reader.ReadLine().Trim('\t', ' ');
-                                    if (line != "EndFunctions")
-                                        functionCode += line + "\n";
-                                }
-                                classObj.SetValue("functions", functionCode);
-                            }
-                            else if (line.StartsWith("BeginAttributes"))
-                            {
-                                string attributeCode = "";
-                                while (!line.StartsWith("EndAttributes"))
-                                {
-                                    line = reader.ReadLine().Trim('\t', ' ');
-                                    if (line != "EndAttributes")
-                                        attributeCode += line + "\n";
-                                }
-                                classObj.SetValue("attributes", attributeCode);
-                            }
-                            else if (line.StartsWith("BeginConstructor"))
-                            {
-                                string constructCode = "";
-                                while (!line.StartsWith("EndConstructor"))
-                                {
-                                    line = reader.ReadLine().Trim('\t', ' ');
-                                    if (line != "EndConstructor")
-                                        constructCode += line + "\n";
-                                }
-                                classObj.SetValue("constructor", constructCode);
-                            }
-                            else
-                            {
-                                string[] arr = SplitOnce(line);
-                                if (arr[0].StartsWith("DisplayName")) classObj.SetValue("displayName", arr[1]);
-                                else if (arr[0].StartsWith("Description")) classObj.SetValue("description", arr[1]);
-                                else if (arr[0].StartsWith("ValueConverter")) classObj.SetValue("valueConverter", arr[1]);
-                                else if (arr[0].StartsWith("Alignment")) classObj.SetValue("alignment", int.Parse(arr[1]));
-                                else if (arr[0].StartsWith("Abstract")) classObj.SetValue("abstract", bool.Parse(arr[1]));
-                                else if (arr[0].StartsWith("Inline")) classObj.SetValue("inline", bool.Parse(arr[1]));
-                                else if (arr[0].StartsWith("Icon")) classObj.SetValue("icon", arr[1]);
-                                else if (arr[0].StartsWith("Realm")) classObj.SetValue("realm", arr[1]);
-                            }
+                            continue;
                         }
 
-                        classList.Add(classObj);
+                        if (line.StartsWith("BeginFields"))
+                        {
+                            string fieldCount = line.Split(' ')[1];
+                            while (!line.StartsWith("EndFields"))
+                            {
+                                line = reader.ReadLine().Trim('\t', ' ');
+                                if (!line.StartsWith("BeginField "))
+                                {
+                                    continue;
+                                }
+                                
+                                string fieldName = line.Split(' ')[1];
+
+                                DbObject fieldObj = new DbObject();
+                                fieldObj.SetValue("name", fieldName);
+
+                                while (!line.EndsWith("EndField"))
+                                {
+                                    line = reader.ReadLine().Trim('\t', ' ');
+                                    string[] arr = SplitOnce(line);
+
+                                    if (arr[0].StartsWith("DisplayName")) fieldObj.SetValue("displayName", arr[1]);
+                                    else if (arr[0].StartsWith("Description")) fieldObj.SetValue("description", arr[1]);
+                                    else if (arr[0].StartsWith("Category")) fieldObj.SetValue("category", arr[1]);
+                                    else if (arr[0].StartsWith("Editor")) fieldObj.SetValue("editor", arr[1]);
+                                    else if (arr[0].StartsWith("Transient")) fieldObj.SetValue("transient", bool.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("ReadOnly")) fieldObj.SetValue("readOnly", bool.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("Reference")) fieldObj.SetValue("reference", bool.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("Added")) fieldObj.SetValue("added", bool.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("Hidden")) fieldObj.SetValue("hidden", bool.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("Index")) fieldObj.SetValue("index", int.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("HideChildren")) fieldObj.SetValue("hideChildren", bool.Parse(arr[1]));
+                                    else if (arr[0].StartsWith("InterfaceType"))
+                                    {
+                                        int it = int.Parse(arr[1]);
+                                        switch (it)
+                                        {
+                                            case 0: fieldObj.SetValue("property", 0); break;
+                                            case 1: fieldObj.SetValue("property", 1); break;
+                                            case 2: fieldObj.SetValue("event", 0); break;
+                                            case 3: fieldObj.SetValue("event", 1); break;
+                                            case 4: fieldObj.SetValue("link", 0); break;
+                                            case 5: fieldObj.SetValue("link", 1); break;
+                                        }
+                                    }
+                                    else if (arr[0].StartsWith("Type"))
+                                    {
+                                        DbObject typeObj = new DbObject();
+                                        string[] arr2 = arr[1].Split(',');
+
+                                        EbxFieldType fieldType = (EbxFieldType)Enum.Parse(typeof(EbxFieldType), arr2[0]);
+                                        typeObj.SetValue("flags", (int)fieldType);
+
+                                        if (arr2.Length > 1 && arr2[1] != "None")
+                                        {
+                                            typeObj.SetValue("baseType", arr2[1]);
+                                        }
+                                        if (arr2.Length > 2)
+                                        {
+                                            EbxFieldType arrayType = (EbxFieldType)Enum.Parse(typeof(EbxFieldType), arr2[2]);
+                                            typeObj.SetValue("arrayType", (int)arrayType);
+                                        }
+
+                                        fieldObj.SetValue("type", typeObj);
+                                    }
+                                    else if (arr[0].StartsWith("Version"))
+                                    {
+                                        string[] arr2 = arr[1].Split(',');
+                                        DbObject verObj = new DbObject(false);
+
+                                        foreach (string ver in arr2)
+                                        {
+                                            verObj.Add(int.Parse(ver));
+                                        }
+
+                                        fieldObj.SetValue("version", verObj);
+                                    }
+                                    else if (arr[0].StartsWith("BeginAccessor"))
+                                    {
+                                        string functionCode = "";
+                                        while (!line.StartsWith("EndAccessor"))
+                                        {
+                                            line = reader.ReadLine().Trim('\t', ' ');
+                                            if (line != "EndAccessor")
+                                            {
+                                                functionCode += line + "\n";
+                                            }
+                                        }
+                                        fieldObj.SetValue("accessor", functionCode);
+                                    }
+                                }
+
+                                fieldList.Add(fieldObj);
+                            }
+                        }
+                        else if (line.StartsWith("BeginFunctions"))
+                        {
+                            string functionCode = "";
+                            while (!line.StartsWith("EndFunctions"))
+                            {
+                                line = reader.ReadLine().Trim('\t', ' ');
+                                if (line != "EndFunctions")
+                                {
+                                    functionCode += line + "\n";
+                                }
+                            }
+                            classObj.SetValue("functions", functionCode);
+                        }
+                        else if (line.StartsWith("BeginAttributes"))
+                        {
+                            string attributeCode = "";
+                            while (!line.StartsWith("EndAttributes"))
+                            {
+                                line = reader.ReadLine().Trim('\t', ' ');
+                                if (line != "EndAttributes")
+                                {
+                                    attributeCode += line + "\n";
+                                }
+                            }
+                            classObj.SetValue("attributes", attributeCode);
+                        }
+                        else if (line.StartsWith("BeginConstructor"))
+                        {
+                            string constructCode = "";
+                            while (!line.StartsWith("EndConstructor"))
+                            {
+                                line = reader.ReadLine().Trim('\t', ' ');
+                                if (line != "EndConstructor")
+                                {
+                                    constructCode += line + "\n";
+                                }
+                            }
+                            classObj.SetValue("constructor", constructCode);
+                        }
+                        else
+                        {
+                            string[] arr = SplitOnce(line);
+                            if (arr[0].StartsWith("DisplayName")) classObj.SetValue("displayName", arr[1]);
+                            else if (arr[0].StartsWith("Description")) classObj.SetValue("description", arr[1]);
+                            else if (arr[0].StartsWith("ValueConverter")) classObj.SetValue("valueConverter", arr[1]);
+                            else if (arr[0].StartsWith("Alignment")) classObj.SetValue("alignment", int.Parse(arr[1]));
+                            else if (arr[0].StartsWith("Abstract")) classObj.SetValue("abstract", bool.Parse(arr[1]));
+                            else if (arr[0].StartsWith("Inline")) classObj.SetValue("inline", bool.Parse(arr[1]));
+                            else if (arr[0].StartsWith("Icon")) classObj.SetValue("icon", arr[1]);
+                            else if (arr[0].StartsWith("Realm")) classObj.SetValue("realm", arr[1]);
+                        }
                     }
+
+                    classList.Add(classObj);
                 }
             }
 
@@ -851,7 +881,9 @@ namespace FrostySdk
         {
             int index = str.IndexOf('=');
             if (index == -1)
+            {
                 return new string[] { str };
+            }
 
             string[] outArray = new string[2];
 
@@ -864,9 +896,8 @@ namespace FrostySdk
         public static void BuildModule(string sdkFilename, DbObject classList)
         {
             AssemblyName name = new AssemblyName(ModuleName);
-            //assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
-            assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
-            moduleBuilder = assemblyBuilder.DefineDynamicModule(ModuleName, sdkFilename + ".dll");
+            m_assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly(name, AssemblyBuilderAccess.Save);
+            m_moduleBuilder = m_assemblyBuilder.DefineDynamicModule(ModuleName, sdkFilename + ".dll");
 
             foreach (DbObject classObj in classList)
             {
@@ -879,7 +910,9 @@ namespace FrostySdk
                 {
                     List<Tuple<string, int>> values = new List<Tuple<string, int>>();
                     foreach (DbObject field in classObj.GetValue<DbObject>("fields"))
+                    {
                         values.Add(new Tuple<string, int>(field.GetValue<string>("name"), field.GetValue<int>("value")));
+                    }
 
                     AddEnum(classObj.GetValue<string>("name"), values,
                         new EbxClass()
@@ -895,78 +928,90 @@ namespace FrostySdk
             foreach (DbObject classObj in classList)
             {
                 EbxFieldType classType = (EbxFieldType)classObj.GetValue<int>("type");
-                if (classType == EbxFieldType.Struct || classType == EbxFieldType.Pointer)
+                if (classType != EbxFieldType.Struct && classType != EbxFieldType.Pointer)
                 {
-                    List<FieldType> fieldTypes = new List<FieldType>();
-                    foreach (DbObject field in classObj.GetValue<DbObject>("fields"))
-                    {
-                        EbxFieldType fieldType = (EbxFieldType)field.GetValue<int>("type");
-                        string baseTypeName = field.GetValue<string>("baseType");
-                        Type type = GetTypeFromEbxType(fieldType, baseTypeName, field.GetValue<int>("arrayFlags", -1));
+                    continue;
+                }
+                
+                List<FieldType> fieldTypes = new List<FieldType>();
+                foreach (DbObject field in classObj.GetValue<DbObject>("fields"))
+                {
+                    EbxFieldType fieldType = (EbxFieldType)field.GetValue<int>("type");
+                    string baseTypeName = field.GetValue<string>("baseType");
+                    Type type = GetTypeFromEbxType(fieldType, baseTypeName, field.GetValue<int>("arrayFlags", -1));
 
-                        Type baseType = null;
-                        if (fieldType == EbxFieldType.Pointer)
+                    Type baseType = null;
+                    switch (fieldType)
+                    {
+                        case EbxFieldType.Pointer:
                             baseType = AddType(baseTypeName);
-                        else if (fieldType == EbxFieldType.Array)
+                            break;
+                        case EbxFieldType.Array:
                         {
                             EbxFieldType arrayFieldType = (EbxFieldType)((field.GetValue<int>("arrayFlags") >> 4) & 0x1F);
                             if (arrayFieldType == EbxFieldType.Pointer)
                                 baseType = AddType(baseTypeName);
+                            break;
                         }
-
-                        MetaDataType? fieldMetaData = null;
-                        if (field.GetValue<DbObject>("meta") != null)
-                        {
-                            DbObject meta = field.GetValue<DbObject>("meta");
-                            fieldMetaData = new MetaDataType(meta);
-                        }
-
-                        FieldType fieldTypeObj = new FieldType(
-                            field.GetValue<string>("name"),
-                            type,
-                            baseType,
-                            new EbxField()
-                            {
-                                DataOffset = (uint)field.GetValue<int>("offset"),
-                                Type = (ushort)field.GetValue<int>("flags")
-                            },
-                            (fieldType == EbxFieldType.Array)
-                                ? new EbxField()
-                                {
-                                    DataOffset = 0,
-                                    Type = (ushort)field.GetValue<int>("arrayFlags")
-                                }
-                                : (EbxField?)null,
-                            fieldMetaData
-                            );
-                        fieldTypes.Add(fieldTypeObj);
                     }
 
-                    Type parentType = null;
-                    if (classType == EbxFieldType.Struct)
-                        parentType = typeof(object);
-                    else if (classType == EbxFieldType.Pointer && classObj.GetValue<string>("parent") != "")
-                        parentType = AddType(classObj.GetValue<string>("parent"));
-
-                    MetaDataType? metaData = null;
-                    if (classObj.GetValue<DbObject>("meta") != null)
+                    MetaDataType? fieldMetaData = null;
+                    if (field.GetValue<DbObject>("meta") != null)
                     {
-                        DbObject meta = classObj.GetValue<DbObject>("meta");
-                        metaData = new MetaDataType(meta);
+                        DbObject meta = field.GetValue<DbObject>("meta");
+                        fieldMetaData = new MetaDataType(meta);
                     }
 
-                    FinalizeClass(classObj.GetValue<string>("name"), fieldTypes, parentType,
-                        new EbxClass()
+                    FieldType fieldTypeObj = new FieldType(
+                        field.GetValue<string>("name"),
+                        type,
+                        baseType,
+                        new EbxField()
                         {
-                            Type = (ushort)classObj.GetValue<int>("flags"),
-                            Alignment = (byte)classObj.GetValue<int>("alignment"),
-                            Size = (ushort)classObj.GetValue<int>("size"),
-                            Namespace = classObj.GetValue<string>("namespace")
-                        }, metaData);
+                            DataOffset = (uint)field.GetValue<int>("offset"),
+                            Type = (ushort)field.GetValue<int>("flags")
+                        },
+                        (fieldType == EbxFieldType.Array) 
+                            ? new EbxField() 
+                            {
+                                DataOffset = 0,
+                                Type = (ushort)field.GetValue<int>("arrayFlags")
+                            }
+                            : (EbxField?)null,
+                        fieldMetaData
+                    );
+                    fieldTypes.Add(fieldTypeObj);
                 }
+
+                Type parentType = null;
+                switch (classType)
+                {
+                    case EbxFieldType.Struct:
+                        parentType = typeof(object);
+                        break;
+                    case EbxFieldType.Pointer when classObj.GetValue<string>("parent") != "":
+                        parentType = AddType(classObj.GetValue<string>("parent"));
+                        break;
+                }
+
+                MetaDataType? metaData = null;
+                if (classObj.GetValue<DbObject>("meta") != null)
+                {
+                    DbObject meta = classObj.GetValue<DbObject>("meta");
+                    metaData = new MetaDataType(meta);
+                }
+
+                FinalizeClass(classObj.GetValue<string>("name"), fieldTypes, parentType,
+                    new EbxClass()
+                    {
+                        Type = (ushort)classObj.GetValue<int>("flags"),
+                        Alignment = (byte)classObj.GetValue<int>("alignment"),
+                        Size = (ushort)classObj.GetValue<int>("size"),
+                        Namespace = classObj.GetValue<string>("namespace")
+                    }, metaData);
             }
 
-            assemblyBuilder.Save(sdkFilename + ".dll");
+            m_assemblyBuilder.Save(sdkFilename + ".dll");
         }
 
         private static Type GetTypeFromEbxType(EbxFieldType inType, string baseType, int arrayType = -1)
@@ -1007,6 +1052,7 @@ namespace FrostySdk
         public static bool IsSubClassOf(object obj, string name)
         {
             Type type = obj.GetType();
+            
             return IsSubClassOf(type, name);
         }
 
@@ -1014,7 +1060,9 @@ namespace FrostySdk
         {
             Type checkType = GetType(name);
             if (checkType == null)
+            {
                 return false;
+            }
 
             return type.IsSubclassOf(checkType) || (type == checkType);
         }
@@ -1022,9 +1070,8 @@ namespace FrostySdk
         public static bool IsSubClassOf(string type, string name)
         {
             Type sourceType = GetType(type);
-            if (sourceType == null)
-                return false;
-            return IsSubClassOf(sourceType, name);
+            
+            return sourceType != null && IsSubClassOf(sourceType, name);
         }
 
         public static Type[] GetTypes(Type type) => GetTypes(type.Name);
@@ -1032,23 +1079,23 @@ namespace FrostySdk
         public static Type[] GetTypes(string name)
         {
             List<Type> totalTypes = new List<Type>();
-            Type[] types = (existingAssembly != null) ? existingAssembly.GetTypes() : null;
+            Type[] types = (m_existingAssembly != null) ? m_existingAssembly.GetTypes() : null;
             if (types != null)
             {
                 foreach (Type type in types)
                 {
                     if (IsSubClassOf(type, name))
+                    {
                         totalTypes.Add(type);
+                    }
                 }
             }
 
-            types = moduleBuilder.Assembly.GetTypes();
-            if (types != null)
+            foreach (Type type in m_moduleBuilder.Assembly.GetTypes())
             {
-                foreach (Type type in types)
+                if (IsSubClassOf(type, name))
                 {
-                    if (IsSubClassOf(type, name))
-                        totalTypes.Add(type);
+                    totalTypes.Add(type);
                 }
             }
 
@@ -1057,7 +1104,7 @@ namespace FrostySdk
 
         public static Type[] GetConcreteTypes()
         {
-            return (existingAssembly != null) ? existingAssembly.GetTypes() : new Type[] { };
+            return (m_existingAssembly != null) ? m_existingAssembly.GetTypes() : new Type[] { };
         }
 
         /// <summary>
@@ -1068,10 +1115,9 @@ namespace FrostySdk
         public static dynamic CreateObject(string name)
         {
             Type newType = GetType(name);
+            
             return newType == null ? null : CreateObject(newType);
         }
-
-        internal static Dictionary<Guid, Type> guidTypeMapping = new Dictionary<Guid, Type>();
 
         /// <summary>
         /// creates a new object defined by the specified guid
@@ -1079,6 +1125,7 @@ namespace FrostySdk
         public static dynamic CreateObject(Guid guid)
         {
             Type newType = GetType(guid);
+            
             return newType == null ? null : CreateObject(newType);
         }
 
@@ -1106,7 +1153,7 @@ namespace FrostySdk
             if (enumType != null)
                 return enumType;
 
-            EnumBuilder builder = moduleBuilder.DefineEnum(Namespace + name, TypeAttributes.Public, typeof(int));
+            EnumBuilder builder = m_moduleBuilder.DefineEnum(Namespace + name, TypeAttributes.Public, typeof(int));
             for (int i = 0; i < values.Count; i++)
                 builder.DefineLiteral(values[i].Item1, values[i].Item2);
 
@@ -1132,7 +1179,7 @@ namespace FrostySdk
         public static Type[] GetDerivedTypes(Type type)
         {
             List<Type> derivedTypes = new List<Type>();
-            foreach (Type subType in existingAssembly.GetExportedTypes())
+            foreach (Type subType in m_existingAssembly.GetExportedTypes())
             {
                 if (subType.IsSubclassOf(type))
                     derivedTypes.Add(subType);
@@ -1142,34 +1189,43 @@ namespace FrostySdk
 
         public static Type GetType(string name)
         {
-            if (existingAssembly != null)
+            if (m_existingAssembly != null)
             {
-                Type type = existingAssembly.GetType(Namespace + name);
+                Type type = m_existingAssembly.GetType(Namespace + name);
                 if (type != null)
+                {
                     return type;
+                }
 
-                type = existingAssembly.GetType(Namespace + "Reflection." + name);
+                type = m_existingAssembly.GetType(Namespace + "Reflection." + name);
                 if (type != null)
+                {
                     return type;
+                }
             }
 
-            return moduleBuilder.Assembly.GetType(Namespace + name);
+            return m_moduleBuilder.Assembly.GetType(Namespace + name);
         }
 
         public static Type GetType(Guid guid)
         {
-            if (existingAssembly != null)
+            if (m_existingAssembly != null)
             {
-                if (guidTypeMapping.Count == 0)
+                if (m_guidTypeMapping.Count == 0)
                 {
-                    foreach (Type subType in existingAssembly.GetExportedTypes())
+                    foreach (Type subType in m_existingAssembly.GetExportedTypes())
                     {
                         foreach (TypeInfoGuidAttribute guidAttr in subType.GetCustomAttributes<TypeInfoGuidAttribute>())
-                            guidTypeMapping.Add(guidAttr.Guid, subType);
+                        {
+                            m_guidTypeMapping.Add(guidAttr.Guid, subType);
+                        }
                     }
                 }
-                if (guidTypeMapping.ContainsKey(guid))
-                    return guidTypeMapping[guid];
+
+                if (m_guidTypeMapping.ContainsKey(guid))
+                {
+                    return m_guidTypeMapping[guid];
+                }
             }
             return null;
         }
@@ -1232,32 +1288,36 @@ namespace FrostySdk
         {
             Type retType = GetType(name);
             if (retType != null)
+            {
                 return retType;
+            }
 
-            int id = constructingTypes.FindIndex((TypeBuilder a) => a.Name == name);
+            int id = m_constructingTypes.FindIndex((TypeBuilder a) => a.Name == name);
             if (id != -1)
-                return constructingTypes[id];
+            {
+                return m_constructingTypes[id];
+            }
 
-            TypeBuilder builder = moduleBuilder.DefineType(Namespace + name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout);
+            TypeBuilder builder = m_moduleBuilder.DefineType(Namespace + name, TypeAttributes.Public | TypeAttributes.BeforeFieldInit | TypeAttributes.AutoLayout);
             ConstructorBuilder cb = builder.DefineConstructor(MethodAttributes.Public, CallingConventions.Standard, new Type[] { });
 
-            constructingTypes.Add(builder);
-            constructingGuids.Add((guid.HasValue) ? guid.Value : Guid.Empty);
-            constructors.Add(cb);
+            m_constructingTypes.Add(builder);
+            m_constructingGuids.Add(guid ?? Guid.Empty);
+            m_constructors.Add(cb);
 
             return null;
         }
 
         private static Type FinalizeType(string name, List<FieldType> fields, Type parentType, EbxClass classInfo, MetaDataType? metaData = null)
         {
-            int id = constructingTypes.FindIndex((TypeBuilder a) => a.Name == name);
+            int id = m_constructingTypes.FindIndex((TypeBuilder a) => a.Name == name);
 
-            TypeBuilder builder = constructingTypes[id];
-            ConstructorBuilder cb = constructors[id];
-            Guid? guid = constructingGuids[id];
+            TypeBuilder builder = m_constructingTypes[id];
+            ConstructorBuilder cb = m_constructors[id];
+            Guid? guid = m_constructingGuids[id];
 
-            constructingTypes.RemoveAt(id);
-            constructors.RemoveAt(id);
+            m_constructingTypes.RemoveAt(id);
+            m_constructors.RemoveAt(id);
 
             builder.SetParent(parentType);
             if (parentType == null)
@@ -1272,8 +1332,8 @@ namespace FrostySdk
             ConstructorInfo parentCb = null;
             if (parentType is TypeBuilder type)
             {
-                int index = constructingTypes.IndexOf(type);
-                parentCb = constructors[index];
+                int index = m_constructingTypes.IndexOf(type);
+                parentCb = m_constructors[index];
             }
             else
             {
@@ -1311,8 +1371,8 @@ namespace FrostySdk
                     ConstructorInfo fieldCb = null;
                     if (field.Type is TypeBuilder fieldType)
                     {
-                        int index = constructingTypes.IndexOf(fieldType);
-                        fieldCb = constructors[index];
+                        int index = m_constructingTypes.IndexOf(fieldType);
+                        fieldCb = m_constructors[index];
                     }
                     else
                     {

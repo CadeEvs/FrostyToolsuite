@@ -28,6 +28,11 @@ namespace FrostySdk.Interfaces
         IBinarySbReader GetBinarySbReader();
 
         /// <summary>
+        /// When impplemented in a derived class, returns a new instance of a derived BinarySbWriter. Must inherit from <see cref="IBinarySbWriter"/>.
+        /// </summary>
+        IBinarySbWriter GetBinarySbWriter();
+
+        /// <summary>
         /// When impplemented in a derived class, returns a new instance defining compression information. Must inherit from <see cref="ICompressionUtils"/>.
         /// </summary>
         ICompressionUtils GetCompressionUtils();

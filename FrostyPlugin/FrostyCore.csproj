@@ -147,6 +147,7 @@
     <Compile Include="Extensions\ToolbarExtension.cs" />
     <Compile Include="FrostyConfiguration.cs" />
     <Compile Include="FrostyLogger.cs" />
+    <Compile Include="Legacy\LegacyFileManagerV2.cs" />
     <Compile Include="Managers\NotificationManager.cs" />
     <Compile Include="Managers\UndoManager.cs" />
     <Compile Include="Misc\FrostyTimer.cs">
@@ -182,7 +183,9 @@
     <Compile Include="Mod\RuntimeEbxResource.cs" />
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
-    <Compile Include="Utils\UpdateChecker.cs" />
+    <Compile Include="Sdk\FBTypes\Bf2042.cs" />
+    <Compile Include="Utils\HalfUtils.cs" />
+    <Compile Include="Utils\UpdateCheckerUtils.cs" />
     <Compile Include="Windows\FrostyProfileSelectWindow.xaml.cs">
       <DependentUpon>FrostyProfileSelectWindow.xaml</DependentUpon>
     </Compile>
@@ -246,7 +249,6 @@
     <Compile Include="Converters\StringToPathDataConverter.cs" />
     <Compile Include="Converters\TreeViewListSortConverter.cs" />
     <Compile Include="FrostyProject.cs" />
-    <Compile Include="HalfUtils.cs" />
     <Compile Include="Handlers\LegacyCustomActionHandler.cs" />
     <Compile Include="Interfaces\IEditorWindow.cs" />
     <Compile Include="Legacy\LegacyFileEntry.cs" />
@@ -453,6 +455,12 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Assets\StatFileType.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Sdk\Anthem-Strings.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Sdk\Bf2042-Strings.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

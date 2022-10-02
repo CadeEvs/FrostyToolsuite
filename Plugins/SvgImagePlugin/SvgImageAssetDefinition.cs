@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using System.Windows.Media;
+using FrostySdk.Managers.Entries;
 
 namespace SvgImagePlugin
 {

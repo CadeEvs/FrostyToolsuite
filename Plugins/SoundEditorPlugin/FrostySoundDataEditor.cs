@@ -19,6 +19,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Frosty.Core;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 using WaveFormatExtensible = SharpDX.Multimedia.WaveFormatExtensible;

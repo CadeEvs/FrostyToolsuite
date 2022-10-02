@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Frosty.Core.Controls;
 using Frosty.Core;
+using FrostySdk.Managers.Entries;
 
 namespace ConversationPlugin
 {

@@ -6,6 +6,7 @@ using FrostySdk;
 using FrostySdk.Deobfuscators;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 
 namespace FrostyCmd
 {
@@ -101,6 +102,8 @@ namespace FrostyCmd
 
         #endregion
 
+        #region -- Profiles --
+        
         private void CreateBF4Profile()
         {
             string key = "bf4";
@@ -183,7 +186,7 @@ namespace FrostyCmd
 
                 blobs.Add(key, writer.ToByteArray());
             }
-        }        
+        }
 
         private void CreateDAProfile()
         {
@@ -559,17 +562,10 @@ namespace FrostyCmd
                     "win32/persistence/wsmppersistence",
                 };
 
-                uint[] ignoredResTypes = new uint[]
-                {
-                    (uint)ResourceType.ShaderBlockDepotAsset
-                };
-
                 writer.Write(sharedBundleNames.Length);
                 foreach (string sbn in sharedBundleNames)
                     writer.WriteObfuscatedString(sbn);
-                writer.Write(ignoredResTypes.Length);
-                foreach (uint resType in ignoredResTypes)
-                    writer.Write(resType);
+                writer.Write(0); // ignored res types
 
                 // Flags (MustAddChunks, EbxVersion, RequiresKey)
                 ProfileFlags pf = new ProfileFlags(0, 4, 0);
@@ -579,7 +575,7 @@ namespace FrostyCmd
             }
         }
 
-        private void CreateMadden2019Profile()
+        private void CreateMadden19Profile()
         {
             string key = "Madden19";
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
@@ -772,7 +768,7 @@ namespace FrostyCmd
                 writer.Write((int)(int)ProfileVersion.Anthem);
                 writer.WriteObfuscatedString("anthem");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
-                writer.WriteObfuscatedString(AssetManager.GetLoaderName("AnthemAssetLoader"));
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Data;false"));
                 writer.WriteObfuscatedString("AnthemSDK");
                 writer.Write(CreateBanner("anthem"));
@@ -828,7 +824,7 @@ namespace FrostyCmd
                 writer.Write((int)(int)ProfileVersion.PlantsVsZombiesBattleforNeighborville);
                 writer.WriteObfuscatedString("PVZ3");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
-                writer.WriteObfuscatedString(AssetManager.GetLoaderName("PVZAssetLoader"));
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("PVZ3SDK");
                 writer.Write(CreateBanner("PVZ3"));
@@ -884,7 +880,7 @@ namespace FrostyCmd
                 writer.Write((int)(int)ProfileVersion.NeedForSpeedHeat);
                 writer.WriteObfuscatedString("NFSHEAT");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
-                writer.WriteObfuscatedString(AssetManager.GetLoaderName("PVZAssetLoader"));
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("NFSHEATSDK");
                 writer.Write(CreateBanner("NFSHEAT"));
@@ -972,6 +968,175 @@ namespace FrostyCmd
             }
         }
 
+        private void CreateFifa21Profile()
+        {
+            string key = "FIFA21";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("FIFA 21");
+                writer.Write((int)(int)ProfileVersion.Fifa21);
+                writer.WriteObfuscatedString("fifa21");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("FIFA21SDK");
+                writer.Write(CreateBanner("fifa21"));
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_color");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_normal");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_alpha");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 5, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
+        private void CreateMadden22Profile()
+        {
+            string key = "Madden22";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("Madden NFL 22™");
+                writer.Write((int)(int)ProfileVersion.Madden22);
+                writer.WriteObfuscatedString("madden22");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("MADDEN22SDK");
+                writer.Write(CreateBanner("madden22"));
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_color");
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_norm");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_alpha");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
+        private void CreateFifa22Profile()
+        {
+            string key = "FIFA22";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("FIFA 22");
+                writer.Write((int)(int)ProfileVersion.Fifa22);
+                writer.WriteObfuscatedString("fifa22");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("FIFA22SDK");
+                writer.Write(CreateBanner("fifa22"));
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_color");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_normal");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_alpha");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
+        private void CreateBF2042Profile()
+        {
+            string key = "BF2042";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("Battlefield™ 2042");
+                writer.Write((int)(int)ProfileVersion.Battlefield2042);
+                writer.WriteObfuscatedString("bf2042");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("BF2042SDK");
+                writer.Write(CreateBanner("bf2042"));
+                writer.WriteObfuscatedString("Common/Shaders/Textures/Debug/Debug_D");
+                writer.WriteObfuscatedString("Common/Shaders/Textures/Debug/Debug_N");
+                writer.WriteObfuscatedString("Common/Shaders/Textures/Debug/Debug_R");
+                writer.WriteObfuscatedString("Common/Shaders/Textures/Debug/Debug_SRM");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly, EAC)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
+        private void CreateMadden23Profile()
+        {
+            string key = "Madden23";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("Madden NFL 23™");
+                writer.Write((int)(int)ProfileVersion.Madden23);
+                writer.WriteObfuscatedString("madden23");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("MADDEN23SDK");
+                writer.Write(CreateBanner("madden23"));
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_color");
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_norm");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_alpha");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
+        private void CreateFifa23Profile()
+        {
+            string key = "FIFA23";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("FIFA 23");
+                writer.Write((int)(int)ProfileVersion.Fifa22);
+                writer.WriteObfuscatedString("fifa23");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("FIFA23SDK");
+                writer.Write(CreateBanner("fifa23"));
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_color");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_normal");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_alpha");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+#endregion
+        
         public ProfileCreator()
         {
         }
@@ -987,7 +1152,7 @@ namespace FrostyCmd
             CreateFIFA18Profile();
             CreateSW2Profile();
             CreateNFS2017Profile();
-            CreateMadden2019Profile();
+            CreateMadden19Profile();
             CreateBF1Profile();
             CreatePVZ1Profile();
             CreatePVZ2Profile();
@@ -1006,7 +1171,12 @@ namespace FrostyCmd
 #if FROSTY_DEVELOPER
 
             CreateNFSEdgeProfile();
-            
+            CreateFifa21Profile();
+            CreateFifa22Profile();
+            CreateBF2042Profile();
+            CreateMadden22Profile();
+            CreateMadden23Profile();
+
 #endif
 
             using (NativeWriter writer = new NativeWriter(new FileStream(@"..\..\..\..\FrostySdk\Profiles.bin", FileMode.Create)))

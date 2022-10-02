@@ -12,6 +12,7 @@ using Frosty.Core.IO;
 using Frosty.Controls;
 using Frosty.Core.Windows;
 using System.Windows;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {
@@ -115,7 +116,7 @@ namespace Frosty.Core
                 actualFilename = overrideFilename;
 
             modifiedDate = DateTime.Now;
-            gameVersion = App.FileSystem.Head;
+            gameVersion = App.FileSystemManager.Head;
 
             FileInfo fi = new FileInfo(actualFilename);
             if (!fi.Directory.Exists)

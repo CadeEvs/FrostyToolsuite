@@ -48,11 +48,6 @@ namespace LuaPlugin
             TextEditor.IndentText();
         }
 
-        public override List<ToolbarItem> RegisterToolbarItems()
-        {
-            return new List<ToolbarItem>();
-        }
-
         private void ExportButton_Click(object sender, RoutedEventArgs e)
         {
             FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Lua file", "Lua file (*.lua)|*.lua", "Lua", AssetEntry.Filename);

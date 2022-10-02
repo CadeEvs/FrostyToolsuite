@@ -16,6 +16,7 @@ using System.Text;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using FrostySdk.Managers.Entries;
 
 namespace FrostyEditor
 {
@@ -26,7 +27,7 @@ namespace FrostyEditor
     {
         public static AssetManager AssetManager { get => Frosty.Core.App.AssetManager; set => Frosty.Core.App.AssetManager = value; }
         public static ResourceManager ResourceManager { get => Frosty.Core.App.ResourceManager; set => Frosty.Core.App.ResourceManager = value; }
-        public static FileSystem FileSystem { get => Frosty.Core.App.FileSystem; set => Frosty.Core.App.FileSystem = value; }
+        public static FileSystemManager FileSystem { get => Frosty.Core.App.FileSystemManager; set => Frosty.Core.App.FileSystemManager = value; }
         public static PluginManager PluginManager { get => Frosty.Core.App.PluginManager; set => Frosty.Core.App.PluginManager = value; }
         public static NotificationManager NotificationManager { get => Frosty.Core.App.NotificationManager; set => Frosty.Core.App.NotificationManager = value; }
 
@@ -66,12 +67,12 @@ namespace FrostyEditor
             ProfilesLibrary.Initialize(PluginManager.Profiles);
 
             NotificationManager = new NotificationManager();
-            
+
 #if !FROSTY_DEVELOPER
             // for displaying exception box on all unhandled exceptions
             DispatcherUnhandledException += App_DispatcherUnhandledException;
-            Exit += Application_Exit;
 #endif
+            Exit += Application_Exit;
 
 #if FROSTY_DEVELOPER
             Frosty.Core.App.Version += " (Developer)";
@@ -118,6 +119,12 @@ namespace FrostyEditor
             {
                 FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
                 return Assembly.LoadFile(fi.DirectoryName + "/Profiles/" + ProfilesLibrary.SDKFilename + ".dll");
+            }
+            
+            if (dllname.Equals("AssetBankClasses"))
+            {
+                FileInfo fi = new FileInfo(Assembly.GetExecutingAssembly().FullName);
+                return Assembly.LoadFile(fi.DirectoryName + "/AssetBankProfiles/" + ProfilesLibrary.SDKFilename + ".dll");
             }
             
             if (PluginManager != null)
@@ -241,7 +248,7 @@ namespace FrostyEditor
 
             try
             {
-                if (UpdateChecker.CheckVersion(checkPrerelease, localVersion))
+                if (UpdateCheckerUtils.CheckVersion(checkPrerelease, localVersion))
                 {
                     System.Threading.Tasks.Task.Run(() =>
                     {

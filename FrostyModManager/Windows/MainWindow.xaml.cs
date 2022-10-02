@@ -27,6 +27,7 @@ using Frosty.Core.IO;
 using FrostyCore;
 using Frosty.Core.Controls;
 using System.IO.Compression;
+using FrostySdk.Managers.Entries;
 using Newtonsoft.Json;
 
 namespace FrostyModManager
@@ -279,7 +280,7 @@ namespace FrostyModManager
         private List<IFrostyMod> availableMods = new List<IFrostyMod>();
         private List<FrostyPack> packs = new List<FrostyPack>();
         private FrostyPack selectedPack;
-        private FileSystem fs;
+        private FileSystemManager fs;
 
         private static int manifestVersion = 1;
 
@@ -306,7 +307,7 @@ namespace FrostyModManager
                 return;
             }
 
-            fs = new FileSystem(gamePath);
+            fs = new FileSystemManager(gamePath);
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 fs.AddSource(source.Path, source.SubDirs);
             fs.Initialize();
@@ -607,10 +608,10 @@ namespace FrostyModManager
             Config.Save();
 
             // initialize
-            Frosty.Core.App.FileSystem = new FileSystem(Config.Get<string>("GamePath", "", ConfigScope.Game));
+            Frosty.Core.App.FileSystemManager = new FileSystemManager(Config.Get<string>("GamePath", "", ConfigScope.Game));
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
-                Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);
-            Frosty.Core.App.FileSystem.Initialize();
+                Frosty.Core.App.FileSystemManager.AddSource(source.Path, source.SubDirs);
+            Frosty.Core.App.FileSystemManager.Initialize();
 
             // Set selected pack
             App.SelectedPack = selectedPack.Name;
@@ -651,6 +652,9 @@ namespace FrostyModManager
 
                     foreach (var executionAction in App.PluginManager.ExecutionActions)
                         executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+
+                    // process was cancelled
+                    App.Logger.Log("Launch Cancelled");
                 }
 
             }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
@@ -661,6 +665,8 @@ namespace FrostyModManager
             // kill the application if launched from the command line
             if (App.LaunchGameImmediately)
                 Close();
+
+            GC.Collect();
         }
 
         private void FrostyWindow_Closing(object sender, CancelEventArgs e)

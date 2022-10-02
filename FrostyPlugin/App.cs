@@ -7,6 +7,8 @@ using System;
 using System.Windows;
 using Frosty.Controls;
 using Frosty.Core.Windows;
+using System.Collections.Generic;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core
 {
@@ -15,9 +17,11 @@ namespace Frosty.Core
         // managers
         public static AssetManager AssetManager;
         public static ResourceManager ResourceManager;
-        public static FileSystem FileSystem;
+        public static FileSystemManager FileSystemManager;
         public static PluginManager PluginManager;
         public static NotificationManager NotificationManager;
+
+        public static List<int> WhitelistedBundles = new List<int>();
 
         public static EbxAssetEntry SelectedAsset;
         public static string SelectedProfile;
@@ -39,7 +43,7 @@ namespace Frosty.Core
             // clear out all global managers
             AssetManager = null;
             ResourceManager = null;
-            FileSystem = null;
+            FileSystemManager = null;
 
             PluginManager.Clear();
             

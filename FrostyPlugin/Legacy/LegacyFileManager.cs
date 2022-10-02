@@ -5,6 +5,7 @@ using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace Frosty.Core.Legacy
 {
@@ -21,6 +22,8 @@ namespace Frosty.Core.Legacy
         private bool cacheMode = false;
 
         /* Load in legacy files */
+        public bool ShouldInitializeOnStartup => true;
+
         public void Initialize(ILogger logger)
         {
             logger.Log("Loading legacy files");

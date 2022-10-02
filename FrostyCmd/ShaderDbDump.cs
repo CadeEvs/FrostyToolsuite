@@ -7,6 +7,7 @@ using FrostySdk.Resources;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using FrostySdk.Managers.Entries;
 
 namespace FrostyCmd
 {
@@ -558,7 +559,7 @@ namespace FrostyCmd
             ProfilesLibrary.Initialize(baseFile.Name.Replace(baseFile.Extension, ""));
             TypeLibrary.Initialize(false);
 
-            FileSystem fs = new FileSystem(baseFile.DirectoryName);
+            FileSystemManager fs = new FileSystemManager(baseFile.DirectoryName);
             foreach (FileSystemSource source in ProfilesLibrary.Sources)
                 fs.AddSource(source.Path, source.SubDirs);
             fs.Initialize();

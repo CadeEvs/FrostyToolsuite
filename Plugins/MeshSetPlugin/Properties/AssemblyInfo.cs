@@ -6,6 +6,7 @@ using System.Windows;
 using System.Windows.Markup;
 using MeshSetPlugin.Handlers;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 
 // Setting ComVisible to false makes the types in this assembly not visible
 // to COM components.  If you need to access a type in this assembly from

@@ -31,7 +31,7 @@ namespace FrostyCmd
 
     class Program
     {
-        public delegate void FunctionDelegate(FileSystem fs, AssetManager am, string[] args);
+        public delegate void FunctionDelegate(FileSystemManager fs, AssetManager am, string[] args);
         public static readonly ConsoleLogger logger = new ConsoleLogger();
 
         internal static class Kernel32

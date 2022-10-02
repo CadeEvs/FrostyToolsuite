@@ -178,6 +178,11 @@
                         <DockPanel Grid.Row="0">
                             <Border Background="{StaticResource ControlBackground}" Margin="1">
                                 <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="0,0,6,0" Height="24">
+                                    <!-- Find Opened Asset -->
+                                    <Button Height="20" Width="20" ToolTip="Find Opened Asset" HorizontalAlignment="Right" Margin="6,0,0,0" Command="{Binding Path=FindOpenedAssetCommand, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyDataExplorer}}}">
+                                        <Image Source="/FrostyEditor;component/Images/Open.png" Width="16"/>
+                                    </Button>
+                                    <!-- Show Only Modified -->
                                     <CheckBox x:Name="PART_ShowOnlyModifiedCheckBox" VerticalAlignment="Center" Margin="6,0,0,0" IsChecked="{Binding Path=ShowOnlyModified, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type local:FrostyDataExplorer}}}">
                                         <TextBlock Text="Show only modified" Margin="4,-1,0,0" VerticalAlignment="Center" Foreground="{StaticResource FontColor}"/>
                                     </CheckBox>
