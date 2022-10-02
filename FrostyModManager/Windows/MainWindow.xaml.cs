@@ -474,6 +474,8 @@ namespace FrostyModManager
             }
 
             LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+
+            GC.Collect();
         }
 
         private void addProfileButton_Click(object sender, RoutedEventArgs e)
