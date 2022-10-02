@@ -67,7 +67,14 @@ namespace Frosty.Core.Windows
             {
                 cancelButton.Visibility = Visibility.Visible;
                 if (_cancelCallback != null)
-                    cancelButton.Click += (o, e) => _cancelCallback.Invoke(this);
+                {
+                    cancelButton.Click += (o, e) =>
+                    {
+                        _cancelCallback.Invoke(this);
+                        cancelButton.IsEnabled = false;
+                    };
+                }
+                    
             }
         }
 

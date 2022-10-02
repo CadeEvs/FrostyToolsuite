@@ -53,6 +53,10 @@
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Opacity" Value="0.4"/>
                                     </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.5"/>
+                                        <Setter Property="ToolTip" Value="Cancelling"/>
+                                    </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>

@@ -350,8 +350,6 @@ namespace FrostyEditor
             if (!ProfilesLibrary.EnableExecution)
                 return;
 
-            App.Logger.Log("Launching game");
-
             // setup ability to cancel the process
             CancellationTokenSource cancelToken = new CancellationTokenSource();
 
@@ -415,7 +413,7 @@ namespace FrostyEditor
             catch (OperationCanceledException)
             {
                 // process was cancelled
-                App.Logger.Log("Launch cancelled");
+                App.Logger.Log("Launch Cancelled");
             }
 
             // remove editor mod
@@ -424,7 +422,8 @@ namespace FrostyEditor
                 editorMod.Delete();
 
             launchButton.IsEnabled = true;
-            App.Logger.Log("Done");
+
+            GC.Collect();
         }
 
         private void unimplementedMenuItem_Click(object sender, RoutedEventArgs e)
