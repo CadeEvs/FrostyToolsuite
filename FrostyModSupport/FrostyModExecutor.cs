@@ -134,7 +134,7 @@ namespace Frosty.ModSupport
                     yield return entry;
             }
 
-            public int CountEntries()
+            public int GetEntryCount()
             {
                 return entries.Count;
             }
@@ -1569,7 +1569,7 @@ namespace Frosty.ModSupport
                 Logger.Log("Writing Archive Data");
                 App.Logger.Log("Writing Archive Data");
 
-                int totalEntries = casData.CountEntries();
+                int totalEntries = casData.GetEntryCount();
                 int currentEntry = 0;
                 ReportProgress(currentEntry, totalEntries);
 
