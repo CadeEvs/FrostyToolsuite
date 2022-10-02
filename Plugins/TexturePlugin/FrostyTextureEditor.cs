@@ -425,7 +425,7 @@ namespace TexturePlugin
                                 if ((header.dwCaps2 & TextureUtils.DDSCaps2.Volume) != 0)
                                     depth = (ushort)header.dwDepth;
 
-                                Texture newTextureAsset = new Texture(m_textureAsset.Type, pixelFormat, (ushort)header.dwWidth, (ushort)header.dwHeight, depth, m_textureAsset.Version, m_textureAsset.ResourceMeta) {FirstMip = m_textureAsset.FirstMip};
+                                Texture newTextureAsset = new Texture(m_textureAsset.Type, pixelFormat, (ushort)header.dwWidth, (ushort)header.dwHeight, depth, m_textureAsset.Version, m_textureAsset.ResourceMeta) { FirstMip = m_textureAsset.FirstMip };
                                 if (header.dwMipMapCount <= m_textureAsset.FirstMip)
                                     newTextureAsset.FirstMip = 0;
 
@@ -664,7 +664,7 @@ namespace TexturePlugin
             pixelFormat = "Unknown";
             flags = 0;
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.PlantsVsZombiesGardenWarfare, ProfileVersion.NeedForSpeedRivals))
             {
                 // DXT1
                 if (header.ddspf.dwFourCC == 0x31545844)
