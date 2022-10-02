@@ -248,7 +248,7 @@ namespace FrostySdk.Managers
                                             int dataSize = reader.ReadInt();
 
                                             if (!parent.m_chunkList.ContainsKey(guid))
-                                                parent.m_chunkList.Add(guid, new ChunkAssetEntry());
+                                                parent.m_chunkList.Add(guid, new ChunkAssetEntry() { FirstMip = -1 });
 
                                             ChunkAssetEntry chunk = parent.m_chunkList[guid];
                                             chunk.Id = guid;
