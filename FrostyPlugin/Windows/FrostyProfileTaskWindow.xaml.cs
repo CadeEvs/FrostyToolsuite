@@ -161,6 +161,7 @@ namespace Frosty.Core.Windows
                 // requires updating
                 SdkUpdateWindow sdkWin = new SdkUpdateWindow(this);
                 sdkWin.ShowDialog();
+                Close();
             }
 
             if (App.IsEditor)
@@ -267,7 +268,16 @@ namespace Frosty.Core.Windows
                 {
                     Directory.CreateDirectory(di.FullName);
                 }
-                
+
+                // newer ebx formats need the SDK for the types, so update the SDK before generating the cache
+                if (ProfilesLibrary.EbxVersion > 4)
+                {
+                    if (TypeLibrary.GetSdkVersion() != App.FileSystemManager.Head)
+                    {
+                        return;
+                    }
+                }
+
                 App.AssetManager.SetLogger(TaskLogger);
                 App.AssetManager.Initialize(true, result);
             });

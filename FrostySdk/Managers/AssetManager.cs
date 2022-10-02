@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using FrostySdk.Managers.Entries;
+using FrostySdk.BaseProfile;
 
 namespace FrostySdk.Managers
 {
@@ -206,7 +207,10 @@ namespace FrostySdk.Managers
 
                 GC.Collect();
 
-                WriteToCache();
+                if (!additionalStartup)
+                {
+                    WriteToCache();
+                }
             }
 
             TimeSpan elapsedTime = DateTime.Now - startTime;
@@ -248,7 +252,7 @@ namespace FrostySdk.Managers
                     }
                 }
 
-                if (result != null && !ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Madden20, ProfileVersion.Fifa20))
+                if (result != null)
                 {
                     result.InvalidatedDueToPatch = prePatchCache != null;
                     if (prePatchCache != null)
@@ -267,7 +271,9 @@ namespace FrostySdk.Managers
                             {
                                 // entry was found
                                 foundObjs.Add(ebx.Guid);
-                                if (entry.Sha1 != ebx.Sha1)
+
+                                // Fifa BinarySb layout doesnt store sha1s, so we cant check what files changed
+                                if (entry.Sha1 != ebx.Sha1 && BaseBinarySb.GetMagic() == BaseBinarySb.Magic.Standard)
                                 {
                                     // entry was modified
                                     modifiedObjs.Add(entry);
