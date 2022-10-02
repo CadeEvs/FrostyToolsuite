@@ -33,7 +33,7 @@ using FrostySdk.Managers.Entries;
 
 namespace MeshSetPlugin
 {
-    #region EbxData
+    #region -- EbxData --
     public class MeshSetMaterialDetails
     {
         public object TextureParameters { get; set; } = new List<dynamic>();
@@ -1006,16 +1006,16 @@ namespace MeshSetPlugin
 
                                     if (elem.Format == VertexElementFormat.Half4)
                                     {
-                                        tangent.X = HalfUtils.Unpack(reader.ReadUShort());
-                                        tangent.Y = HalfUtils.Unpack(reader.ReadUShort());
-                                        tangent.Z = HalfUtils.Unpack(reader.ReadUShort());
+                                        tangent.X = -HalfUtils.Unpack(reader.ReadUShort());
+                                        tangent.Y = -HalfUtils.Unpack(reader.ReadUShort());
+                                        tangent.Z = -HalfUtils.Unpack(reader.ReadUShort());
                                         binormalSigns.Add(HalfUtils.Unpack(reader.ReadUShort()));
                                     }
                                     else
                                     {
-                                        tangent.X = reader.ReadFloat();
-                                        tangent.Y = reader.ReadFloat();
-                                        tangent.Z = reader.ReadFloat();
+                                        tangent.X = -reader.ReadFloat();
+                                        tangent.Y = -reader.ReadFloat();
+                                        tangent.Z = -reader.ReadFloat();
                                         binormalSigns.Add(reader.ReadFloat());
                                     }
                                 }
@@ -1076,9 +1076,9 @@ namespace MeshSetPlugin
                                     };
                                 }
 
-                                tangent.X = HalfUtils.Unpack(reader.ReadUShort());
-                                tangent.Y = HalfUtils.Unpack(reader.ReadUShort());
-                                tangent.Z = HalfUtils.Unpack(reader.ReadUShort());
+                                tangent.X = -HalfUtils.Unpack(reader.ReadUShort());
+                                tangent.Y = -HalfUtils.Unpack(reader.ReadUShort());
+                                tangent.Z = -HalfUtils.Unpack(reader.ReadUShort());
 
                                 layerElemTangent.DirectArray.Add(tangent.X, tangent.Y, tangent.Z);
                                 binormal.Z = HalfUtils.Unpack(reader.ReadUShort());
@@ -2542,6 +2542,9 @@ namespace MeshSetPlugin
                             Vector3 tangent = Vector3.TransformNormal(vertex.GetValue<Vector3>("Tangent"), sectionMatrix);
                             Vector3 binormal = Vector3.TransformNormal(vertex.GetValue<Vector3>("Binormal"), sectionMatrix);
 
+                            // for some reason the tangent gets stored inverted
+                            tangent *= -1.0f;
+
                             ushort[] finalBoneIndices = vertex.GetValue<ushort[]>("BoneIndices");
                             byte[] finalBoneWeights = vertex.GetValue<byte[]>("BoneWeights");
 
@@ -2580,7 +2583,10 @@ namespace MeshSetPlugin
 
                                         case VertexElementUsage.BinormalSign:
                                             {
-                                                if (elem.Format == VertexElementFormat.Half) chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f));
+                                                if (elem.Format == VertexElementFormat.Half)
+                                                {
+                                                    chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(binormal, Vector3.Cross(normal, tangent))) < 0.0f ? 1.0f : -1.0f));
+                                                }
                                                 else if (elem.Format == VertexElementFormat.Half4 || elem.Format == VertexElementFormat.Float4)
                                                 {
                                                     if (elem.Format == VertexElementFormat.Half4)
@@ -2588,17 +2594,20 @@ namespace MeshSetPlugin
                                                         chunkWriter.Write(HalfUtils.Pack(tangent.X));
                                                         chunkWriter.Write(HalfUtils.Pack(tangent.Y));
                                                         chunkWriter.Write(HalfUtils.Pack(tangent.Z));
-                                                        chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f));
+                                                        chunkWriter.Write(HalfUtils.Pack((Vector3.Dot(binormal, Vector3.Cross(normal, tangent))) < 0.0f ? 1.0f : -1.0f));
                                                     }
                                                     else
                                                     {
                                                         chunkWriter.Write(tangent.X);
                                                         chunkWriter.Write(tangent.Y);
                                                         chunkWriter.Write(tangent.Z);
-                                                        chunkWriter.Write((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f);
+                                                        chunkWriter.Write((Vector3.Dot(binormal, Vector3.Cross(normal, tangent))) < 0.0f ? 1.0f : -1.0f);
                                                     }
                                                 }
-                                                else chunkWriter.Write((Vector3.Dot(Vector3.Cross(normal, tangent), binormal)) < 0.0f ? 1.0f : -1.0f);
+                                                else
+                                                {
+                                                    chunkWriter.Write((Vector3.Dot(binormal, Vector3.Cross(normal, tangent))) < 0.0f ? 1.0f : -1.0f);
+                                                }
                                             }
                                             break;
 
