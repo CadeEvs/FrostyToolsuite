@@ -151,7 +151,7 @@ namespace Frosty.Core.IO
                     resMeta = (entry.ModifiedEntry.ResMeta != null) ? entry.ModifiedEntry.ResMeta : entry.ResMeta;
                     userData = entry.ModifiedEntry.UserData;
 
-                    flags = (byte)((entry.IsInline) ? 1 : 0);
+                    flags |= (byte)((entry.IsInline) ? 1 : 0);
                 }
             }
 
@@ -196,7 +196,7 @@ namespace Frosty.Core.IO
                     firstMip = entry.ModifiedEntry.FirstMip;
                     userData = entry.ModifiedEntry.UserData;
 
-                    flags = (byte)((entry.IsInline) ? 1 : 0);
+                    flags |= (byte)((entry.IsInline) ? 1 : 0);
                     flags |= (byte)((entry.ModifiedEntry.AddToChunkBundle) ? 1 << 1 : 0);
 
                     // add special chunks bundle
@@ -206,7 +206,9 @@ namespace Frosty.Core.IO
                         // as the chunk should already be an added chunk
 
                         if (ProfilesLibrary.MustAddChunks || entry.IsAdded)
+                        {
                             AddBundle("chunks");
+                        }
                     }
                 }
                 else
@@ -218,11 +220,57 @@ namespace Frosty.Core.IO
                         flags |= 0x04;
                     }
 
-                    // @todo: calculate RangeStart/End for texture chunks added to bundles, where they are not
-                    //        stored in the bundle (ie. Manifest layout)
-
                     h32 = entry.H32;
                     firstMip = entry.FirstMip;
+
+                    // calculate RangeStart/End for texture chunks added to bundles, where they are not
+                    // stored in the bundle (ie. Manifest layout)
+                    if (firstMip != -1 && entry.LogicalOffset != 0 && entry.RangeStart == 0 && entry.RangeEnd == 0)
+                    {
+                        byte[] data = NativeReader.ReadInStream(App.AssetManager.GetRawStream(entry));
+
+                        using (NativeReader reader = new NativeReader(new MemoryStream(data)))
+                        {
+                            long logicalOffset = entry.LogicalOffset;
+                            uint size = 0;
+
+                            while (true)
+                            {
+                                int decompressedSize = reader.ReadInt(Endian.Big);
+                                ushort compressionType = reader.ReadUShort();
+                                int bufferSize = reader.ReadUShort(Endian.Big);
+
+                                int flags = ((compressionType & 0xFF00) >> 8);
+
+                                if ((flags & 0x0F) != 0)
+                                {
+                                    bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
+                                }
+                                if ((decompressedSize & 0xFF000000) != 0)
+                                {
+                                    decompressedSize &= 0x00FFFFFF;
+                                }
+
+                                logicalOffset -= decompressedSize;
+                                if (logicalOffset < 0)
+                                {
+                                    break;
+                                }
+
+                                compressionType = (ushort)(compressionType & 0x7F);
+                                if (compressionType == 0x00)
+                                {
+                                    bufferSize = decompressedSize;
+                                }
+
+                                size += (uint)(bufferSize + 8);
+                                reader.Position += bufferSize;
+                            }
+
+                            rangeStart = size;
+                            rangeEnd = (uint)data.Length;
+                        }
+                    }
                 }
             }
 
