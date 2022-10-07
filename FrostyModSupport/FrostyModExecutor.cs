@@ -233,7 +233,13 @@ namespace Frosty.ModSupport
             return resources;
         }
 
-        private void ReportProgress(int current, int total) => Logger.Log("progress:" + current / (float)total * 100d);
+        private void ReportProgress(int current, int total)
+        {
+            if (total > 0)
+            {
+                Logger.Log("progress:" + current / (float)total * 100d);
+            }
+        }
 
         private int HashBundle(BundleEntry bentry)
         {
