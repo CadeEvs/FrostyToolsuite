@@ -4,6 +4,7 @@ using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading;
 
@@ -122,8 +123,12 @@ namespace Frosty.ModSupport
 
                     // special handling for chunk bundles
                     //if (superBundle.Contains("chunks"))
-                    if (toc.HasValue("chunks"))
+                    if (toc.HasValue("chunks") && toc.GetValue<DbObject>("chunks").Count > 0)
                     {
+#if FROSTY_DEVELOPER
+                        Debug.Assert(toc.HasValue("bundles") ? toc.GetValue<DbObject>("bundles").Count == 0 : true);
+#endif
+
                         if (parent.modifiedBundles.ContainsKey(chunksBundleHash))
                         {
                             FileInfo sbFi = new FileInfo(parent.fs.BasePath + modPath + "/" + superBundle + ".sb");
