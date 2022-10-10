@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using FrostySdk.Managers.Entries;
+using System.Diagnostics;
 
 namespace Frosty.ModSupport
 {
@@ -123,8 +124,12 @@ namespace Frosty.ModSupport
 
                     // special handling for chunk bundles
                     //if (superBundle.Contains("chunks"))
-                    if (toc.HasValue("chunks"))
+                    if (toc.HasValue("chunks") && toc.GetValue<DbObject>("chunks").Count > 0)
                     {
+#if FROSTY_DEVELOPER
+                        Debug.Assert(toc.HasValue("bundles") ? toc.GetValue<DbObject>("bundles").Count == 0 : true);
+#endif
+
                         if (parent.modifiedBundles.ContainsKey(chunksBundleHash))
                         {
                             FileInfo sbFi = new FileInfo(parent.fs.BasePath + modPath + "/" + superBundle + ".sb");
@@ -158,17 +163,6 @@ namespace Frosty.ModSupport
                                 DbObject chunkList = new DbObject(false);
                                 foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
                                     chunkList.Add(chunk);
-
-                                if (isBase)
-                                {
-                                    // readd bundles to toc, so that they can be modified
-                                    // TODO: check if all bundles need to be added or just the modified ones
-                                    DbObject bundleList = new DbObject(false);
-                                    foreach (DbObject bundle in baseToc.GetValue<DbObject>("bundles"))
-                                        bundleList.Add(bundle);
-                                    toc.SetValue("bundles", bundleList);
-                                }
-
 
                                 // update chunk list with patch chunks
                                 foreach (DbObject chunk in toc.GetValue<DbObject>("chunks"))
@@ -547,7 +541,7 @@ namespace Frosty.ModSupport
                                                     }
                                                 }
 
-                                                AssetInfo info = new AssetInfo {Name = ebx.GetValue<string>("name")};
+                                                AssetInfo info = new AssetInfo { Name = ebx.GetValue<string>("name") };
                                                 info.NameHash = Fnv1.HashString(info.Name);
                                                 info.Removed = !bFound;
                                                 info.Modified = bModified;
@@ -1258,7 +1252,7 @@ namespace Frosty.ModSupport
                                             ebxBundleSize -= ebx.GetValue<long>("size");
                                             continue;
                                         }
-                                        
+
                                         if (modBundle.Modify.Ebx.Contains(name))
                                         {
                                             EbxAssetEntry ebxEntry = parent.modifiedEbx[name];
@@ -1327,7 +1321,7 @@ namespace Frosty.ModSupport
                                             resBundleSize -= res.GetValue<long>("size");
                                             continue;
                                         }
-                                        
+
                                         if (modBundle.Modify.Res.Contains(name))
                                         {
                                             ResAssetEntry resEntry = parent.modifiedRes[name];
@@ -1403,7 +1397,7 @@ namespace Frosty.ModSupport
                                                 chunkBundleSize -= chunk.GetValue<long>("bundledSize");
                                                 continue;
                                             }
-                                            
+
                                             if (modBundle.Modify.Chunks.Contains(id))
                                             {
                                                 ChunkAssetEntry chunkEntry = parent.modifiedChunks[id];
