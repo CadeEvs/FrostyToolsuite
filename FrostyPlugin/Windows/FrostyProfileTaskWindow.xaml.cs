@@ -39,7 +39,7 @@ namespace Frosty.Core.Windows
             TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo();
 
             Owner = owner;
-            TaskLogger = new SplashWindowLogger(this);
+            TaskLogger = new FrostyProfileTaskWindowLogger(this);
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -157,7 +157,9 @@ namespace Frosty.Core.Windows
                 }
                     
             }
-            
+
+            DialogResult = true;
+
             Close();
 
             if (App.IsEditor && result.InvalidatedDueToPatch)
@@ -243,7 +245,7 @@ namespace Frosty.Core.Windows
                 }
 
                 App.AssetManager.SetLogger(TaskLogger);
-                App.AssetManager.Initialize(true, result);
+                App.AssetManager.Initialize(App.IsEditor, result);
             });
 
             return 0;
@@ -267,10 +269,10 @@ namespace Frosty.Core.Windows
             return 0;
         }
 
-        public static void Show(Window owner)
+        public static bool Show(Window owner)
         {
             FrostyProfileTaskWindow win = new FrostyProfileTaskWindow(owner);
-            win.ShowDialog();
+            return win.ShowDialog() == true;
         }
     }
 }

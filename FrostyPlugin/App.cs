@@ -51,17 +51,23 @@ namespace Frosty.Core
             GC.WaitForPendingFinalizers();
             GC.Collect();
         }
-        public static void LoadProfile(string profile)
+        public static bool LoadProfile(string profile)
         {
             // load profiles
             if (!ProfilesLibrary.Initialize(profile))
             {
                 FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Core");
-                return;
+                return false;
+            }
+
+            if (!IsEditor && !ProfilesLibrary.EnableExecution)
+            {
+                FrostyMessageBox.Show("The selected profile is a read-only profile, and therefore cannot be loaded in the mod manager", "Frosty Mod Manager");
+                return false;
             }
             
             // open profile task window
-            FrostyProfileTaskWindow.Show(Application.Current.MainWindow);
+            return FrostyProfileTaskWindow.Show(Application.Current.MainWindow);
         }
     }
 }
