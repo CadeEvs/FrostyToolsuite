@@ -801,12 +801,12 @@
                                                         <Button x:Name="PART_OpenButton" Content="Open asset" Style="{StaticResource MenuButtonStyle}" FontFamily="MS Reference Sans Serif" Height="22"/>
                                                         <Button x:Name="PART_FindButton" Content="Find in data explorer" Style="{StaticResource MenuButtonStyle}" FontFamily="MS Reference Sans Serif" Height="22"/>
                                                         <Button x:Name="PART_CreateButton" Content="Create new ..." Style="{StaticResource MenuButtonStyle}" FontFamily="MS Reference Sans Serif" Height="22"/>
-
-                                                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" Margin="1,0,1,1" WatermarkText="Filter" BorderThickness="1"/>
-
+                                                        
                                                         <Border x:Name="PART_Separator" Height="22">
                                                             <Separator Margin="1,0,1,0"/>
                                                         </Border>
+
+                                                        <ctrl:FrostyWatermarkTextBox x:Name="PART_FilterTextBox" Height="24" Margin="2,-8,1,2" WatermarkText="Filter" VerticalContentAlignment="Center" BorderThickness="1"/>
 
                                                         <Border x:Name="PART_TBBorder" Height="22">
                                                             <TextBlock x:Name="PART_TextBlock" VerticalAlignment="Center" Text="Select Class" Margin="4,0,0,0" Foreground="{StaticResource FontColor}" Opacity="0.5" FontFamily="MS Reference Sans Serif"/>

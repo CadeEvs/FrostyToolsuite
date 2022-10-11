@@ -228,7 +228,30 @@ namespace Frosty.Core.Controls.Editors
             else
             {
                 string filterText = filter.Text.ToLower();
+
+                // search name by default
                 popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+
+                // search id instead if valid hex
+                try
+                {
+                    uint id = Convert.ToUInt32(filterText, 16);
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Id.Equals(id); };
+                }
+                catch { }
+
+                // search guid instead if valid guid
+                if (Guid.TryParse(filterText, out Guid result))
+                {
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Guid.Equals(result); };
+                }
+
+                // specify search by name incase name only contains a-f
+                if (filterText.StartsWith("name:"))
+                {
+                    filterText = filterText.Replace("name:", "");
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+                }
             }
             popup.IsDropDownOpen = true;
         }
