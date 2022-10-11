@@ -9,9 +9,9 @@ namespace Frosty.Core.Mod
             : base(entry)
         {
             resourceIndex = -1;
-            name = entry.Name;
+            name = entry.Name.ToLower();
             sha1 = entry.Sha1;
-            size = entry.Size;
+            size = entry.OriginalSize;
         }
     }
 }

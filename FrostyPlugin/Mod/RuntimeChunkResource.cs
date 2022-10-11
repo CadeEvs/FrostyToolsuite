@@ -11,7 +11,7 @@ namespace Frosty.Core.Mod
             resourceIndex = -1;
             name = entry.Id.ToString();
             sha1 = entry.Sha1;
-            size = entry.Size;
+            size = entry.OriginalSize;
             logicalOffset = entry.LogicalOffset;
             logicalSize = entry.LogicalSize;
             rangeStart = entry.RangeStart;
