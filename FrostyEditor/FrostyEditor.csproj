@@ -123,6 +123,7 @@
     <Compile Include="Extensions\TextExtension.cs" />
     <Compile Include="DiscordRPC.cs" />
     <Compile Include="FileUnblocker.cs" />
+    <Compile Include="SplashWindowLogger.cs" />
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
     </Compile>

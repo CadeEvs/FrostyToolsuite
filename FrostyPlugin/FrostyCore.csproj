@@ -142,6 +142,7 @@
     <Compile Include="Extensions\StartupAction.cs" />
     <Compile Include="FrostyConfiguration.cs" />
     <Compile Include="FrostyLogger.cs" />
+    <Compile Include="FrostyTaskLogger.cs" />
     <Compile Include="Mod\FrostyModCollection.cs" />
     <Compile Include="Mod\FrostyModRequirement.cs" />
     <Compile Include="Extensions\TabExtension.cs" />
@@ -171,6 +172,7 @@
     <Compile Include="Mod\RuntimeEbxResource.cs" />
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
+    <Compile Include="TypeExtensions.cs" />
     <Compile Include="Utils\UpdateChecker.cs" />
     <Compile Include="Windows\OptionsWindow.xaml.cs">
       <DependentUpon>OptionsWindow.xaml</DependentUpon>
