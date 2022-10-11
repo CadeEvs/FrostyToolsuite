@@ -233,24 +233,22 @@ namespace Frosty.Core.Controls.Editors
                 popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
 
                 // search id instead if valid hex
-                try
+                if (uint.TryParse(filterText, out uint uintResult))
                 {
-                    uint id = Convert.ToUInt32(filterText, 16);
-                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Id.Equals(id); };
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Id.Equals(uintResult); };
+
+                    // if filter was given a valid hex but no results found, assume user was searching for name. ex. "eff" would be valid hex but is likely a name search.
+                    if (popup.Items.Count == 0)
+                    {
+                        popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+                    }
                 }
-                catch { }
 
                 // search guid instead if valid guid
-                if (Guid.TryParse(filterText, out Guid result))
+                if (Guid.TryParse(filterText, out Guid guidResult))
                 {
-                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Guid.Equals(result); };
-                }
-
-                // specify search by name incase name only contains a-f
-                if (filterText.StartsWith("name:"))
-                {
-                    filterText = filterText.Replace("name:", "");
-                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+                    uint.TryParse(filterText.Split('-').Last(), out uint id);
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Guid.Equals(guidResult) || ((PointerRefClassType)a).Id.Equals(id); };
                 }
             }
             popup.IsDropDownOpen = true;
