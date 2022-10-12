@@ -31,42 +31,6 @@ namespace Frosty.Core.Windows
     {
         public ILogger TaskLogger { get; private set; }
 
-        private class SplashWindowLogger : ILogger
-        {
-            private FrostyProfileTaskWindow parent;
-            public SplashWindowLogger(FrostyProfileTaskWindow inParent)
-            {
-                parent = inParent;
-            }
-
-            public void Log(string text, params object[] vars)
-            {
-                string fullText = string.Format(text, vars);
-                parent.logTextBox.Dispatcher.Invoke(() =>
-                {
-                    if (fullText.StartsWith("progress:"))
-                    {
-                        fullText = fullText.Replace("progress:", "");
-                        double progress = double.Parse(fullText);
-
-                        parent.progressBar.Value = progress;
-                        parent.TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
-                        parent.TaskbarItemInfo.ProgressValue = progress / 100.0d;
-                    }
-                    else
-                        parent.logTextBox.Text = fullText;
-                });
-            }
-
-            public void LogError(string text, params object[] vars)
-            {
-            }
-
-            public void LogWarning(string text, params object[] vars)
-            {
-            }
-        }
-
         public FrostyProfileTaskWindow(Window owner)
         {
             InitializeComponent();
@@ -75,7 +39,7 @@ namespace Frosty.Core.Windows
             TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo();
 
             Owner = owner;
-            TaskLogger = new SplashWindowLogger(this);
+            TaskLogger = new FrostyProfileTaskWindowLogger(this);
         }
 
         private async void Window_Loaded(object sender, RoutedEventArgs e)
@@ -193,7 +157,9 @@ namespace Frosty.Core.Windows
                 }
                     
             }
-            
+
+            DialogResult = true;
+
             Close();
 
             if (App.IsEditor && result.InvalidatedDueToPatch)
@@ -279,7 +245,7 @@ namespace Frosty.Core.Windows
                 }
 
                 App.AssetManager.SetLogger(TaskLogger);
-                App.AssetManager.Initialize(true, result);
+                App.AssetManager.Initialize(App.IsEditor, result);
             });
 
             return 0;
@@ -299,14 +265,14 @@ namespace Frosty.Core.Windows
         private async Task<int> LoadStringList()
         {
             TaskLogger.Log("Loading custom strings");
-            await Task.Run(() => Utils.GetString(0));
+            await Task.Run(() => Utils.LoadStringList("strings.txt", TaskLogger));
             return 0;
         }
 
-        public static void Show(Window owner)
+        public static bool Show(Window owner)
         {
             FrostyProfileTaskWindow win = new FrostyProfileTaskWindow(owner);
-            win.ShowDialog();
+            return win.ShowDialog() == true;
         }
     }
 }

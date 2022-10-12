@@ -7,7 +7,7 @@
                            xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                            mc:Ignorable="d"
                            Title="Load Profile" Height="250" Width="400" Loaded="ProfileSelectWindow_Loaded"
-                           ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
+                           ResizeMode="NoResize" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True">
     
     <Grid>
         <Grid.RowDefinitions>
@@ -37,23 +37,11 @@
            
                 <ListBox.ItemTemplate>
                     <DataTemplate>
-                        <Grid Width="40" Height="40">
-                            <Image x:Name="GreyscaleImage">
-                                <Image.Source>
-                                    <FormatConvertedBitmap Source="{Binding Path=Thumbnail}" DestinationFormat="Gray8"/>
-                                </Image.Source>
-                                <Image.OpacityMask>
-                                    <ImageBrush ImageSource="{Binding Path=Thumbnail}"/>
-                                </Image.OpacityMask>
-                            </Image>
-                            <Image x:Name="ColorImage" Source="{Binding Path=Thumbnail}" Visibility="Hidden"/>
+                        <Grid Width="40"
+                              Height="40">
+                            <Image x:Name="ColorImage"
+                                   Source="{Binding Path=Thumbnail}"/>
                         </Grid>
-                        <DataTemplate.Triggers>
-                            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
-                                <Setter TargetName="GreyscaleImage" Property="Visibility" Value="Hidden" />
-                                <Setter TargetName="ColorImage" Property="Visibility" Value="Visible" />
-                            </DataTrigger>
-                        </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
 

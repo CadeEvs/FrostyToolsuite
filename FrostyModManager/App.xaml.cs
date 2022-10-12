@@ -1,6 +1,7 @@
 ﻿using Frosty.Controls;
 using Frosty.Core;
 using Frosty.Core.Controls;
+using Frosty.Core.Managers;
 using FrostyCore;
 using FrostyEditor;
 using FrostyModManager.Windows;
@@ -39,6 +40,8 @@ namespace FrostyModManager
         public static string LaunchArgs { get; private set; }
 
         public static PluginManager PluginManager { get => Frosty.Core.App.PluginManager; set => Frosty.Core.App.PluginManager = value; }
+        public static NotificationManager NotificationManager { get => Frosty.Core.App.NotificationManager; set => Frosty.Core.App.NotificationManager = value; }
+
 
         private List<FrostyConfiguration> configs = new List<FrostyConfiguration>();
         private FrostyConfiguration defaultConfig = null;
@@ -63,6 +66,8 @@ namespace FrostyModManager
             TypeLibrary.Initialize();
             PluginManager = new PluginManager(App.Logger, PluginManagerType.ModManager);
             ProfilesLibrary.Initialize(PluginManager.Profiles);
+
+            NotificationManager = new NotificationManager();
 
             // for displaying exception box on all unhandled exceptions
             DispatcherUnhandledException += App_DispatcherUnhandledException;
@@ -111,12 +116,16 @@ namespace FrostyModManager
         private void Application_Startup(object sender, StartupEventArgs e)
         {
             if (!File.Exists($"{Frosty.Core.App.GlobalSettingsPath}/manager_config.json"))
+            {
                 Config.UpgradeConfigs();
+            }
 
             Config.Load();
 
             if (Config.Get<bool>("UpdateCheck", true) || Config.Get<bool>("UpdateCheckPrerelease", false))
+            {
                 CheckVersion();
+            }
 
             // get startup profile (if one exists)
             if (Config.Get<bool>("UseDefaultProfile", false))
@@ -129,19 +138,6 @@ namespace FrostyModManager
                     Config.Add("UseDefaultProfile", false);
                     Config.Save();
                 }
-            }
-
-            // Launches the Frosty Mod Manager is there is a Default Config
-            if (defaultConfig != null)
-            {
-                // load profile
-                if (!ProfilesLibrary.Initialize(defaultConfig.ProfileName))
-                {
-                    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Mod Manager");
-                    return;
-                }
-
-                StartupUri = new Uri("/FrostyModManager;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
             }
 
             StringBuilder sb = new StringBuilder();
