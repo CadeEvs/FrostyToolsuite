@@ -599,7 +599,11 @@ namespace FrostySdk.Managers
 
                 GC.Collect();
 
-                WriteToCache();
+                // if there is not additional startup or the ebxGuidList has items, write the cache
+                if (!additionalStartup || ebxGuidList.Count > 0)
+                {
+                    WriteToCache();
+                }
             }
 
             TimeSpan ElapsedTime = DateTime.Now - StartTime;
@@ -2226,113 +2230,138 @@ namespace FrostySdk.Managers
                 }
                 else
                 {
+                    WriteToLog("Writing to cache (Superbundles)");
+
                     writer.Write(superBundles.Count);
-                    foreach (SuperBundleEntry sbentry in superBundles)
-                        writer.WriteNullTerminatedString(sbentry.Name);
+                    for (int i = 0; i < superBundles.Count; i++)
+                    {
+                        writer.WriteNullTerminatedString(superBundles[i].Name);
+                        WriteToLog(string.Format("progress:{0}", (double)i / (double)superBundles.Count * 100.0));
+                    }
                 }
+
+                WriteToLog("Writing to cache (Bundles)");
 
                 writer.Write(bundles.Count);
-                foreach (BundleEntry bentry in bundles)
+                for (int i = 0; i < bundles.Count; i++)
                 {
-                    writer.WriteNullTerminatedString(bentry.Name);
-                    writer.Write(bentry.SuperBundleId);
+                    writer.WriteNullTerminatedString(bundles[i].Name);
+                    writer.Write(bundles[i].SuperBundleId);
+
+                    WriteToLog(string.Format("progress:{0}", (double)i / (double)bundles.Count * 100.0));
                 }
+
+                WriteToLog("Writing to cache (EBX)");
 
                 writer.Write(ebxList.Values.Count);
-                foreach (EbxAssetEntry entry in ebxList.Values)
+                for (int i = 0; i < ebxList.Count; i++)
                 {
-                    writer.WriteNullTerminatedString(entry.Name);
-                    writer.Write(entry.Sha1);
-                    writer.Write(entry.Size);
-                    writer.Write(entry.OriginalSize);
-                    writer.Write((int)entry.Location);
-                    writer.Write(entry.IsInline);
+                    EbxAssetEntry ebx = ebxList.Values.ElementAt(i);
 
-                    writer.WriteNullTerminatedString(entry.Type ?? "");
-                    writer.Write(entry.Guid);
-
-                    writer.Write(entry.ExtraData != null);
-                    if (entry.ExtraData != null)
+                    writer.WriteNullTerminatedString(ebx.Name);
+                    writer.Write(ebx.Sha1);
+                    writer.Write(ebx.Size);
+                    writer.Write(ebx.OriginalSize);
+                    writer.Write((int)ebx.Location);
+                    writer.Write(ebx.IsInline);
+                    writer.WriteNullTerminatedString(ebx.Type ?? "");
+                    writer.Write(ebx.Guid);
+                    writer.Write(ebx.ExtraData != null);
+                    if (ebx.ExtraData != null)
                     {
-                        writer.Write(entry.ExtraData.BaseSha1);
-                        writer.Write(entry.ExtraData.DeltaSha1);
-                        writer.Write(entry.ExtraData.DataOffset);
-                        writer.Write(entry.ExtraData.SuperBundleId);
-                        writer.Write(entry.ExtraData.IsPatch);
-                        writer.WriteNullTerminatedString(entry.ExtraData.CasPath);
+                        writer.Write(ebx.ExtraData.BaseSha1);
+                        writer.Write(ebx.ExtraData.DeltaSha1);
+                        writer.Write(ebx.ExtraData.DataOffset);
+                        writer.Write(ebx.ExtraData.SuperBundleId);
+                        writer.Write(ebx.ExtraData.IsPatch);
+                        writer.WriteNullTerminatedString(ebx.ExtraData.CasPath);
+                    }
+                    writer.Write(ebx.Bundles.Count);
+                    foreach (int baseBundleId in ebx.Bundles)
+                    {
+                        writer.Write(baseBundleId);
+                    }
+                    writer.Write(ebx.DependentAssets.Count);
+                    foreach (Guid dependencyGuid in ebx.EnumerateDependencies())
+                    {
+                        writer.Write(dependencyGuid);
                     }
 
-                    writer.Write(entry.Bundles.Count);
-                    foreach (int bentry in entry.Bundles)
-                        writer.Write(bentry);
-
-                    writer.Write(entry.DependentAssets.Count);
-                    foreach (Guid guid in entry.EnumerateDependencies())
-                        writer.Write(guid);
+                    WriteToLog(string.Format("progress:{0}", (double)i / (double)ebxList.Count * 100.0));
                 }
+
+                WriteToLog("Writing to cache (RES)");
 
                 writer.Write(resList.Values.Count);
-                foreach (ResAssetEntry entry in resList.Values)
+                for (int i = 0; i < resList.Count; i++)
                 {
-                    writer.WriteNullTerminatedString(entry.Name);
-                    writer.Write(entry.Sha1);
-                    writer.Write(entry.Size);
-                    writer.Write(entry.OriginalSize);
-                    writer.Write((int)entry.Location);
-                    writer.Write(entry.IsInline);
+                    ResAssetEntry res = resList.Values.ElementAt(i);
 
-                    writer.Write(entry.ResRid);
-                    writer.Write(entry.ResType);
-                    writer.Write(entry.ResMeta.Length);
-                    writer.Write(entry.ResMeta);
-
-                    writer.Write(entry.ExtraData != null);
-                    if (entry.ExtraData != null)
+                    writer.WriteNullTerminatedString(res.Name);
+                    writer.Write(res.Sha1);
+                    writer.Write(res.Size);
+                    writer.Write(res.OriginalSize);
+                    writer.Write((int)res.Location);
+                    writer.Write(res.IsInline);
+                    writer.Write(res.ResRid);
+                    writer.Write(res.ResType);
+                    writer.Write(res.ResMeta.Length);
+                    writer.Write(res.ResMeta);
+                    writer.Write(res.ExtraData != null);
+                    if (res.ExtraData != null)
                     {
-                        writer.Write(entry.ExtraData.BaseSha1);
-                        writer.Write(entry.ExtraData.DeltaSha1);
-                        writer.Write(entry.ExtraData.DataOffset);
-                        writer.Write(entry.ExtraData.SuperBundleId);
-                        writer.Write(entry.ExtraData.IsPatch);
-                        writer.WriteNullTerminatedString(entry.ExtraData.CasPath);
+                        writer.Write(res.ExtraData.BaseSha1);
+                        writer.Write(res.ExtraData.DeltaSha1);
+                        writer.Write(res.ExtraData.DataOffset);
+                        writer.Write(res.ExtraData.SuperBundleId);
+                        writer.Write(res.ExtraData.IsPatch);
+                        writer.WriteNullTerminatedString(res.ExtraData.CasPath);
+                    }
+                    writer.Write(res.Bundles.Count);
+                    foreach (int baseBundleId in res.Bundles)
+                    {
+                        writer.Write(baseBundleId);
                     }
 
-                    writer.Write(entry.Bundles.Count);
-                    foreach (int bentry in entry.Bundles)
-                        writer.Write(bentry);
+                    WriteToLog(string.Format("progress:{0}", (double)i / (double)resList.Count * 100.0));
                 }
 
+                WriteToLog("Writing to cache (CHUNK)");
+
                 writer.Write(chunkList.Count);
-                foreach (ChunkAssetEntry entry in chunkList.Values)
+                for (int i = 0; i < chunkList.Count; i++)
                 {
-                    writer.Write(entry.Id);
-                    writer.Write(entry.Sha1);
-                    writer.Write(entry.Size);
-                    writer.Write((int)entry.Location);
-                    writer.Write(entry.IsInline);
+                    ChunkAssetEntry chunk = chunkList.Values.ElementAt(i);
 
-                    writer.Write(entry.BundledSize);
-                    writer.Write(entry.RangeStart);
-                    writer.Write(entry.RangeEnd);
-                    writer.Write(entry.LogicalOffset);
-                    writer.Write(entry.LogicalSize);
-                    writer.Write(entry.H32);
-                    writer.Write(entry.FirstMip);
-
-                    writer.Write(entry.ExtraData != null);
-                    if (entry.ExtraData != null)
+                    writer.Write(chunk.Id);
+                    writer.Write(chunk.Sha1);
+                    writer.Write(chunk.Size);
+                    writer.Write((int)chunk.Location);
+                    writer.Write(chunk.IsInline);
+                    writer.Write(chunk.BundledSize);
+                    writer.Write(chunk.RangeStart);
+                    writer.Write(chunk.RangeEnd);
+                    writer.Write(chunk.LogicalOffset);
+                    writer.Write(chunk.LogicalSize);
+                    writer.Write(chunk.H32);
+                    writer.Write(chunk.FirstMip);
+                    writer.Write(chunk.ExtraData != null);
+                    if (chunk.ExtraData != null)
                     {
-                        writer.Write(entry.ExtraData.BaseSha1);
-                        writer.Write(entry.ExtraData.DeltaSha1);
-                        writer.Write(entry.ExtraData.DataOffset);
-                        writer.Write(entry.ExtraData.SuperBundleId);
-                        writer.Write(entry.ExtraData.IsPatch);
-                        writer.WriteNullTerminatedString(entry.ExtraData.CasPath);
+                        writer.Write(chunk.ExtraData.BaseSha1);
+                        writer.Write(chunk.ExtraData.DeltaSha1);
+                        writer.Write(chunk.ExtraData.DataOffset);
+                        writer.Write(chunk.ExtraData.SuperBundleId);
+                        writer.Write(chunk.ExtraData.IsPatch);
+                        writer.WriteNullTerminatedString(chunk.ExtraData.CasPath);
+                    }
+                    writer.Write(chunk.Bundles.Count);
+                    foreach (int baseBundleId in chunk.Bundles)
+                    {
+                        writer.Write(baseBundleId);
                     }
 
-                    writer.Write(entry.Bundles.Count);
-                    foreach (int bentry in entry.Bundles)
-                        writer.Write(bentry);
+                    WriteToLog(string.Format("progress:{0}", (double)i / (double)chunkList.Count * 100.0));
                 }
             }
         }
