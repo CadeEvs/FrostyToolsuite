@@ -6,6 +6,7 @@
                     xmlns:local="clr-namespace:FrostyEditor"
                     xmlns:ctrl2="clr-namespace:Frosty.Controls;assembly=FrostyControls"
                     xmlns:core="clr-namespace:Frosty.Core.Controls;assembly=FrostyCore"
+                    xmlns:coreroot="clr-namespace:Frosty.Core;assembly=FrostyCore"
                     xmlns:conv="clr-namespace:Frosty.Core.Converters;assembly=FrostyCore"
                     xmlns:cmd="clr-namespace:FrostyEditor.Commands"
                     xmlns:ext="clr-namespace:FrostyEditor.Extensions"
@@ -32,6 +33,15 @@
             </MenuItem>
             <MenuItem Header="Find in explorer"
                       Click="contextMenuBookmarkItemFind_Click" />
+        </ContextMenu>
+        <ContextMenu x:Key="pluginStatusImageContextMenu">
+            <MenuItem Click="CopyFullExceptionMenuItem_Click"
+                      Header="Copy Full Exception">
+                <MenuItem.Icon>
+                    <Image Source="/FrostyCore;component/Images/Copy.png"
+                           RenderOptions.BitmapScalingMode="Fant" />
+                </MenuItem.Icon>
+            </MenuItem>
         </ContextMenu>
     </ctrl2:FrostyWindow.Resources>
 
@@ -661,7 +671,11 @@
                                             </StackPanel>
                                         </ScrollViewer>
                                     </Grid>
-
+                                    <GridSplitter Grid.Row="1"
+                                                  Background="Transparent"
+                                                  Height="3"
+                                                  HorizontalAlignment="Stretch"
+                                                  VerticalAlignment="Top" />
                                     <Grid Grid.Row="1"
                                           Margin="2"
                                           Background="{StaticResource ListBackground}">
@@ -702,10 +716,63 @@
                                                                 </DataTemplate>
                                                             </GridViewColumn.CellTemplate>
                                                         </GridViewColumn>
+                                                        <GridViewColumn Header="Status">
+                                                            <GridViewColumn.CellTemplate>
+                                                                <DataTemplate>
+                                                                    <StackPanel Orientation="Horizontal"
+                                                                                Height="24">
+                                                                        <Image Name="statusImage"
+                                                                               RenderOptions.BitmapScalingMode="Fant" />
+                                                                    </StackPanel>
+                                                                    <DataTemplate.Triggers>
+                                                                        <!-- Failure. -->
+                                                                        <DataTrigger Binding="{Binding Path=Status}"
+                                                                                     Value="{x:Static coreroot:PluginLoadStatus.Failed}">
+                                                                            <Setter Property="Image.ContextMenu"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="{StaticResource pluginStatusImageContextMenu}" />
+                                                                            <Setter Property="Image.Source"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="/FrostyCore;component/Images/Cross_White.png" />
+                                                                            <Setter Property="Image.ToolTip"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="This plugin has failed to load. You may use the context menu of this image to copy the full exception." />
+                                                                        </DataTrigger>
+
+                                                                        <!-- Successfully loaded. -->
+                                                                        <DataTrigger Binding="{Binding Path=Status}"
+                                                                                     Value="{x:Static coreroot:PluginLoadStatus.Loaded}">
+                                                                            <Setter Property="Image.Source"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="/FrostyCore;component/Images/Tick_White.png" />
+                                                                            <Setter Property="Image.ToolTip"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="This plugin has successfully loaded." />
+                                                                        </DataTrigger>
+
+                                                                        <!-- Successfully loaded, but invalid for the current profile. -->
+                                                                        <DataTrigger Binding="{Binding Path=Status}"
+                                                                                     Value="{x:Static coreroot:PluginLoadStatus.LoadedInvalid}">
+                                                                            <Setter Property="Image.Source"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="/FrostyCore;component/Images/Invalid_White.png" />
+                                                                            <Setter Property="Image.ToolTip"
+                                                                                    TargetName="statusImage"
+                                                                                    Value="This plugin has successfully loaded, but its features are unavailable for the selected profile." />
+                                                                        </DataTrigger>
+                                                                    </DataTemplate.Triggers>
+                                                                </DataTemplate>
+                                                            </GridViewColumn.CellTemplate>
+                                                        </GridViewColumn>
                                                     </GridView.Columns>
                                                 </ctrl2:FrostyAutoSizedGridView>
                                             </ListView.View>
                                         </ListView>
+
+                                        <TextBlock HorizontalAlignment="Right"
+                                                   Margin="0,2.5,28,0"
+                                                   Text="{Binding Path=Items.Count, ElementName=LoadedPluginsList, StringFormat='{}{0:N0} plugin(s)'}"
+                                                   VerticalAlignment="Top" />
                                     </Grid>
                                 </Grid>
 

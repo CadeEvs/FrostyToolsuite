@@ -1,50 +1,86 @@
 ﻿<ctrl:FrostyWindow x:Class="FrostyModManager.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FrostyModManager"
-        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
-        xmlns:localctrl="clr-namespace:FrostyModManager.Controls"
-        xmlns:conv="clr-namespace:Frosty.Core.Converters;assembly=FrostyCore"
-        mc:Ignorable="d"
-        Title="Frosty Mod Manager" Height="750" Width="1050"
-        Icon="/FrostyModManager;component/AppIcon.ico"
-        FrostyLoaded="FrostyWindow_FrostyLoaded" Closing="FrostyWindow_Closing" AllowDrop="True" Drop="FrostyWindow_Drop">
-
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                   xmlns:local="clr-namespace:FrostyModManager"
+                   xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+                   xmlns:localctrl="clr-namespace:FrostyModManager.Controls"
+                   xmlns:conv="clr-namespace:Frosty.Core.Converters;assembly=FrostyCore"
+                   xmlns:coreroot="clr-namespace:Frosty.Core;assembly=FrostyCore"
+                   mc:Ignorable="d"
+                   Title="Frosty Mod Manager"
+                   Height="750"
+                   Width="1050"
+                   Icon="/FrostyModManager;component/AppIcon.ico"
+                   FrostyLoaded="FrostyWindow_FrostyLoaded"
+                   Closing="FrostyWindow_Closing"
+                   AllowDrop="True"
+                   Drop="FrostyWindow_Drop">
     <ctrl:FrostyWindow.Resources>
-        <conv:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter"/>
-        <Style x:Key="ContainerStyle" TargetType="{x:Type GroupItem}">
+        <conv:BooleanToVisibilityConverter x:Key="booleanToVisibilityConverter" />
+        <Style x:Key="ContainerStyle"
+               TargetType="{x:Type GroupItem}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate>
-                        <Expander Header="{Binding Name}" IsExpanded="True" Foreground="{StaticResource FontColor}">
+                        <Expander Header="{Binding Name}"
+                                  IsExpanded="True"
+                                  Foreground="{StaticResource FontColor}">
                             <Expander.Template>
                                 <ControlTemplate TargetType="{x:Type Expander}">
                                     <DockPanel>
-                                        <ToggleButton x:Name="HeaderSite" HorizontalAlignment="Left" ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" DockPanel.Dock="Top" Foreground="{TemplateBinding Foreground}" FontWeight="Bold" FontStyle="{TemplateBinding FontStyle}" FontStretch="{TemplateBinding FontStretch}" FontSize="{TemplateBinding FontSize}" FontFamily="{TemplateBinding FontFamily}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Margin="1" MinWidth="0" MinHeight="0" Padding="{TemplateBinding Padding}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
+                                        <ToggleButton x:Name="HeaderSite"
+                                                      HorizontalAlignment="Left"
+                                                      ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                                      Content="{TemplateBinding Header}"
+                                                      DockPanel.Dock="Top"
+                                                      Foreground="{TemplateBinding Foreground}"
+                                                      FontWeight="Bold"
+                                                      FontStyle="{TemplateBinding FontStyle}"
+                                                      FontStretch="{TemplateBinding FontStretch}"
+                                                      FontSize="{TemplateBinding FontSize}"
+                                                      FontFamily="{TemplateBinding FontFamily}"
+                                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                      IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                                      Margin="1"
+                                                      MinWidth="0"
+                                                      MinHeight="0"
+                                                      Padding="{TemplateBinding Padding}"
+                                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}">
                                             <ToggleButton.Template>
                                                 <ControlTemplate TargetType="{x:Type ToggleButton}">
                                                     <StackPanel Orientation="Horizontal">
-                                                        <Border Background="Transparent" Height="16" Padding="5" Width="16">
-                                                            <Path x:Name="ExpandPath" Fill="White" Stroke="White">
+                                                        <Border Background="Transparent"
+                                                                Height="16"
+                                                                Padding="5"
+                                                                Width="16">
+                                                            <Path x:Name="ExpandPath"
+                                                                  Fill="White"
+                                                                  Stroke="White">
                                                                 <Path.Data>
-                                                                    <PathGeometry Figures="M0,0 L0,6 L6,0 z"/>
+                                                                    <PathGeometry Figures="M0,0 L0,6 L6,0 z" />
                                                                 </Path.Data>
                                                                 <Path.RenderTransform>
-                                                                    <RotateTransform Angle="135" CenterY="3" CenterX="3"/>
+                                                                    <RotateTransform Angle="135"
+                                                                                     CenterY="3"
+                                                                                     CenterX="3" />
                                                                 </Path.RenderTransform>
                                                             </Path>
                                                         </Border>
 
-                                                        <ContentPresenter Margin="4 0 0 0"/>
+                                                        <ContentPresenter Margin="4 0 0 0" />
                                                     </StackPanel>
 
                                                     <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsChecked" Value="True">
-                                                            <Setter Property="RenderTransform" TargetName="ExpandPath">
+                                                        <Trigger Property="IsChecked"
+                                                                 Value="True">
+                                                            <Setter Property="RenderTransform"
+                                                                    TargetName="ExpandPath">
                                                                 <Setter.Value>
-                                                                    <RotateTransform Angle="180" CenterY="3" CenterX="3"/>
+                                                                    <RotateTransform Angle="180"
+                                                                                     CenterY="3"
+                                                                                     CenterX="3" />
                                                                 </Setter.Value>
                                                             </Setter>
                                                         </Trigger>
@@ -53,15 +89,29 @@
                                             </ToggleButton.Template>
                                         </ToggleButton>
 
-                                        <ContentPresenter x:Name="ExpandSite" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" ContentStringFormat="{TemplateBinding ContentStringFormat}" DockPanel.Dock="Bottom" Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Visibility="Collapsed" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                        <ContentPresenter x:Name="ExpandSite"
+                                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                          Content="{TemplateBinding Content}"
+                                                          ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                                          DockPanel.Dock="Bottom"
+                                                          Focusable="False"
+                                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                          Margin="{TemplateBinding Padding}"
+                                                          Visibility="Collapsed"
+                                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                                     </DockPanel>
 
                                     <ControlTemplate.Triggers>
-                                        <Trigger Property="IsExpanded" Value="True">
-                                            <Setter Property="Visibility" TargetName="ExpandSite" Value="Visible"/>
+                                        <Trigger Property="IsExpanded"
+                                                 Value="True">
+                                            <Setter Property="Visibility"
+                                                    TargetName="ExpandSite"
+                                                    Value="Visible" />
                                         </Trigger>
-                                        <Trigger Property="IsEnabled" Value="False">
-                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                        <Trigger Property="IsEnabled"
+                                                 Value="False">
+                                            <Setter Property="Foreground"
+                                                    Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
                                         </Trigger>
                                     </ControlTemplate.Triggers>
                                 </ControlTemplate>
@@ -72,30 +122,49 @@
                 </Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="ExpanderHeader" TargetType="{x:Type Grid}">
-            <Setter Property="Height" Value="22" />
-            <Setter Property="Margin" Value="21,0,0,0" />
-            <Setter Property="HorizontalAlignment" Value="Stretch" />
-            <Setter Property="VerticalAlignment" Value="Top" />
+        <Style x:Key="ExpanderHeader"
+               TargetType="{x:Type Grid}">
+            <Setter Property="Height"
+                    Value="22" />
+            <Setter Property="Margin"
+                    Value="21,0,0,0" />
+            <Setter Property="HorizontalAlignment"
+                    Value="Stretch" />
+            <Setter Property="VerticalAlignment"
+                    Value="Top" />
         </Style>
 
-        <Style x:Key="ExpanderDownHeaderStyle" TargetType="{x:Type ToggleButton}">
+        <Style x:Key="ExpanderDownHeaderStyle"
+               TargetType="{x:Type ToggleButton}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type ToggleButton}">
                         <Border Padding="{TemplateBinding Padding}">
-                            <Grid Background="Transparent" SnapsToDevicePixels="False">
+                            <Grid Background="Transparent"
+                                  SnapsToDevicePixels="False">
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="16"/>
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="16" />
+                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="icon" Source="/FrostyModManager;component/Images/Plus.png" Margin="-2,10,0,14" Width="12" Cursor="Hand"/>
-                                <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" Margin="4,0,0,0" RecognizesAccessKey="True" SnapsToDevicePixels="True" VerticalAlignment="Center"/>
+                                <Image x:Name="icon"
+                                       Source="/FrostyModManager;component/Images/Plus.png"
+                                       Margin="-2,10,0,14"
+                                       Width="12"
+                                       Cursor="Hand" />
+                                <ContentPresenter Grid.Column="1"
+                                                  HorizontalAlignment="Left"
+                                                  Margin="4,0,0,0"
+                                                  RecognizesAccessKey="True"
+                                                  SnapsToDevicePixels="True"
+                                                  VerticalAlignment="Center" />
                             </Grid>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsChecked" Value="true">
-                                <Setter Property="Source" TargetName="icon" Value="/FrostyModManager;component/Images/Minus.png"/>
+                            <Trigger Property="IsChecked"
+                                     Value="true">
+                                <Setter Property="Source"
+                                        TargetName="icon"
+                                        Value="/FrostyModManager;component/Images/Minus.png" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -104,117 +173,221 @@
         </Style>
 
         <Style TargetType="{x:Type Expander}">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground"
+                    Value="White" />
+            <Setter Property="Background"
+                    Value="Transparent" />
+            <Setter Property="HorizontalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="VerticalContentAlignment"
+                    Value="Stretch" />
+            <Setter Property="BorderBrush"
+                    Value="Transparent" />
+            <Setter Property="BorderThickness"
+                    Value="1" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Expander}">
-                        <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="3" SnapsToDevicePixels="true">
+                        <Border BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Background="{TemplateBinding Background}"
+                                CornerRadius="3"
+                                SnapsToDevicePixels="true">
                             <DockPanel>
-                                <ToggleButton x:Name="HeaderSite" ContentTemplate="{TemplateBinding HeaderTemplate}" ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}" Content="{TemplateBinding Header}" DockPanel.Dock="Top" Foreground="{TemplateBinding Foreground}" FontWeight="{TemplateBinding FontWeight}" FontStyle="{TemplateBinding FontStyle}" FontStretch="{TemplateBinding FontStretch}" FontSize="{TemplateBinding FontSize}" FontFamily="{TemplateBinding FontFamily}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Margin="1" MinWidth="0" MinHeight="0" Padding="{TemplateBinding Padding}" Style="{StaticResource ExpanderDownHeaderStyle}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
-                                <ContentPresenter x:Name="ExpandSite" DockPanel.Dock="Bottom" Focusable="false" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Visibility="Collapsed" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                <ToggleButton x:Name="HeaderSite"
+                                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                              ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
+                                              Content="{TemplateBinding Header}"
+                                              DockPanel.Dock="Top"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              FontWeight="{TemplateBinding FontWeight}"
+                                              FontStyle="{TemplateBinding FontStyle}"
+                                              FontStretch="{TemplateBinding FontStretch}"
+                                              FontSize="{TemplateBinding FontSize}"
+                                              FontFamily="{TemplateBinding FontFamily}"
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                              Margin="1"
+                                              MinWidth="0"
+                                              MinHeight="0"
+                                              Padding="{TemplateBinding Padding}"
+                                              Style="{StaticResource ExpanderDownHeaderStyle}"
+                                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                <ContentPresenter x:Name="ExpandSite"
+                                                  DockPanel.Dock="Bottom"
+                                                  Focusable="false"
+                                                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                  Margin="{TemplateBinding Padding}"
+                                                  Visibility="Collapsed"
+                                                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                             </DockPanel>
                         </Border>
                         <ControlTemplate.Triggers>
-                            <Trigger Property="IsExpanded" Value="true">
-                                <Setter Property="Visibility" TargetName="ExpandSite" Value="Visible"/>
+                            <Trigger Property="IsExpanded"
+                                     Value="true">
+                                <Setter Property="Visibility"
+                                        TargetName="ExpandSite"
+                                        Value="Visible" />
                             </Trigger>
-                            <Trigger Property="IsEnabled" Value="false">
-                                <Setter Property="Foreground" Value="Gray"/>
+                            <Trigger Property="IsEnabled"
+                                     Value="false">
+                                <Setter Property="Foreground"
+                                        Value="Gray" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
-
+        <ContextMenu x:Key="pluginStatusImageContextMenu">
+            <MenuItem Click="CopyFullExceptionMenuItem_Click"
+                      Header="Copy Full Exception">
+                <MenuItem.Icon>
+                    <Image Source="/FrostyCore;component/Images/Copy.png"
+                           RenderOptions.BitmapScalingMode="Fant" />
+                </MenuItem.Icon>
+            </MenuItem>
+        </ContextMenu>
     </ctrl:FrostyWindow.Resources>
 
     <Grid Background="{StaticResource ListBackground}">
         <Grid.RowDefinitions>
-            <RowDefinition Height="112*"/>
-            <RowDefinition Height="557*"/>
+            <RowDefinition Height="112*" />
+            <RowDefinition Height="557*" />
         </Grid.RowDefinitions>
 
         <Grid Grid.RowSpan="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="22"/>
-                <RowDefinition Height="26"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="23"/>
+                <RowDefinition Height="22" />
+                <RowDefinition Height="26" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="23" />
             </Grid.RowDefinitions>
 
             <!-- Menu -->
             <Menu Grid.Row="0">
-                <MenuItem Header="File" Height="22">
+                <MenuItem Header="File"
+                          Height="22">
                     <MenuItem Header="Pack">
-                        <MenuItem x:Name="packExport" Header="Export" Click="packExport_Click"/>
-                        <MenuItem x:Name="packImport" Header="Import" Click="packImport_Click"/>
+                        <MenuItem x:Name="packExport"
+                                  Header="Export"
+                                  Click="packExport_Click" />
+                        <MenuItem x:Name="packImport"
+                                  Header="Import"
+                                  Click="packImport_Click" />
                     </MenuItem>
-                    <MenuItem x:Name="collectionExport" Header="Create Collection" Click="collectionExport_Click"/>
-                    <MenuItem x:Name="launchConfigurationWindow" Header="Select Game" Click="launchConfigurationWindow_Click"/>
-                    <MenuItem x:Name="exitMenuItem" Header="Exit" Click="exitMenuItem_Click"/>
+                    <MenuItem x:Name="collectionExport"
+                              Header="Create Collection"
+                              Click="collectionExport_Click" />
+                    <MenuItem x:Name="launchConfigurationWindow"
+                              Header="Select Game"
+                              Click="launchConfigurationWindow_Click" />
+                    <MenuItem x:Name="exitMenuItem"
+                              Header="Exit"
+                              Click="exitMenuItem_Click" />
                 </MenuItem>
-                <MenuItem x:Name="toolsMenuItem" Header="Tools" Height="22">
+                <MenuItem x:Name="toolsMenuItem"
+                          Header="Tools"
+                          Height="22">
                 </MenuItem>
-                <MenuItem Header="Help" Height="22">
-                    <MenuItem x:Name="aboutMenuItem" Header="About Frosty Mod Manager" Click="aboutMenuItem_Click"/>
+                <MenuItem Header="Help"
+                          Height="22">
+                    <MenuItem x:Name="aboutMenuItem"
+                              Header="About Frosty Mod Manager"
+                              Click="aboutMenuItem_Click" />
                 </MenuItem>
             </Menu>
 
             <!-- Toolbar -->
-            <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
+            <Grid Grid.Row="1"
+                  Background="{StaticResource ListBackground}">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <Border BorderBrush="{StaticResource ControlBackground}" BorderThickness="2,0,2,0">
+                <Border BorderBrush="{StaticResource ControlBackground}"
+                        BorderThickness="2,0,2,0">
                     <DockPanel Margin="1">
                         <!-- Profile Selection -->
-                        <Border Background="{StaticResource ControlBackground}" HorizontalAlignment="Left" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
-                            <StackPanel Orientation="Horizontal" Margin="6,0,6,0">
+                        <Border Background="{StaticResource ControlBackground}"
+                                HorizontalAlignment="Left"
+                                DockPanel.Dock="Left"
+                                RenderOptions.EdgeMode="Aliased">
+                            <StackPanel Orientation="Horizontal"
+                                        Margin="6,0,6,0">
                                 <!-- Deco -->
-                                <TextBlock Text="Pack: " VerticalAlignment="Center" Foreground="{StaticResource FontColor}"/>
+                                <TextBlock Text="Pack: "
+                                           VerticalAlignment="Center"
+                                           Foreground="{StaticResource FontColor}" />
                                 <!-- Profiles ComboBox -->
-                                <ComboBox x:Name="packsComboBox" Width="150" Height="22" Margin="4,0,0,0" SelectionChanged="packsComboBox_SelectionChanged" Padding="4,2,4,2">
+                                <ComboBox x:Name="packsComboBox"
+                                          Width="150"
+                                          Height="22"
+                                          Margin="4,0,0,0"
+                                          SelectionChanged="packsComboBox_SelectionChanged"
+                                          Padding="4,2,4,2">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Name}"/>
+                                            <TextBlock Text="{Binding Name}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
                                 <!-- Add Pack Button -->
-                                <Button x:Name="addProfileButton" Width="20" Height="20" Margin="4,0,0,0" ToolTip="Add Pack" Click="addProfileButton_Click">
-                                    <Image Source="/FrostyModManager;component/Images/Plus.png"/>
+                                <Button x:Name="addProfileButton"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="4,0,0,0"
+                                        ToolTip="Add Pack"
+                                        Click="addProfileButton_Click">
+                                    <Image Source="/FrostyModManager;component/Images/Plus.png" />
                                 </Button>
                                 <!-- Remove Pack Button -->
-                                <Button x:Name="removeProfileButton" Width="20" Height="20" Margin="4,0,0,0" ToolTip="Remove Pack" Click="removeProfileButton_Click">
-                                    <Image Source="/FrostyModManager;component/Images/Minus.png"/>
+                                <Button x:Name="removeProfileButton"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="4,0,0,0"
+                                        ToolTip="Remove Pack"
+                                        Click="removeProfileButton_Click">
+                                    <Image Source="/FrostyModManager;component/Images/Minus.png" />
                                 </Button>
                                 <!-- Import Button -->
-                                <Button x:Name="importPackButton" Width="20" Height="20" Margin="4,0,0,0" ToolTip="Import Pack" Click="importPackButton_Click">
-                                    <Image Source="/FrostyModManager;component/Images/AddMod.png"/>
+                                <Button x:Name="importPackButton"
+                                        Width="20"
+                                        Height="20"
+                                        Margin="4,0,0,0"
+                                        ToolTip="Import Pack"
+                                        Click="importPackButton_Click">
+                                    <Image Source="/FrostyModManager;component/Images/AddMod.png" />
                                 </Button>
                             </StackPanel>
                         </Border>
                         <!-- Launch -->
-                        <Border Background="{StaticResource ControlBackground}" Margin="1 0 0 0" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
-                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
-                                <Button x:Name="launchButton" Height="20" ToolTip="Launch game with selected mods applied" Click="launchButton_Click">
+                        <Border Background="{StaticResource ControlBackground}"
+                                Margin="1 0 0 0"
+                                DockPanel.Dock="Left"
+                                RenderOptions.EdgeMode="Aliased">
+                            <StackPanel VerticalAlignment="Center"
+                                        Orientation="Horizontal"
+                                        Margin="6,0,6,0">
+                                <Button x:Name="launchButton"
+                                        Height="20"
+                                        ToolTip="Launch game with selected mods applied"
+                                        Click="launchButton_Click">
                                     <StackPanel Orientation="Horizontal">
-                                        <Image Source="/FrostyModManager;component/Images/Play.png"/>
-                                        <TextBlock Margin="2,0,3,2" Text="Launch" VerticalAlignment="Center"/>
+                                        <Image Source="/FrostyModManager;component/Images/Play.png" />
+                                        <TextBlock Margin="2,0,3,2"
+                                                   Text="Launch"
+                                                   VerticalAlignment="Center" />
                                     </StackPanel>
                                 </Button>
                             </StackPanel>
                         </Border>
                         <!-- Filler -->
-                        <Border Background="Transparent" Margin="1,0,0,0" HorizontalAlignment="Stretch" DockPanel.Dock="Left"/>
+                        <Border Background="Transparent"
+                                Margin="1,0,0,0"
+                                HorizontalAlignment="Stretch"
+                                DockPanel.Dock="Left" />
                     </DockPanel>
                 </Border>
             </Grid>
@@ -222,84 +395,133 @@
             <!-- Main Content -->
             <Grid Grid.Row="2">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Available Mods / Plugins -->
-                <ctrl:FrostyDockablePanel Title="Available Mods" Grid.Column="0" TitleBarVisible="False">
+                <ctrl:FrostyDockablePanel Title="Available Mods"
+                                          Grid.Column="0"
+                                          TitleBarVisible="False">
                     <Grid Background="{StaticResource ListBackground}">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="33"/>
-                            <RowDefinition Height="2"/>
-                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="33" />
+                            <RowDefinition Height="2" />
+                            <RowDefinition Height="3*" />
                         </Grid.RowDefinitions>
 
-                        <ctrl:FrostyTabControl x:Name="availableModsTabControl" SelectionChanged="tabControl_SelectionChanged">
+                        <ctrl:FrostyTabControl x:Name="availableModsTabControl"
+                                               SelectionChanged="tabControl_SelectionChanged">
                             <ctrl:FrostyTabControl.Style>
                                 <Style TargetType="{x:Type ctrl:FrostyTabControl}">
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type ctrl:FrostyTabControl}">
-                                                <Grid x:Name="templateRoot" ClipToBounds="true" SnapsToDevicePixels="true" KeyboardNavigation.TabNavigation="Local">
+                                                <Grid x:Name="templateRoot"
+                                                      ClipToBounds="true"
+                                                      SnapsToDevicePixels="true"
+                                                      KeyboardNavigation.TabNavigation="Local">
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition x:Name="ColumnDefinition0"/>
-                                                        <ColumnDefinition x:Name="ColumnDefinition1" Width="0"/>
+                                                        <ColumnDefinition x:Name="ColumnDefinition0" />
+                                                        <ColumnDefinition x:Name="ColumnDefinition1"
+                                                                          Width="0" />
                                                     </Grid.ColumnDefinitions>
                                                     <Grid.RowDefinitions>
-                                                        <RowDefinition x:Name="RowDefinition0" Height="Auto"/>
-                                                        <RowDefinition x:Name="RowDefinition1" Height="*"/>
+                                                        <RowDefinition x:Name="RowDefinition0"
+                                                                       Height="Auto" />
+                                                        <RowDefinition x:Name="RowDefinition1"
+                                                                       Height="*" />
                                                     </Grid.RowDefinitions>
 
                                                     <StackPanel>
                                                         <!-- Dockable Window Deco -->
-                                                        <StackPanel x:Name="DockableBar" Height="13">
-                                                            <Border Background="#232323" Height="11"/>
-                                                            <Border Background="#1a1a1a" Height="1"/>
-                                                            <Border Background="#2f2f2f" Height="1"/>
+                                                        <StackPanel x:Name="DockableBar"
+                                                                    Height="13">
+                                                            <Border Background="#232323"
+                                                                    Height="11" />
+                                                            <Border Background="#1a1a1a"
+                                                                    Height="1" />
+                                                            <Border Background="#2f2f2f"
+                                                                    Height="1" />
                                                         </StackPanel>
 
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="14"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
                                                             </Grid.ColumnDefinitions>
 
-                                                            <Grid Width="14" Height="20">
-                                                                <Border Background="#292929"/>
-                                                                <Path x:Name="dockingDeco" Data="{Binding Source={StaticResource DockingDeco}, Path=Data}" Height="20" Width="14" Fill="#454545" Margin="0,0,0,0" RenderTransformOrigin="0.5,0.5">
+                                                            <Grid Width="14"
+                                                                  Height="20">
+                                                                <Border Background="#292929" />
+                                                                <Path x:Name="dockingDeco"
+                                                                      Data="{Binding Source={StaticResource DockingDeco}, Path=Data}"
+                                                                      Height="20"
+                                                                      Width="14"
+                                                                      Fill="#454545"
+                                                                      Margin="0,0,0,0"
+                                                                      RenderTransformOrigin="0.5,0.5">
                                                                     <Path.RenderTransform>
                                                                         <TransformGroup>
-                                                                            <ScaleTransform/>
-                                                                            <SkewTransform/>
-                                                                            <RotateTransform/>
-                                                                            <TranslateTransform Y="-1"/>
+                                                                            <ScaleTransform />
+                                                                            <SkewTransform />
+                                                                            <RotateTransform />
+                                                                            <TranslateTransform Y="-1" />
                                                                         </TransformGroup>
                                                                     </Path.RenderTransform>
                                                                 </Path>
                                                             </Grid>
 
-                                                            <ScrollViewer x:Name="PART_ScrollViewer" Grid.Column="1" IsTabStop="False" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden" BorderThickness="0" Padding="0" Margin="0,0,0,-1">
-                                                                <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="-1,0,0,0" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
+                                                            <ScrollViewer x:Name="PART_ScrollViewer"
+                                                                          Grid.Column="1"
+                                                                          IsTabStop="False"
+                                                                          VerticalScrollBarVisibility="Disabled"
+                                                                          HorizontalScrollBarVisibility="Hidden"
+                                                                          BorderThickness="0"
+                                                                          Padding="0"
+                                                                          Margin="0,0,0,-1">
+                                                                <TabPanel x:Name="headerPanel"
+                                                                          Background="Transparent"
+                                                                          Grid.Column="0"
+                                                                          IsItemsHost="true"
+                                                                          Margin="-1,0,0,0"
+                                                                          Grid.Row="0"
+                                                                          KeyboardNavigation.TabIndex="1"
+                                                                          Panel.ZIndex="1" />
                                                             </ScrollViewer>
 
                                                             <Border Grid.Column="2">
-                                                                <RepeatButton Content="&lt;" x:Name="PART_ScrollLeft" Width="21">
+                                                                <RepeatButton Content="&lt;"
+                                                                              x:Name="PART_ScrollLeft"
+                                                                              Width="21">
                                                                     <RepeatButton.Template>
                                                                         <ControlTemplate TargetType="{x:Type RepeatButton}">
                                                                             <Border Background="{StaticResource ScrollbarBackground}">
-                                                                                <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1">
-                                                                                    <Polygon Points="0,0 3.5,3.5 3.5,-3.5" Stroke="{StaticResource ButtonImage}" Fill="{StaticResource ButtonImage}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="7,10,0,0"/>
+                                                                                <Border x:Name="border"
+                                                                                        Background="{StaticResource ControlBackground}"
+                                                                                        Margin="1">
+                                                                                    <Polygon Points="0,0 3.5,3.5 3.5,-3.5"
+                                                                                             Stroke="{StaticResource ButtonImage}"
+                                                                                             Fill="{StaticResource ButtonImage}"
+                                                                                             VerticalAlignment="Top"
+                                                                                             HorizontalAlignment="Left"
+                                                                                             Margin="7,10,0,0" />
                                                                                 </Border>
                                                                             </Border>
                                                                             <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
+                                                                                <Trigger Property="IsMouseOver"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlHighlight}" />
                                                                                 </Trigger>
-                                                                                <Trigger Property="IsPressed" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
+                                                                                <Trigger Property="IsPressed"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlPressed}" />
                                                                                 </Trigger>
                                                                             </ControlTemplate.Triggers>
                                                                         </ControlTemplate>
@@ -308,20 +530,35 @@
                                                             </Border>
 
                                                             <Border Grid.Column="3">
-                                                                <RepeatButton Content="&gt;" x:Name="PART_ScrollRight" Width="21">
+                                                                <RepeatButton Content="&gt;"
+                                                                              x:Name="PART_ScrollRight"
+                                                                              Width="21">
                                                                     <RepeatButton.Template>
                                                                         <ControlTemplate TargetType="{x:Type RepeatButton}">
                                                                             <Border Background="{StaticResource ScrollbarBackground}">
-                                                                                <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1">
-                                                                                    <Polygon Points="0,0 -3.5,3.5 -3.5,-3.5" Stroke="{StaticResource ButtonImage}" Fill="{StaticResource ButtonImage}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,10,0,0"/>
+                                                                                <Border x:Name="border"
+                                                                                        Background="{StaticResource ControlBackground}"
+                                                                                        Margin="1">
+                                                                                    <Polygon Points="0,0 -3.5,3.5 -3.5,-3.5"
+                                                                                             Stroke="{StaticResource ButtonImage}"
+                                                                                             Fill="{StaticResource ButtonImage}"
+                                                                                             VerticalAlignment="Top"
+                                                                                             HorizontalAlignment="Left"
+                                                                                             Margin="12,10,0,0" />
                                                                                 </Border>
                                                                             </Border>
                                                                             <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
+                                                                                <Trigger Property="IsMouseOver"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlHighlight}" />
                                                                                 </Trigger>
-                                                                                <Trigger Property="IsPressed" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
+                                                                                <Trigger Property="IsPressed"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlPressed}" />
                                                                                 </Trigger>
                                                                             </ControlTemplate.Triggers>
                                                                         </ControlTemplate>
@@ -332,33 +569,75 @@
                                                     </StackPanel>
                                                 </Grid>
                                                 <ControlTemplate.Triggers>
-                                                    <Trigger Property="TabStripPlacement" Value="Bottom">
-                                                        <Setter Property="Grid.Row" TargetName="headerPanel" Value="1"/>
+                                                    <Trigger Property="TabStripPlacement"
+                                                             Value="Bottom">
+                                                        <Setter Property="Grid.Row"
+                                                                TargetName="headerPanel"
+                                                                Value="1" />
                                                         <!--<Setter Property="Grid.Row" TargetName="contentPanel" Value="0"/>-->
-                                                        <Setter Property="Height" TargetName="RowDefinition0" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition1" Value="Auto"/>
-                                                        <Setter Property="Margin" TargetName="headerPanel" Value="2,0,2,2"/>
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition1"
+                                                                Value="Auto" />
+                                                        <Setter Property="Margin"
+                                                                TargetName="headerPanel"
+                                                                Value="2,0,2,2" />
                                                     </Trigger>
-                                                    <Trigger Property="TabStripPlacement" Value="Left">
-                                                        <Setter Property="Grid.Row" TargetName="headerPanel" Value="0"/>
-                                                        <Setter Property="Grid.Column" TargetName="headerPanel" Value="0"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition0" Value="Auto"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition1" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition0" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition1" Value="0"/>
-                                                        <Setter Property="Margin" TargetName="headerPanel" Value="2,2,0,2"/>
+                                                    <Trigger Property="TabStripPlacement"
+                                                             Value="Left">
+                                                        <Setter Property="Grid.Row"
+                                                                TargetName="headerPanel"
+                                                                Value="0" />
+                                                        <Setter Property="Grid.Column"
+                                                                TargetName="headerPanel"
+                                                                Value="0" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition0"
+                                                                Value="Auto" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition1"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition1"
+                                                                Value="0" />
+                                                        <Setter Property="Margin"
+                                                                TargetName="headerPanel"
+                                                                Value="2,2,0,2" />
                                                     </Trigger>
-                                                    <Trigger Property="TabStripPlacement" Value="Right">
-                                                        <Setter Property="Grid.Row" TargetName="headerPanel" Value="0"/>
-                                                        <Setter Property="Grid.Column" TargetName="headerPanel" Value="1"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition0" Value="*"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition1" Value="Auto"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition0" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition1" Value="0"/>
-                                                        <Setter Property="Margin" TargetName="headerPanel" Value="0,2,2,2"/>
+                                                    <Trigger Property="TabStripPlacement"
+                                                             Value="Right">
+                                                        <Setter Property="Grid.Row"
+                                                                TargetName="headerPanel"
+                                                                Value="0" />
+                                                        <Setter Property="Grid.Column"
+                                                                TargetName="headerPanel"
+                                                                Value="1" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition1"
+                                                                Value="Auto" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition1"
+                                                                Value="0" />
+                                                        <Setter Property="Margin"
+                                                                TargetName="headerPanel"
+                                                                Value="0,2,2,2" />
                                                     </Trigger>
-                                                    <Trigger Property="IsEnabled" Value="false">
-                                                        <Setter Property="TextElement.Foreground" TargetName="templateRoot" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                                    <Trigger Property="IsEnabled"
+                                                             Value="false">
+                                                        <Setter Property="TextElement.Foreground"
+                                                                TargetName="templateRoot"
+                                                                Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -371,118 +650,204 @@
                             <ctrl:FrostyTabItem Header="Available Mods">
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="26"/>
-                                        <RowDefinition Height="26"/>
-                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="26" />
+                                        <RowDefinition Height="26" />
+                                        <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
                                     <!-- Add/Remove/Apply Mods -->
-                                    <Border Grid.Row="0" BorderBrush="{StaticResource ControlBackground}" BorderThickness="0,0,0,2">
+                                    <Border Grid.Row="0"
+                                            BorderBrush="{StaticResource ControlBackground}"
+                                            BorderThickness="0,0,0,2">
                                         <DockPanel Margin="1">
                                             <!-- Add/Remove/Apply List -->
-                                            <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
-                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                            <Border Background="{StaticResource ControlBackground}"
+                                                    DockPanel.Dock="Left"
+                                                    RenderOptions.EdgeMode="Aliased">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            Orientation="Horizontal"
+                                                            Margin="6,0,6,0">
                                                     <!-- Install Mod Button -->
-                                                    <Button x:Name="installModButton" Height="20" IsEnabled="True" ToolTip="Import mod(s) from file" Click="installModButton_Click">
+                                                    <Button x:Name="installModButton"
+                                                            Height="20"
+                                                            IsEnabled="True"
+                                                            ToolTip="Import mod(s) from file"
+                                                            Click="installModButton_Click">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Image Source="/FrostyModManager;component/Images/AddMod.png" Margin="0,0,2,0"/>
-                                                            <TextBlock Margin="2,0,3,2" Text="Add Mod(s)" VerticalAlignment="Center"/>
+                                                            <Image Source="/FrostyModManager;component/Images/AddMod.png"
+                                                                   Margin="0,0,2,0" />
+                                                            <TextBlock Margin="2,0,3,2"
+                                                                       Text="Add Mod(s)"
+                                                                       VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Button>
                                                     <!-- Uninstall Mod Button -->
-                                                    <Button x:Name="uninstallModButton" Height="20" Click="uninstallModButton_Click" IsEnabled="False" ToolTip="Remove selected mod(s)" Margin="4,0,0,0">
+                                                    <Button x:Name="uninstallModButton"
+                                                            Height="20"
+                                                            Click="uninstallModButton_Click"
+                                                            IsEnabled="False"
+                                                            ToolTip="Remove selected mod(s)"
+                                                            Margin="4,0,0,0">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Image Source="/FrostyModManager;component/Images/RemoveMod.png" Margin="0,0,2,0"/>
-                                                            <TextBlock Text="Remove Mod(s)" Margin="2,0,3,2" VerticalAlignment="Center"/>
+                                                            <Image Source="/FrostyModManager;component/Images/RemoveMod.png"
+                                                                   Margin="0,0,2,0" />
+                                                            <TextBlock Text="Remove Mod(s)"
+                                                                       Margin="2,0,3,2"
+                                                                       VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Button>
                                                 </StackPanel>
                                             </Border>
                                             <!-- Apply List -->
-                                            <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Right" RenderOptions.EdgeMode="Aliased">
-                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                            <Border Background="{StaticResource ControlBackground}"
+                                                    DockPanel.Dock="Right"
+                                                    RenderOptions.EdgeMode="Aliased">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            Orientation="Horizontal"
+                                                            Margin="6,0,6,0">
                                                     <!-- Apply Mod Button -->
-                                                    <Button x:Name="addModButton" Height="20" Click="addModButton_Click" IsEnabled="False" ToolTip="Add mod(s) to applied list">
+                                                    <Button x:Name="addModButton"
+                                                            Height="20"
+                                                            Click="addModButton_Click"
+                                                            IsEnabled="False"
+                                                            ToolTip="Add mod(s) to applied list">
                                                         <StackPanel Orientation="Horizontal">
-                                                            <Image Source="/FrostyModManager;component/Images/Up.png" Margin="0,0,4,0">
+                                                            <Image Source="/FrostyModManager;component/Images/Up.png"
+                                                                   Margin="0,0,4,0">
                                                                 <Image.RenderTransform>
-                                                                    <RotateTransform Angle="90" CenterX="10" CenterY="10"/>
+                                                                    <RotateTransform Angle="90"
+                                                                                     CenterX="10"
+                                                                                     CenterY="10" />
                                                                 </Image.RenderTransform>
                                                             </Image>
-                                                            <TextBlock Text="Apply Mod(s)" Margin="2,0,3,2" VerticalAlignment="Center"/>
+                                                            <TextBlock Text="Apply Mod(s)"
+                                                                       Margin="2,0,3,2"
+                                                                       VerticalAlignment="Center" />
                                                         </StackPanel>
                                                     </Button>
                                                 </StackPanel>
                                             </Border>
                                             <!-- Filler -->
-                                            <Border Background="Transparent" Margin="1,0,0,0" HorizontalAlignment="Stretch" DockPanel.Dock="Left"/>
+                                            <Border Background="Transparent"
+                                                    Margin="1,0,0,0"
+                                                    HorizontalAlignment="Stretch"
+                                                    DockPanel.Dock="Left" />
                                         </DockPanel>
                                     </Border>
 
-                                    <ctrl:FrostyWatermarkTextBox Grid.Row="1" x:Name="availableModsFilterTextBox" WatermarkText="Filter" BorderThickness="1" Margin="1,1,1,0" VerticalContentAlignment="Center" KeyUp="availableModsFilter_KeyUp" LostFocus="availableModsFilter_LostFocus"/>
+                                    <ctrl:FrostyWatermarkTextBox Grid.Row="1"
+                                                                 x:Name="availableModsFilterTextBox"
+                                                                 WatermarkText="Filter"
+                                                                 BorderThickness="1"
+                                                                 Margin="1,1,1,0"
+                                                                 VerticalContentAlignment="Center"
+                                                                 KeyUp="availableModsFilter_KeyUp"
+                                                                 LostFocus="availableModsFilter_LostFocus" />
 
-                                    <ListView x:Name="availableModsList" Grid.Row="2" MouseDoubleClick="availableModsList_MouseDoubleClick" SelectionChanged="availableModsList_SelectionChanged" FocusManager.IsFocusScope="True">
+                                    <ListView x:Name="availableModsList"
+                                              Grid.Row="2"
+                                              MouseDoubleClick="availableModsList_MouseDoubleClick"
+                                              SelectionChanged="availableModsList_SelectionChanged"
+                                              FocusManager.IsFocusScope="True">
                                         <ListView.View>
                                             <GridView ScrollViewer.CanContentScroll="False">
 
                                                 <GridView.Columns>
-                                                    <GridViewColumn Header="Title" Width="410">
+                                                    <GridViewColumn Header="Title"
+                                                                    Width="410">
                                                         <GridViewColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <Grid Margin="0,0,16,0">
 
-                                                                    <Expander x:Name="modsExpander" IsExpanded="False">
-                                                                        <Border BorderThickness="1" BorderBrush="#454545" Margin="16, 0, -97, 2">
-                                                                            <ListView x:Name="collectionModsList" ItemsSource="{Binding Path=Mods}" MouseDoubleClick="collectionModsList_MouseDoubleClick" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseWheel="ScrollViewer_PreviewMouseWheel" LostFocus="collectionModsList_LostFocus">
+                                                                    <Expander x:Name="modsExpander"
+                                                                              IsExpanded="False">
+                                                                        <Border BorderThickness="1"
+                                                                                BorderBrush="#454545"
+                                                                                Margin="16, 0, -97, 2">
+                                                                            <ListView x:Name="collectionModsList"
+                                                                                      ItemsSource="{Binding Path=Mods}"
+                                                                                      MouseDoubleClick="collectionModsList_MouseDoubleClick"
+                                                                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                                                      PreviewMouseWheel="ScrollViewer_PreviewMouseWheel"
+                                                                                      LostFocus="collectionModsList_LostFocus">
                                                                                 <ListView.View>
                                                                                     <GridView ScrollViewer.CanContentScroll="False">
                                                                                         <GridView.ColumnHeaderContainerStyle>
-                                                                                            <Style TargetType="{x:Type GridViewColumnHeader}" BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
-                                                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                                            <Style TargetType="{x:Type GridViewColumnHeader}"
+                                                                                                   BasedOn="{StaticResource {x:Type GridViewColumnHeader}}">
+                                                                                                <Setter Property="Visibility"
+                                                                                                        Value="Visible" />
                                                                                             </Style>
                                                                                         </GridView.ColumnHeaderContainerStyle>
                                                                                         <GridView.Columns>
-                                                                                            <GridViewColumn Header="Title" Width="382">
+                                                                                            <GridViewColumn Header="Title"
+                                                                                                            Width="382">
                                                                                                 <GridViewColumn.CellTemplate>
                                                                                                     <DataTemplate>
-                                                                                                        <Grid Height="40" Margin="-2,0,16,0">
+                                                                                                        <Grid Height="40"
+                                                                                                              Margin="-2,0,16,0">
                                                                                                             <Grid.ColumnDefinitions>
-                                                                                                                <ColumnDefinition Width="32"/>
-                                                                                                                <ColumnDefinition/>
+                                                                                                                <ColumnDefinition Width="32" />
+                                                                                                                <ColumnDefinition />
                                                                                                             </Grid.ColumnDefinitions>
 
                                                                                                             <Grid Grid.Column="0">
-                                                                                                                <Image x:Name="collectionModIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32" RenderOptions.BitmapScalingMode="Fant"/>
-                                                                                                                <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
+                                                                                                                <Image x:Name="collectionModIcon"
+                                                                                                                       Grid.Column="0"
+                                                                                                                       Source="{Binding Path=ModDetails.Icon}"
+                                                                                                                       Width="32"
+                                                                                                                       RenderOptions.BitmapScalingMode="Fant" />
+                                                                                                                <Image Source="/FrostyModManager;component/Images/ModImportWarning.png"
+                                                                                                                       Width="12"
+                                                                                                                       HorizontalAlignment="Left"
+                                                                                                                       VerticalAlignment="Top"
+                                                                                                                       Opacity="0.75"
+                                                                                                                       Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}" />
                                                                                                             </Grid>
-                                                                                                            <Grid Grid.Column="1" VerticalAlignment="Center">
+                                                                                                            <Grid Grid.Column="1"
+                                                                                                                  VerticalAlignment="Center">
                                                                                                                 <Grid.RowDefinitions>
-                                                                                                                    <RowDefinition Height="16"/>
-                                                                                                                    <RowDefinition Height="16"/>
+                                                                                                                    <RowDefinition Height="16" />
+                                                                                                                    <RowDefinition Height="16" />
                                                                                                                 </Grid.RowDefinitions>
 
-                                                                                                                <TextBlock Grid.Row="0" Text="{Binding Path=ModDetails.Title}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" Margin="8,0,0,0"/>
-                                                                                                                <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#808080">
+                                                                                                                <TextBlock Grid.Row="0"
+                                                                                                                           Text="{Binding Path=ModDetails.Title}"
+                                                                                                                           VerticalAlignment="Center"
+                                                                                                                           Foreground="{StaticResource FontColor}"
+                                                                                                                           Margin="8,0,0,0" />
+                                                                                                                <TextBlock Grid.Row="1"
+                                                                                                                           VerticalAlignment="Center"
+                                                                                                                           Margin="8,0,0,0"
+                                                                                                                           Foreground="#808080">
                                                                                                                     <TextBlock.Text>
-                                                                                                                        <Binding Path="ModDetails.Author" StringFormat="by {0}"/>
+                                                                                                                        <Binding Path="ModDetails.Author"
+                                                                                                                                 StringFormat="by {0}" />
                                                                                                                     </TextBlock.Text>
                                                                                                                 </TextBlock>
                                                                                                             </Grid>
                                                                                                         </Grid>
 
                                                                                                         <DataTemplate.Triggers>
-                                                                                                            <DataTrigger Binding="{Binding Path=ModDetails.Icon}" Value="{x:Null}">
-                                                                                                                <Setter Property="Source" TargetName="collectionModIcon" Value="/FrostyModManager;component/Images/DefaultModIcon.png"/>
+                                                                                                            <DataTrigger Binding="{Binding Path=ModDetails.Icon}"
+                                                                                                                         Value="{x:Null}">
+                                                                                                                <Setter Property="Source"
+                                                                                                                        TargetName="collectionModIcon"
+                                                                                                                        Value="/FrostyModManager;component/Images/DefaultModIcon.png" />
                                                                                                             </DataTrigger>
                                                                                                         </DataTemplate.Triggers>
                                                                                                     </DataTemplate>
                                                                                                 </GridViewColumn.CellTemplate>
                                                                                             </GridViewColumn>
-                                                                                            <GridViewColumn Header="Version" Width="74">
+                                                                                            <GridViewColumn Header="Version"
+                                                                                                            Width="74">
                                                                                                 <GridViewColumn.CellTemplate>
                                                                                                     <DataTemplate>
                                                                                                         <Grid Height="32">
-                                                                                                            <TextBlock Text="{Binding Path=ModDetails.Version}" MinWidth="75" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                                                                                            <TextBlock Text="{Binding Path=ModDetails.Version}"
+                                                                                                                       MinWidth="75"
+                                                                                                                       VerticalAlignment="Top"
+                                                                                                                       Margin="0,4,0,0" />
                                                                                                         </Grid>
                                                                                                     </DataTemplate>
                                                                                                 </GridViewColumn.CellTemplate>
@@ -491,31 +856,51 @@
                                                                                     </GridView>
                                                                                 </ListView.View>
                                                                                 <ListView.GroupStyle>
-                                                                                    <GroupStyle ContainerStyle="{StaticResource ContainerStyle}"/>
+                                                                                    <GroupStyle ContainerStyle="{StaticResource ContainerStyle}" />
                                                                                 </ListView.GroupStyle>
                                                                             </ListView>
                                                                         </Border>
                                                                     </Expander>
-                                                                    <Grid x:Name="expanderHeaderGrid" Height="40" Style="{StaticResource ResourceKey=ExpanderHeader}">
+                                                                    <Grid x:Name="expanderHeaderGrid"
+                                                                          Height="40"
+                                                                          Style="{StaticResource ResourceKey=ExpanderHeader}">
                                                                         <Grid.ColumnDefinitions>
-                                                                            <ColumnDefinition Width="32"/>
-                                                                            <ColumnDefinition/>
+                                                                            <ColumnDefinition Width="32" />
+                                                                            <ColumnDefinition />
                                                                         </Grid.ColumnDefinitions>
 
                                                                         <Grid Grid.Column="0">
-                                                                            <Image x:Name="modIcon" Grid.Column="0" Source="{Binding Path=ModDetails.Icon}" Width="32" RenderOptions.BitmapScalingMode="Fant"/>
-                                                                            <Image Source="/FrostyModManager;component/Images/ModImportWarning.png" Width="12" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.75" Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}"/>
+                                                                            <Image x:Name="modIcon"
+                                                                                   Grid.Column="0"
+                                                                                   Source="{Binding Path=ModDetails.Icon}"
+                                                                                   Width="32"
+                                                                                   RenderOptions.BitmapScalingMode="Fant" />
+                                                                            <Image Source="/FrostyModManager;component/Images/ModImportWarning.png"
+                                                                                   Width="12"
+                                                                                   HorizontalAlignment="Left"
+                                                                                   VerticalAlignment="Top"
+                                                                                   Opacity="0.75"
+                                                                                   Visibility="{Binding Path=HasWarnings, Converter={StaticResource booleanToVisibilityConverter}}" />
                                                                         </Grid>
-                                                                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                                                                        <Grid Grid.Column="1"
+                                                                              VerticalAlignment="Center">
                                                                             <Grid.RowDefinitions>
-                                                                                <RowDefinition Height="16"/>
-                                                                                <RowDefinition Height="16"/>
+                                                                                <RowDefinition Height="16" />
+                                                                                <RowDefinition Height="16" />
                                                                             </Grid.RowDefinitions>
 
-                                                                            <TextBlock Grid.Row="0" Text="{Binding Path=ModDetails.Title}" VerticalAlignment="Center" Foreground="{StaticResource FontColor}" Margin="8,0,0,0"/>
-                                                                            <TextBlock Grid.Row="1" VerticalAlignment="Center" Margin="8,0,0,0" Foreground="#808080">
+                                                                            <TextBlock Grid.Row="0"
+                                                                                       Text="{Binding Path=ModDetails.Title}"
+                                                                                       VerticalAlignment="Center"
+                                                                                       Foreground="{StaticResource FontColor}"
+                                                                                       Margin="8,0,0,0" />
+                                                                            <TextBlock Grid.Row="1"
+                                                                                       VerticalAlignment="Center"
+                                                                                       Margin="8,0,0,0"
+                                                                                       Foreground="#808080">
                                                                                 <TextBlock.Text>
-                                                                                    <Binding Path="ModDetails.Author" StringFormat="by {0}"/>
+                                                                                    <Binding Path="ModDetails.Author"
+                                                                                             StringFormat="by {0}" />
                                                                                 </TextBlock.Text>
                                                                             </TextBlock>
                                                                         </Grid>
@@ -523,24 +908,37 @@
                                                                 </Grid>
 
                                                                 <DataTemplate.Triggers>
-                                                                    <DataTrigger Binding="{Binding Path=ModDetails.Icon}" Value="{x:Null}">
-                                                                        <Setter Property="Source" TargetName="modIcon" Value="/FrostyModManager;component/Images/DefaultModIcon.png"/>
+                                                                    <DataTrigger Binding="{Binding Path=ModDetails.Icon}"
+                                                                                 Value="{x:Null}">
+                                                                        <Setter Property="Source"
+                                                                                TargetName="modIcon"
+                                                                                Value="/FrostyModManager;component/Images/DefaultModIcon.png" />
                                                                     </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Path=Mods}" Value="{x:Null}">
-                                                                        <Setter Property="Visibility" TargetName="modsExpander" Value="Collapsed"/>
+                                                                    <DataTrigger Binding="{Binding Path=Mods}"
+                                                                                 Value="{x:Null}">
+                                                                        <Setter Property="Visibility"
+                                                                                TargetName="modsExpander"
+                                                                                Value="Collapsed" />
                                                                     </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding Path=Mods}" Value="{x:Null}">
-                                                                        <Setter TargetName="expanderHeaderGrid" Property="Margin" Value="0,0,0,0"/>
+                                                                    <DataTrigger Binding="{Binding Path=Mods}"
+                                                                                 Value="{x:Null}">
+                                                                        <Setter TargetName="expanderHeaderGrid"
+                                                                                Property="Margin"
+                                                                                Value="0,0,0,0" />
                                                                     </DataTrigger>
                                                                 </DataTemplate.Triggers>
                                                             </DataTemplate>
                                                         </GridViewColumn.CellTemplate>
                                                     </GridViewColumn>
-                                                    <GridViewColumn Header="Version" Width="75">
+                                                    <GridViewColumn Header="Version"
+                                                                    Width="75">
                                                         <GridViewColumn.CellTemplate>
                                                             <DataTemplate>
                                                                 <Grid Height="32">
-                                                                    <TextBlock Text="{Binding Path=ModDetails.Version}" MinWidth="75" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                                                                    <TextBlock Text="{Binding Path=ModDetails.Version}"
+                                                                               MinWidth="75"
+                                                                               VerticalAlignment="Top"
+                                                                               Margin="0,4,0,0" />
                                                                 </Grid>
                                                             </DataTemplate>
                                                         </GridViewColumn.CellTemplate>
@@ -549,141 +947,266 @@
                                             </GridView>
                                         </ListView.View>
                                         <ListView.GroupStyle>
-                                            <GroupStyle ContainerStyle="{StaticResource ContainerStyle}"/>
+                                            <GroupStyle ContainerStyle="{StaticResource ContainerStyle}" />
                                         </ListView.GroupStyle>
                                     </ListView>
                                 </Grid>
                             </ctrl:FrostyTabItem>
                             <!-- Installed Plugins -->
                             <ctrl:FrostyTabItem Header="Installed Plugins">
-                                <ListView x:Name="LoadedPluginsList">
-                                    <ListView.View>
-                                        <ctrl:FrostyAutoSizedGridView>
-                                            <GridView.Columns>
-                                                <GridViewColumn Header="Name">
-                                                    <GridViewColumn.CellTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Orientation="Horizontal" Height="24">
-                                                                <TextBlock Text="{Binding Path=Name}" VerticalAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </GridViewColumn.CellTemplate>
-                                                </GridViewColumn>
-                                                <GridViewColumn Header="Author">
-                                                    <GridViewColumn.CellTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Orientation="Horizontal" Height="24">
-                                                                <TextBlock Text="{Binding Path=Author}" VerticalAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </GridViewColumn.CellTemplate>
-                                                </GridViewColumn>
-                                                <GridViewColumn Header="Version">
-                                                    <GridViewColumn.CellTemplate>
-                                                        <DataTemplate>
-                                                            <StackPanel Orientation="Horizontal" Height="24">
-                                                                <TextBlock Text="{Binding Path=Version}" VerticalAlignment="Center"/>
-                                                            </StackPanel>
-                                                        </DataTemplate>
-                                                    </GridViewColumn.CellTemplate>
-                                                </GridViewColumn>
-                                            </GridView.Columns>
-                                        </ctrl:FrostyAutoSizedGridView>
-                                    </ListView.View>
-                                </ListView>
+                                <Grid>
+                                    <ListView x:Name="LoadedPluginsList">
+                                        <ListView.View>
+                                            <ctrl:FrostyAutoSizedGridView>
+                                                <GridView.Columns>
+                                                    <GridViewColumn Header="Name">
+                                                        <GridViewColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Height="24">
+                                                                    <TextBlock Text="{Binding Path=Name}"
+                                                                               VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </GridViewColumn.CellTemplate>
+                                                    </GridViewColumn>
+                                                    <GridViewColumn Header="Author">
+                                                        <GridViewColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Height="24">
+                                                                    <TextBlock Text="{Binding Path=Author}"
+                                                                               VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </GridViewColumn.CellTemplate>
+                                                    </GridViewColumn>
+                                                    <GridViewColumn Header="Version">
+                                                        <GridViewColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Height="24">
+                                                                    <TextBlock Text="{Binding Path=Version}"
+                                                                               VerticalAlignment="Center" />
+                                                                </StackPanel>
+                                                            </DataTemplate>
+                                                        </GridViewColumn.CellTemplate>
+                                                    </GridViewColumn>
+                                                    <GridViewColumn Header="Status">
+                                                        <GridViewColumn.CellTemplate>
+                                                            <DataTemplate>
+                                                                <StackPanel Orientation="Horizontal"
+                                                                            Height="24">
+                                                                    <Image Name="statusImage"
+                                                                           RenderOptions.BitmapScalingMode="Fant" />
+                                                                </StackPanel>
+                                                                <DataTemplate.Triggers>
+                                                                    <!-- Failure. -->
+                                                                    <DataTrigger Binding="{Binding Path=Status}"
+                                                                                 Value="{x:Static coreroot:PluginLoadStatus.Failed}">
+                                                                        <Setter Property="Image.ContextMenu"
+                                                                                TargetName="statusImage"
+                                                                                Value="{StaticResource pluginStatusImageContextMenu}" />
+                                                                        <Setter Property="Image.Source"
+                                                                                TargetName="statusImage"
+                                                                                Value="/FrostyCore;component/Images/Cross_White.png" />
+                                                                        <Setter Property="Image.ToolTip"
+                                                                                TargetName="statusImage"
+                                                                                Value="This plugin has failed to load. You may use the context menu of this image to copy the full exception." />
+                                                                    </DataTrigger>
+
+                                                                    <!-- Successfully loaded. -->
+                                                                    <DataTrigger Binding="{Binding Path=Status}"
+                                                                                 Value="{x:Static coreroot:PluginLoadStatus.Loaded}">
+                                                                        <Setter Property="Image.Source"
+                                                                                TargetName="statusImage"
+                                                                                Value="/FrostyCore;component/Images/Tick_White.png" />
+                                                                        <Setter Property="Image.ToolTip"
+                                                                                TargetName="statusImage"
+                                                                                Value="This plugin has successfully loaded." />
+                                                                    </DataTrigger>
+
+                                                                    <!-- Successfully loaded, but invalid for the current profile. -->
+                                                                    <DataTrigger Binding="{Binding Path=Status}"
+                                                                                 Value="{x:Static coreroot:PluginLoadStatus.LoadedInvalid}">
+                                                                        <Setter Property="Image.Source"
+                                                                                TargetName="statusImage"
+                                                                                Value="/FrostyCore;component/Images/Invalid_White.png" />
+                                                                        <Setter Property="Image.ToolTip"
+                                                                                TargetName="statusImage"
+                                                                                Value="This plugin has successfully loaded, but its features are unavailable for the selected profile." />
+                                                                    </DataTrigger>
+                                                                </DataTemplate.Triggers>
+                                                            </DataTemplate>
+                                                        </GridViewColumn.CellTemplate>
+                                                    </GridViewColumn>
+                                                </GridView.Columns>
+                                            </ctrl:FrostyAutoSizedGridView>
+                                        </ListView.View>
+                                    </ListView>
+
+                                    <TextBlock HorizontalAlignment="Right"
+                                               Margin="0,2.5,28,0"
+                                               Text="{Binding Path=Items.Count, ElementName=LoadedPluginsList, StringFormat='{}{0:N0} plugin(s)'}"
+                                               VerticalAlignment="Top" />
+                                </Grid>
                             </ctrl:FrostyTabItem>
                             <!-- Log -->
                             <ctrl:FrostyTabItem Header="Log">
                                 <Grid>
-                                    <Border BorderBrush="{StaticResource ControlBackground}" RenderOptions.EdgeMode="Aliased" BorderThickness="0,2,0,0">
-                                        <TextBox x:Name="tb" FontFamily="Consolas" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Background="{StaticResource ListBackground}" TextChanged="logTextBox_TextChanged"/>
+                                    <Border BorderBrush="{StaticResource ControlBackground}"
+                                            RenderOptions.EdgeMode="Aliased"
+                                            BorderThickness="0,2,0,0">
+                                        <TextBox x:Name="tb"
+                                                 FontFamily="Consolas"
+                                                 IsReadOnly="True"
+                                                 VerticalScrollBarVisibility="Auto"
+                                                 HorizontalScrollBarVisibility="Auto"
+                                                 Background="{StaticResource ListBackground}"
+                                                 TextChanged="logTextBox_TextChanged" />
                                     </Border>
                                 </Grid>
                             </ctrl:FrostyTabItem>
                         </ctrl:FrostyTabControl>
 
-                        <Grid Grid.Row="1" Height="2" Background="{StaticResource ControlBackground}"/>
+                        <Grid Grid.Row="1"
+                              Height="2"
+                              Background="{StaticResource ControlBackground}" />
 
-                        <ctrl:FrostyDetachedTabControl Grid.Row="2" x:Name="availableModsTabContent" Foreground="{StaticResource FontColor}" Grid.ColumnSpan="2"/>
+                        <ctrl:FrostyDetachedTabControl Grid.Row="2"
+                                                       x:Name="availableModsTabContent"
+                                                       Foreground="{StaticResource FontColor}"
+                                                       Grid.ColumnSpan="2" />
                     </Grid>
                 </ctrl:FrostyDockablePanel>
 
-                <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
+                <GridSplitter Background="Transparent"
+                              VerticalAlignment="Stretch"
+                              Width="3"
+                              ResizeDirection="Columns" />
 
                 <!-- Applied Mods / Mod Description / Conflicts -->
-                <ctrl:FrostyDockablePanel Grid.Column="1" TitleBarVisible="False">
+                <ctrl:FrostyDockablePanel Grid.Column="1"
+                                          TitleBarVisible="False">
                     <Grid Background="{StaticResource ListBackground}">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="33"/>
-                            <RowDefinition Height="2"/>
-                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="33" />
+                            <RowDefinition Height="2" />
+                            <RowDefinition Height="3*" />
                         </Grid.RowDefinitions>
 
-                        <ctrl:FrostyTabControl x:Name="tabControl" SelectionChanged="tabControl_SelectionChanged">
+                        <ctrl:FrostyTabControl x:Name="tabControl"
+                                               SelectionChanged="tabControl_SelectionChanged">
                             <ctrl:FrostyTabControl.Style>
                                 <Style TargetType="{x:Type ctrl:FrostyTabControl}">
                                     <Setter Property="Template">
                                         <Setter.Value>
                                             <ControlTemplate TargetType="{x:Type ctrl:FrostyTabControl}">
-                                                <Grid x:Name="templateRoot" ClipToBounds="true" SnapsToDevicePixels="true" KeyboardNavigation.TabNavigation="Local">
+                                                <Grid x:Name="templateRoot"
+                                                      ClipToBounds="true"
+                                                      SnapsToDevicePixels="true"
+                                                      KeyboardNavigation.TabNavigation="Local">
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition x:Name="ColumnDefinition0"/>
-                                                        <ColumnDefinition x:Name="ColumnDefinition1" Width="0"/>
+                                                        <ColumnDefinition x:Name="ColumnDefinition0" />
+                                                        <ColumnDefinition x:Name="ColumnDefinition1"
+                                                                          Width="0" />
                                                     </Grid.ColumnDefinitions>
                                                     <Grid.RowDefinitions>
-                                                        <RowDefinition x:Name="RowDefinition0" Height="Auto"/>
-                                                        <RowDefinition x:Name="RowDefinition1" Height="*"/>
+                                                        <RowDefinition x:Name="RowDefinition0"
+                                                                       Height="Auto" />
+                                                        <RowDefinition x:Name="RowDefinition1"
+                                                                       Height="*" />
                                                     </Grid.RowDefinitions>
 
                                                     <StackPanel>
                                                         <!-- Dockable Window Deco -->
-                                                        <StackPanel x:Name="DockableBar" Height="13">
-                                                            <Border Background="#232323" Height="11"/>
-                                                            <Border Background="#1a1a1a" Height="1"/>
-                                                            <Border Background="#2f2f2f" Height="1"/>
+                                                        <StackPanel x:Name="DockableBar"
+                                                                    Height="13">
+                                                            <Border Background="#232323"
+                                                                    Height="11" />
+                                                            <Border Background="#1a1a1a"
+                                                                    Height="1" />
+                                                            <Border Background="#2f2f2f"
+                                                                    Height="1" />
                                                         </StackPanel>
 
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="14"/>
-                                                                <ColumnDefinition Width="*"/>
-                                                                <ColumnDefinition Width="Auto"/>
-                                                                <ColumnDefinition Width="Auto"/>
+                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="Auto" />
                                                             </Grid.ColumnDefinitions>
 
-                                                            <Grid Width="14" Height="20">
-                                                                <Border Background="#292929"/>
-                                                                <Path x:Name="dockingDeco" Data="{Binding Source={StaticResource DockingDeco}, Path=Data}" Height="20" Width="14" Fill="#454545" Margin="0,0,0,0" RenderTransformOrigin="0.5,0.5">
+                                                            <Grid Width="14"
+                                                                  Height="20">
+                                                                <Border Background="#292929" />
+                                                                <Path x:Name="dockingDeco"
+                                                                      Data="{Binding Source={StaticResource DockingDeco}, Path=Data}"
+                                                                      Height="20"
+                                                                      Width="14"
+                                                                      Fill="#454545"
+                                                                      Margin="0,0,0,0"
+                                                                      RenderTransformOrigin="0.5,0.5">
                                                                     <Path.RenderTransform>
                                                                         <TransformGroup>
-                                                                            <ScaleTransform/>
-                                                                            <SkewTransform/>
-                                                                            <RotateTransform/>
-                                                                            <TranslateTransform Y="-1"/>
+                                                                            <ScaleTransform />
+                                                                            <SkewTransform />
+                                                                            <RotateTransform />
+                                                                            <TranslateTransform Y="-1" />
                                                                         </TransformGroup>
                                                                     </Path.RenderTransform>
                                                                 </Path>
                                                             </Grid>
 
-                                                            <ScrollViewer x:Name="PART_ScrollViewer" Grid.Column="1" IsTabStop="False" VerticalScrollBarVisibility="Disabled" HorizontalScrollBarVisibility="Hidden" BorderThickness="0" Padding="0" Margin="0,0,0,-1">
-                                                                <TabPanel x:Name="headerPanel" Background="Transparent" Grid.Column="0" IsItemsHost="true" Margin="-1,0,0,0" Grid.Row="0" KeyboardNavigation.TabIndex="1" Panel.ZIndex="1"/>
+                                                            <ScrollViewer x:Name="PART_ScrollViewer"
+                                                                          Grid.Column="1"
+                                                                          IsTabStop="False"
+                                                                          VerticalScrollBarVisibility="Disabled"
+                                                                          HorizontalScrollBarVisibility="Hidden"
+                                                                          BorderThickness="0"
+                                                                          Padding="0"
+                                                                          Margin="0,0,0,-1">
+                                                                <TabPanel x:Name="headerPanel"
+                                                                          Background="Transparent"
+                                                                          Grid.Column="0"
+                                                                          IsItemsHost="true"
+                                                                          Margin="-1,0,0,0"
+                                                                          Grid.Row="0"
+                                                                          KeyboardNavigation.TabIndex="1"
+                                                                          Panel.ZIndex="1" />
                                                             </ScrollViewer>
 
                                                             <Border Grid.Column="2">
-                                                                <RepeatButton Content="&lt;" x:Name="PART_ScrollLeft" Width="21">
+                                                                <RepeatButton Content="&lt;"
+                                                                              x:Name="PART_ScrollLeft"
+                                                                              Width="21">
                                                                     <RepeatButton.Template>
                                                                         <ControlTemplate TargetType="{x:Type RepeatButton}">
                                                                             <Border Background="{StaticResource ScrollbarBackground}">
-                                                                                <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1">
-                                                                                    <Polygon Points="0,0 3.5,3.5 3.5,-3.5" Stroke="{StaticResource ButtonImage}" Fill="{StaticResource ButtonImage}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="7,10,0,0"/>
+                                                                                <Border x:Name="border"
+                                                                                        Background="{StaticResource ControlBackground}"
+                                                                                        Margin="1">
+                                                                                    <Polygon Points="0,0 3.5,3.5 3.5,-3.5"
+                                                                                             Stroke="{StaticResource ButtonImage}"
+                                                                                             Fill="{StaticResource ButtonImage}"
+                                                                                             VerticalAlignment="Top"
+                                                                                             HorizontalAlignment="Left"
+                                                                                             Margin="7,10,0,0" />
                                                                                 </Border>
                                                                             </Border>
                                                                             <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
+                                                                                <Trigger Property="IsMouseOver"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlHighlight}" />
                                                                                 </Trigger>
-                                                                                <Trigger Property="IsPressed" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
+                                                                                <Trigger Property="IsPressed"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlPressed}" />
                                                                                 </Trigger>
                                                                             </ControlTemplate.Triggers>
                                                                         </ControlTemplate>
@@ -692,20 +1215,35 @@
                                                             </Border>
 
                                                             <Border Grid.Column="3">
-                                                                <RepeatButton Content="&gt;" x:Name="PART_ScrollRight" Width="21">
+                                                                <RepeatButton Content="&gt;"
+                                                                              x:Name="PART_ScrollRight"
+                                                                              Width="21">
                                                                     <RepeatButton.Template>
                                                                         <ControlTemplate TargetType="{x:Type RepeatButton}">
                                                                             <Border Background="{StaticResource ScrollbarBackground}">
-                                                                                <Border x:Name="border" Background="{StaticResource ControlBackground}" Margin="1">
-                                                                                    <Polygon Points="0,0 -3.5,3.5 -3.5,-3.5" Stroke="{StaticResource ButtonImage}" Fill="{StaticResource ButtonImage}" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="12,10,0,0"/>
+                                                                                <Border x:Name="border"
+                                                                                        Background="{StaticResource ControlBackground}"
+                                                                                        Margin="1">
+                                                                                    <Polygon Points="0,0 -3.5,3.5 -3.5,-3.5"
+                                                                                             Stroke="{StaticResource ButtonImage}"
+                                                                                             Fill="{StaticResource ButtonImage}"
+                                                                                             VerticalAlignment="Top"
+                                                                                             HorizontalAlignment="Left"
+                                                                                             Margin="12,10,0,0" />
                                                                                 </Border>
                                                                             </Border>
                                                                             <ControlTemplate.Triggers>
-                                                                                <Trigger Property="IsMouseOver" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlHighlight}"/>
+                                                                                <Trigger Property="IsMouseOver"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlHighlight}" />
                                                                                 </Trigger>
-                                                                                <Trigger Property="IsPressed" Value="True">
-                                                                                    <Setter Property="Background" TargetName="border" Value="{StaticResource ControlPressed}"/>
+                                                                                <Trigger Property="IsPressed"
+                                                                                         Value="True">
+                                                                                    <Setter Property="Background"
+                                                                                            TargetName="border"
+                                                                                            Value="{StaticResource ControlPressed}" />
                                                                                 </Trigger>
                                                                             </ControlTemplate.Triggers>
                                                                         </ControlTemplate>
@@ -716,33 +1254,75 @@
                                                     </StackPanel>
                                                 </Grid>
                                                 <ControlTemplate.Triggers>
-                                                    <Trigger Property="TabStripPlacement" Value="Bottom">
-                                                        <Setter Property="Grid.Row" TargetName="headerPanel" Value="1"/>
+                                                    <Trigger Property="TabStripPlacement"
+                                                             Value="Bottom">
+                                                        <Setter Property="Grid.Row"
+                                                                TargetName="headerPanel"
+                                                                Value="1" />
                                                         <!--<Setter Property="Grid.Row" TargetName="contentPanel" Value="0"/>-->
-                                                        <Setter Property="Height" TargetName="RowDefinition0" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition1" Value="Auto"/>
-                                                        <Setter Property="Margin" TargetName="headerPanel" Value="2,0,2,2"/>
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition1"
+                                                                Value="Auto" />
+                                                        <Setter Property="Margin"
+                                                                TargetName="headerPanel"
+                                                                Value="2,0,2,2" />
                                                     </Trigger>
-                                                    <Trigger Property="TabStripPlacement" Value="Left">
-                                                        <Setter Property="Grid.Row" TargetName="headerPanel" Value="0"/>
-                                                        <Setter Property="Grid.Column" TargetName="headerPanel" Value="0"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition0" Value="Auto"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition1" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition0" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition1" Value="0"/>
-                                                        <Setter Property="Margin" TargetName="headerPanel" Value="2,2,0,2"/>
+                                                    <Trigger Property="TabStripPlacement"
+                                                             Value="Left">
+                                                        <Setter Property="Grid.Row"
+                                                                TargetName="headerPanel"
+                                                                Value="0" />
+                                                        <Setter Property="Grid.Column"
+                                                                TargetName="headerPanel"
+                                                                Value="0" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition0"
+                                                                Value="Auto" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition1"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition1"
+                                                                Value="0" />
+                                                        <Setter Property="Margin"
+                                                                TargetName="headerPanel"
+                                                                Value="2,2,0,2" />
                                                     </Trigger>
-                                                    <Trigger Property="TabStripPlacement" Value="Right">
-                                                        <Setter Property="Grid.Row" TargetName="headerPanel" Value="0"/>
-                                                        <Setter Property="Grid.Column" TargetName="headerPanel" Value="1"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition0" Value="*"/>
-                                                        <Setter Property="Width" TargetName="ColumnDefinition1" Value="Auto"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition0" Value="*"/>
-                                                        <Setter Property="Height" TargetName="RowDefinition1" Value="0"/>
-                                                        <Setter Property="Margin" TargetName="headerPanel" Value="0,2,2,2"/>
+                                                    <Trigger Property="TabStripPlacement"
+                                                             Value="Right">
+                                                        <Setter Property="Grid.Row"
+                                                                TargetName="headerPanel"
+                                                                Value="0" />
+                                                        <Setter Property="Grid.Column"
+                                                                TargetName="headerPanel"
+                                                                Value="1" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Width"
+                                                                TargetName="ColumnDefinition1"
+                                                                Value="Auto" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition0"
+                                                                Value="*" />
+                                                        <Setter Property="Height"
+                                                                TargetName="RowDefinition1"
+                                                                Value="0" />
+                                                        <Setter Property="Margin"
+                                                                TargetName="headerPanel"
+                                                                Value="0,2,2,2" />
                                                     </Trigger>
-                                                    <Trigger Property="IsEnabled" Value="false">
-                                                        <Setter Property="TextElement.Foreground" TargetName="templateRoot" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                                                    <Trigger Property="IsEnabled"
+                                                             Value="false">
+                                                        <Setter Property="TextElement.Foreground"
+                                                                TargetName="templateRoot"
+                                                                Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
                                                     </Trigger>
                                                 </ControlTemplate.Triggers>
                                             </ControlTemplate>
@@ -752,67 +1332,125 @@
                             </ctrl:FrostyTabControl.Style>
 
                             <!-- Applied Mods -->
-                            <ctrl:FrostyTabItem x:Name="appliedModsTabItem" Header="Applied Mods">
+                            <ctrl:FrostyTabItem x:Name="appliedModsTabItem"
+                                                Header="Applied Mods">
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="26"/>
-                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="26" />
+                                        <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <Border Grid.Row="0" BorderBrush="{StaticResource ControlBackground}" BorderThickness="0,0,0,2">
+                                    <Border Grid.Row="0"
+                                            BorderBrush="{StaticResource ControlBackground}"
+                                            BorderThickness="0,0,0,2">
                                         <DockPanel Margin="1">
-                                            <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
-                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
+                                            <Border Background="{StaticResource ControlBackground}"
+                                                    DockPanel.Dock="Left"
+                                                    RenderOptions.EdgeMode="Aliased">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            Orientation="Horizontal"
+                                                            Margin="6,0,6,0">
                                                     <!-- Down Button -->
-                                                    <Button x:Name="downButton" Margin="4,0,0,0" IsEnabled="False" Click="downButton_Click" ToolTip="Move mod down in list &#x0a;Shift click to move down 5 spaces &#x0a;Ctrl Shift click to move to bottom">
-                                                        <Image Source="/FrostyModManager;component/Images/Down.png" Margin="0,0,2,0"/>
+                                                    <Button x:Name="downButton"
+                                                            Margin="4,0,0,0"
+                                                            IsEnabled="False"
+                                                            Click="downButton_Click"
+                                                            ToolTip="Move mod down in list &#x0a;Shift click to move down 5 spaces &#x0a;Ctrl Shift click to move to bottom">
+                                                        <Image Source="/FrostyModManager;component/Images/Down.png"
+                                                               Margin="0,0,2,0" />
                                                     </Button>
                                                     <!-- Up Button -->
-                                                    <Button x:Name="upButton" IsEnabled="False" Click="upButton_Click" ToolTip="Move mod up in list &#x0a;Shift click to move up 5 spaces &#x0a;Ctrl Shift click to move to top">
-                                                        <Image Source="/FrostyModManager;component/Images/Up.png" Margin="0,0,2,0"/>
+                                                    <Button x:Name="upButton"
+                                                            IsEnabled="False"
+                                                            Click="upButton_Click"
+                                                            ToolTip="Move mod up in list &#x0a;Shift click to move up 5 spaces &#x0a;Ctrl Shift click to move to top">
+                                                        <Image Source="/FrostyModManager;component/Images/Up.png"
+                                                               Margin="0,0,2,0" />
                                                     </Button>
                                                     <!-- Remove Button -->
-                                                    <Button x:Name="removeButton" Margin="4,0,0,0" IsEnabled="False" Click="removeButton_Click" ToolTip="Remove mod from list">
-                                                        <Image Source="/FrostyModManager;component/Images/Remove.png" Margin="0,0,2,0"/>
+                                                    <Button x:Name="removeButton"
+                                                            Margin="4,0,0,0"
+                                                            IsEnabled="False"
+                                                            Click="removeButton_Click"
+                                                            ToolTip="Remove mod from list">
+                                                        <Image Source="/FrostyModManager;component/Images/Remove.png"
+                                                               Margin="0,0,2,0" />
                                                     </Button>
                                                 </StackPanel>
                                             </Border>
 
                                             <!-- Loading Order -->
-                                            <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Right" RenderOptions.EdgeMode="Aliased">
-                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
-                                                    <TextBlock Margin="6,0,0,0" Text="Load Order:" VerticalAlignment="Center"/>
-                                                    <ComboBox x:Name="orderComboBox" Width="68" Height="22" Margin="4,0,0,0" Padding="4,2,4,2" SelectionChanged="orderComboBox_SelectionChanged" ToolTip="{Binding Path=SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}">
-                                                        <ComboBoxItem Content="List" ToolTip="Bottom Overrides Top"/>
-                                                        <ComboBoxItem Content="Priority" ToolTip="Top Overrides Bottom"/>
+                                            <Border Background="{StaticResource ControlBackground}"
+                                                    DockPanel.Dock="Right"
+                                                    RenderOptions.EdgeMode="Aliased">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            Orientation="Horizontal">
+                                                    <TextBlock Margin="6,0,0,0"
+                                                               Text="Load Order:"
+                                                               VerticalAlignment="Center" />
+                                                    <ComboBox x:Name="orderComboBox"
+                                                              Width="68"
+                                                              Height="22"
+                                                              Margin="4,0,0,0"
+                                                              Padding="4,2,4,2"
+                                                              SelectionChanged="orderComboBox_SelectionChanged"
+                                                              ToolTip="{Binding Path=SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}">
+                                                        <ComboBoxItem Content="List"
+                                                                      ToolTip="Bottom Overrides Top" />
+                                                        <ComboBoxItem Content="Priority"
+                                                                      ToolTip="Top Overrides Bottom" />
                                                     </ComboBox>
                                                 </StackPanel>
                                             </Border>
 
                                             <!-- Filler -->
-                                            <Border Background="Transparent" Margin="1,0,0,0" HorizontalAlignment="Stretch" DockPanel.Dock="Left"/>
+                                            <Border Background="Transparent"
+                                                    Margin="1,0,0,0"
+                                                    HorizontalAlignment="Stretch"
+                                                    DockPanel.Dock="Left" />
                                         </DockPanel>
                                     </Border>
 
-                                    <ListBox x:Name="appliedModsList" Grid.Row="1" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="appliedModsList_SelectionChanged" SelectionMode="Extended" VerticalAlignment="Top">
+                                    <ListBox x:Name="appliedModsList"
+                                             Grid.Row="1"
+                                             HorizontalContentAlignment="Stretch"
+                                             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             SelectionChanged="appliedModsList_SelectionChanged"
+                                             SelectionMode="Extended"
+                                             VerticalAlignment="Top">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="16"/>
-                                                        <ColumnDefinition Width="24"/>
-                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="16" />
+                                                        <ColumnDefinition Width="24" />
+                                                        <ColumnDefinition Width="*" />
                                                     </Grid.ColumnDefinitions>
 
-                                                    <CheckBox x:Name="enabledCheckBox" Grid.Column="0" VerticalAlignment="Center" IsChecked="{Binding Path=IsEnabled}" IsEnabled="{Binding Path=IsFound}" Checked="enabledCheckBox_Checked" Unchecked="enabledCheckBox_Checked"/>
-                                                    <Image Grid.Column="1" Source="{Binding Path=ModIcon}" Margin="8,0,0,0" Width="16" RenderOptions.BitmapScalingMode="Fant"/>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Path=ModName}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                                                    <CheckBox x:Name="enabledCheckBox"
+                                                              Grid.Column="0"
+                                                              VerticalAlignment="Center"
+                                                              IsChecked="{Binding Path=IsEnabled}"
+                                                              IsEnabled="{Binding Path=IsFound}"
+                                                              Checked="enabledCheckBox_Checked"
+                                                              Unchecked="enabledCheckBox_Checked" />
+                                                    <Image Grid.Column="1"
+                                                           Source="{Binding Path=ModIcon}"
+                                                           Margin="8,0,0,0"
+                                                           Width="16"
+                                                           RenderOptions.BitmapScalingMode="Fant" />
+                                                    <TextBlock Grid.Column="2"
+                                                               Text="{Binding Path=ModName}"
+                                                               Margin="8,0,0,0"
+                                                               VerticalAlignment="Center" />
                                                 </Grid>
                                             </DataTemplate>
                                         </ListBox.ItemTemplate>
                                         <ListBox.ItemContainerStyle>
-                                            <Style TargetType="{x:Type ListBoxItem}" BasedOn="{StaticResource {x:Type ListBoxItem}}">
-                                                <Setter Property="DockPanel.Dock" Value="Top" />
+                                            <Style TargetType="{x:Type ListBoxItem}"
+                                                   BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                                                <Setter Property="DockPanel.Dock"
+                                                        Value="Top" />
                                             </Style>
                                         </ListBox.ItemContainerStyle>
                                         <ListBox.ItemsPanel>
@@ -824,59 +1462,102 @@
                                 </Grid>
                             </ctrl:FrostyTabItem>
                             <!-- Mod Description -->
-                            <ctrl:FrostyTabItem x:Name="modDescTabItem" Header="Description" Visibility="Collapsed"/>
+                            <ctrl:FrostyTabItem x:Name="modDescTabItem"
+                                                Header="Description"
+                                                Visibility="Collapsed" />
                             <!-- Conflicts -->
-                            <ctrl:FrostyTabItem x:Name="conflictsTabItem" Header="Actions" Visibility="Collapsed">
+                            <ctrl:FrostyTabItem x:Name="conflictsTabItem"
+                                                Header="Actions"
+                                                Visibility="Collapsed">
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="26"/>
-                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="26" />
+                                        <RowDefinition Height="*" />
                                     </Grid.RowDefinitions>
 
-                                    <Border Grid.Row="0" BorderBrush="{StaticResource ControlBackground}" BorderThickness="0,0,0,2">
+                                    <Border Grid.Row="0"
+                                            BorderBrush="{StaticResource ControlBackground}"
+                                            BorderThickness="0,0,0,2">
                                         <DockPanel Margin="1">
-                                            <Border Background="{StaticResource ControlBackground}" DockPanel.Dock="Left" RenderOptions.EdgeMode="Aliased">
-                                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal" Margin="6,0,6,0">
-                                                    <CheckBox x:Name="showOnlyReplacementsCheckBox" VerticalAlignment="Center" Margin="0,0,0,0" Checked="PART_ShowOnlyReplacementsCheckBox_Checked">
-                                                        <TextBlock Text="Show only replacements" Margin="4,-1,0,0" VerticalAlignment="Center" Foreground="{StaticResource FontColor}"/>
+                                            <Border Background="{StaticResource ControlBackground}"
+                                                    DockPanel.Dock="Left"
+                                                    RenderOptions.EdgeMode="Aliased">
+                                                <StackPanel VerticalAlignment="Center"
+                                                            Orientation="Horizontal"
+                                                            Margin="6,0,6,0">
+                                                    <CheckBox x:Name="showOnlyReplacementsCheckBox"
+                                                              VerticalAlignment="Center"
+                                                              Margin="0,0,0,0"
+                                                              Checked="PART_ShowOnlyReplacementsCheckBox_Checked">
+                                                        <TextBlock Text="Show only replacements"
+                                                                   Margin="4,-1,0,0"
+                                                                   VerticalAlignment="Center"
+                                                                   Foreground="{StaticResource FontColor}" />
                                                     </CheckBox>
                                                 </StackPanel>
                                             </Border>
                                             <!-- Filler -->
-                                            <Border Background="Transparent" Margin="1,0,0,0" HorizontalAlignment="Stretch" DockPanel.Dock="Left"/>
+                                            <Border Background="Transparent"
+                                                    Margin="1,0,0,0"
+                                                    HorizontalAlignment="Stretch"
+                                                    DockPanel.Dock="Left" />
                                         </DockPanel>
                                     </Border>
 
-                                    <Border Grid.Row="1" Background="{StaticResource ListBackground}" Margin="2">
+                                    <Border Grid.Row="1"
+                                            Background="{StaticResource ListBackground}"
+                                            Margin="2">
                                         <ListView x:Name="conflictsListView">
                                             <ListView.Resources>
-                                                <local:ModPrimaryActionConverter x:Key="ModPrimaryActionConverter"/>
+                                                <local:ModPrimaryActionConverter x:Key="ModPrimaryActionConverter" />
                                                 <DataTemplate x:Key="conflictsNameHeaderTemplate">
-                                                    <TextBlock Text="{Binding Path=.}" VerticalAlignment="Center" Margin="0,0,8,0" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Path=.}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,8,0"
+                                                               TextTrimming="CharacterEllipsis" />
                                                 </DataTemplate>
                                                 <DataTemplate x:Key="conflictsModHeaderTemplate">
-                                                    <TextBlock Text="{Binding Path=.}" VerticalAlignment="Center" Margin="0,0,8,0" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                                                    <TextBlock Text="{Binding Path=.}"
+                                                               VerticalAlignment="Center"
+                                                               Margin="0,0,8,0"
+                                                               HorizontalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" />
                                                 </DataTemplate>
                                                 <DataTemplate x:Key="conflictsNameTemplate">
-                                                    <StackPanel Height="22" Orientation="Horizontal">
-                                                        <Image x:Name="typeImage" Source="/FrostyModManager;component/Images/Ebx.png" Margin="0,0,4,0" Height="18"/>
-                                                        <TextBlock Text="{Binding Path=Name}" FontFamily="Consolas" VerticalAlignment="Center"/>
+                                                    <StackPanel Height="22"
+                                                                Orientation="Horizontal">
+                                                        <Image x:Name="typeImage"
+                                                               Source="/FrostyModManager;component/Images/Ebx.png"
+                                                               Margin="0,0,4,0"
+                                                               Height="18" />
+                                                        <TextBlock Text="{Binding Path=Name}"
+                                                                   FontFamily="Consolas"
+                                                                   VerticalAlignment="Center" />
                                                     </StackPanel>
                                                     <DataTemplate.Triggers>
-                                                        <DataTrigger Binding="{Binding Path=Type}" Value="res">
-                                                            <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Res.png"/>
+                                                        <DataTrigger Binding="{Binding Path=Type}"
+                                                                     Value="res">
+                                                            <Setter TargetName="typeImage"
+                                                                    Property="Source"
+                                                                    Value="/FrostyModManager;component/Images/Res.png" />
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Path=Type}" Value="chunk">
-                                                            <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Chunk.png"/>
+                                                        <DataTrigger Binding="{Binding Path=Type}"
+                                                                     Value="chunk">
+                                                            <Setter TargetName="typeImage"
+                                                                    Property="Source"
+                                                                    Value="/FrostyModManager;component/Images/Chunk.png" />
                                                         </DataTrigger>
-                                                        <DataTrigger Binding="{Binding Path=Type}" Value="legacy">
-                                                            <Setter TargetName="typeImage" Property="Source" Value="/FrostyModManager;component/Images/Legacy.png"/>
+                                                        <DataTrigger Binding="{Binding Path=Type}"
+                                                                     Value="legacy">
+                                                            <Setter TargetName="typeImage"
+                                                                    Property="Source"
+                                                                    Value="/FrostyModManager;component/Images/Legacy.png" />
                                                         </DataTrigger>
                                                     </DataTemplate.Triggers>
                                                 </DataTemplate>
                                             </ListView.Resources>
                                             <ListView.View>
-                                                <GridView ColumnHeaderTemplate="{StaticResource conflictsNameHeaderTemplate}"/>
+                                                <GridView ColumnHeaderTemplate="{StaticResource conflictsNameHeaderTemplate}" />
                                             </ListView.View>
                                         </ListView>
                                     </Border>
@@ -884,26 +1565,40 @@
                             </ctrl:FrostyTabItem>
                         </ctrl:FrostyTabControl>
 
-                        <Grid Grid.Row="1" Height="2" Background="{StaticResource ControlBackground}"/>
+                        <Grid Grid.Row="1"
+                              Height="2"
+                              Background="{StaticResource ControlBackground}" />
 
-                        <ctrl:FrostyDetachedTabControl Grid.Row="2" x:Name="tabContent" Foreground="{StaticResource FontColor}" Grid.ColumnSpan="2"/>
+                        <ctrl:FrostyDetachedTabControl Grid.Row="2"
+                                                       x:Name="tabContent"
+                                                       Foreground="{StaticResource FontColor}"
+                                                       Grid.ColumnSpan="2" />
                     </Grid>
                 </ctrl:FrostyDockablePanel>
             </Grid>
 
             <!-- Deco -->
             <Grid Grid.Row="4">
-                <Border BorderThickness="2,0,2,2" BorderBrush="{StaticResource ControlBackground}" Background="#FF141414"/>
+                <Border BorderThickness="2,0,2,2"
+                        BorderBrush="{StaticResource ControlBackground}"
+                        Background="#FF141414" />
             </Grid>
         </Grid>
 
-        <Grid x:Name="imagePanel" Visibility="Collapsed" Grid.RowSpan="2">
-            <Border Background="#40373737"/>
-            <Border Background="Black" Margin="50">
+        <Grid x:Name="imagePanel"
+              Visibility="Collapsed"
+              Grid.RowSpan="2">
+            <Border Background="#40373737" />
+            <Border Background="Black"
+                    Margin="50">
                 <Border.Effect>
-                    <DropShadowEffect BlurRadius="20" ShadowDepth="1"/>
+                    <DropShadowEffect BlurRadius="20"
+                                      ShadowDepth="1" />
                 </Border.Effect>
-                <Image x:Name="screenshotImage" Source="/FrostyModManager;component/Images/DefaultModIcon.png" Cursor="Hand" MouseDown="largeScreenshot_MouseDown"/>
+                <Image x:Name="screenshotImage"
+                       Source="/FrostyModManager;component/Images/DefaultModIcon.png"
+                       Cursor="Hand"
+                       MouseDown="largeScreenshot_MouseDown" />
             </Border>
         </Grid>
     </Grid>

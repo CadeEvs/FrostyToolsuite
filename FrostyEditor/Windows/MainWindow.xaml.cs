@@ -125,7 +125,7 @@ namespace FrostyEditor
             LoadTabExtensions();
             LoadDataExplorerMenuItemExtensions();
 
-            LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+            LoadedPluginsList.ItemsSource = App.PluginManager.Plugins;
 
             if (toolsMenuItem.Items.Count != 0)
                 toolsMenuItem.Items.Add(new Separator());
@@ -1521,6 +1521,18 @@ namespace FrostyEditor
             recentProjectsMenuItem.Items.Add(new Separator());
             recentProjectsMenuItem.Items.Add(m_clearRecentsMenuItem);
             recentProjectsMenuItem.IsEnabled = true;
+        }
+
+        private void CopyFullExceptionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Plugin selectedPlugin = (Plugin)LoadedPluginsList.SelectedItem;
+
+            // retrieve the selected plugin's load exception, execute ToString on it, and add the result to the clipboard
+            Clipboard.SetText(string.Format("[{0}]\n{1}", new string[]
+            {
+                DateTime.Now.ToString(),
+                selectedPlugin.LoadException.ToString()
+            }));
         }
     }
 }

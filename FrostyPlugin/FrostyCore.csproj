@@ -172,6 +172,11 @@
     <Compile Include="Mod\RuntimeEbxResource.cs" />
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
+    <Compile Include="Plugin.cs" />
+    <Compile Include="PluginLoadStatus.cs" />
+    <Compile Include="PluginLoadType.cs" />
+    <Compile Include="PluginManagerType.cs" />
+    <Compile Include="ShaderDefinition.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="Utils\UpdateChecker.cs" />
     <Compile Include="Windows\OptionsWindow.xaml.cs">
@@ -415,6 +420,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Assets\StatFileType.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Cross_White.png" />
+    <Resource Include="Images\Invalid_White.png" />
+    <Resource Include="Images\Tick_White.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
