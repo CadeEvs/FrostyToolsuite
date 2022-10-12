@@ -7,68 +7,123 @@
         xmlns:ctrl="clr-namespace:Frosty.Core.Controls"
         xmlns:ctrl2="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
-        Title="" Height="150" Width="400" AllowsTransparency="True" WindowStyle="None" Background="Transparent" UseLayoutRounding="True" SnapsToDevicePixels="True"
-        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
-    <Grid x:Name="taskWindow" Visibility="Visible" SnapsToDevicePixels="True">
-        <Border Background="Transparent"/>
-        <Border Background="{StaticResource ControlBackground}" VerticalAlignment="Center" HorizontalAlignment="Center" Width="350" Height="125" BorderBrush="{StaticResource ListBackground}" BorderThickness="1">
+        Title=""
+        Height="150"
+        Width="400"
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Background="Transparent"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+    <Grid x:Name="taskWindow"
+          Visibility="Visible"
+          SnapsToDevicePixels="True">
+        <Border Background="Transparent" />
+        <Border Background="{StaticResource ControlBackground}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Width="350"
+                Height="125"
+                BorderBrush="{StaticResource ListBackground}"
+                BorderThickness="1">
             <Border.Effect>
-                <DropShadowEffect BlurRadius="20" ShadowDepth="1"/>
+                <DropShadowEffect BlurRadius="20"
+                                  ShadowDepth="1" />
             </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition/>
-                    <RowDefinition Height="23"/>
+                    <RowDefinition />
+                    <RowDefinition Height="23" />
                 </Grid.RowDefinitions>
 
-                <StackPanel Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Vertical">
-                    <TextBlock x:Name="taskTextBlock" Text="Header Text" Foreground="{StaticResource FontColor}"  Margin="0,0,0,0" FontFamily="Global User Interface" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                <StackPanel Grid.Row="0"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Orientation="Vertical">
+                    <TextBlock x:Name="taskTextBlock"
+                               Text="Header Text"
+                               Foreground="{StaticResource FontColor}"
+                               Margin="0,0,0,0"
+                               FontFamily="Global User Interface"
+                               FontSize="18"
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center" />
                 </StackPanel>
 
-                <Grid Grid.Row="1" Background="{StaticResource WindowBackground}">
+                <Grid Grid.Row="1"
+                      Background="{StaticResource WindowBackground}">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="26"/>
+                        <ColumnDefinition Width="26" />
                         <ColumnDefinition />
-                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <ProgressBar Grid.Column="0" Grid.ColumnSpan="3" x:Name="taskProgressBar" Background="Transparent" BorderBrush="Transparent" Foreground="{StaticResource ListBackground}"/>
-                    <ctrl2:FrostySpinner Width="20" Height="20"/>
+                    <ProgressBar Grid.Column="0"
+                                 Grid.ColumnSpan="3"
+                                 x:Name="taskProgressBar"
+                                 Background="Transparent"
+                                 BorderBrush="Transparent"
+                                 Foreground="{StaticResource ListBackground}"
+                                 Value="{Binding Path=Progress, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyTaskWindow}, Mode=FindAncestor}}" />
+                    <ctrl2:FrostySpinner Width="20"
+                                         Height="20" />
 
-                    <TextBlock x:Name="statusTextBox" Grid.Column="1" Background="Transparent" Text="Status Text" Padding="4,5,4,0" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock x:Name="statusTextBox"
+                               Grid.Column="1"
+                               Background="Transparent"
+                               Text="{Binding Path=Status, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyTaskWindow}, Mode=FindAncestor}}"
+                               Padding="4,5,4,0"
+                               Foreground="{StaticResource FontColor}"
+                               FontFamily="Global User Interface"
+                               TextTrimming="CharacterEllipsis" />
 
-                    <Button x:Name="cancelButton" Grid.Column="2" Margin="0" Visibility="Collapsed" Cursor="Hand">
-                        <Image Source="/FrostyControls;component/Images/CloseWindow.png"/>
-                        <!--<TextBlock Padding="8 0 8 0" TextDecorations="Underline">
-                            Cancel
-                        </TextBlock>-->
+                    <Button x:Name="cancelButton"
+                            Grid.Column="2"
+                            Margin="0"
+                            Visibility="Collapsed"
+                            Cursor="Hand"
+                            ToolTip="Cancel the task. (Esc)">
+                        <Image Source="/FrostyControls;component/Images/CloseWindow.png" />
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
-                                <Setter Property="Background" Value="Transparent"/>
-                                <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
+                                <Setter Property="Background"
+                                        Value="Transparent" />
+                                <Setter Property="Foreground"
+                                        Value="{StaticResource FontColor}" />
                                 <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Opacity" Value="0.6"/>
+                                    <Trigger Property="IsMouseOver"
+                                             Value="True">
+                                        <Setter Property="Opacity"
+                                                Value="0.6" />
                                     </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter Property="Opacity" Value="0.4"/>
+                                    <Trigger Property="IsPressed"
+                                             Value="True">
+                                        <Setter Property="Opacity"
+                                                Value="0.4" />
                                     </Trigger>
-                                    <Trigger Property="IsEnabled" Value="False">
-                                        <Setter Property="Opacity" Value="0.5"/>
-                                        <Setter Property="ToolTip" Value="Cancelling"/>
+                                    <Trigger Property="IsEnabled"
+                                             Value="False">
+                                        <Setter Property="Opacity"
+                                                Value="0.5" />
+                                        <Setter Property="ToolTip"
+                                                Value="Cancelling" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                         <Button.Template>
-                            <ControlTemplate TargetType="{x:Type Button}" >
+                            <ControlTemplate TargetType="{x:Type Button}">
                                 <Border Background="{TemplateBinding Background}">
-                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                    <ContentPresenter VerticalAlignment="Center"
+                                                      HorizontalAlignment="Center"
+                                                      Margin="{TemplateBinding Padding}" />
                                 </Border>
                             </ControlTemplate>
                         </Button.Template>
                     </Button>
-                    
                 </Grid>
             </Grid>
         </Border>

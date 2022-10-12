@@ -768,25 +768,11 @@ namespace FrostySdk
 
         public static string GetString(int hash)
         {
-            if (strings.Count == 0)
+            if (!strings.ContainsKey(hash))
             {
-                if (File.Exists("strings.txt"))
-                {
-                    using (NativeReader reader = new NativeReader(new FileStream("strings.txt", FileMode.Open, FileAccess.Read)))
-                    {
-                        while (reader.Position < reader.Length)
-                        {
-                            string str = reader.ReadLine();
-                            int strHash = Fnv1.HashString(str);
-                            if (!strings.ContainsKey(strHash))
-                                strings.Add(strHash, str);
-                        }
-                    }
-                }
+                return "0x" + hash.ToString("x8");
             }
 
-            if (!strings.ContainsKey(hash))
-                return "0x" + hash.ToString("x8");
             return strings[hash];
         }
 
@@ -1197,6 +1183,35 @@ namespace FrostySdk
             }
 
             return (uint)((int)((part1 & 0xFFFF0000) + (part1 << 16)) | ((ushort)part2 + (part2 >> 16)));
+        }
+
+        /// <summary>
+        /// Loads all resolved hashes that are found within the specified file of <paramref name="path"/>.
+        /// </summary>
+        /// <param name="path">The file to be read from for hashes.</param>
+        public static void LoadStringList(string path = "strings.txt", ILogger logger = null)
+        {
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            strings.Clear();
+
+            using (NativeReader reader = new NativeReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+            {
+                while (reader.Position < reader.Length)
+                {
+                    string currentString = reader.ReadLine();
+                    int hash = Fnv1.HashString(currentString);
+                    if (!strings.ContainsKey(hash))
+                    {
+                        strings.Add(hash, currentString);
+                    }
+
+                    logger?.Log("progress:" + (double)reader.Position / (double)reader.Length * 100.0);
+                }
+            }
         }
     }
 }

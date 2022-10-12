@@ -97,6 +97,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="FrostyAppliedMod.cs" />
+    <Compile Include="SplashWindowLogger.cs" />
     <Compile Include="Windows\CollectionSettingsWindow.xaml.cs">
       <DependentUpon>CollectionSettingsWindow.xaml</DependentUpon>
     </Compile>

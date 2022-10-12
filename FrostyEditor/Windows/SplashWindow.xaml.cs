@@ -20,42 +20,6 @@ namespace FrostyEditor.Windows
     /// </summary>
     public partial class SplashWindow : Window
     {
-        private class SplashWindowLogger : ILogger
-        {
-            private SplashWindow parent;
-            public SplashWindowLogger(SplashWindow inParent)
-            {
-                parent = inParent;
-            }
-
-            public void Log(string text, params object[] vars)
-            {
-                string fullText = string.Format(text, vars);
-                parent.logTextBox.Dispatcher.Invoke(() =>
-                {
-                    if (fullText.StartsWith("progress:"))
-                    {
-                        fullText = fullText.Replace("progress:", "");
-                        double progress = double.Parse(fullText);
-
-                        parent.progressBar.Value = progress;
-                        parent.TaskbarItemInfo.ProgressState = System.Windows.Shell.TaskbarItemProgressState.Normal;
-                        parent.TaskbarItemInfo.ProgressValue = progress / 100.0d;
-                    }
-                    else
-                        parent.logTextBox.Text = fullText;
-                });
-            }
-
-            public void LogError(string text, params object[] vars)
-            {
-            }
-
-            public void LogWarning(string text, params object[] vars)
-            {
-            }
-        }
-
         public SplashWindow()
         {
             InitializeComponent();
@@ -239,7 +203,7 @@ namespace FrostyEditor.Windows
         private async Task<int> LoadStringList(ILogger logger)
         {
             logger.Log("Loading custom strings");
-            await Task.Run(() => Utils.GetString(0));
+            await Task.Run(() => Utils.LoadStringList("strings.txt", logger));
             return 0;
         }       
 
