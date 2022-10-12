@@ -228,7 +228,28 @@ namespace Frosty.Core.Controls.Editors
             else
             {
                 string filterText = filter.Text.ToLower();
+
+                // search name by default
                 popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+
+                // search id instead if valid hex
+                if (uint.TryParse(filterText, NumberStyles.HexNumber, null, out uint uintResult))
+                {
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Id.Equals(uintResult); };
+
+                    // if filter was given a valid hex but no results found, assume user was searching for name. ex. "eff" would be valid hex but is likely a name search.
+                    if (popup.Items.Count == 0)
+                    {
+                        popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Name.IndexOf(filterText, StringComparison.OrdinalIgnoreCase) >= 0; };
+                    }
+                }
+
+                // search guid instead if valid guid
+                if (Guid.TryParse(filterText, out Guid guidResult))
+                {
+                    uint.TryParse(filterText.Split('-').Last(), NumberStyles.HexNumber, null, out uint id);
+                    popup.Items.Filter = (object a) => { return ((PointerRefClassType)a).Guid.Equals(guidResult) || ((PointerRefClassType)a).Id.Equals(id); };
+                }
             }
             popup.IsDropDownOpen = true;
         }
