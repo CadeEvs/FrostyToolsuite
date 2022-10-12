@@ -233,8 +233,11 @@ namespace Frosty.Core
         {
             foreach (var plugin in m_plugins)
             {
-                if (plugin.Assembly.GetName().Name.Equals(name, StringComparison.OrdinalIgnoreCase))
+                // if the plugin does not have an assigned assembly, skip it
+                if (plugin.Assembly?.GetName().Name.Equals(name, StringComparison.OrdinalIgnoreCase) ?? false)
+                {
                     return plugin.Assembly;
+                }
             }
             return null;
         }
