@@ -296,6 +296,7 @@
     <Resource Include="Credits.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\Recent.png" />
     <Content Include="Resources\Textures\DefaultLightProbe.dds" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="Resources\Textures\Grid.DDS" CopyToOutputDirectory="PreserveNewest" />
     <None Include="Shaders\character_jersey_shader.hlsl" />
