@@ -365,13 +365,13 @@ namespace MeshSetPlugin
                     FbxNode rootNode = FBXCreateSkeleton(scene, meshAsset, skeleton, ref boneNodes);
                     scene.RootNode.AddChild(rootNode);
                 }
-                //else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
-                //{
-                //    // composite skeleton has parts defined in mesh
-                //    FrostyTask.Update("Writing composite skeleton");
-                //    FbxNode rootNode = FBXCreateCompositeSkeleton(scene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
-                //    scene.RootNode.AddChild(rootNode);
-                //}
+                else if (meshSets[0].Lods[0].Type == MeshType.MeshType_Composite)
+                {
+                    // composite skeleton has parts defined in mesh
+                    task.Update("Writing composite skeleton");
+                    FbxNode rootNode = FBXCreateCompositeSkeleton(scene, meshSets[0].Lods[0].PartTransforms, ref boneNodes);
+                    scene.RootNode.AddChild(rootNode);
+                }
 
                 currentProgress++;
                 foreach (MeshSet meshSet in meshSets)
@@ -388,24 +388,24 @@ namespace MeshSetPlugin
                 }
 
                 // move composite parts
-                //if (meshSets[0].Type == MeshType.MeshType_Composite)
-                //{
-                //    MeshSetLod lod = meshSets[0].Lods[0];
-                //    for (int i = 0; i < lod.PartTransforms.Count; i++)
-                //    {
-                //        LinearTransform lt = lod.PartTransforms[i];
-                //        FbxNode node = boneNodes[i];
+                if (meshSets[0].Type == MeshType.MeshType_Composite)
+                {
+                    MeshSetLod lod = meshSets[0].Lods[0];
+                    for (int i = 0; i < lod.PartTransforms.Count; i++)
+                    {
+                        LinearTransform lt = lod.PartTransforms[i];
+                        FbxNode node = boneNodes[i];
 
-                //        Matrix boneMatrix = SharpDXUtils.FromLinearTransform(lt);
+                        Matrix boneMatrix = SharpDXUtils.FromLinearTransform(lt);
 
-                //        Vector3 scale = boneMatrix.ScaleVector;
-                //        Vector3 translation = boneMatrix.TranslationVector;
-                //        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
+                        Vector3 scale = boneMatrix.ScaleVector;
+                        Vector3 translation = boneMatrix.TranslationVector;
+                        Vector3 euler = SharpDXUtils.ExtractEulerAngles(boneMatrix);
 
-                //        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
-                //        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
-                //    }
-                //}
+                        node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
+                        node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
+                    }
+                }
 
                 using (FbxExporter exporter = new FbxExporter(manager, ""))
                 {
