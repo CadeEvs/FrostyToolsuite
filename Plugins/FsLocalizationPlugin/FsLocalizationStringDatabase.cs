@@ -180,7 +180,6 @@ namespace FsLocalizationPlugin
                         textEntry.AssetModified += (o, e) =>
                         {
                             loadedDatabase = App.AssetManager.GetEbxAs<FsLocalizationAsset>(textEntry);
-
                         };
                         binaryChunk = localizedText.BinaryChunk;
                         histogram = localizedText.HistogramChunk;
@@ -234,12 +233,12 @@ namespace FsLocalizationPlugin
 
         public string GetString(string stringId)
         {
-            return GetString(HashStringId(stringId.ToUpper()));
+            return GetString(HashStringId(stringId));
         }
 
         public uint AddString(string id, string value)
         {
-            uint hash = HashStringId(id.ToUpper());
+            uint hash = HashStringId(id);
 
             loadedDatabase.AddString(hash, value);
             App.AssetManager.ModifyEbx(App.AssetManager.GetEbxEntry(loadedDatabase.FileGuid).Name, loadedDatabase);
@@ -261,7 +260,7 @@ namespace FsLocalizationPlugin
 
         public void SetString(string id, string value)
         {
-            SetString(HashStringId(id.ToUpper()), value);
+            SetString(HashStringId(id), value);
         }
 
         public void AddStringWindow()
