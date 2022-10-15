@@ -1,75 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using FrostySdk.IO;
-using System.Reflection;
-using Frosty.Hash;
+﻿using Frosty.Hash;
 using FrostySdk.Interfaces;
+using FrostySdk.IO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace FrostySdk
 {
-    public struct FileSystemSource
-    {
-        public string Path;
-        public bool SubDirs;
-    }
-
-    public enum ProfileVersion
-    {
-        NeedForSpeedRivals = 20131115,
-        Battlefield4 = 20141117,
-        DragonAgeInquisition = 20141118,
-        NeedForSpeed = 20151103,
-        StarWarsBattlefront = 20151117,
-        PlantsVsZombiesGardenWarfare = 20140225,
-        PlantsVsZombiesGardenWarfare2 = 20150223,
-        MirrorsEdgeCatalyst = 20160607,
-        Fifa17 = 20160927,
-        Battlefield1 = 20161021,
-        MassEffectAndromeda = 20170321,
-        Fifa18 = 20170929,
-        NeedForSpeedPayback = 20171110,
-        StarWarsBattlefrontII = 20171117,
-        Madden19 = 20180807,
-        Fifa19 = 20180914,
-        Battlefield5 = 20180628,
-        NeedForSpeedEdge = 20171210,
-        Anthem = 20181207,
-        Madden20 = 20190729,
-        PlantsVsZombiesBattleforNeighborville = 20190905,
-        Fifa20 = 20190911,
-        NeedForSpeedHeat = 20191101,
-        StarWarsSquadrons = 20201001
-    }
-
-    public struct Profile
-    {
-        public string Name;
-        public string DisplayName;
-        public IProfile ProfileData;
-        public int DataVersion;
-        public string CacheName;
-        public string Deobfuscator;
-        public string AssetLoader;
-        public List<FileSystemSource> Sources;
-        public string SDKFilename;
-        public byte[] Banner;
-
-        public int EbxVersion;
-        public bool RequiresKey;
-        public bool MustAddChunks;
-        public bool EnableExecution;
-        public bool ContainsEAC;
-
-        public string DefaultDiffuse;
-        public string DefaultNormals;
-        public string DefaultMask;
-        public string DefaultTint;
-
-        public Dictionary<int, string> SharedBundles;
-        public List<uint> IgnoredResTypes;
-    }
-
     public static class ProfilesLibrary
     {
         public static IProfile Profile => effectiveProfile.ProfileData;
@@ -207,6 +146,16 @@ namespace FrostySdk
         public static bool HasProfile(string profileKey)
         {
             return profiles.FindIndex((Profile a) => a.Name.Equals(profileKey, StringComparison.OrdinalIgnoreCase)) != -1;
+        }
+
+        /// <summary>
+        /// Determines if a collection of <see cref="ProfileVersion"/> enumerations contains the <see cref="ProfileVersion"/> of the loaded profile.
+        /// </summary>
+        /// <param name="versions">The collection of <see cref="ProfileVersion"/> enumerations to be checked, passed as a list of parameters.</param>
+        /// <returns>A bool determining whether or not one of the specified profiles is loaded.</returns>
+        public static bool IsLoaded(params ProfileVersion[] versions)
+        {
+            return versions.Contains((ProfileVersion)DataVersion);
         }
 
         private static string DecodeString(NativeReader reader)

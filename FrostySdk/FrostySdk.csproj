@@ -92,6 +92,7 @@
     <Compile Include="Ebx\ResourceRef.cs" />
     <Compile Include="Ebx\TypeRef.cs" />
     <Compile Include="FileSystem.cs" />
+    <Compile Include="FileSystemSource.cs" />
     <Compile Include="Interfaces\IBinarySbReader.cs" />
     <Compile Include="Interfaces\ICompressionUtils.cs" />
     <Compile Include="Interfaces\IDeobfuscator.cs" />
@@ -120,7 +121,9 @@
     <Compile Include="Managers\Loaders\ManifestAssetLoader.cs" />
     <Compile Include="Managers\Loaders\StandardAssetLoader.cs" />
     <Compile Include="Managers\ResourceManager.cs" />
+    <Compile Include="Profile.cs" />
     <Compile Include="ProfilesLibrary.cs" />
+    <Compile Include="ProfileVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Resource.cs" />
     <Compile Include="Resources\Texture.cs" />
