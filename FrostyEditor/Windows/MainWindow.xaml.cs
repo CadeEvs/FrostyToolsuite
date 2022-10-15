@@ -1,36 +1,37 @@
-﻿using Frosty.Controls;
+﻿using Bookmarks = Frosty.Core.Bookmarks;
+using Frosty.Controls;
+using Frosty.Core;
+using Frosty.Core.Commands;
+using Frosty.Core.Controls;
+using Frosty.Core.Converters;
+using Frosty.Core.Interfaces;
+using Frosty.Core.Legacy;
+using Frosty.Core.Mod;
+using Frosty.Core.Windows;
 using Frosty.ModSupport;
+using FrostyCore;
 using FrostyEditor.Windows;
 using FrostySdk;
+using FrostySdk.Ebx;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Navigation;
 using System.Windows.Media.Animation;
-using Microsoft.Win32;
-using System.Text;
-using FrostySdk.Ebx;
-using System.Threading;
-using Frosty.Core;
-using Frosty.Core.Converters;
-using Frosty.Core.Controls;
-using Frosty.Core.Interfaces;
-using Bookmarks = Frosty.Core.Bookmarks;
-using Frosty.Core.Windows;
-using Frosty.Core.Legacy;
-using Frosty.Core.Commands;
-using Frosty.Core.Mod;
-using FrostyCore;
-using System.Threading.Tasks;
+using System.Windows.Navigation;
 
 namespace FrostyEditor
 {
@@ -39,26 +40,44 @@ namespace FrostyEditor
     /// </summary>
     public partial class MainWindow : FrostyWindow, IEditorWindow
     {
+        private static ImageSourceConverter m_imageSourceConverter = new ImageSourceConverter();
+
+        private MenuItem m_clearRecentsMenuItem = new MenuItem
+        {
+            Header = "Clear Recents",
+            Height = 22,
+            Icon = new Image
+            {
+                Source = (ImageSource)m_imageSourceConverter.ConvertFromString("pack://application:,,,/FrostyCore;component/Images/Clear.png")
+            }
+        };
+
+        public FrostyDataExplorer m_currentExplorer;
+
+        private System.Timers.Timer m_autoSaveTimer;
+
+        private FrostyProject m_project;
+
+        private List<string> m_recentProjects = Config.Get("RecentProjects", new List<string>(), ConfigScope.Game);
+
         public FrostyDataExplorer DataExplorer => dataExplorer;
+
         public FrostyDataExplorer LegacyExplorer => legacyExplorer;
-        public FrostyDataExplorer VisibleExplorer => currentExplorer;
+
         public TabControl MiscTabControl => miscTabControl;
 
-        private FrostyProject project;
-        private System.Timers.Timer autoSaveTimer;
+        public FrostyProject Project => m_project;
 
-        public FrostyProject Project => project;
-        public FrostyDataExplorer currentExplorer;
+        public FrostyDataExplorer VisibleExplorer => m_currentExplorer;
 
         public ItemDoubleClickCommand BookmarkItemDoubleClickCommand { get; private set; }
 
         public MainWindow()
         {
             FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("DisplayModuleInId", false);
-            //FrostySdk.Attributes.GlobalAttributes.DisplayModuleInClassId = Config.Get<bool>("Asset", "DisplayModuleInId", true);
             BookmarkItemDoubleClickCommand = new ItemDoubleClickCommand(BookmarkTreeView_MouseDoubleClick);
             Bookmarks.BookmarkDb.LoadDb();
-            project = new FrostyProject();
+            m_project = new FrostyProject();
 
             InitializeComponent();
 
@@ -94,7 +113,7 @@ namespace FrostyEditor
             CommandBindings.Add(new CommandBinding(removeBookmarkCmd, BookmarkRemoveButton_Click));
             CommandBindings.Add(new CommandBinding(focusAssetFilterCmd, (s, e) => dataExplorer.FocusFilter()));
 
-            if(ProfilesLibrary.EnableExecution)
+            if (ProfilesLibrary.EnableExecution)
             {
                 CommandBindings.Add(new CommandBinding(launchGameCmd, launchButton_Click));
                 launchButton.IsEnabled = true;
@@ -129,7 +148,19 @@ namespace FrostyEditor
             BookmarkContextPicker.SelectedItem = Bookmarks.BookmarkDb.CurrentContext;
             TaskbarItemInfo = new System.Windows.Shell.TaskbarItemInfo();
 
-            currentExplorer = dataExplorer;
+            m_clearRecentsMenuItem.Click += delegate (object sender, RoutedEventArgs e)
+            {
+                m_recentProjects.Clear();
+                recentProjectsMenuItem.Items.Clear();
+                recentProjectsMenuItem.IsEnabled = false;
+
+                Config.Add("RecentProjects", m_recentProjects, ConfigScope.Game);
+                Config.Save();
+            };
+
+            RefreshRecentProjects();
+
+            m_currentExplorer = dataExplorer;
         }
 
         private void LoadMenuExtensions()
@@ -267,9 +298,9 @@ namespace FrostyEditor
         private void explorerTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (explorerTabControl.SelectedItem == dataExplorerTabItem)
-                currentExplorer = dataExplorer;
+                m_currentExplorer = dataExplorer;
             else
-                currentExplorer = legacyExplorer;
+                m_currentExplorer = legacyExplorer;
         }
 
         private void UpdateWindowTitle()
@@ -277,7 +308,7 @@ namespace FrostyEditor
             Title = "Frosty Editor - " + App.Version + " (" + ProfilesLibrary.DisplayName + ") ";
 
             if (ProfilesLibrary.EnableExecution)
-                Title += "[" + project.DisplayName + "]";
+                Title += "[" + m_project.DisplayName + "]";
             else
                 Title += "[Read Only]";
         }
@@ -301,10 +332,10 @@ namespace FrostyEditor
                 int timerInterval = Config.Get<int>("AutosavePeriod", 5) * 60 * 1000;
                 if (timerInterval > 0)
                 {
-                    autoSaveTimer = new System.Timers.Timer {Interval = timerInterval};
-                    autoSaveTimer.Elapsed += AutoSaveTimer_Elapsed;
-                    autoSaveTimer.AutoReset = false;
-                    autoSaveTimer.Start();
+                    m_autoSaveTimer = new System.Timers.Timer {Interval = timerInterval};
+                    m_autoSaveTimer.Elapsed += AutoSaveTimer_Elapsed;
+                    m_autoSaveTimer.AutoReset = false;
+                    m_autoSaveTimer.Start();
                 }
             }
         }
@@ -319,23 +350,23 @@ namespace FrostyEditor
         int lastSaveIndex = 0;
         private void AutoSaveTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            if (project.IsDirty)
+            if (m_project.IsDirty)
             {
                 ++lastSaveIndex;
                 if (lastSaveIndex > Config.Get<int>("AutosaveMaxCount", 10)) // Config.Get<int>("Autosave", "MaxCount", 10)
                     lastSaveIndex = 1;
 
-                string projectName = project.DisplayName.Remove(project.DisplayName.Length - 10);
+                string projectName = m_project.DisplayName.Remove(m_project.DisplayName.Length - 10);
                 FileInfo fi = new FileInfo("Autosave/" + projectName + "_" + lastSaveIndex.ToString("D3") + ".fbproject");
 
                 App.Logger.Log("Initiated autosave of project to " + fi.FullName);
 
                 // save project but dont update dirty state
-                project.Save(overrideFilename: fi.FullName, updateDirtyState: false);
+                m_project.Save(overrideFilename: fi.FullName, updateDirtyState: false);
             }
 
             // begin timer again
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void exitMenuItem_Click(object sender, RoutedEventArgs e)
@@ -433,29 +464,18 @@ namespace FrostyEditor
 
         public void ExportMod(ModSettings modSettings, string filename, bool bSilent)
         {
-            project.WriteToMod(filename, modSettings);
+            m_project.WriteToMod(filename, modSettings);
             if (!bSilent)
                 App.Logger.Log("Mod saved to {0}", filename);
         }
 
         private void newModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
 
-            if (project.IsDirty)
+            if (AskIfShouldSaveProject() == MessageBoxResult.Cancel)
             {
-                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
-                if (result == MessageBoxResult.Cancel)
-                    return;
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    if (SaveProject(false))
-                    {
-                        FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
-                        App.Logger.Log("Project saved to {0}", project.Filename);
-                    }
-                }
+                return;
             }
 
             // close all open tabs
@@ -467,7 +487,7 @@ namespace FrostyEditor
             legacyExplorer.RefreshAll();
 
             // create a new blank project
-            project = new FrostyProject();
+            m_project = new FrostyProject();
 
             App.Logger.Log("New project started");
 
@@ -478,7 +498,7 @@ namespace FrostyEditor
             dataExplorer.ShowOnlyModified = false;
             legacyExplorer.ShowOnlyModified = false;
 
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void openModMenuItem_Click(object sender, RoutedEventArgs e)
@@ -486,65 +506,64 @@ namespace FrostyEditor
             bool savePrevProject = false;
             FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Open Project", "*.fbproject (Frosty Project)|*.fbproject", "Project");
 
-            if (ofd.ShowDialog())
+            if (!ofd.ShowDialog())
             {
-                if (project.IsDirty)
-                {
-                    MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
-                    if (result == MessageBoxResult.Cancel)
-                        return;
-
-                    if (result == MessageBoxResult.Yes)
-                    { 
-                        savePrevProject = SaveProject(false);
-                    }
-                }
-
-                LoadProject(ofd.FileName, savePrevProject);
+                return;
             }
+
+            if (AskIfShouldSaveProject(true) == MessageBoxResult.Cancel)
+            {
+                return;
+            }
+
+            LoadProject(ofd.FileName, savePrevProject);
         }
 
         private void saveModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
             if (SaveProject(false))
             {
-                FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
+                FrostyTaskWindow.Show("Saving Project", m_project.Filename, (task) => m_project.Save());
+
+                AddRecentProject(m_project.Filename);
 
                 dataExplorer.RefreshItems();
                 legacyExplorer.RefreshItems();
                 RefreshTabs();
 
-                App.Logger.Log("Project saved to {0}", project.Filename);
+                App.Logger.Log("Project saved to {0}", m_project.Filename);
 
                 UpdateWindowTitle();
                 UpdateDiscordState();
             }
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void saveAsModMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
             if (SaveProject(true))
             {
-                FrostyTaskWindow.Show("Saving Project", project.Filename, (task) => project.Save());
+                FrostyTaskWindow.Show("Saving Project", m_project.Filename, (task) => m_project.Save());
+
+                AddRecentProject(m_project.Filename);
 
                 dataExplorer.RefreshItems();
                 legacyExplorer.RefreshItems();
                 RefreshTabs();
 
-                App.Logger.Log("Project saved to {0}", project.Filename);
+                App.Logger.Log("Project saved to {0}", m_project.Filename);
 
                 UpdateWindowTitle();
                 UpdateDiscordState();
             }
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private void LoadProject(string filename, bool saveProject)
         {
-            autoSaveTimer?.Stop();
+            m_autoSaveTimer?.Stop();
 
             // close all open tabs
             RemoveAllTabs();
@@ -554,8 +573,8 @@ namespace FrostyEditor
             {
                 if (saveProject)
                 {
-                    project.Save();
-                    App.Logger.Log("Project saved to {0}", project.Filename);
+                    m_project.Save();
+                    App.Logger.Log("Project saved to {0}", m_project.Filename);
                 }
 
                 task.Update(filename);
@@ -575,7 +594,7 @@ namespace FrostyEditor
 
             if (newProject != null)
             {
-                project = newProject;
+                m_project = newProject;
 
                 dataExplorer.ShowOnlyModified = false;
                 dataExplorer.ShowOnlyModified = true;
@@ -586,24 +605,26 @@ namespace FrostyEditor
                 legacyExplorer.RefreshItems();
 
                 // report success
-                App.Logger.Log("Loaded {0}", project.Filename);
+                App.Logger.Log("Loaded {0}", m_project.Filename);
 
                 UpdateWindowTitle();
                 UpdateDiscordState();
+
+                AddRecentProject(m_project.Filename);
             }
 
-            autoSaveTimer?.Start();
+            m_autoSaveTimer?.Start();
         }
 
         private bool SaveProject(bool forceSaveAs)
         {
-            if (project.Filename == "" || forceSaveAs)
+            if (m_project.Filename == "" || forceSaveAs)
             {
                 FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Project As", "*.fbproject (Frosty Project)|*.fbproject", "Project");
                 if (!sfd.ShowDialog())
                     return false;
 
-                project.Filename = sfd.FileName;
+                m_project.Filename = sfd.FileName;
             }
 
             return true;
@@ -805,33 +826,15 @@ namespace FrostyEditor
 
         private void FrostyWindow_Closing(object sender, CancelEventArgs e)
         {
-            if (project.IsDirty)
-            {
-                MessageBoxResult result = FrostyMessageBox.Show("Do you wish to save changes to " + project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNo);
-                if (result == MessageBoxResult.Yes)
-                {
-                    if (SaveProject(false))
-                    {
-                        FrostyTaskWindow.Show("Saving Project", "", (task) => project.Save());
-                        App.Logger.Log("Project saved to {0}", project.Filename);
-                    }
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    // user hit the close button, so presumably wants to cancel the request
-                    e.Cancel = true;
-                    return;
-                }
-            }
+            e.Cancel = AskIfShouldSaveProject(true) == MessageBoxResult.Cancel;
 
             Bookmarks.BookmarkDb.SaveDb();
-            //Config.Save(App.configFilename);
         }
 
         private void dataExplorer_SelectedAssetDoubleClick(object sender, RoutedEventArgs e)
         {
-            AssetEntry entry = currentExplorer.SelectedAsset;
-            OpenAsset(entry, currentExplorer == dataExplorer);
+            AssetEntry entry = m_currentExplorer.SelectedAsset;
+            OpenAsset(entry, m_currentExplorer == dataExplorer);
         }
 
         private void dataExplorer_SelectionChanged(object sender, RoutedEventArgs e)
@@ -846,14 +849,14 @@ namespace FrostyEditor
 
         private void contextMenuOpen_Click(object sender, RoutedEventArgs e)
         {
-            if (currentExplorer.SelectedAsset == null)
+            if (m_currentExplorer.SelectedAsset == null)
                 return;
-            OpenAsset(currentExplorer.SelectedAsset, currentExplorer == dataExplorer);
+            OpenAsset(m_currentExplorer.SelectedAsset, m_currentExplorer == dataExplorer);
         }
 
         private void contextMenuRevert_Click(object sender, RoutedEventArgs e)
         {
-            AssetEntry entry = currentExplorer.SelectedAsset;
+            AssetEntry entry = m_currentExplorer.SelectedAsset;
             if (!entry.IsModified)
                 return;
 
@@ -1368,6 +1371,156 @@ namespace FrostyEditor
         private void closeAllDocumentsMenuItem_Click(object sender, RoutedEventArgs e)
         {
             RemoveAllTabs();
+        }
+
+        /// <summary>
+        /// Adds a specified project path to the list of recent projects.
+        /// </summary>
+        /// <param name="path">The *.fbproject path to be used.</param>
+        public void AddRecentProject(string path)
+        {
+            // check if the collection of recent projects already contains the loaded project
+            if (m_recentProjects.Contains(path))
+            {
+                // remove the project from the list temporarily, as this will allow for it to be moved to the top
+                m_recentProjects.Remove(path);
+            }
+
+            m_recentProjects.Insert(0, path);
+
+            if (m_recentProjects.Count > 10)
+            {
+                // remove the last project from the list of recent projects, accommodating for the new project
+                m_recentProjects.Remove(m_recentProjects.Last());
+            }
+
+            Config.Add("RecentProjects", m_recentProjects, ConfigScope.Game);
+            Config.Save();
+            RefreshRecentProjects();
+        }
+
+        /// <summary>
+        /// If the project is modified, asks the user if they would like to save it. This is ideal for scenarios in which the project will be automatically switched or unloaded.
+        /// </summary>
+        /// <param name="isSilent">An optional bool determining whether or not the save should be made silently.</param>
+        /// <returns>A <see cref="MessageBoxResult"/> representing the user's choice.</returns>
+        public MessageBoxResult AskIfShouldSaveProject(bool isSilent = false)
+        {
+            // check if the project is modified, which determines whether or not execution should proceed
+            if (!m_project.IsDirty)
+            {
+                return MessageBoxResult.None;
+            }
+
+            MessageBoxResult saveQuestionResult = FrostyMessageBox.Show("Do you wish to save changes to " + m_project.DisplayName + "?", "Frosty Editor", MessageBoxButton.YesNoCancel);
+
+            // check if the user wishes to save the project
+            if (saveQuestionResult == MessageBoxResult.Yes)
+            {
+                // check if the project should be saved
+                if (SaveProject(forceSaveAs: false))
+                {
+                    if (isSilent)
+                    {
+                        m_project.Save();
+                        AddRecentProject(m_project.Filename);
+                        return saveQuestionResult;
+                    }
+
+                    // begin a FrostyTask to indicate the project is being saved
+                    FrostyTaskWindow.Show("Saving Project", m_project.Filename, delegate
+                    {
+                        m_project.Save();
+                        AddRecentProject(m_project.Filename);
+                    });
+
+                    App.Logger.Log("Project saved to {0}", m_project.Filename);
+                }
+            }
+
+            return saveQuestionResult;
+        }
+
+        /// <summary>
+        /// Ensures the <see cref="recentProjectsMenuItem"/> and its associated list of recent projects in the config are up-to-date.
+        /// </summary>
+        public void RefreshRecentProjects()
+        {
+            recentProjectsMenuItem.Items.Clear();
+
+            // check if there are no recent projects to display
+            if (m_recentProjects.Count == 0)
+            {
+                recentProjectsMenuItem.IsEnabled = false;
+                return;
+            }
+
+            MenuItem currentMenuItem;
+            int projectIndex = 1;
+
+            // create a new list containing the current recent projects and iterate over that, which avoids any "collection modified" exceptions
+            foreach (string recentProject in new List<string>(m_recentProjects))
+            {
+                // check if the current project does not exist
+                if (!File.Exists(recentProject))
+                {
+                    m_recentProjects.Remove(recentProject);
+
+                    // save the modified list of recent projects to the config
+                    Config.Add("RecentProjects", m_recentProjects, ConfigScope.Game);
+                    Config.Save();
+
+                    continue;
+                }
+
+                currentMenuItem = new MenuItem
+                {
+                    Header = string.Format("{0}: {1}...\\{2}", new object[]
+                    {
+                        projectIndex,
+                        Path.GetPathRoot(recentProject),
+                        Path.GetFileName(recentProject)
+                    }),
+                    Height = 22
+                };
+
+                currentMenuItem.Click += delegate (object sender, RoutedEventArgs e)
+                {
+                    // check if the recent project no longer exists
+                    if (!File.Exists(recentProject))
+                    {
+                        FrostyMessageBox.Show("The selected project does not exist.", "Frosty Editor");
+
+                        // refresh the displayed recent projects to accommodate for the missing project
+                        RefreshRecentProjects();
+                        return;
+                    }
+
+                    // check if the user does not wish to load the selected recent project
+                    if (AskIfShouldSaveProject() == MessageBoxResult.Cancel)
+                    {
+                        return;
+                    }
+
+                    // load the recent project
+                    LoadProject(recentProject, false);
+                };
+
+                recentProjectsMenuItem.Items.Add(currentMenuItem);
+                projectIndex++;
+            }
+
+            // check if all recent projects did not exist by checking if the quantity of projects is zero
+            if (m_recentProjects.Count == 0)
+            {
+                // execute RefreshRecentProjects within itself to handle the lack of projects
+                RefreshRecentProjects();
+                return;
+            }
+
+            recentProjectsMenuItem.Items.Add(new Separator());
+            recentProjectsMenuItem.Items.Add(m_clearRecentsMenuItem);
+            recentProjectsMenuItem.IsEnabled = true;
         }
     }
 }
