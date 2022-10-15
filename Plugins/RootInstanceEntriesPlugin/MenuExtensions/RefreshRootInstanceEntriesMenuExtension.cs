@@ -3,7 +3,7 @@ using Frosty.Core.Viewport;
 using Frosty.Core.Windows;
 using System.Windows.Media;
 
-namespace RootInstanceEntiresPlugin.MenuExtensions
+namespace RootInstanceEntriesPlugin.MenuExtensions
 {
     public class RefreshRootInstanceEntriesMenuExtension : MenuExtension
     {

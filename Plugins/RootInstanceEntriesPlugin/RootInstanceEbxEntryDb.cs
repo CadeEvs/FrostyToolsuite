@@ -1,32 +1,35 @@
-﻿using Frosty.Core;
+﻿using Frosty.Controls;
+using Frosty.Core;
 using Frosty.Core.Windows;
-using Frosty.Hash;
 using FrostySdk;
 using FrostySdk.IO;
-using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using FrostySdk.Managers.Entries;
+using System.Windows;
 
-namespace RootInstanceEntiresPlugin
+namespace RootInstanceEntriesPlugin
 {
     public static class RootInstanceEbxEntryDb
     {
         public static bool IsLoaded { get; private set; }
 
-        private const uint cacheVersion = 1;
-        private static Dictionary<Guid, Guid> ebxRootInstanceGuidList = new Dictionary<Guid, Guid>();
+        private const uint m_cacheVersion = 1;
+        private static Dictionary<Guid, Guid> m_ebxRootInstanceGuidList = new Dictionary<Guid, Guid>();
 
-        public static void LoadEbxRootInstanceEntries(FrostyTaskWindow task)
+        public static bool LoadEbxRootInstanceEntries(FrostyTaskWindow task)
         {
-            ebxRootInstanceGuidList.Clear();
+            m_ebxRootInstanceGuidList.Clear();
 
             if (!ReadCache(task))
             {
+                MessageBoxResult result = FrostyMessageBox.Show(string.Format("RootInstanceEntries Cache required. Would you like to generate one?"), "RootInstanceEntriesPlugin", MessageBoxButton.YesNo);
+                if (result != MessageBoxResult.Yes)
+                {
+                    return false;
+                }
+
                 uint totalCount = App.AssetManager.GetEbxCount();
                 uint index = 0;
 
@@ -38,7 +41,7 @@ namespace RootInstanceEntiresPlugin
                     task.Update(progress: progress);
 
                     EbxAsset asset = App.AssetManager.GetEbx(entry);
-                    ebxRootInstanceGuidList.Add(asset.RootInstanceGuid, entry.Guid);
+                    m_ebxRootInstanceGuidList.Add(asset.RootInstanceGuid, entry.Guid);
 
                     index++;
                 }
@@ -46,11 +49,12 @@ namespace RootInstanceEntiresPlugin
                 WriteToCache(task);
             }
             IsLoaded = true;
+            return true;
         }
 
         public static EbxAssetEntry GetEbxEntryByRootInstanceGuid(Guid guid)
         {
-            return ebxRootInstanceGuidList.ContainsKey(guid) ? App.AssetManager.GetEbxEntry(ebxRootInstanceGuidList[guid]) : null;
+            return m_ebxRootInstanceGuidList.ContainsKey(guid) ? App.AssetManager.GetEbxEntry(m_ebxRootInstanceGuidList[guid]) : null;
         }
 
         public static bool ReadCache(FrostyTaskWindow task)
@@ -63,11 +67,11 @@ namespace RootInstanceEntiresPlugin
             using (NativeReader reader = new NativeReader(new FileStream($"{App.FileSystemManager.CacheName}_rootinstances.cache", FileMode.Open, FileAccess.Read)))
             {
                 uint version = reader.ReadUInt();
-                if (version != cacheVersion)
+                if (version != m_cacheVersion)
                     return false;
 
                 int profileHash = reader.ReadInt();
-                if (profileHash != Fnv1.HashString(ProfilesLibrary.ProfileName))
+                if (profileHash != Utils.HashString(ProfilesLibrary.ProfileName))
                     return false;
 
                 int count = reader.ReadInt();
@@ -76,7 +80,7 @@ namespace RootInstanceEntiresPlugin
                     Guid rootInstanceGuid = reader.ReadGuid();
                     Guid fileGuid = reader.ReadGuid();
 
-                    ebxRootInstanceGuidList.Add(rootInstanceGuid, fileGuid);
+                    m_ebxRootInstanceGuidList.Add(rootInstanceGuid, fileGuid);
                 }
             }
 
@@ -93,11 +97,11 @@ namespace RootInstanceEntiresPlugin
 
             using (NativeWriter writer = new NativeWriter(new FileStream(fi.FullName, FileMode.Create)))
             {
-                writer.Write(cacheVersion);
-                writer.Write(Fnv1.HashString(ProfilesLibrary.ProfileName));
+                writer.Write(m_cacheVersion);
+                writer.Write(Utils.HashString(ProfilesLibrary.ProfileName));
 
-                writer.Write(ebxRootInstanceGuidList.Count);
-                foreach (KeyValuePair<Guid, Guid> kv in ebxRootInstanceGuidList)
+                writer.Write(m_ebxRootInstanceGuidList.Count);
+                foreach (KeyValuePair<Guid, Guid> kv in m_ebxRootInstanceGuidList)
                 {
                     writer.Write(kv.Key); // Root Instance Guid
                     writer.Write(kv.Value); // File Guid
