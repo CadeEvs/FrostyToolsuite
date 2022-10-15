@@ -362,7 +362,7 @@ namespace Frosty.ModSupport
 
                             modifiedEbx.TryAdd(entry.Name, entry);
                             if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.GetOrAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
+                                archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
                             else
                                 archiveData[entry.Sha1].RefCount++;
                             numArchiveEntries++;
