@@ -1,10 +1,11 @@
-﻿using System;
+﻿using FrostySdk;
+using FrostySdk.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using FrostySdk;
-using FrostySdk.IO;
-using Newtonsoft.Json;
 
 namespace Frosty.Core
 {
@@ -152,7 +153,18 @@ namespace Frosty.Core
         /// <param name="profile">The profile the option belongs to. If null, the currently active profile will be used.</param>
         public static void Add(string option, object value, ConfigScope scope = ConfigScope.Global, string profile = null)
         {
-            Current[option, scope, profile] = value;
+            // check if the provided value implements IConvertible or JToken
+            if (value is IConvertible || value is JToken)
+            {
+                // we can safely store the value without any modifications
+                Current[option, scope, profile] = value;
+            }
+            else
+            {
+                // if the given value does not inherit IConvertible or JToken, it must be wrapped in a JToken
+                // otherwise, types like collections, arrays, etc will cause an exception
+                Current[option, scope, profile] = JToken.FromObject(value);
+            }
         }
 
         /// <summary>
@@ -200,7 +212,25 @@ namespace Frosty.Core
         /// <param name="profile">The profile the option belongs to. If null, the currently active profile will be used.</param>
         public static T Get<T>(string option, T defaultValue, ConfigScope scope = ConfigScope.Global, string profile = null)
         {
-            return Current[option, scope, profile ?? ProfilesLibrary.ProfileName] == null ? defaultValue : (T)Convert.ChangeType(Current[option, scope, profile ?? ProfilesLibrary.ProfileName], typeof(T));
+            object retrievedValue = Current[option, scope, profile ?? ProfilesLibrary.ProfileName];
+
+            if (retrievedValue != null)
+            {
+                // check if the object is or derives from a JToken (i.e raw JSON objects)
+                if (retrievedValue is JToken)
+                {
+                    // utilize the JToken converter rather than the convert class' converter
+                    retrievedValue = ((JToken)retrievedValue).ToObject(typeof(T));
+                }
+                else
+                {
+                    // if the retrieved value inherits IConvertible, use the Convert class for a conversion; otherwise, attempt to cast the value
+                    retrievedValue = Current[option, scope, profile ?? ProfilesLibrary.ProfileName];
+                    retrievedValue = retrievedValue is IConvertible ? (T)Convert.ChangeType(Current[option, scope, profile ?? ProfilesLibrary.ProfileName], typeof(T)) : (T)retrievedValue;
+                }
+            }
+
+            return (T)(retrievedValue != null ? retrievedValue : defaultValue);
         }
 
         // indexer
@@ -459,160 +489,4 @@ namespace Frosty.Core
             }
         }
     }
-
-    /*
-    public sealed class Config
-    {
-        private class ConfigSection
-        {
-            private readonly Dictionary<string, object> values = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-
-            public void Add(string key, object value)
-            {
-                if (values.ContainsKey(key))
-                {
-                    values[key] = value;
-                    return;
-                }
-
-                values.Add(key, value);
-            }
-
-            public T Get<T>(string key, T defaultValue)
-            {
-                if (!values.ContainsKey(key))
-                    return defaultValue;
-                return (T)Convert.ChangeType(values[key], typeof(T));
-            }
-
-            public void Remove(string key)
-            {
-                if (!values.ContainsKey(key))
-                    return;
-                values.Remove(key);
-            }
-
-            public bool Contains(string key)
-            {
-                return values.ContainsKey(key);
-            }
-
-            public void Write(NativeWriter writer)
-            {
-                foreach (string key in values.Keys)
-                    writer.WriteLine($"{key}={values[key]}");
-            }
-        }
-
-        public static Config Current { get; private set; }
-        private Dictionary<string, ConfigSection> sections = new Dictionary<string, ConfigSection>();
-
-        public static bool Load(string configFilename)
-        {
-            Current = new Config();
-            return Current.LoadEntries(configFilename);
-        }
-
-        public static void Load(Config config)
-        {
-            Current = config;
-        }
-
-        public bool LoadEntries(string configFilename)
-        {
-            if (!File.Exists(configFilename))
-                return false;
-
-            using (NativeReader reader = new NativeReader(new FileStream(configFilename, FileMode.Open, FileAccess.Read)))
-            {
-                ConfigSection section = null;
-
-                while (reader.Position < reader.Length)
-                {
-                    string line = reader.ReadLine().Trim();
-
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.StartsWith("["))
-                    {
-                        line = line.Trim('[', ']');
-
-                        section = new ConfigSection();
-                        sections.Add(line, section);
-
-                        continue;
-                    }
-
-                    int index = line.IndexOf('=');
-                    string key = line.Substring(0, index);
-                    string value = line.Substring(index + 1);
-
-                    section.Add(key, value);
-                }
-            }
-
-            return true;
-        }
-
-        public static void Save(string filename)
-        {
-            Current.SaveEntries(filename);
-        }
-
-        public void SaveEntries(string filename)
-        {
-            using (NativeWriter writer = new NativeWriter(new FileStream(filename, FileMode.Create)))
-            {
-                foreach (string sectionName in sections.Keys)
-                {
-                    writer.WriteLine(string.Format("[{0}]", sectionName));
-                    sections[sectionName].Write(writer);
-                }
-            }
-        }
-
-        public static void Add(string section, string key, object value)
-        {
-            Current.AddEntry(section, key, value);
-        }
-
-        public void AddEntry(string section, string key, object value)
-        {
-            if (!sections.ContainsKey(section))
-                sections.Add(section, new ConfigSection());
-            sections[section].Add(key, value);
-        }
-
-        public static T Get<T>(string section, string key, T defaultValue)
-        {
-            return Current.GetEntry<T>(section, key, defaultValue);
-        }
-
-        public T GetEntry<T>(string section, string key, T defaultValue)
-        {
-            return !sections.ContainsKey(section) ? defaultValue : sections[section].Get<T>(key, defaultValue);
-        }
-
-        public static void Remove(string section, string key)
-        {
-            Current.RemoveEntry(section, key);
-        }
-
-        public void RemoveEntry(string section, string key)
-        {
-            if (sections.ContainsKey(section))
-                sections[section].Remove(key);
-        }
-
-        public static bool Contains(string section, string key)
-        {
-            return Current.ContainsEntry(section, key);
-        }
-
-        public bool ContainsEntry(string section, string key)
-        {
-            return !sections.ContainsKey(section) && sections[section].Contains(key);
-        }
-    }*/
 }

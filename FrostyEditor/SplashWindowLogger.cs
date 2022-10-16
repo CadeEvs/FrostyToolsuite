@@ -80,7 +80,7 @@ namespace FrostyEditor
 
             BindingOperations.SetBinding(parent.TaskbarItemInfo, TaskbarItemInfo.ProgressValueProperty, new Binding("Progress")
             {
-                Converter = new DelegateBasedValueConverter(),
+                Converter = new FunctionBasedValueConverter(),
                 ConverterParameter = new Func<object, object>(delegate (object value)
                 {
                     return (double)value / 100.0;

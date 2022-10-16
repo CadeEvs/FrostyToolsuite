@@ -8,21 +8,21 @@ using System.Windows.Data;
 
 namespace FrostySdk.Converters
 {
-    public class DelegateBasedValueConverter : IValueConverter
+    public class FunctionBasedValueConverter : IValueConverter
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="DelegateBasedValueConverter"/> class.
+        /// Initializes a new instance of the <see cref="FunctionBasedValueConverter"/> class.
         /// </summary>
-        public DelegateBasedValueConverter()
+        public FunctionBasedValueConverter()
         {
         }
 
         /// <summary>
-        /// Converts a given value through a provided <see cref="Action{T}"/>, allowing for custom converters without the need for a new class.
+        /// Converts a given value through a provided <see cref="Func{T, TResult}"/>, allowing for custom converters without the need for a new class.
         /// </summary>
         /// <param name="value">The value to be used.</param>
         /// <param name="targetType">Invalid for this converter.</param>
-        /// <param name="parameter">The <see cref="Action{T}"/> to be used.</param>
+        /// <param name="parameter">The <see cref="Func{T, TResult}"/> to be used.</param>
         /// <param name="culture">Invalid for this converter.</param>
         /// <returns>The converted value.</returns>
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

@@ -79,7 +79,7 @@
     <Compile Include="BaseProfile\BaseBinarySbReader.cs" />
     <Compile Include="BaseProfile\BaseCompressionUtils.cs" />
     <Compile Include="BaseProfile\BaseFrostyProfile.cs" />
-    <Compile Include="Converters\DelegateBasedValueConverter.cs" />
+    <Compile Include="Converters\FunctionBasedValueConverter.cs" />
     <Compile Include="Deobfuscators\DADeobfuscator.cs" />
     <Compile Include="Deobfuscators\MEADeobfuscator.cs" />
     <Compile Include="Deobfuscators\NullDeobfuscator.cs" />
