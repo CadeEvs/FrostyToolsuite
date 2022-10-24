@@ -14,8 +14,8 @@
                     MinWidth="500"
                     MinHeight="250"
                     Icon="/FrostyEditor;component/AppIcon.ico"
-                    Height="720"
-                    Width="1280"
+                    Height="802"
+                    Width="1448"
                     FrostyLoaded="FrostyWindow_Loaded"
                     WindowState="Maximized"
                     Title="Frosty Editor"
@@ -720,44 +720,47 @@
                                                             <GridViewColumn.CellTemplate>
                                                                 <DataTemplate>
                                                                     <StackPanel Orientation="Horizontal"
-                                                                                Height="24">
-                                                                        <Image Name="statusImage"
-                                                                               RenderOptions.BitmapScalingMode="Fant" />
+                                                                                Height="24"
+                                                                                HorizontalAlignment="Center">
+                                                                        <Path Name="statusIcon"
+                                                                              Fill="{StaticResource FontColor}"
+                                                                              Margin="3"
+                                                                              Stretch="Uniform" />
                                                                     </StackPanel>
                                                                     <DataTemplate.Triggers>
                                                                         <!-- Failure. -->
                                                                         <DataTrigger Binding="{Binding Path=Status}"
                                                                                      Value="{x:Static coreroot:PluginLoadStatus.Failed}">
-                                                                            <Setter Property="Image.ContextMenu"
-                                                                                    TargetName="statusImage"
+                                                                            <Setter Property="ContextMenu"
+                                                                                    TargetName="statusIcon"
                                                                                     Value="{StaticResource pluginStatusImageContextMenu}" />
-                                                                            <Setter Property="Image.Source"
-                                                                                    TargetName="statusImage"
-                                                                                    Value="/FrostyCore;component/Images/Cross_White.png" />
-                                                                            <Setter Property="Image.ToolTip"
-                                                                                    TargetName="statusImage"
+                                                                            <Setter Property="Data"
+                                                                                    TargetName="statusIcon"
+                                                                                    Value="{Binding Path=Data, Source={StaticResource RemoveButtonIcon}}" />
+                                                                            <Setter Property="ToolTip"
+                                                                                    TargetName="statusIcon"
                                                                                     Value="This plugin has failed to load. You may use the context menu of this image to copy the full exception." />
                                                                         </DataTrigger>
 
                                                                         <!-- Successfully loaded. -->
                                                                         <DataTrigger Binding="{Binding Path=Status}"
                                                                                      Value="{x:Static coreroot:PluginLoadStatus.Loaded}">
-                                                                            <Setter Property="Image.Source"
-                                                                                    TargetName="statusImage"
-                                                                                    Value="/FrostyCore;component/Images/Tick_White.png" />
-                                                                            <Setter Property="Image.ToolTip"
-                                                                                    TargetName="statusImage"
+                                                                            <Setter Property="Data"
+                                                                                    TargetName="statusIcon"
+                                                                                    Value="{StaticResource CheckmarkIcon}" />
+                                                                            <Setter Property="ToolTip"
+                                                                                    TargetName="statusIcon"
                                                                                     Value="This plugin has successfully loaded." />
                                                                         </DataTrigger>
 
                                                                         <!-- Successfully loaded, but invalid for the current profile. -->
                                                                         <DataTrigger Binding="{Binding Path=Status}"
                                                                                      Value="{x:Static coreroot:PluginLoadStatus.LoadedInvalid}">
-                                                                            <Setter Property="Image.Source"
-                                                                                    TargetName="statusImage"
-                                                                                    Value="/FrostyCore;component/Images/Invalid_White.png" />
-                                                                            <Setter Property="Image.ToolTip"
-                                                                                    TargetName="statusImage"
+                                                                            <Setter Property="Data"
+                                                                                    TargetName="statusIcon"
+                                                                                    Value="{StaticResource ExclamationIcon}" />
+                                                                            <Setter Property="ToolTip"
+                                                                                    TargetName="statusIcon"
                                                                                     Value="This plugin has successfully loaded, but its features are unavailable for the selected profile." />
                                                                         </DataTrigger>
                                                                     </DataTemplate.Triggers>

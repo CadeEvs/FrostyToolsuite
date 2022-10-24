@@ -421,10 +421,5 @@
   <ItemGroup>
     <Resource Include="Images\Assets\StatFileType.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Cross_White.png" />
-    <Resource Include="Images\Invalid_White.png" />
-    <Resource Include="Images\Tick_White.png" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
