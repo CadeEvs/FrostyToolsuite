@@ -96,7 +96,7 @@ namespace LaunchPlatformPlugin.Actions
                 // check if platform is already launched
                 logger.Log("Checking if platform is executing");
                 Process process = GetProcessByName(platforms[platform].ProcessName);
-                relaunchPlatform = process != null;
+                relaunchPlatform = Config.Get("RelaunchPlatform", false, ConfigScope.Game) || process != null;
                 
                 // kill all the other platform processes
                 KillPlatformProcesses();

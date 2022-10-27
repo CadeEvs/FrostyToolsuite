@@ -38,17 +38,26 @@ namespace LaunchPlatformPlugin.Options
         [DependsOn("PlatformLaunchingEnabled")]
         public CustomComboData<string, string> Platform { get; set; }
 
+        [Category("Exit Settings")]
+        [DisplayName("Keep Platform Launched")]
+        [Description("Keeps the platform launched after exiting the game even if it was not launched before.")]
+        [EbxFieldMeta(FrostySdk.IO.EbxFieldType.Boolean)]
+        [DependsOn("PlatformLaunchingEnabled")]
+        public bool RelaunchPlatform { get; set; } = false;
+
         public override void Load()
         {
             List<string> platforms = Enum.GetNames(typeof(LaunchPlatform)).ToList();
             Platform = new CustomComboData<string, string>(platforms, platforms) { SelectedIndex = platforms.IndexOf(Config.Get<string>("Platform", "Origin", ConfigScope.Game))};
 
+            RelaunchPlatform = Config.Get("RelaunchPlatform", false, ConfigScope.Game);
             PlatformLaunchingEnabled = Config.Get("PlatformLaunchingEnabled", false, ConfigScope.Game);
         }
 
         public override void Save()
         {
             Config.Add("Platform", Platform.SelectedName, ConfigScope.Game);
+            Config.Add("RelaunchPlatform", RelaunchPlatform, ConfigScope.Game);
             Config.Add("PlatformLaunchingEnabled", PlatformLaunchingEnabled, ConfigScope.Game);
         }
     }
