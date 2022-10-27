@@ -71,6 +71,7 @@ namespace LaunchPlatformPlugin.Actions
 
     public class LaunchExecutionAction : ExecutionAction
     {
+
         private Dictionary<LaunchPlatform, Platform> platforms = new Dictionary<LaunchPlatform, Platform>
         {
             { LaunchPlatform.Origin, new OriginPlatform() },
@@ -79,6 +80,7 @@ namespace LaunchPlatformPlugin.Actions
             { LaunchPlatform.EpicGamesLauncher, new EpicGamesPlatform() },
         };
         private Platform selectedPlatform;
+        private bool relaunchPlatform = false;
 
         public override Action<ILogger, PluginManagerType, CancellationToken> PreLaunchAction => new Action<ILogger, PluginManagerType, CancellationToken>((ILogger logger, PluginManagerType type, CancellationToken cancelToken) =>
         {
@@ -91,9 +93,15 @@ namespace LaunchPlatformPlugin.Actions
                 // get platform path
                 selectedPlatform.Path = FindPlatformPath(selectedPlatform.RegistryKey, selectedPlatform.RegistryValue) + selectedPlatform.AdditionalExecutablePath;
 
+                // check if platform is already launched
+                logger.Log("Checking if platform is executing");
+                Process process = GetProcessByName(platforms[platform].ProcessName);
+                relaunchPlatform = process != null;
+                
                 // kill all the other platform processes
                 KillPlatformProcesses();
 
+                logger.Log("Executing platform with custom enviroment");
                 // origin doesn't need these modifications to launch with mods
                 if (platform != LaunchPlatform.Origin)
                 {
@@ -110,7 +118,7 @@ namespace LaunchPlatformPlugin.Actions
                 logger.Log("Waiting for platform");
                 try
                 {
-                    WaitForProcess(selectedPlatform.ProcessName, cancelToken);
+                    WaitForProcess(selectedPlatform.ProcessName, cancelToken, true, logger);
                 }
                 catch (OperationCanceledException)
                 {
@@ -128,17 +136,20 @@ namespace LaunchPlatformPlugin.Actions
                 // origin doesn't need these modifications to launch with mods
                 if (platform != LaunchPlatform.Origin)
                 {
-                    logger.Log("Waiting for game");
+                    logger.Log("Waiting for game to launch");
 
                     // find game process to check when it closes
                     try
                     {
-                        Process gameProcess = WaitForProcess(ProfilesLibrary.ProfileName, cancelToken);
-                        if (gameProcess != null)
-                        {
-                            gameProcess.EnableRaisingEvents = true;
-                            gameProcess.Exited += OnGameProcessExited;
-                        }
+                        Process gameProcess = null;
+
+                        // needed to weed false launch by steam
+                        while (gameProcess == null || gameProcess.HasExited)
+                            gameProcess = WaitForProcess(ProfilesLibrary.ProfileName, cancelToken, false, logger);
+
+                        gameProcess.EnableRaisingEvents = true;
+                        gameProcess.Exited += new EventHandler(OnGameProcessExited);
+           
                     }
                     catch (OperationCanceledException)
                     {
@@ -152,8 +163,9 @@ namespace LaunchPlatformPlugin.Actions
             LaunchPlatform platform = (LaunchPlatform)Enum.Parse(typeof(LaunchPlatform), Config.Get("Platform", "Origin", ConfigScope.Game));
 
             // close and relaunch platform process without the environmental variables
-            KillPlatformProcess(platform);
-            FrostyModExecutor.ExecuteProcess(selectedPlatform.Path, "");
+            KillPlatformProcesses();
+            if (relaunchPlatform)
+                FrostyModExecutor.ExecuteProcess(selectedPlatform.Path, "");
         }
 
         private void RunPlatformProcess(string platformPath, string gamePath)
@@ -183,9 +195,9 @@ namespace LaunchPlatformPlugin.Actions
                 return null;
         }
 
-        private Process WaitForProcess(string name, CancellationToken cancelToken)
+        private Process WaitForProcess(string name, CancellationToken cancelToken, bool exactMatch = false, ILogger logger = null)
         {
-            Process gameProcess = null;
+            Process foundProcess = null;
             while (true)
             {
                 cancelToken.ThrowIfCancellationRequested();
@@ -196,14 +208,10 @@ namespace LaunchPlatformPlugin.Actions
                     {
                         cancelToken.ThrowIfCancellationRequested();
 
-                        string processFilename = process.MainModule?.ModuleName;
-                        if (string.IsNullOrEmpty(processFilename))
-                            continue;
-
-                        FileInfo fi = new FileInfo(processFilename);
-                        if (fi.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
+                        if (process.ProcessName.StartsWith(name, StringComparison.OrdinalIgnoreCase) && 
+                            (!exactMatch || process.ProcessName.Equals(name, StringComparison.OrdinalIgnoreCase)))
                         {
-                            gameProcess = process;
+                            foundProcess = process;
                             break;
                         }
                     }
@@ -212,12 +220,19 @@ namespace LaunchPlatformPlugin.Actions
                     }
                 }
 
-                if (gameProcess != null)
+                if (foundProcess != null)
                 {
-                    while (gameProcess.MainWindowHandle == IntPtr.Zero)
-                        System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
+                    logger?.Log("Waiting for " + foundProcess.ProcessName);
+                    try
+                    {
+                        foundProcess.WaitForInputIdle();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        // not a graphic UI
+                    }
 
-                    return gameProcess;
+                    return foundProcess;
                 }
             }
         }
