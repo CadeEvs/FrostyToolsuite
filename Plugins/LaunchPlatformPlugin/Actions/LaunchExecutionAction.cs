@@ -7,7 +7,6 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 
 namespace LaunchPlatformPlugin.Actions
@@ -72,53 +71,53 @@ namespace LaunchPlatformPlugin.Actions
     public class LaunchExecutionAction : ExecutionAction
     {
 
-        private Dictionary<LaunchPlatform, Platform> platforms = new Dictionary<LaunchPlatform, Platform>
+        private Dictionary<LaunchPlatform, Platform> _platforms = new Dictionary<LaunchPlatform, Platform>
         {
             { LaunchPlatform.Origin, new OriginPlatform() },
             { LaunchPlatform.EADesktop, new EADesktopPlatform() },
             { LaunchPlatform.Steam, new SteamPlatform() },
             { LaunchPlatform.EpicGamesLauncher, new EpicGamesPlatform() },
         };
-        private Platform selectedPlatform;
-        private bool relaunchPlatform = false;
+        private Platform _selectedPlatform;
+        private bool _relaunchPlatform = false;
 
         public override Action<ILogger, PluginManagerType, CancellationToken> PreLaunchAction => new Action<ILogger, PluginManagerType, CancellationToken>((ILogger logger, PluginManagerType type, CancellationToken cancelToken) =>
         {
-            // only run platform launch system when PlatformLaunchingEnabled is true
+            // Only run platform launch system when PlatformLaunchingEnabled is true.
             if (Config.Get("PlatformLaunchingEnabled", false, ConfigScope.Game))
             {
-                LaunchPlatform platform = (LaunchPlatform)Enum.Parse(typeof(LaunchPlatform), Config.Get("Platform", "Origin", ConfigScope.Game));
-                selectedPlatform = platforms[platform];
+                var platform = (LaunchPlatform)Enum.Parse(typeof(LaunchPlatform), Config.Get("Platform", "Origin", ConfigScope.Game));
+                _selectedPlatform = _platforms[platform];
 
-                // get platform path
-                selectedPlatform.Path = FindPlatformPath(selectedPlatform.RegistryKey, selectedPlatform.RegistryValue) + selectedPlatform.AdditionalExecutablePath;
+                // Get platform path.
+                _selectedPlatform.Path = FindPlatformPath(_selectedPlatform.RegistryKey, _selectedPlatform.RegistryValue) + _selectedPlatform.AdditionalExecutablePath;
 
-                // check if platform is already launched
+                // Check if platform is already launched.
                 logger.Log("Checking if platform is executing");
-                Process process = GetProcessByName(platforms[platform].ProcessName);
-                relaunchPlatform = Config.Get("RelaunchPlatform", false, ConfigScope.Game) || process != null;
-                
-                // kill all the other platform processes
+                Process process = GetProcessByName(_platforms[platform].ProcessName);
+                _relaunchPlatform = Config.Get("RelaunchPlatform", false, ConfigScope.Game) || process != null;
+
+                // Kill all the other platform processes.
                 KillPlatformProcesses();
 
                 logger.Log("Executing platform with custom enviroment");
-                // origin doesn't need these modifications to launch with mods
+                // Origin doesn't need these modifications to launch with mods.
                 if (platform != LaunchPlatform.Origin)
                 {
-                    // run platfrom with the needed environmental variables
+                    // Run platfrom with the needed environmental variables.
                     string modPath = $"ModData\\{App.SelectedPack}";
-                    RunPlatformProcess(selectedPlatform.Path, App.FileSystem.BasePath + modPath);
+                    RunPlatformProcess(_selectedPlatform.Path, App.FileSystem.BasePath + modPath);
                 }
                 else
                 {
-                    // run origin like normal
-                    FrostyModExecutor.ExecuteProcess(selectedPlatform.Path, "");
+                    // Run origin like normal.
+                    FrostyModExecutor.ExecuteProcess(_selectedPlatform.Path, "");
                 }
 
                 logger.Log("Waiting for platform");
                 try
                 {
-                    WaitForProcess(selectedPlatform.ProcessName, cancelToken, true, logger);
+                    WaitForProcess(_selectedPlatform.ProcessName, cancelToken, true, logger);
                 }
                 catch (OperationCanceledException)
                 {
@@ -128,28 +127,28 @@ namespace LaunchPlatformPlugin.Actions
 
         public override Action<ILogger, PluginManagerType, CancellationToken> PostLaunchAction => new Action<ILogger, PluginManagerType, CancellationToken>((ILogger logger, PluginManagerType type, CancellationToken cancelToken) =>
         {
-            // only run platform launch system when PlatformLaunchingEnabled is true
+            // Only run platform launch system when PlatformLaunchingEnabled is true.
             if (Config.Get("PlatformLaunchingEnabled", false, ConfigScope.Game))
             {
-                LaunchPlatform platform = (LaunchPlatform)Enum.Parse(typeof(LaunchPlatform), Config.Get("Platform", "Origin", ConfigScope.Game));
+                var platform = (LaunchPlatform)Enum.Parse(typeof(LaunchPlatform), Config.Get("Platform", "Origin", ConfigScope.Game));
 
-                // origin doesn't need these modifications to launch with mods
+                // Origin doesn't need these modifications to launch with mods.
                 if (platform != LaunchPlatform.Origin)
                 {
                     logger.Log("Waiting for game to launch");
 
-                    // find game process to check when it closes
+                    // Find game process to check when it closes.
                     try
                     {
                         Process gameProcess = null;
 
-                        // needed to weed false launch by steam
+                        // Needed to weed out false launch by Steam.
                         while (gameProcess == null || gameProcess.HasExited)
                             gameProcess = WaitForProcess(ProfilesLibrary.ProfileName, cancelToken, false, logger);
 
                         gameProcess.EnableRaisingEvents = true;
                         gameProcess.Exited += new EventHandler(OnGameProcessExited);
-           
+
                     }
                     catch (OperationCanceledException)
                     {
@@ -160,21 +159,19 @@ namespace LaunchPlatformPlugin.Actions
 
         private void OnGameProcessExited(object sender, EventArgs e)
         {
-            LaunchPlatform platform = (LaunchPlatform)Enum.Parse(typeof(LaunchPlatform), Config.Get("Platform", "Origin", ConfigScope.Game));
-
-            // close and relaunch platform process without the environmental variables
+            // Close and relaunch platform process without the environmental variables.
             KillPlatformProcesses();
-            if (relaunchPlatform)
-                FrostyModExecutor.ExecuteProcess(selectedPlatform.Path, "");
+            if (_relaunchPlatform)
+                FrostyModExecutor.ExecuteProcess(_selectedPlatform.Path, "");
         }
 
         private void RunPlatformProcess(string platformPath, string gamePath)
         {
-            // add environmental variables
+            // Add environmental variables.
             Dictionary<string, string> env = new Dictionary<string, string>();
             env.Add("GAME_DATA_DIR", gamePath);
 
-            // open platform process
+            // Open platform process.
             FrostyModExecutor.ExecuteProcess(platformPath, "", false, false, env);
         }
 
@@ -208,7 +205,7 @@ namespace LaunchPlatformPlugin.Actions
                     {
                         cancelToken.ThrowIfCancellationRequested();
 
-                        if (process.ProcessName.StartsWith(name, StringComparison.OrdinalIgnoreCase) && 
+                        if (process.ProcessName.StartsWith(name, StringComparison.OrdinalIgnoreCase) &&
                             (!exactMatch || process.ProcessName.Equals(name, StringComparison.OrdinalIgnoreCase)))
                         {
                             foundProcess = process;
@@ -222,14 +219,14 @@ namespace LaunchPlatformPlugin.Actions
 
                 if (foundProcess != null)
                 {
-                    logger?.Log("Waiting for " + foundProcess.ProcessName);
+                    logger?.Log($"Waiting for {foundProcess.ProcessName}");
                     try
                     {
                         foundProcess.WaitForInputIdle();
                     }
                     catch (InvalidOperationException)
                     {
-                        // not a graphic UI
+                        // Not a graphic UI.
                     }
 
                     return foundProcess;
@@ -239,7 +236,7 @@ namespace LaunchPlatformPlugin.Actions
 
         private void KillPlatformProcess(LaunchPlatform platform)
         {
-            Process platformProcess = GetProcessByName(platforms[platform].ProcessName);
+            Process platformProcess = GetProcessByName(_platforms[platform].ProcessName);
             if (platformProcess != null)
                 platformProcess.Kill();
         }

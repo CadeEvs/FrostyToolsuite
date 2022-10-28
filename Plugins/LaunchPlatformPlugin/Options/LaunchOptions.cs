@@ -5,8 +5,6 @@ using FrostySdk.Attributes;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LaunchPlatformPlugin.Options
 {
@@ -48,7 +46,7 @@ namespace LaunchPlatformPlugin.Options
         public override void Load()
         {
             List<string> platforms = Enum.GetNames(typeof(LaunchPlatform)).ToList();
-            Platform = new CustomComboData<string, string>(platforms, platforms) { SelectedIndex = platforms.IndexOf(Config.Get<string>("Platform", "Origin", ConfigScope.Game))};
+            Platform = new CustomComboData<string, string>(platforms, platforms) { SelectedIndex = platforms.IndexOf(Config.Get<string>("Platform", "Origin", ConfigScope.Game)) };
 
             RelaunchPlatform = Config.Get("RelaunchPlatform", false, ConfigScope.Game);
             PlatformLaunchingEnabled = Config.Get("PlatformLaunchingEnabled", false, ConfigScope.Game);
