@@ -89,7 +89,9 @@ namespace MeshSetPlugin.Editors
         {
             AssetEntry selectedItem = dataExplorer.SelectedAsset;
             if (selectedItem == null)
+            {
                 return;
+            }
 
             //label.Text = selectedItem.Name;
             popupComboBox.IsDropDownOpen = false;

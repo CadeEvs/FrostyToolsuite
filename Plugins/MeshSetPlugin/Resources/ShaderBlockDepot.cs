@@ -93,7 +93,7 @@ namespace MeshSetPlugin.Resources.Old
             {
                 Hash = Hash,
                 Parameters = Parameters,
-                UnknownGuid = UnknownGuid,
+                MeshAssetGuid = UnknownGuid,
                 LodIndex = LodIndex,
                 IsModified = true
             };
@@ -138,7 +138,7 @@ namespace MeshSetPlugin.Resources
 
     public class ShaderBlockHashException : Exception
     {
-        public ShaderBlockHashException(int length) 
+        public ShaderBlockHashException(int length)
             : base("A hashing exception has occurred. Length = " + length)
         {
         }
@@ -165,6 +165,15 @@ namespace MeshSetPlugin.Resources
             startOffset = writer.Position;
             writer.Write(Hash);
             relocTable.Add((int)writer.Position);
+        }
+
+        public virtual void ChangeHash(uint value)
+        {
+            Hash ^= value;
+        }
+
+        public virtual void CalculateHash()
+        {
         }
     }
 
@@ -196,7 +205,10 @@ namespace MeshSetPlugin.Resources
             long offset = writer.Position;
 
             for (int i = 0; i < Resources.Count; i++)
+            {
                 writer.Write(Resources[i].Index);
+            }
+
             writer.WritePadding(0x08);
 
             base.Save(writer, relocTable, out startOffset);
@@ -204,6 +216,25 @@ namespace MeshSetPlugin.Resources
             writer.Write(offset);
             writer.Write((long)Resources.Count);
         }
+
+        //public override void ChangeHash(uint value)
+        //{
+        //    base.ChangeHash(value);
+        //    foreach (var res in Resources)
+        //        res.ChangeHash(value);
+        //}
+
+        //public void ChangeHash(uint value, bool mesh = true)
+        //{
+        //    base.ChangeHash(value);
+        //    foreach (var res in Resources)
+        //    {
+        //        if (res is ShaderStaticParamDbBlock staticBlock)
+        //            staticBlock.ChangeHash(value, mesh);
+        //        else if (mesh || !(res is MeshParamDbBlock))
+        //            res.ChangeHash(value);
+        //    }
+        //}
     }
 
     public class ShaderPersistentParamDbBlock : ShaderBlockResource
@@ -249,7 +280,9 @@ namespace MeshSetPlugin.Resources
         public void SetParameterValue(string name, object value)
         {
             if (string.IsNullOrEmpty(name))
+            {
                 return;
+            }
 
             uint hash = (uint)Fnv1.HashString(name.ToLower());
             foreach (ParameterEntry param in Parameters)
@@ -270,7 +303,9 @@ namespace MeshSetPlugin.Resources
 
             writer.Write(Parameters.Count);
             foreach (var param in Parameters)
+            {
                 writer.Write(param.ToBytes());
+            }
 
             long size = (writer.Position - offset);
             writer.WritePadding(0x08);
@@ -284,7 +319,7 @@ namespace MeshSetPlugin.Resources
 
     public class MeshParamDbBlock : ShaderBlockResource
     {
-        public Guid UnknownGuid;
+        public Guid MeshAssetGuid;
         public int LodIndex;
         public List<ParameterEntry> Parameters = new List<ParameterEntry>();
 
@@ -299,7 +334,7 @@ namespace MeshSetPlugin.Resources
             long offset = reader.ReadLong();
             int size = reader.ReadInt();
             LodIndex = reader.ReadInt();
-            UnknownGuid = reader.ReadGuid();
+            MeshAssetGuid = reader.ReadGuid();
 
             reader.Position = offset;
             int count = reader.ReadInt();
@@ -348,7 +383,9 @@ namespace MeshSetPlugin.Resources
 
             writer.Write(Parameters.Count);
             foreach (var param in Parameters)
+            {
                 writer.Write(param.ToBytes());
+            }
 
             int size = (int)(writer.Position - offset);
             writer.WritePadding(0x08);
@@ -358,16 +395,16 @@ namespace MeshSetPlugin.Resources
             writer.Write(offset);
             writer.Write(size);
             writer.Write(LodIndex);
-            writer.Write(UnknownGuid);
+            writer.Write(MeshAssetGuid);
         }
     }
 
-    public class ShaderMeshVariationEntry : ShaderBlockResource
+    public class ShaderBlockMeshVariationEntry : ShaderBlockResource
     {
         public List<Guid> RvmShaderRefGuids = new List<Guid>();
         public List<int> RvmShaderRefInts = new List<int>();
 
-        public ShaderMeshVariationEntry()
+        public ShaderBlockMeshVariationEntry()
         {
         }
 
@@ -404,6 +441,24 @@ namespace MeshSetPlugin.Resources
             writer.Write(offset);
             writer.Write((long)RvmShaderRefGuids.Count);
         }
+
+        public void SetHash(uint meshNameHash, uint variationNameHash, int entryIndex)
+        {
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.Write(meshNameHash);         // uint32   NameHash of meshset (nameHash in the ebx seems to do nothing)
+                writer.Write(variationNameHash);    // uint32   VariationAssetNameHash (the same like in the MeshVariationDatabase)
+                writer.Write(entryIndex);           // int32    LodIndex
+
+                ulong hash = CityHash.Hash64(writer.ToByteArray());
+
+                if (hash != Hash)
+                {
+                    Hash = hash;
+                    IsModified = true;
+                }
+            }
+        }
     }
 
     public class ShaderBlockEntry : ShaderStaticParamDbBlock
@@ -421,7 +476,9 @@ namespace MeshSetPlugin.Resources
         {
             ShaderStaticParamDbBlock sectionBlock = GetSection(sectionIndex);
             if (sectionBlock == null)
+            {
                 return null;
+            }
 
             return sectionBlock.Resources[0] as MeshParamDbBlock;
         }
@@ -445,8 +502,29 @@ namespace MeshSetPlugin.Resources
         private ShaderStaticParamDbBlock GetSection(int sectionIndex)
         {
             if (sectionIndex >= Resources.Count)
+            {
                 return null;
+            }
+
             return Resources[sectionIndex] as ShaderStaticParamDbBlock;
+        }
+
+        public void SetHash(uint meshNameHash, uint variationNameHash, int entryIndex)
+        {
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.Write(meshNameHash);         // uint32   NameHash of meshset (nameHash in the ebx seems to do nothing)
+                writer.Write(variationNameHash);    // uint32   VariationAssetNameHash (the same like in the MeshVariationDatabase)
+                writer.Write(entryIndex);           // int32    LodIndex
+
+                ulong hash = CityHash.Hash64(writer.ToByteArray());
+
+                if (hash != Hash)
+                {
+                    Hash = hash;
+                    IsModified = true;
+                }
+            }
         }
     }
 
@@ -465,22 +543,52 @@ namespace MeshSetPlugin.Resources
             Type objType = value.GetType();
             Type actualType = null;
 
-            if (value is bool) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Boolean"));
-            else if (value is uint) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Uint32"));
-            else if (value is float) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Float32"));
-            else if (value is long) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Int64"));
-            else if (value is float[]) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Vec"));
-            else if (value is Guid) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("ITexture"));
-            else if (value is PrimitiveType) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("PrimitiveType"));
-            else if (value is ShaderInstancingMethod) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("ShaderInstancingMethod"));
-            else if (value is RvmLevelOfDetail) actualType = TypeLibrary.GetType((uint)Fnv1.HashString("RvmLevelOfDetail"));
-            else actualType = objType;
+            if (value is bool)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Boolean"));
+            }
+            else if (value is uint)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Uint32"));
+            }
+            else if (value is float)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Float32"));
+            }
+            else if (value is long)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Int64"));
+            }
+            else if (value is float[])
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("Vec"));
+            }
+            else if (value is Guid)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("ITexture"));
+            }
+            else if (value is PrimitiveType)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("PrimitiveType"));
+            }
+            else if (value is ShaderInstancingMethod)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("ShaderInstancingMethod"));
+            }
+            else if (value is RvmLevelOfDetail)
+            {
+                actualType = TypeLibrary.GetType((uint)Fnv1.HashString("RvmLevelOfDetail"));
+            }
+            else
+            {
+                actualType = objType;
+            }
 
             TypeHash = (uint)Fnv1.HashString(actualType.Name);
             Used = 1;
 
             parameterHash = CalculateHash(name, actualType);
-            
+
             SetValue(value);
         }
 
@@ -493,7 +601,9 @@ namespace MeshSetPlugin.Resources
 
             int size = reader.ReadInt();
             if (TypeHash == 0xad0abfd3 /* ITexture */)
+            {
                 size = 16;
+            }
 
             Value = reader.ReadBytes(size);
         }
@@ -544,7 +654,7 @@ namespace MeshSetPlugin.Resources
                             writer.Write(f[1]);
                             writer.Write(f[2]);
                             writer.Write(f[3]);
-                            Value = writer.ToByteArray(); ;
+                            Value = writer.ToByteArray();
                         }
                     }
                     break;
@@ -567,7 +677,7 @@ namespace MeshSetPlugin.Resources
                 writer.Write((TypeHash == 0xad0abfd3) ? 1 : Value.Length);
                 writer.Write(Value);
 
-                return writer.ToByteArray();;
+                return writer.ToByteArray();
             }
         }
 
@@ -613,7 +723,7 @@ namespace MeshSetPlugin.Resources
         public override void Read(NativeReader reader, AssetManager am, ResAssetEntry entry, ModifiedResource modifiedData)
         {
             base.Read(reader, am, entry, modifiedData);
-            
+
             ModifiedShaderBlockDepot msbd = modifiedData as ModifiedShaderBlockDepot;
 
             int count = BitConverter.ToInt32(resMeta, 0x0c);
@@ -626,13 +736,13 @@ namespace MeshSetPlugin.Resources
                 long type = reader.ReadLong();
                 ShaderBlockResource bde = null;
 
-                switch(type)
+                switch (type)
                 {
                     case 0: bde = new ShaderBlockEntry(); sbEntries.Add(bde as ShaderBlockEntry); break;
                     case 1: bde = new ShaderPersistentParamDbBlock(); break;
                     case 2: bde = new ShaderStaticParamDbBlock(); break;
                     case 3: bde = new MeshParamDbBlock(); break;
-                    case 4: bde = new ShaderMeshVariationEntry(); break;
+                    case 4: bde = new ShaderBlockMeshVariationEntry(); break;
                 }
 
                 sbResources.Add(bde);
@@ -645,10 +755,17 @@ namespace MeshSetPlugin.Resources
                 sbResources[i].Read(reader, sbResources);
 
                 if (msbd != null && msbd.ContainsHash(sbResources[i].Hash))
+                {
                     sbResources[i] = msbd.GetResource(sbResources[i].Hash);
+                }
 
                 sbResources[i].Index = i;
             }
+        }
+
+        public override byte[] SaveBytes()
+        {
+            return ToBytes();
         }
 
         public override ModifiedResource SaveModifiedResource()
@@ -657,7 +774,9 @@ namespace MeshSetPlugin.Resources
             foreach (var resource in sbResources)
             {
                 if (resource.IsModified)
+                {
                     msbd.AddResource(resource.Hash, resource);
+                }
             }
             return msbd;
         }
@@ -665,7 +784,10 @@ namespace MeshSetPlugin.Resources
         public ShaderBlockResource GetResource(int index)
         {
             if (index >= sbResources.Count)
+            {
                 return null;
+            }
+
             return sbResources[index];
         }
 
@@ -686,7 +808,10 @@ namespace MeshSetPlugin.Resources
         public ShaderBlockEntry GetSectionEntry(int lodIndex)
         {
             if (lodIndex >= sbEntries.Count)
+            {
                 return null;
+            }
+
             return sbEntries[lodIndex];
         }
 
@@ -716,11 +841,26 @@ namespace MeshSetPlugin.Resources
                 for (int i = 0; i < offsets.Count; i++)
                 {
                     writer.Write(offsets[i]);
-                    if (sbResources[i] is ShaderBlockEntry) writer.Write((long)0);
-                    else if (sbResources[i] is ShaderPersistentParamDbBlock) writer.Write((long)1);
-                    else if (sbResources[i] is ShaderStaticParamDbBlock) writer.Write((long)2);
-                    else if (sbResources[i] is MeshParamDbBlock) writer.Write((long)3);
-                    else if (sbResources[i] is ShaderMeshVariationEntry) writer.Write((long)4);
+                    if (sbResources[i] is ShaderBlockEntry)
+                    {
+                        writer.Write((long)0);
+                    }
+                    else if (sbResources[i] is ShaderPersistentParamDbBlock)
+                    {
+                        writer.Write((long)1);
+                    }
+                    else if (sbResources[i] is ShaderStaticParamDbBlock)
+                    {
+                        writer.Write((long)2);
+                    }
+                    else if (sbResources[i] is MeshParamDbBlock)
+                    {
+                        writer.Write((long)3);
+                    }
+                    else if (sbResources[i] is ShaderBlockMeshVariationEntry)
+                    {
+                        writer.Write((long)4);
+                    }
                 }
 
                 unsafe
@@ -728,16 +868,30 @@ namespace MeshSetPlugin.Resources
                     // update the res meta
                     fixed (byte* ptr = &resMeta[0])
                     {
+
+                        if (*(ushort*)(ptr + 0) != 0x000A)
+                        {
+                            throw new Exception("version number");// maybe version number
+                        }
+
+                        if (*(ushort*)(ptr + 2) != 0x5B06)
+                        {
+                            throw new Exception("unk");
+                        }
+
                         *(uint*)(ptr + 4) = (uint)writer.Length;
                         *(uint*)(ptr + 8) = (uint)(relocTable.Count * 4);
+                        *(uint*)(ptr + 12) = (uint)sbResources.Count;
                     }
                 }
 
                 writer.Position = writer.Length;
                 for (int i = 0; i < relocTable.Count; i++)
+                {
                     writer.Write(relocTable[i]);
+                }
 
-                return writer.ToByteArray();;
+                return writer.ToByteArray();
             }
         }
     }
@@ -756,7 +910,9 @@ namespace MeshSetPlugin.Resources
             for (int i = 0; i < hashes.Count; i++)
             {
                 if (newMsbd.ContainsHash(hashes[i]))
+                {
                     resources[i] = newMsbd.GetResource(hashes[i]);
+                }
             }
             for (int i = 0; i < newMsbd.hashes.Count; i++)
             {
@@ -816,8 +972,26 @@ namespace MeshSetPlugin.Resources
             for (int i = 0; i < hashes.Count; i++)
             {
                 writer.Write(offsets[i]);
-                if (resources[i] is ShaderPersistentParamDbBlock) writer.Write((long)1);
-                else if (resources[i] is MeshParamDbBlock) writer.Write((long)3);
+                if (resources[i] is ShaderBlockEntry)
+                {
+                    writer.Write((long)0);
+                }
+                else if (resources[i] is ShaderPersistentParamDbBlock)
+                {
+                    writer.Write((long)1);
+                }
+                else if (resources[i] is ShaderStaticParamDbBlock)
+                {
+                    writer.Write((long)2);
+                }
+                else if (resources[i] is MeshParamDbBlock)
+                {
+                    writer.Write((long)3);
+                }
+                else if (resources[i] is ShaderBlockMeshVariationEntry)
+                {
+                    writer.Write((long)4);
+                }
             }
         }
 
@@ -840,7 +1014,7 @@ namespace MeshSetPlugin.Resources
                     case 1: bde = new ShaderPersistentParamDbBlock(); break;
                     case 2: bde = new ShaderStaticParamDbBlock(); break;
                     case 3: bde = new MeshParamDbBlock(); break;
-                    case 4: bde = new ShaderMeshVariationEntry(); break;
+                    case 4: bde = new ShaderBlockMeshVariationEntry(); break;
                 }
 
                 resources.Add(bde);
