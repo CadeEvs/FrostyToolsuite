@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FrostySdk.Managers
@@ -17,19 +18,19 @@ namespace FrostySdk.Managers
         HasCompressedNames = 4 // bundle names are huffman encoded
     }
 
-    public static class HuffmanDecodingReaderExtension
+    public class HuffmanDecoder
     {
-        private static int[] table;
-        private static uint[] data;
+        private int[] table;
+        private uint[] data;
 
-        public static void ReadEncryptedData(this NativeReader reader, int count, Endian inEndian = Endian.Little)
+        public void ReadEncryptedData(NativeReader reader, int count, Endian inEndian = Endian.Little)
         {
             data = new uint[count];
             for (int i = 0; i < count; i++)
                 data[i] = reader.ReadUInt(inEndian);
         }
 
-        public static void ReadHuffmanTable(this NativeReader reader, int count, Endian inEndian = Endian.Little)
+        public void ReadHuffmanTable(NativeReader reader, int count, Endian inEndian = Endian.Little)
         {
 
             table = new int[count];
@@ -37,7 +38,7 @@ namespace FrostySdk.Managers
                 table[i] = reader.ReadInt(inEndian);
         }
 
-        public static string ReadHuffmanEncodedString(this NativeReader reader, int bitIndex)
+        public string ReadHuffmanEncodedString(int bitIndex)
         {
             if (table == null || data == null)
                 throw new InvalidDataException("No table or data.");
@@ -64,7 +65,7 @@ namespace FrostySdk.Managers
             }
         }
 
-        public static void DisposeHuffmanEncoding(this NativeReader reader)
+        public void Dispose()
         {
             table = null;
             data = null;
@@ -165,9 +166,11 @@ namespace FrostySdk.Managers
                 int namesCount = 0;
                 int tableCount = 0;
                 uint tableOffset = uint.MaxValue;
+                HuffmanDecoder huffmanDecoder = null;
 
                 if (flags.HasFlag(Flags.HasCompressedNames))
                 {
+                    huffmanDecoder = new HuffmanDecoder();
                     namesCount = reader.ReadInt(Endian.Big);
                     tableCount = reader.ReadInt(Endian.Big);
                     tableOffset = reader.ReadUInt(Endian.Big) + startPos;
@@ -182,16 +185,18 @@ namespace FrostySdk.Managers
                     if (flags.HasFlag(Flags.HasCompressedNames))
                     {
                         reader.Position = namesOffset;
-                        reader.ReadEncryptedData(namesCount, Endian.Big);
+                        huffmanDecoder.ReadEncryptedData(reader, namesCount, Endian.Big);
 
                         reader.Position = tableOffset;
-                        reader.ReadHuffmanTable(tableCount, Endian.Big);
+                        huffmanDecoder.ReadHuffmanTable(reader, tableCount, Endian.Big);
                     }
 
-                    List<int> bundleHashMap = new List<int>(bundlesCount);
+                    int[] bundleHashMap = new int[bundlesCount];
                     reader.Position = bundleHashMapOffset;
                     for (int i = 0; i < bundlesCount; i++)
-                        bundleHashMap.Add(reader.ReadInt(Endian.Big));
+                    {
+                        bundleHashMap[i] = reader.ReadInt(Endian.Big);
+                    }
 
                     reader.Position = bundleDataOffset;
 
@@ -205,7 +210,7 @@ namespace FrostySdk.Managers
 
                         if (flags.HasFlag(Flags.HasCompressedNames))
                         {
-                            name = reader.ReadHuffmanEncodedString(nameOffset);
+                            name = huffmanDecoder.ReadHuffmanEncodedString(nameOffset);
                         }
                         else
                         {
@@ -235,27 +240,26 @@ namespace FrostySdk.Managers
                             bundles.Add(bi);
                         }
                     }
-                    reader.DisposeHuffmanEncoding();
+                    huffmanDecoder?.Dispose();
                 }
                 if (chunksCount != 0)
                 {
                     reader.Position = chunkHashMapOffset;
-                    List<int> chunkHashMap = new List<int>(chunksCount);
+                    int[] chunkHashMap = new int[chunksCount];
                     for (int i = 0; i < chunksCount; i++)
-                        chunkHashMap.Add(reader.ReadInt(Endian.Big));
+                    {
+                        chunkHashMap[i] = reader.ReadInt(Endian.Big);
+                    }
 
                     reader.Position = chunkGuidOffset;
                     Guid[] chunkGuids = new Guid[dataCount / 3];
                     for (int i = 0; i < chunksCount; i++)
                     {
                         byte[] b = reader.ReadBytes(16);
-                        Guid guid = new Guid(new byte[]
-                        {
-                            b[15], b[14], b[13], b[12],
-                            b[11], b[10], b[9], b[8],
-                            b[7], b[6], b[5], b[4],
-                            b[3], b[2], b[1], b[0]
-                        });
+
+                        Array.Reverse(b);
+
+                        Guid guid = new Guid(b);
 
                         // 0xFFFFFFFF remove chunk
                         int index = reader.ReadInt(Endian.Big);
@@ -269,6 +273,7 @@ namespace FrostySdk.Managers
 #endif
                             index = (index & 0xFFFFFF) / 3;
 
+
                             chunkGuids[index] = guid;
                         }
                         else
@@ -277,6 +282,7 @@ namespace FrostySdk.Managers
                                 parent.m_chunkList.Remove(guid);
                         }
                     }
+
                     reader.Position = chunkDataOffset;
                     for (int i = 0; i < (dataCount / 3); i++)
                     {
@@ -297,9 +303,9 @@ namespace FrostySdk.Managers
                                 CasPath = parent.m_fileSystem.GetFilePath(catalogIndex, casIndex, isPatch),
                                 DataOffset = offset,
                                 SuperBundleId = parent.m_superBundles.Count - 1
-                            },
-                            FirstMip = -1
+                            }
                         };
+
                         if (parent.m_chunkList.ContainsKey(chunk.Id))
                             parent.m_chunkList.Remove(chunk.Id);
                         parent.m_chunkList.Add(chunk.Id, chunk);
@@ -343,6 +349,7 @@ namespace FrostySdk.Managers
                         if (patchReader == null || patchSbPath != bi.SbName)
                         {
                             patchSbPath = bi.SbName;
+                            patchReader?.Dispose();
                             if (flag == 1)
                             {
                                 patchReader = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(string.Format("native_patch/{0}.toc", patchSbPath)), FileMode.Open, FileAccess.Read), parent.m_fileSystem.CreateDeobfuscator());
@@ -359,6 +366,7 @@ namespace FrostySdk.Managers
                         if (baseReader == null || baseSbPath != bi.SbName)
                         {
                             baseSbPath = bi.SbName;
+                            baseReader?.Dispose();
                             if (flag == 1)
                             {
                                 baseReader = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(string.Format("native_data/{0}.toc", baseSbPath)), FileMode.Open, FileAccess.Read), parent.m_fileSystem.CreateDeobfuscator());
@@ -518,11 +526,16 @@ namespace FrostySdk.Managers
                         }
                     }
 
+                    stream.Dispose();
+
                     // process assets
                     parent.ProcessBundleEbx(bundle, parent.m_bundles.Count - 1, helper);
                     parent.ProcessBundleRes(bundle, parent.m_bundles.Count - 1, helper);
                     parent.ProcessBundleChunks(bundle, parent.m_bundles.Count - 1, helper);
                 }
+
+                patchReader?.Dispose();
+                baseReader?.Dispose();
                 reader?.Dispose();
             }
         }

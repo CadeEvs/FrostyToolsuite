@@ -51,7 +51,7 @@ namespace FrostySdk.Managers
                         parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
 
                         string sbPath = sbName;
-                        if (catalog.SuperBundles[sbName])
+                        if (catalog.SuperBundles[sbName].Item1)
                             sbPath = sbName.Replace("win32", catalog.Name);
 
 #if ENABLE_LCU
@@ -248,7 +248,7 @@ namespace FrostySdk.Managers
                                             int dataSize = reader.ReadInt();
 
                                             if (!parent.m_chunkList.ContainsKey(guid))
-                                                parent.m_chunkList.Add(guid, new ChunkAssetEntry() { FirstMip = -1 });
+                                                parent.m_chunkList.Add(guid, new ChunkAssetEntry());
 
                                             ChunkAssetEntry chunk = parent.m_chunkList[guid];
                                             chunk.Id = guid;
