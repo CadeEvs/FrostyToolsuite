@@ -1,0 +1,63 @@
+﻿<ctrl:FrostyDockableWindow
+    x:Class="BiowareLocalizationPlugin.Controls.SearchFindWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    mc:Ignorable="d"
+    Title="Search / Find" Height="135" Width="450"
+    ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="26"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="{StaticResource ListBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" x:Name="findTextLabel" Content="Search for:" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="1,1,4,1"/>
+            <TextBox Grid.Column="1" Name="searchTextField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" Margin="1,2,4,1"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="26"/>
+                    <RowDefinition Height="26"/>
+                </Grid.RowDefinitions>
+                <CheckBox Grid.Row="0" x:Name="backSearchCB" IsThreeState="False" Margin="4,4,2,1">
+                    <Label Content="Search backwards" Margin="0,-5,0,0"/>
+                </CheckBox>
+                <CheckBox Grid.Row="2" x:Name="caseSensitiveSearchCB" IsThreeState="False" Margin="4,4,2,1">
+                    <Label Content="Case sensitive" Margin="0,-5,0,0"/>
+                </CheckBox>
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="2" Background="{StaticResource WindowBackground}">
+            <Button x:Name="cancelButton" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,2,2,2" Width="90"
+                ClickMode="Press" Click="Close" IsCancel="True"/>
+            <Button x:Name="searchButton" Content="Search" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2,2,2,2" Width="90"
+                ClickMode="Press" Click="Search" IsDefault="True"/>
+        </Grid>
+    </Grid>
+</ctrl:FrostyDockableWindow>
