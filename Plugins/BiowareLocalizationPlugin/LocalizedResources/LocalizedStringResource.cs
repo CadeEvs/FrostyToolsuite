@@ -2,13 +2,13 @@
 using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using FrostySdk.Resources;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Linq;
 using System;
-using System.Collections;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
