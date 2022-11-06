@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Frosty.Core;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
@@ -413,9 +415,16 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public void AddDeclinatedAdjective(uint textId, int declination, LocalizedString localizedText)
         {
+
+            if (declination >= numberOfDeclinations)
+            {
+                App.Logger.LogError("Cannot Store given declinated adjective with ID <{0}> and declination <{1}> as there are only <{2}> declinations allowed!", textId, declination, numberOfDeclinations);
+                return;
+            }
+
             bool entryExists = declinatedAdjectiveVariants.TryGetValue(textId, out LocalizedString[] declinatedAdjectivesArray);
 
-            if(!entryExists)
+            if (!entryExists)
             {
                 declinatedAdjectivesArray = new LocalizedString[numberOfDeclinations];
                 declinatedAdjectiveVariants.Add(textId, declinatedAdjectivesArray);
@@ -426,16 +435,33 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public IEnumerable<LocalizedString> GetDeclinatedArticle(uint articleID)
         {
-            return declinatedAdjectiveVariants[articleID];
+
+            bool entryExists = declinatedAdjectiveVariants.TryGetValue(articleID, out LocalizedString[] declinatedAdjectivesArray);
+            if (entryExists)
+            {
+                return declinatedAdjectivesArray;
+            }
+
+            return new LocalizedString[0];
         }
 
         public IEnumerable<LocalizedString> GetAllDeclinatedArticlesTextLocations()
         {
-            // TODO implement me!
 
-            return null;
+            List<LocalizedString> allDeclinatedArticles = new List<LocalizedString>();
+            foreach (var adjectiveIdArray in declinatedAdjectiveVariants.Values)
+            {
+                foreach (LocalizedString declination in adjectiveIdArray)
+                {
+                    if (declination != null)
+                    {
+                        allDeclinatedArticles.Add(declination);
+                    }
+                }
+            }
+            return allDeclinatedArticles;
         }
 
-        
+
     }
 }
