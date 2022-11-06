@@ -51,7 +51,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <summary>
         /// The default texts
         /// </summary>
-        private readonly List<LocalizedString> _localizedStrings = new List<LocalizedString>();
+        private readonly List<LocalizedStringWithId> _localizedStrings = new List<LocalizedStringWithId>();
 
         /// <summary>
         /// List of supported characters, ordered by their position within the node list, i.e., their frequency within all texts
@@ -87,7 +87,10 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// Ids and bit offst possitions of Declinated adjectives for creafted items in DA:I
         /// This has internal access only for the test utils
         /// </summary>
-        internal List<List<LocalizedString>> DragonAgeDeclinatedCraftingNames { get; private set; }
+        // need per id list of N tuple entries?
+        // TODO use DragonAgeDeclinatedAdjectiveTuples instead
+        internal List<List<LocalizedStringWithId>> DragonAgeDeclinatedCraftingNames { get; private set; }
+
 
         /// <summary>
         /// The (display) name of the resource this belongs to
@@ -175,7 +178,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             // initialize these, so there is no accidental crash in anthem
             _headerData = new ResourceHeader();
             _unknownData = new List<byte[]>();
-            DragonAgeDeclinatedCraftingNames = new List<List<LocalizedString>>();
+            DragonAgeDeclinatedCraftingNames = new List<List<LocalizedStringWithId>>();
 
             long numStrings = reader.ReadLong();
             reader.Position += 0x18;
@@ -204,7 +207,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 if (hashToStringIdMapping.ContainsKey(hash))
                 {
                     foreach (uint stringId in hashToStringIdMapping[hash])
-                        _localizedStrings.Add(new LocalizedString(stringId, stringPosition, str ));
+                        _localizedStrings.Add(new LocalizedStringWithId(stringId, stringPosition, str ));
                 }
                 else
                 {
@@ -244,11 +247,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 _unknownData.Add(ResourceUtils.ReadUnkownSegment(reader, dataCountAndOffset));
             }
 
-            DragonAgeDeclinatedCraftingNames = new List<List<LocalizedString>>();
+            DragonAgeDeclinatedCraftingNames = new List<List<LocalizedStringWithId>>();
             foreach(DataCountAndOffsets dataCountAndOffset in _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset)
             {
 
-                List<LocalizedString> declinatedAdjectives = ReadDragonAgeDeclinatedItemNamePartIdsAndOffsets(reader, dataCountAndOffset);
+                List<LocalizedStringWithId> declinatedAdjectives = ReadDragonAgeDeclinatedItemNamePartIdsAndOffsets(reader, dataCountAndOffset);
                 DragonAgeDeclinatedCraftingNames.Add(declinatedAdjectives);
             }
 
@@ -260,7 +263,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         /// <summary>
         /// Returns the list of all LocalizedString entries found in this resource.
-        /// This list isbeing comprised of the main texts with unique ids,
+        /// This list is being comprised of the main texts with unique ids,
         /// and the set of declinated adjective strings used in dragon age, which all share the same id for several declinations of a word.
         /// </summary>
         /// <returns></returns>
@@ -282,15 +285,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <param name="countAndOffset"></param>
         /// <param name="craftingTextBlockId"></param>
         /// <returns></returns>
-        private static List<LocalizedString> ReadDragonAgeDeclinatedItemNamePartIdsAndOffsets(NativeReader reader, DataCountAndOffsets countAndOffset)
+        private static List<LocalizedStringWithId> ReadDragonAgeDeclinatedItemNamePartIdsAndOffsets(NativeReader reader, DataCountAndOffsets countAndOffset)
         {
 
-            List<LocalizedString > itemCraftingNameParts= new List<LocalizedString>();
+            List<LocalizedStringWithId > itemCraftingNameParts= new List<LocalizedStringWithId>();
             for (int i = 0; i < countAndOffset.Count; i++)
             {
                 uint textId = reader.ReadUInt();
                 int defaultPosition = reader.ReadInt();
-                LocalizedString namePartInfo = new LocalizedString(textId, defaultPosition);
+                LocalizedStringWithId namePartInfo = new LocalizedStringWithId(textId, defaultPosition);
                 itemCraftingNameParts.Add(namePartInfo);
             }
 
@@ -333,7 +336,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 uint stringId = reader.ReadUInt();
                 int positionOffset = reader.ReadInt();
 
-                _localizedStrings.Add(new LocalizedString(stringId, positionOffset ));
+                _localizedStrings.Add(new LocalizedStringWithId(stringId, positionOffset ));
 
                 // memorize which ids are all stored at the same position
                 List<uint> idList;
@@ -420,8 +423,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 foreach(LocalizedString stringDefinition in allLocalizedStrings)
                 {
                     int bitOffset = stringDefinition.DefaultPosition;
+                    string textName = stringDefinition.ToString();
 
-                    bool sanitiyCheckSuccess = CheckPositionExists(textLengthInBytes, bitOffset, stringDefinition.Id);
+                    bool sanitiyCheckSuccess = CheckPositionExists(textLengthInBytes, bitOffset, stringDefinition.ToString());
                     if(sanitiyCheckSuccess)
                     {
                         bitReader.SetPosition(bitOffset);
@@ -430,8 +434,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     } else
                     {
                         // mark that the text could not be read - a generic warning might be bad, because it conflates all the different texts!
-                        uint textId = stringDefinition.Id;
-                        string dummy = string.Format("Text <{0}> could not be read!", textId.ToString("X8"));
+                        string dummy = string.Format("Text <{0}> could not be read!", stringDefinition.ToString());
                         stringDefinition.Value = dummy;
                     }
                 }
@@ -472,9 +475,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// </summary>
         /// <param name="textLengthInBytes"></param>
         /// <param name="bitPosition"></param>
-        /// <param name="textId"></param>
+        /// <param name="textName"></param>
         /// <returns>true if the position is ok</returns>
-        private bool CheckPositionExists(int textLengthInBytes, int bitPosition, uint textId)
+        private bool CheckPositionExists(int textLengthInBytes, int bitPosition, string textName)
         {
 
             int bytePosition = (bitPosition >> 5) * 4;
@@ -486,31 +489,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             App.Logger.LogError(
                 "Could not read text <{0}> in resource <{1}>! The stated position <Bit: {2} or Byte: {3}> is outside the data array of byte length <{4}>!",
-                textId.ToString("X8"), Name, bitPosition, bytePosition, textLengthInBytes);
-
-            if(bitPosition <0 && PrintVerificationTexts)
-            {
-                uint unsignedBitPosition = (uint)bitPosition;
-                uint unsignedBytePosition = (unsignedBitPosition >> 5) * 4;
-
-                App.Logger.LogError("... unsigned bit position would be <{0}> in byte <{1}>", unsignedBitPosition, unsignedBytePosition);
-            }
-
-            if(PrintVerificationTexts)
-            {
-                App.Logger.LogWarning("...There are a total of <{0}> texts in this Resource!", _localizedStrings.Count);
-
-                int maxId = 3;
-                maxId = _localizedStrings.Count < maxId ? _localizedStrings.Count : maxId;
-
-                string[] someAffectedIdsList = new string[maxId];
-                for(int i = 0; i<maxId; i++)
-                {
-                    someAffectedIdsList[i] = _localizedStrings[i].Id.ToString("X8");
-                }
-
-                App.Logger.LogWarning("...E.g., these Ids: [{0}]", String.Join(", ", someAffectedIdsList));
-            }
+                textName, Name, bitPosition, bytePosition, textLengthInBytes);
 
             return false;
         }
@@ -558,8 +537,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public IEnumerable<string> GetAllTextIdsAtPositionOf(uint textId)
         {
 
-            LocalizedString textEntry = null;
-            foreach (LocalizedString searchTextEntry in _localizedStrings)
+            LocalizedStringWithId textEntry = null;
+            foreach (LocalizedStringWithId searchTextEntry in _localizedStrings)
             {
                 if(searchTextEntry.Id == textId)
                 {

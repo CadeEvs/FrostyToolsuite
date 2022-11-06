@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
@@ -59,7 +60,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             foreach (var ukd in FirstUnknownDataDefSegments)
             {
                 uint byte8Count = ukd.Count;
-                if(byte8Count>0)
+                if (byte8Count > 0)
                 {
                     uint totalsize = byte8Count * 8;
                     sb.Append($"  Additional data of {byte8Count} 8Bytes, or {totalsize} bytes starts at <{ukd.Offset}>\n");
@@ -120,7 +121,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
             string printLetter;
 
-            switch(Value)
+            switch (Value)
             {
                 case uint.MaxValue:
                     printLetter = "endDelimeter";
@@ -200,9 +201,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 List<bool> otherValue = other.Value;
                 if (Value.Count.Equals(otherValue.Count))
                 {
-                    for(int i = 0; i < Value.Count; i++)
+                    for (int i = 0; i < Value.Count; i++)
                     {
-                        if(Value[i] != otherValue[i])
+                        if (Value[i] != otherValue[i])
                         {
                             return false;
                         }
@@ -221,9 +222,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private static int ComputeHash(List<bool> encodedText)
         {
             int hash = 1;
-            foreach(bool b in encodedText)
+            foreach (bool b in encodedText)
             {
-                hash = 31*hash + b.GetHashCode();
+                hash = 31 * hash + b.GetHashCode();
             }
             return hash;
         }
@@ -235,7 +236,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
     public class EncodedTextPosition : IComparable<EncodedTextPosition>
     {
         public EncodedText EncodedText { get; }
-        public int Position { get; set;} = -1;
+        public int Position { get; set; } = -1;
 
         public EncodedTextPosition(EncodedText encodedText)
         {
@@ -300,7 +301,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public int CompareTo(HuffManConstructionNode other)
         {
             int cmp = Occurences.CompareTo(other.Occurences);
-            if(cmp == 0)
+            if (cmp == 0)
             {
                 cmp = GetDepth().CompareTo(other.GetDepth());
             }
@@ -318,25 +319,47 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
     public class LocalizedString
     {
-        public readonly uint Id;
-        public string Value { get; set; }
         public readonly int DefaultPosition;
+        public string Value { get; set; }
 
-        public LocalizedString (uint id, int defaultPosition)
+        public LocalizedString(int position)
         {
-            this.Id = id;
-            this.DefaultPosition = defaultPosition;
+            this.DefaultPosition = position;
         }
 
-        public LocalizedString(uint id, int defaultPosition, string text)
-            : this(id, defaultPosition)
+        public LocalizedString(int position, string text) : this(position)
         {
             Value = text;
         }
 
         public override string ToString()
         {
-            return Value;
+            if (Value != null)
+            {
+                return Value;
+            }
+            return this.GetType().Name + "@" + DefaultPosition;
+        }
+    }
+
+    public class LocalizedStringWithId : LocalizedString
+    {
+        public readonly uint Id;
+
+        public LocalizedStringWithId(uint id, int defaultPosition) : base(defaultPosition)
+        {
+            this.Id = id;
+        }
+
+        public LocalizedStringWithId(uint id, int defaultPosition, string text)
+            : base(defaultPosition, text)
+        {
+            this.Id = id;
+        }
+
+        public override string ToString()
+        {
+            return Id.ToString("X8");
         }
     }
 
@@ -367,11 +390,52 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public EncodedTextPositionGrouping(
             SortedDictionary<uint, EncodedTextPosition> primaryTextIdsAndPositions,
             List<SortedDictionary<uint, EncodedTextPosition>> declinatedAdjectiveIdsAndPositions,
-            SortedSet<EncodedTextPosition> allEncodedTextPositions )
+            SortedSet<EncodedTextPosition> allEncodedTextPositions)
         {
             this.PrimaryTextIdsAndPositions = primaryTextIdsAndPositions;
             this.DeclinatedAdjectivesIdsAndPositions = declinatedAdjectiveIdsAndPositions;
             this.AllEncodedTextPositions = allEncodedTextPositions;
         }
+    }
+
+    public class DragonAgeDeclinatedAdjectiveTuples
+    {
+
+        private readonly int numberOfDeclinations;
+
+        private readonly SortedDictionary<uint, LocalizedString[]> declinatedAdjectiveVariants;
+
+        public DragonAgeDeclinatedAdjectiveTuples(int numberOfDeclinations)
+        {
+            this.numberOfDeclinations = numberOfDeclinations;
+            declinatedAdjectiveVariants = new SortedDictionary<uint, LocalizedString[]>();
+        }
+
+        public void AddDeclinatedAdjective(uint textId, int declination, LocalizedString localizedText)
+        {
+            bool entryExists = declinatedAdjectiveVariants.TryGetValue(textId, out LocalizedString[] declinatedAdjectivesArray);
+
+            if(!entryExists)
+            {
+                declinatedAdjectivesArray = new LocalizedString[numberOfDeclinations];
+                declinatedAdjectiveVariants.Add(textId, declinatedAdjectivesArray);
+            }
+
+            declinatedAdjectivesArray[declination] = localizedText;
+        }
+
+        public IEnumerable<LocalizedString> GetDeclinatedArticle(uint articleID)
+        {
+            return declinatedAdjectiveVariants[articleID];
+        }
+
+        public IEnumerable<LocalizedString> GetAllDeclinatedArticlesTextLocations()
+        {
+            // TODO implement me!
+
+            return null;
+        }
+
+        
     }
 }
