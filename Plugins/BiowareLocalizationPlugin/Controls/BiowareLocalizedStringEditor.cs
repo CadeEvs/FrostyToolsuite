@@ -18,6 +18,7 @@ namespace BiowareLocalizationPlugin.Controls
     /// </summary>
     [TemplatePart(Name = PART_LocalizedString, Type = typeof(TextBox))]
     [TemplatePart(Name = PART_StringIdList, Type = typeof(ListBox))]
+    [TemplatePart(Name = PART_hexSearchCB, Type = typeof(CheckBox))]
     [TemplatePart(Name = PART_Searchfield, Type = typeof(TextBox))]
     [TemplatePart(Name = PART_SearchButton, Type = typeof(Button))]
     [TemplatePart(Name = PART_SearchTextButton, Type = typeof(Button))]
@@ -37,6 +38,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private const string PART_StringIdList = "PART_StringIdList";
 
+        private const string PART_hexSearchCB = "PART_hexSearchCB";
         private const string PART_Searchfield = "PART_Searchfield";
         private const string PART_SearchButton = "PART_SearchButton";
         private const string PART_SearchTextButton = "PART_SearchTextButton";
@@ -58,6 +60,8 @@ namespace BiowareLocalizationPlugin.Controls
         //#############################################
 
         // TODO ReplaceAll function?
+
+        private CheckBox searchHexIdCB;
 
         private TextBox localizedStringTb;
 
@@ -112,6 +116,10 @@ namespace BiowareLocalizationPlugin.Controls
 
             localizedStringTb = GetTemplateChild(PART_LocalizedString) as TextBox;
 
+            searchHexIdCB = GetTemplateChild(PART_hexSearchCB) as CheckBox;
+            searchHexIdCB.Checked += SearchFieldFormatChangedToHex;
+            searchHexIdCB.Unchecked += SearchFieldFormatChangedToDecimal;
+
             searchfieldTb = GetTemplateChild(PART_Searchfield) as TextBox;
             searchfieldTb.PreviewKeyDown += SearchFieldActualized;
             Button btSearchButton = GetTemplateChild(PART_SearchButton) as Button;
@@ -156,7 +164,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void LoadFirstTime(object sender, RoutedEventArgs e)
         {
-            if(_firstTimeInitialization)
+            if (_firstTimeInitialization)
             {
                 LoadTexts(sender, e);
                 _firstTimeInitialization = false;
@@ -172,7 +180,7 @@ namespace BiowareLocalizationPlugin.Controls
             FrostyTaskWindow.Show("Loading texts", "", (task) =>
             {
 
-                if(modifiedOnly)
+                if (modifiedOnly)
                 {
                     _textIdsList = _textDB.GetAllModifiedTextsIds(_selectedLanguageFormat).ToList();
                 }
@@ -206,8 +214,14 @@ namespace BiowareLocalizationPlugin.Controls
 
             if (isTextSelected && updateTextIdFieldCB.IsChecked == true)
             {
-                searchfieldTb.Text = selectedTextId.ToString("X8");
+                SetTextIdInSearchField(selectedTextId);
             }
+        }
+
+        private void SetTextIdInSearchField(uint textId)
+        {
+            string textIdFormat = (searchHexIdCB.IsChecked == true) ? "X8" : "D";
+            searchfieldTb.Text = textId.ToString(textIdFormat);
         }
 
         private void PopulateLocalizedString(uint textId)
@@ -228,23 +242,39 @@ namespace BiowareLocalizationPlugin.Controls
             }
         }
 
+        private void SearchFieldFormatChangedToHex(object sender, RoutedEventArgs e)
+        {
+            GetUpdateFromTextField(NumberStyles.Number, textId => SetTextIdInSearchField(textId));
+        }
+
+        private void SearchFieldFormatChangedToDecimal(object sender, RoutedEventArgs e)
+        {
+            GetUpdateFromTextField(NumberStyles.HexNumber, textId => SetTextIdInSearchField(textId));
+        }
+
+        private void GetUpdateFromTextField(NumberStyles style, Action<uint> textIdAction)
+        {
+            string stringIdAsText = searchfieldTb.Text;
+
+            bool canRead = uint.TryParse(stringIdAsText, style, null, out uint textId);
+            if (canRead)
+            {
+                textIdAction(textId);
+            }
+            else
+            {
+                App.Logger.LogWarning("Bad Input! Cannot read <{0}> as {1} formatted number for text Id", stringIdAsText, style.ToString());
+            }
+        }
+
+
         /// <summary>
         /// Searches the list of string ids for the text id (assumed a hexadecimal value!) given in the search box.
         /// </summary>
         private void DoSearch()
         {
-            string stringIdAsText = searchfieldTb.Text;
-
-            bool canRead = uint.TryParse(stringIdAsText, NumberStyles.HexNumber, null, out uint textId);
-            if (!canRead)
-            {
-                App.Logger.LogWarning("Bad Input! Cannot read <{0}> as text Id", stringIdAsText);
-            }
-            else
-            {
-
-                SearchTextId(textId);
-            }
+            NumberStyles style = (searchHexIdCB.IsChecked == true) ? NumberStyles.HexNumber : NumberStyles.Integer;
+            GetUpdateFromTextField(style, textId => SearchTextId(textId));
         }
 
         private void SearchTextId(uint textId)
@@ -259,7 +289,7 @@ namespace BiowareLocalizationPlugin.Controls
             stringIdListBox.SelectedIndex = index;
             stringIdListBox.ScrollIntoView(stringIdListBox.SelectedItem);
 
-            searchfieldTb.Text = textId.ToString("X8");
+            SetTextIdInSearchField(textId);
         }
 
         /// <summary>
@@ -343,7 +373,7 @@ namespace BiowareLocalizationPlugin.Controls
 
             int index = stringIdListBox.SelectedIndex;
 
-            if(index < 0 || index >= _textIdsList.Count)
+            if (index < 0 || index >= _textIdsList.Count)
             {
                 // not sure how this should be possible...
                 App.Logger.LogWarning("Entered impossible state <Remove on no item selected>: Remove Operation did not complete!");
@@ -356,7 +386,7 @@ namespace BiowareLocalizationPlugin.Controls
 
             string text = _textDB.FindText(_selectedLanguageFormat, textId);
 
-            if(text!= null)
+            if (text != null)
             {
                 string entry = textId.ToString("X8") + " - " + text;
                 stringIdListBox.Items[index] = entry;
@@ -375,7 +405,7 @@ namespace BiowareLocalizationPlugin.Controls
 
             string newLanguageFormat = (string)languageSelectorCb.SelectedItem;
 
-            if( !_selectedLanguageFormat.Equals(newLanguageFormat) )
+            if (!_selectedLanguageFormat.Equals(newLanguageFormat))
             {
                 _selectedLanguageFormat = newLanguageFormat;
 
@@ -394,7 +424,7 @@ namespace BiowareLocalizationPlugin.Controls
         private void ShowSearchDialog(object sender, RoutedEventArgs e)
         {
 
-            if(stringIdListBox != null && stringIdListBox.Items.Count>0)
+            if (stringIdListBox != null && stringIdListBox.Items.Count > 0)
             {
                 SearchFindWindow searchWindow = new SearchFindWindow(stringIdListBox);
                 searchWindow.Show();
@@ -434,12 +464,12 @@ namespace BiowareLocalizationPlugin.Controls
 
             public void OnChildClose(object sender, EventArgs e)
             {
-                nonModalChildren.Remove((Window) sender);
+                nonModalChildren.Remove((Window)sender);
             }
 
             public void OnEditorClose()
             {
-                foreach(Window childWindow in nonModalChildren)
+                foreach (Window childWindow in nonModalChildren)
                 {
                     childWindow.Closed -= OnChildClose;
                     childWindow.Close();
