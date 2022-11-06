@@ -26,7 +26,8 @@
                                         <Grid Background="{StaticResource ListBackground}">
                                             <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="70"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="78"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
@@ -36,17 +37,20 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Label Grid.Column="0" Content="Search Text with ID:" Margin="1,-2,4,0"/>
-                                            <TextBox Grid.Column="1" Name="PART_Searchfield" Text="" FontFamily="Global User Interface" BorderThickness="1" Margin="1,2,4,1"/>
-                                            <Button Grid.Column="2" Name="PART_SearchButton" ClickMode="Press" Margin="1,0,4,1" Padding="10,0,10,0">Search</Button>
-                                            <CheckBox Grid.Column="3" Name="PART_UpdateTextIdFieldCB" IsThreeState="False" Margin="6,2,2,1">
+                                            <CheckBox Grid.Column="1" x:Name="PART_hexSearchCB" IsChecked="True" IsThreeState="False" Margin="6,2,0,1">
+                                                <Label Content="0x" Margin="0,-5,0,0"/>
+                                            </CheckBox>
+                                            <TextBox Grid.Column="2" Name="PART_Searchfield" Text="" FontFamily="Global User Interface" BorderThickness="1" Margin="0,2,4,1"/>
+                                            <Button Grid.Column="3" Name="PART_SearchButton" ClickMode="Press" Margin="1,0,4,1" Padding="10,0,10,0">Search</Button>
+                                            <CheckBox Grid.Column="4" Name="PART_UpdateTextIdFieldCB" IsThreeState="False" Margin="6,2,2,1">
                                                 <Label Content="Update text ID field" Margin="0,-5,0,0"/>
                                             </CheckBox>
-                                            <Button Grid.Column="4" Name="PART_SearchTextButton" ClickMode="Press" Margin="8,0,4,2" Padding="10,0,10,0">Search for Text</Button>
-                                            <CheckBox Grid.Column="5" Name="PART_ModifiedOnlyCB" IsThreeState="False" Margin="6,2,2,1">
+                                            <Button Grid.Column="5" Name="PART_SearchTextButton" ClickMode="Press" Margin="8,0,4,2" Padding="10,0,10,0">Search for Text</Button>
+                                            <CheckBox Grid.Column="6" Name="PART_ModifiedOnlyCB" IsThreeState="False" Margin="6,2,2,1">
                                                 <Label Content="Show only modified" Margin="0,-5,0,0"/>
                                             </CheckBox>
-                                            <Button Grid.Column="7" Name="PART_RefreshButton" ClickMode="Press" Margin="1,2,8,1" Padding="10,0,10,0">Refresh</Button>
-                                            <ComboBox Grid.Column="8" Name="PART_LanguageSelector" BorderThickness="1" Width="250" Height="Auto"/>
+                                            <Button Grid.Column="8" Name="PART_RefreshButton" ClickMode="Press" Margin="1,2,8,1" Padding="10,0,10,0">Refresh</Button>
+                                            <ComboBox Grid.Column="9" Name="PART_LanguageSelector" BorderThickness="1" Width="250" Height="Auto"/>
                                         </Grid>
                                     </Border>
                                 </DockPanel>
