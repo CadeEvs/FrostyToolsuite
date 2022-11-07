@@ -65,7 +65,7 @@ namespace Frosty.ModSupport
                         cancelToken.ThrowIfCancellationRequested();
 
                         string sbPath = sbName;
-                        if (CatalogInfo.SuperBundles[sbName])
+                        if (CatalogInfo.SuperBundles[sbName].Item2)
                             sbPath = sbName.Replace("win32", CatalogInfo.Name);
 
                         string tocPath = parent.fs.ResolvePath(string.Format("{0}.toc", sbPath)).ToLower();
@@ -576,7 +576,7 @@ namespace Frosty.ModSupport
                                                         //    entry = (ChunkAssetEntry)extraData.Handler.Modify(entry, baseData, null, null, extraData.Data, out data);
                                                         //}
                                                         //else
-                                                            data = parent.archiveData[entry.Sha1].Data;
+                                                        data = parent.archiveData[entry.Sha1].Data;
 
                                                         // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
                                                         if (casWriter == null || casWriter.Length + data.Length > 1073741824)
