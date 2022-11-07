@@ -29,20 +29,27 @@ namespace MeshSetPlugin.Render
         public void SetMaterials(RenderCreateState state, MeshMaterialCollection materials)
         {
             foreach (MeshRenderLod lod in lods)
+            {
                 lod.SetMaterials(state, materials);
+            }
         }
 
         public MeshRenderLod GetLod(int idx)
         {
             if (idx >= lods.Count)
+            {
                 return lods[lods.Count - 1];
+            }
+
             return lods[idx];
         }
 
         public void Dispose()
         {
             foreach (MeshRenderLod lod in lods)
+            {
                 lod.Dispose();
+            }
         }
     }
 }

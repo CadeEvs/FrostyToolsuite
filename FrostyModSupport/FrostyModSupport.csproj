@@ -78,6 +78,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Actions\CasModExecutor.cs" />
     <Compile Include="Actions\HeatModExecutor.cs" />
     <Compile Include="FrostyLegacyScripting.cs" />
     <Compile Include="FrostyModExecutor.cs" />

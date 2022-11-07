@@ -194,9 +194,9 @@ namespace Frosty.Core.Windows
                 case (int)ProfileVersion.Madden22:
                     updateState.TypeInfoOffset = 0x146987A18;
                     break;
-                case (int)ProfileVersion.Battlefield2042:
-                    updateState.TypeInfoOffset = 0x14677EA30;
-                    break;
+                //case (int)ProfileVersion.Battlefield2042:
+                //    updateState.TypeInfoOffset = 0x14677EA30;
+                //    break;
                 case (int)ProfileVersion.Madden23:
                     updateState.TypeInfoOffset = 0x146BA7088;
                     break;

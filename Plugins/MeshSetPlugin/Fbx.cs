@@ -106,7 +106,9 @@ namespace MeshSetPlugin.Fbx
         ~FbxNative()
         {
             if (bNeedsFreeing)
+            {
                 FbxUtils.FbxFree(pHandle);
+            }
         }
     }
 
@@ -181,7 +183,9 @@ namespace MeshSetPlugin.Fbx
             }
 
             if (bDisposing)
+            {
                 GC.SuppressFinalize(this);
+            }
         }
     }
 
@@ -208,7 +212,9 @@ namespace MeshSetPlugin.Fbx
         {
             IntPtr Ptr = GetWriterFormatDescriptionInternal(pHandle, pFileFormat);
             if (Ptr == IntPtr.Zero)
+            {
                 return "";
+            }
 
             return FbxUtils.IntPtrToString(Ptr);
         }
@@ -258,7 +264,9 @@ namespace MeshSetPlugin.Fbx
             }
 
             if (bDisposing)
+            {
                 GC.SuppressFinalize(this);
+            }
         }
 
         public override int GetHashCode()
@@ -283,7 +291,9 @@ namespace MeshSetPlugin.Fbx
         public static bool operator !=(FbxObject a, FbxObject b)
         {
             if (ReferenceEquals(a, null))
+            {
                 return !ReferenceEquals(b, null);
+            }
 
             return !a.Equals(b);
         }
@@ -734,7 +744,9 @@ namespace MeshSetPlugin.Fbx
             get
             {
                 for (int i = 0; i < ChildCount; i++)
+                {
                     yield return GetChild(i);
+                }
             }
         }
 
@@ -782,7 +794,9 @@ namespace MeshSetPlugin.Fbx
                 {
                     FbxNodeAttribute attr = new FbxNodeAttribute(ptr);
                     if (attr.AttributeType == type)
+                    {
                         return attr;
+                    }
                 }
             }
             return null;
@@ -796,7 +810,9 @@ namespace MeshSetPlugin.Fbx
         public FbxAMatrix EvaluateGlobalTransform(FbxTime time = null, EPivotSet pivotSet = EPivotSet.eSourcePivot, bool applyTarget = false, bool forceEval = false)
         {
             if (time == null)
+            {
                 time = FbxTime.FBXSDK_TIME_INFINITE;
+            }
 
             IntPtr ptr = EvaluateGlobalTransformInternal(pHandle, time.Handle, pivotSet, applyTarget, forceEval);
             return new FbxAMatrix(ptr);
@@ -877,7 +893,9 @@ namespace MeshSetPlugin.Fbx
             get
             {
                 for (int i = 0; i < ClusterCount; i++)
+                {
                     yield return GetCluster(i);
+                }
             }
         }
 
@@ -1031,7 +1049,9 @@ namespace MeshSetPlugin.Fbx
         {
             IntPtr ptr = GetControlPointIndicesInternal(pHandle);
             if (ptr == IntPtr.Zero)
+            {
                 return null;
+            }
 
             int[] outBuf = new int[ControlPointIndicesCount];
             Marshal.Copy(ptr, outBuf, 0, ControlPointIndicesCount);
@@ -1043,7 +1063,9 @@ namespace MeshSetPlugin.Fbx
         {
             IntPtr ptr = GetControlPointWeightsInternal(pHandle);
             if (ptr == IntPtr.Zero)
+            {
                 return null;
+            }
 
             double[] outBuf = new double[ControlPointIndicesCount];
             Marshal.Copy(ptr, outBuf, 0, ControlPointIndicesCount);
@@ -1201,7 +1223,9 @@ namespace MeshSetPlugin.Fbx
         public FbxNode GetNode(int index)
         {
             if (index >= NodeCount)
+            {
                 return null;
+            }
 
             IntPtr ptr = GetNodeInternal(pHandle, index);
             return ptr == IntPtr.Zero ? null : new FbxNode(ptr);
@@ -1329,7 +1353,9 @@ namespace MeshSetPlugin.Fbx
             {
                 FbxLayerElementUV layer = GetElementUV(i, FbxLayerElement.EType.eUnknown);
                 if (layer.Name == name)
+                {
                     return layer;
+                }
             }
             return null;
         }
@@ -1346,7 +1372,9 @@ namespace MeshSetPlugin.Fbx
             {
                 FbxLayerElementVertexColor layer = GetElementVertexColor(i);
                 if (layer.Name == name)
+                {
                     return layer;
+                }
             }
             return null;
         }
@@ -1859,7 +1887,10 @@ namespace MeshSetPlugin.Fbx
             {
                 IntPtr Ptr = GetDirectArrayInternal(pHandle);
                 if (Ptr == IntPtr.Zero)
+                {
                     return null;
+                }
+
                 return new FbxLayerElementArray(Ptr);
             }
         }
@@ -1870,7 +1901,10 @@ namespace MeshSetPlugin.Fbx
             {
                 IntPtr Ptr = GetIndexArrayInternal(pHandle);
                 if (Ptr == IntPtr.Zero)
+                {
                     return null;
+                }
+
                 return new FbxLayerElementArray(Ptr);
             }
         }

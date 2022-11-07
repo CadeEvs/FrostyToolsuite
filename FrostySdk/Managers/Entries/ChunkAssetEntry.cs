@@ -16,7 +16,7 @@ namespace FrostySdk.Managers.Entries
         public uint RangeEnd;
 
         public int H32;
-        public int FirstMip;
+        public int FirstMip = -1;
         public bool IsTocChunk;
         public bool TocChunkSpecialHack;
     }

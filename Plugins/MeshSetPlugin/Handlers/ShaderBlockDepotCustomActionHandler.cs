@@ -62,7 +62,9 @@ namespace MeshSetPlugin.Handlers
             ModifiedShaderBlockDepot oldMsbd = (ModifiedShaderBlockDepot)existing;
 
             if (oldMsbd == null)
+            {
                 return newMsbd;
+            }
 
             oldMsbd.Merge(newMsbd);
             return oldMsbd;
