@@ -44,13 +44,19 @@ namespace MeshSetPlugin.Render
                 {
                     int boneIndex = (int)BoneIndices[i];
                     if ((BoneIndices[i] & 0x8000) != 0)
+                    {
                         boneIndex = (boneIndex & 0x7FFF) + Skeleton.BoneCount;
+                    }
 
                     while (i >= boneMatrices.Count)
+                    {
                         boneMatrices.Add(Matrix.Identity);
+                    }
 
                     if (boneIndex == -1)
+                    {
                         continue;
+                    }
 
                     boneMatrices[i] = Skeleton.GetBoneMatrix(boneIndex);
                 }

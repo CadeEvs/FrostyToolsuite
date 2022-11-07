@@ -39,7 +39,10 @@ namespace MeshSetPlugin.Render
             public override Matrix Evaluate(int hash)
             {
                 if (hash == WorldTransformHash)
+                {
                     return skeleton.GetBoneWorldMatrix(boneId);
+                }
+
                 return skeleton.GetBone(boneId).LocalPose;
             }
         }
@@ -108,13 +111,17 @@ namespace MeshSetPlugin.Render
         {
             bones.Add(bone);
             if (bone.IsProcedural && proceduralBoneIndex == -1)
+            {
                 proceduralBoneIndex = bones.Count - 1;
+            }
         }
 
         public Matrix GetBoneWorldMatrix(int idx)
         {
             if (idx >= bones.Count)
+            {
                 return Matrix.Identity;
+            }
 
             Matrix boneMatrix = bones[idx].LocalPose;
             while (idx != -1)
@@ -132,7 +139,9 @@ namespace MeshSetPlugin.Render
         public Matrix GetBoneMatrix(int idx)
         {
             if (idx >= bones.Count)
+            {
                 return Matrix.Identity;
+            }
 
             Matrix invBoneMatrix = bones[idx].ModelPose;
             Matrix boneMatrix = GetBoneWorldMatrix(idx);
@@ -161,12 +170,19 @@ namespace MeshSetPlugin.Render
         public void UpdateBone(int boneId, Matrix? modelPose = null, Matrix? localPose = null)
         {
             if (boneId >= bones.Count)
+            {
                 return;
+            }
 
             if (modelPose.HasValue)
+            {
                 bones[boneId].ModelPose = modelPose.Value;
+            }
+
             if (localPose.HasValue)
+            {
                 bones[boneId].LocalPose = localPose.Value;
+            }
         }
 
         public void UpdateBone(string boneName, Matrix? modelPose = null, Matrix? localPose = null)
@@ -174,7 +190,9 @@ namespace MeshSetPlugin.Render
             int hash = Fnv1.HashString(boneName);
             int boneId = bones.FindIndex((Bone a) => a.NameHash == hash);
             if (boneId == -1)
+            {
                 return;
+            }
 
             UpdateBone(boneId, modelPose, localPose);
         }
