@@ -1173,6 +1173,7 @@ namespace FrostyCmd
             CreateNFSEdgeProfile();
             CreateFifa21Profile();
             CreateFifa22Profile();
+            CreateFifa23Profile();
             CreateBF2042Profile();
             CreateMadden22Profile();
             CreateMadden23Profile();
