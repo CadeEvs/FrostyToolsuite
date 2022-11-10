@@ -46,6 +46,7 @@ namespace FrostySdk
         Madden22 = 20210820,
         Fifa22 = 20210927,
         Battlefield2042 = 20211119,
+        Fifa23 = 20221109,
         Madden23 = 20220819
     }
 

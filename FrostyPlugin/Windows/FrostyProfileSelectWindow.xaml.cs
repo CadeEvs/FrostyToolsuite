@@ -26,7 +26,7 @@ namespace Frosty.Core.Windows
             RefreshConfigurationList();
             
             // TODO: @techdebt only call this once or when needed
-            ScanGames();
+            // ScanGames();
 
             RefreshConfigurationList();
         }

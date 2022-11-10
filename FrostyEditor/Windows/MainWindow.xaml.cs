@@ -266,7 +266,7 @@ namespace FrostyEditor.Windows
                 ProfileVersion.Madden20, ProfileVersion.Fifa20,
                 ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa21,
                 ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                ProfileVersion.Madden23))
+                ProfileVersion.Fifa23, ProfileVersion.Madden23))
             {
                 InitFifaMenu();
             }

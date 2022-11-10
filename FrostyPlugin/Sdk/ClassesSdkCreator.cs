@@ -1679,7 +1679,7 @@ namespace Frosty.Core.Sdk
                     fieldObj.AddValue("flags", (int)field.Type);
                     if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                         ProfileVersion.Fifa20, ProfileVersion.Fifa21, ProfileVersion.Madden22,
-                        ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+                        ProfileVersion.Fifa22, ProfileVersion.Fifa23, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
                     {
                         fieldObj.AddValue("offset", (int)field.DataOffset);
                         fieldObj.AddValue("nameHash", field.NameHash);
@@ -1881,7 +1881,7 @@ namespace Frosty.Core.Sdk
             }
             // All others
             else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden20, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
-                ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21, ProfileVersion.Fifa22))
+                ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21, ProfileVersion.Fifa22, ProfileVersion.Fifa23))
             {
                 Namespace = "Frosty.Core.Sdk.Madden20.";
             }

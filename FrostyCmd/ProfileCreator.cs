@@ -1114,7 +1114,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("FIFA 23");
-                writer.Write((int)(int)ProfileVersion.Fifa22);
+                writer.Write((int)(int)ProfileVersion.Fifa23);
                 writer.WriteObfuscatedString("fifa23");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));

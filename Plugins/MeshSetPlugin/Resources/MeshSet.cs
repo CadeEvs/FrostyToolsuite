@@ -555,7 +555,7 @@ namespace MeshSetPlugin.Resources
             uint boneCount = 0;
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Fifa23, ProfileVersion.Madden23))
             {
                 boneListOffset = reader.ReadLong();
                 boneCount = reader.ReadUShort();
@@ -748,7 +748,7 @@ namespace MeshSetPlugin.Resources
             {
                 reader.Pad(16);
             }
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Fifa23, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
             {
                 reader.ReadLong(); // some hash
 
@@ -756,7 +756,7 @@ namespace MeshSetPlugin.Resources
                 {
                     reader.ReadLong(); // some other hash
                 }
-                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Fifa23, ProfileVersion.Madden23))
                 {
                     reader.ReadUInt(); // some other hash
                 }
@@ -880,7 +880,7 @@ namespace MeshSetPlugin.Resources
             meshContainer.WriteRelocPtr("STR", m_sectionIndex + ":" + m_materialName, writer);
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Fifa23, ProfileVersion.Madden23))
             {
                 if (m_boneList.Count > 0)
                 {
@@ -1057,7 +1057,7 @@ namespace MeshSetPlugin.Resources
             {
                 writer.WritePadding(16);
             }
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Fifa23, ProfileVersion.Madden23))
             {
                 // @todo
                 // some hash
@@ -1066,7 +1066,7 @@ namespace MeshSetPlugin.Resources
                 {
                     // some other hash
                 }
-                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Fifa23, ProfileVersion.Madden23))
                 {
                     // some other hash
                 }
@@ -1815,6 +1815,7 @@ namespace MeshSetPlugin.Resources
                     case (int)ProfileVersion.Fifa20:
                     case (int)ProfileVersion.Fifa21:
                     case (int)ProfileVersion.Fifa22:
+                    case (int)ProfileVersion.Fifa23:
                     case (int)ProfileVersion.Madden19:
                     case (int)ProfileVersion.Madden20:
                     case (int)ProfileVersion.Madden21:
@@ -1908,7 +1909,7 @@ namespace MeshSetPlugin.Resources
                 ProfileVersion.Madden20, ProfileVersion.Fifa20,
                 ProfileVersion.Madden21, ProfileVersion.Fifa21,
                 ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                ProfileVersion.Madden23))
+                ProfileVersion.Madden23, ProfileVersion.Fifa23))
             {
                 m_flags = (MeshSetLayoutFlags)reader.ReadULong();
             }
@@ -2265,7 +2266,7 @@ namespace MeshSetPlugin.Resources
                             ProfileVersion.Madden20, ProfileVersion.Fifa20,
                             ProfileVersion.Madden21, ProfileVersion.Fifa21,
                             ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                            ProfileVersion.Madden23))
+                            ProfileVersion.Madden23, ProfileVersion.Fifa23))
             {
                 writer.Write((ulong)m_flags);
             }

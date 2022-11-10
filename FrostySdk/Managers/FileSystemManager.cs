@@ -296,7 +296,7 @@ namespace FrostySdk
                     ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat,
                     ProfileVersion.Fifa21, ProfileVersion.Madden22,
                     ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                    ProfileVersion.Madden23))
+                    ProfileVersion.Fifa23, ProfileVersion.Madden23))
                 {
                     byte[] buffer = initfs.GetValue<byte[]>("encrypted");
                     if (buffer != null)
@@ -554,7 +554,8 @@ namespace FrostySdk
                             (!ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                             ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21,
                             ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                            ProfileVersion.Battlefield2042, ProfileVersion.Madden23)))
+                            ProfileVersion.Battlefield2042, ProfileVersion.Madden23,
+                            ProfileVersion.Fifa23)))
                         {
                             // BFV needs even non existent catalogs to be in the list for indexing to work
                             if (!ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
