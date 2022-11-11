@@ -84,12 +84,10 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private List<byte[]> _unknownData;
 
         /// <summary>
-        /// Ids and bit offst possitions of Declinated adjectives for creafted items in DA:I
+        /// Ids and texts of Declinated adjectives for creafted items in DA:I
         /// This has internal access only for the test utils
         /// </summary>
-        // need per id list of N tuple entries?
-        // TODO use DragonAgeDeclinatedAdjectiveTuples instead
-        internal List<List<LocalizedStringWithId>> DragonAgeDeclinatedCraftingNames { get; private set; }
+        internal DragonAgeDeclinatedAdjectiveTuples DragonAgeDeclinatedCraftingNames { get; private set; }
 
 
         /// <summary>
@@ -178,7 +176,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             // initialize these, so there is no accidental crash in anthem
             _headerData = new ResourceHeader();
             _unknownData = new List<byte[]>();
-            DragonAgeDeclinatedCraftingNames = new List<List<LocalizedStringWithId>>();
+            DragonAgeDeclinatedCraftingNames = new DragonAgeDeclinatedAdjectiveTuples(0);
 
             long numStrings = reader.ReadLong();
             reader.Position += 0x18;
@@ -247,12 +245,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 _unknownData.Add(ResourceUtils.ReadUnkownSegment(reader, dataCountAndOffset));
             }
 
-            DragonAgeDeclinatedCraftingNames = new List<List<LocalizedStringWithId>>();
-            foreach(DataCountAndOffsets dataCountAndOffset in _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset)
+            DragonAgeDeclinatedCraftingNames = new DragonAgeDeclinatedAdjectiveTuples(_headerData.MaxDeclinations);
+
+            for(int i = 0; i< _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset.Count; i++ )
             {
+                DataCountAndOffsets dataCountAndOffset = _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset[i];
 
                 List<LocalizedStringWithId> declinatedAdjectives = ReadDragonAgeDeclinatedItemNamePartIdsAndOffsets(reader, dataCountAndOffset);
-                DragonAgeDeclinatedCraftingNames.Add(declinatedAdjectives);
+
+                DragonAgeDeclinatedCraftingNames.AddAllAdjectiveForDeclination(declinatedAdjectives, i);
             }
 
             DataOffsetReaderPositionSanityCheck(reader);
@@ -270,10 +271,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private List<LocalizedString> GetAllLocalizedStrings()
         {
             List<LocalizedString> allLocalizedStrings = new List<LocalizedString>(_localizedStrings);
-            foreach (var anotherListOfStrings in DragonAgeDeclinatedCraftingNames)
-            {
-                allLocalizedStrings.AddRange(anotherListOfStrings);
-            }
+
+            allLocalizedStrings.AddRange(DragonAgeDeclinatedCraftingNames.GetAllDeclinatedAdjectiveTextLocations());
 
             return allLocalizedStrings;
         }
@@ -752,13 +751,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 App.Logger.Log("..Preparing to write resource <{0}>. Added <{1}> primary texts.", Name, primaryTextsToWrite.Count);
             }
 
-            foreach(var declinationTypeStrings in DragonAgeDeclinatedCraftingNames)
+            for(int declination = 0; declination < DragonAgeDeclinatedCraftingNames.NumberOfDeclinations; declination++)
             {
-
                 SortedDictionary<uint, string> declinatedTextsToWrite = new SortedDictionary<uint, string>();
                 allTextsToWrite.Add(declinatedTextsToWrite);
 
-                foreach(var declinatedString in declinationTypeStrings)
+                foreach (LocalizedStringWithId declinatedString in DragonAgeDeclinatedCraftingNames.GetAdjectivesOfDeclination(declination))
                 {
                     declinatedTextsToWrite[declinatedString.Id] = declinatedString.Value;
                 }
@@ -960,8 +958,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <summary>
         /// Version number that is incremented with changes to how modfiles are persisted.
         /// This should allow to detect outdated mods and maybe even read them correctly if mod writing is ever changed.
+        /// Versions:
+        /// 1: Includes writing the primary texts as number of texts + textid text tuples
+        /// 2: Adds another number altered adjectives, and then for each adjective the id and number of declinations, followed by the declinated adjectives themselves
         /// </summary>
-        private static readonly uint MOD_PERSISTENCE_VERSION= 1;
+        private static readonly uint MOD_PERSISTENCE_VERSION= 2;
 
         // Just to make sure we write / overwrite and merge the correct asset!
         private ulong _resRid = 0x0;
@@ -970,6 +971,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// The dictionary of altered or new texts in this modified resource.
         /// </summary>
         public Dictionary<uint, string> AlteredTexts { get; } = new Dictionary<uint, string>();
+
+        /// <summary>
+        /// The dictionary of altered declinated adjectives used for crafting in dragon age.
+        /// </summary>
+        public Dictionary<uint, List<string>> AlteredDeclinatedCraftingAdjectives { get; } = new Dictionary<uint, List<string>>();
 
         /// <summary>
         /// Sets a modified text into the dictionary.
@@ -988,6 +994,25 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public void RemoveText(uint textId)
         {
             AlteredTexts.Remove(textId);
+        }
+
+        /// <summary>
+        /// Sets or replaces the set of declinated crafting adjectives
+        /// </summary>
+        /// <param name="adjectiveId"></param>
+        /// <param name="adjectives"></param>
+        public void SetDeclinatedCraftingAdjective(uint adjectiveId, List<string> adjectives)
+        {
+            AlteredDeclinatedCraftingAdjectives[adjectiveId] = adjectives;
+        }
+
+        /// <summary>
+        /// Removes the altered adjectives
+        /// </summary>
+        /// <param name="adjectiveId"></param>
+        public void RemoveDeclinatedCraftingAdjective(uint adjectiveId)
+        {
+            AlteredDeclinatedCraftingAdjectives.Remove(adjectiveId);
         }
 
         /// <summary>
@@ -1026,6 +1051,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             {
                 SetText(textEntry.Key, textEntry.Value);
             }
+
+            foreach (KeyValuePair<uint, List<string>> adjectivesEntry in higherPriorityModifiedResource.AlteredDeclinatedCraftingAdjectives)
+            {
+                SetDeclinatedCraftingAdjective(adjectivesEntry.Key, adjectivesEntry.Value);
+            }
         }
 
         /// <summary>
@@ -1038,27 +1068,55 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             uint modPersistenceVersion = reader.ReadUInt();
             InitResourceId(reader.ReadULong());
 
-            if(modPersistenceVersion != MOD_PERSISTENCE_VERSION)
+            if(MOD_PERSISTENCE_VERSION < modPersistenceVersion)
             {
                 ResAssetEntry asset = App.AssetManager.GetResEntry(_resRid);
                 string assetName = asset != null ? asset.Path : "<unknown>";
 
-                App.Logger.LogWarning("ABORT: Mod for localization resource <{0}> was written with a different version and cannot be read!", assetName);
+                App.Logger.LogError("TextMod for localization resource <{0}> was written with a newer version of the Bioware Localization Plugin and cannot be read!", assetName);
                 return;
             }
-
-            int numberOfEntries = reader.ReadInt();
 
             byte[] entryBytes = reader.ReadBytes((int) (reader.Length - reader.Position));
             using (BinaryReader textReader = new BinaryReader(new MemoryStream(entryBytes), Encoding.UTF8))
             {
-                for (int i = 0; i < numberOfEntries; i++)
-                {
-                    uint textId = textReader.ReadUInt32();
-                    string text = textReader.ReadString();
+                ReadPrimaryVersion1Texts(textReader);
 
-                    SetText(textId, text);
+                if(modPersistenceVersion>=2)
+                {
+                    ReadDeclinatedAdjectivesVersion2Texts(textReader);
                 }
+            }
+        }
+
+        private void ReadPrimaryVersion1Texts(BinaryReader textReader)
+        {
+            int numberOfEntries = textReader.ReadInt32();
+            for (int i = 0; i < numberOfEntries; i++)
+            {
+                uint textId = textReader.ReadUInt32();
+                string text = textReader.ReadString();
+
+                SetText(textId, text);
+            }
+        }
+
+        private void ReadDeclinatedAdjectivesVersion2Texts(BinaryReader textReader)
+        {
+            int numberOfAdjectives = textReader.ReadInt32();
+            for (int i = 0; i < numberOfAdjectives; i++)
+            {
+                uint adjectiveId = textReader.ReadUInt32();
+                int numberOfDeclinations = textReader.ReadInt32();
+
+                List<string> adjectives = new List<string>(numberOfDeclinations);
+
+                for(int j = 0; i< numberOfDeclinations; j++)
+                {
+                    adjectives.Add(textReader.ReadString());
+                }
+
+                SetDeclinatedCraftingAdjective(adjectiveId, adjectives);
             }
         }
 
@@ -1086,6 +1144,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             // use a binary writer from here to write all the texts in utf-8
             writer.Write(ResourceUtils.ConvertTextEntriesToBytes(AlteredTexts));
+
+            writer.Write(AlteredDeclinatedCraftingAdjectives.Count);
+
+            // kind of stupid to do the whole writer creation again here, but its only for one resource or so..
+            writer.Write(ResourceUtils.ConvertAdjectivesToBytes(AlteredDeclinatedCraftingAdjectives));
         }
 
         public ulong GetResRid()

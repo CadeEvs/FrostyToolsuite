@@ -56,7 +56,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             // The remainder until the node offset is reached is filled by ids and positions of declinated articles for dragon age crafting.
             while (reader.Position < header.NodeOffset)
             {
-                header.DragonAgeDeclinatedCraftingNamePartsCountAndOffset.Add(ReadCountAndOffset(reader));
+                header.AddDragonAgeDeclinatedCraftingNamePart(ReadCountAndOffset(reader));
             }
 
             return header;
@@ -593,6 +593,38 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     {
                         writer.Write(textEntry.Key);
                         writer.Write(textEntry.Value);
+                    }
+                    writer.Flush();
+                }
+                return outputStream.ToArray();
+            }
+        }
+
+        /// <summary>
+        /// For each adjective included in the map, this first writes the adjective id, then the number of declinations, and then the adjectives themselves.
+        /// </summary>
+        /// <param name="adjectiveEntriesToWrite"></param>
+        /// <returns></returns>
+        public static byte[] ConvertAdjectivesToBytes(Dictionary<uint, List<string>> adjectiveEntriesToWrite)
+        {
+
+            using (MemoryStream outputStream = new MemoryStream())
+            {
+                using (BinaryWriter writer = new BinaryWriter(outputStream, Encoding.UTF8))
+                {
+
+                    foreach (KeyValuePair<uint, List<string>> textEntry in adjectiveEntriesToWrite)
+                    {
+
+                        List<string> declinationsList = textEntry.Value;
+
+                        writer.Write(textEntry.Key);
+                        writer.Write(declinationsList.Count);
+
+                        foreach(string declination in declinationsList)
+                        {
+                            writer.Write(declination);
+                        }
                     }
                     writer.Flush();
                 }
