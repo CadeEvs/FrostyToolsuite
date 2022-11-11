@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Windows.Automation;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
@@ -42,7 +44,16 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         // These are only available for very few resources, they contain the count and offset for the strings used when crafting items in DA:I
         // This starts at the 3rd of the DataCountAndOffsets, potentially this contains only zeros.
-        public List<DataCountAndOffsets> DragonAgeDeclinatedCraftingNamePartsCountAndOffset = new List<DataCountAndOffsets>();
+        public List<DataCountAndOffsets> DragonAgeDeclinatedCraftingNamePartsCountAndOffset { get; private set; } = new List<DataCountAndOffsets>();
+
+        // this is *not* part of the actual header?
+        public int MaxDeclinations { get; private set; } = 0;
+
+        public void AddDragonAgeDeclinatedCraftingNamePart(DataCountAndOffsets coundAndOffset)
+        {
+            MaxDeclinations = coundAndOffset.Count > MaxDeclinations ? (int) coundAndOffset.Count : MaxDeclinations;
+            DragonAgeDeclinatedCraftingNamePartsCountAndOffset.Add(coundAndOffset);
+        }
 
         public override string ToString()
         {
@@ -403,40 +414,54 @@ namespace BiowareLocalizationPlugin.LocalizedResources
     public class DragonAgeDeclinatedAdjectiveTuples
     {
 
-        private readonly int numberOfDeclinations;
+        public int NumberOfDeclinations { get; private set; }
 
-        private readonly SortedDictionary<uint, LocalizedString[]> declinatedAdjectiveVariants;
+        private readonly SortedDictionary<uint, LocalizedStringWithId[]> declinatedAdjectiveVariants;
 
         public DragonAgeDeclinatedAdjectiveTuples(int numberOfDeclinations)
         {
-            this.numberOfDeclinations = numberOfDeclinations;
-            declinatedAdjectiveVariants = new SortedDictionary<uint, LocalizedString[]>();
+            this.NumberOfDeclinations = numberOfDeclinations;
+            declinatedAdjectiveVariants = new SortedDictionary<uint, LocalizedStringWithId[]>();
         }
 
-        public void AddDeclinatedAdjective(uint textId, int declination, LocalizedString localizedText)
+        public void AddDeclinatedAdjective(LocalizedStringWithId localizedText, int declination)
         {
 
-            if (declination >= numberOfDeclinations)
+            uint textId = localizedText.Id;
+            if (declination >= NumberOfDeclinations)
             {
-                App.Logger.LogError("Cannot Store given declinated adjective with ID <{0}> and declination <{1}> as there are only <{2}> declinations allowed!", textId, declination, numberOfDeclinations);
+                App.Logger.LogError("Cannot Store given declinated adjective with ID <{0}> and declination <{1}> as there are only <{2}> declinations allowed!", textId, declination, NumberOfDeclinations);
                 return;
             }
 
-            bool entryExists = declinatedAdjectiveVariants.TryGetValue(textId, out LocalizedString[] declinatedAdjectivesArray);
+            bool entryExists = declinatedAdjectiveVariants.TryGetValue(textId, out LocalizedStringWithId[] declinatedAdjectivesArray);
 
             if (!entryExists)
             {
-                declinatedAdjectivesArray = new LocalizedString[numberOfDeclinations];
+                declinatedAdjectivesArray = new LocalizedStringWithId[NumberOfDeclinations];
                 declinatedAdjectiveVariants.Add(textId, declinatedAdjectivesArray);
             }
 
             declinatedAdjectivesArray[declination] = localizedText;
         }
 
+        public void AddAllAdjectiveForDeclination(List<LocalizedStringWithId> articlesOfDeclination, int declination)
+        {
+            foreach(LocalizedStringWithId localizedText in articlesOfDeclination)
+            {
+                AddDeclinatedAdjective(localizedText, declination);
+            }
+        }
+
+        public IEnumerable<uint> GetDeclinatedArticleIds()
+        {
+            return declinatedAdjectiveVariants.Keys;
+        }
+
         public IEnumerable<LocalizedString> GetDeclinatedArticle(uint articleID)
         {
 
-            bool entryExists = declinatedAdjectiveVariants.TryGetValue(articleID, out LocalizedString[] declinatedAdjectivesArray);
+            bool entryExists = declinatedAdjectiveVariants.TryGetValue(articleID, out LocalizedStringWithId[] declinatedAdjectivesArray);
             if (entryExists)
             {
                 return declinatedAdjectivesArray;
@@ -445,7 +470,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             return new LocalizedString[0];
         }
 
-        public IEnumerable<LocalizedString> GetAllDeclinatedArticlesTextLocations()
+        public IEnumerable<LocalizedString> GetAllDeclinatedAdjectiveTextLocations()
         {
 
             List<LocalizedString> allDeclinatedArticles = new List<LocalizedString>();
@@ -460,6 +485,34 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 }
             }
             return allDeclinatedArticles;
+        }
+
+        /// <summary>
+        /// Returns the declinated adjectives of the given declination number.
+        /// </summary>
+        /// <param name="declinationNumber">The declination, must be in the range [0-numberOfDeclinations[</param>
+        /// <returns></returns>
+        public IEnumerable<LocalizedStringWithId> GetAdjectivesOfDeclination(int declinationNumber)
+        {
+
+            if (declinationNumber<0 || declinationNumber>= NumberOfDeclinations)
+            {
+                return new LocalizedStringWithId[0];
+            }
+
+            List<LocalizedStringWithId> adjectives = new List<LocalizedStringWithId>();
+            foreach(var entry in declinatedAdjectiveVariants)
+            {
+
+                LocalizedStringWithId textEntry = entry.Value[declinationNumber];
+
+                if(textEntry != null)
+                {
+                    adjectives.Add(textEntry);
+                }
+            }
+
+            return adjectives;
         }
 
 
