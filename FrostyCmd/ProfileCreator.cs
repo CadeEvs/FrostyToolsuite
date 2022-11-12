@@ -103,7 +103,7 @@ namespace FrostyCmd
         #endregion
 
         #region -- Profiles --
-        
+
         private void CreateBF4Profile()
         {
             string key = "bf4";
@@ -1113,7 +1113,7 @@ namespace FrostyCmd
             string key = "FIFA23";
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
-                writer.WriteObfuscatedString("FIFA 23");
+                writer.WriteObfuscatedString("FIFA23");
                 writer.Write((int)(int)ProfileVersion.Fifa23);
                 writer.WriteObfuscatedString("fifa23");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
@@ -1135,8 +1135,8 @@ namespace FrostyCmd
                 blobs.Add(key, writer.ToByteArray());
             }
         }
-#endregion
-        
+        #endregion
+
         public ProfileCreator()
         {
         }
@@ -1167,9 +1167,6 @@ namespace FrostyCmd
             CreateNFSHeatProfile();
             CreateBFHProfile();
             CreateSWSProfile();
-
-#if FROSTY_DEVELOPER
-
             CreateNFSEdgeProfile();
             CreateFifa21Profile();
             CreateFifa22Profile();
@@ -1177,8 +1174,6 @@ namespace FrostyCmd
             CreateBF2042Profile();
             CreateMadden22Profile();
             CreateMadden23Profile();
-
-#endif
 
             using (NativeWriter writer = new NativeWriter(new FileStream(@"..\..\..\..\FrostySdk\Profiles.bin", FileMode.Create)))
             {

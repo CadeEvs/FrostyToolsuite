@@ -159,7 +159,7 @@ namespace Frosty.Core.Windows
             // try to load game profile 
             if (!ProfilesLibrary.HasProfile(fi.Name.Remove(fi.Name.Length - 4)))
             {
-                FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Core");
+                FrostyMessageBox.Show("Profile error.", "Frosty Core");
                 return;
             }
 
