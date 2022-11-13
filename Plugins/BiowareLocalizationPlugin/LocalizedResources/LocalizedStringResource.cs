@@ -8,7 +8,6 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using System;
-using System.Collections;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
@@ -762,7 +761,38 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 }
             }
 
-            if (PrintVerificationTexts)
+            if (_modifiedResource != null)
+            {
+                // shouldn't be many
+                foreach(var adjectiveEntry in _modifiedResource.AlteredDeclinatedCraftingAdjectives)
+                {
+                    uint adjectiveId = adjectiveEntry.Key;
+                    List<string> declinations = adjectiveEntry.Value;
+
+                    int modiefiedDeclinationsCount = declinations.Count;
+                    int currentDeclinationsCount = allTextsToWrite.Count - 1;
+
+                    int iterationLimit = Math.Min(modiefiedDeclinationsCount, currentDeclinationsCount);
+                    for (int i = 0; i< iterationLimit; i++)
+                    {
+                        allTextsToWrite[i + 1][adjectiveId] = declinations[i];
+                    }
+
+                    if(modiefiedDeclinationsCount > currentDeclinationsCount)
+                    {
+                        // I have absolutely no clue if this even works or what else might need to be changed to support additional declinations...
+                        for (int i = iterationLimit; i < modiefiedDeclinationsCount; i++)
+                        {
+                            SortedDictionary<uint, string> additionalDeclinatedTextBlock = new SortedDictionary<uint, string>();
+                            additionalDeclinatedTextBlock[adjectiveId] = declinations[i];
+
+                            allTextsToWrite.Add(additionalDeclinatedTextBlock);
+                        }
+                    }
+                }
+            }
+
+                if (PrintVerificationTexts)
             {
                 PrintDeclinatedAdjectivesWritingVerifications(allTextsToWrite);
             }
@@ -895,13 +925,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         private void SetText0(uint textId, string text)
         {
-            if (_modifiedResource == null)
-            {
-                _modifiedResource = new ModifiedLocalizationResource();
-                _modifiedResource.InitResourceId(resRid);
-
-                App.AssetManager.ModifyRes(resRid, this);
-            }
+            ModifyResourceBeforeInsert();
             _modifiedResource.SetText(textId, text);
         }
 
@@ -911,16 +935,51 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             {
                 _modifiedResource.RemoveText(textId);
 
-                if(_modifiedResource.AlteredTexts.Count == 0)
-                {
-                    // remove this resource, it isn't needed anymore
-                    // This is also done via the listener, but whatever
-                    _modifiedResource = null;
+                ModifyResourceAfterDelete();
+            }
+        }
 
-                    AssetManager assetManager = App.AssetManager;
-                    ResAssetEntry entry = assetManager.GetResEntry(resRid);
-                    App.AssetManager.RevertAsset(entry);
-                }
+        private void ModifyResourceBeforeInsert()
+        {
+            if (_modifiedResource == null)
+            {
+                _modifiedResource = new ModifiedLocalizationResource();
+                _modifiedResource.InitResourceId(resRid);
+
+                // might need to change this, when exporting the resouce it never exports the current value!
+                App.AssetManager.ModifyRes(resRid, this);
+            }
+        }
+
+        private void ModifyResourceAfterDelete()
+        {
+
+            if (_modifiedResource != null
+                && _modifiedResource.AlteredTexts.Count == 0
+                && _modifiedResource.AlteredDeclinatedCraftingAdjectives.Count == 0 )
+            {
+                // remove this resource, it isn't needed anymore
+                // This is also done via the listener, but whatever
+                _modifiedResource = null;
+
+                AssetManager assetManager = App.AssetManager;
+                ResAssetEntry entry = assetManager.GetResEntry(resRid);
+                App.AssetManager.RevertAsset(entry);
+            }
+        }
+
+        public void SetAdjectiveDeclinations(uint adjectiveId, List<string> declinations)
+        {
+            ModifyResourceBeforeInsert();
+            _modifiedResource.SetDeclinatedCraftingAdjective(adjectiveId, declinations);
+        }
+
+        public void RemoveAdjectiveDeclination(uint adjectiveId)
+        {
+            if (_modifiedResource != null)
+            {
+                _modifiedResource.RemoveDeclinatedCraftingAdjective(adjectiveId);
+                ModifyResourceAfterDelete();
             }
         }
 

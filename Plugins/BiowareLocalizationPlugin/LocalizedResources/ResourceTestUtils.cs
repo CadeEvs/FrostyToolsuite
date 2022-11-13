@@ -209,8 +209,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             TestTextsFromReReadResource(currentData, recreatedData, "primary");
 
-            int dragonAgeBlocksCount = resource.DragonAgeDeclinatedCraftingNames.Count;
-            int recreatedDragonAgeBlocksCount = recreation.DragonAgeDeclinatedCraftingNames.Count;
+            int dragonAgeBlocksCount = resource.DragonAgeDeclinatedCraftingNames.NumberOfDeclinations;
+            int recreatedDragonAgeBlocksCount = recreation.DragonAgeDeclinatedCraftingNames.NumberOfDeclinations;
 
             if(dragonAgeBlocksCount != recreatedDragonAgeBlocksCount)
             {
@@ -223,8 +223,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     SortedDictionary<uint, string> originalBlockData = new SortedDictionary<uint, string>();
                     SortedDictionary<uint, string> recreatedBlockData = new SortedDictionary<uint, string>();
 
-                    resource.DragonAgeDeclinatedCraftingNames[i].ForEach(ls => originalBlockData[ls.Id] = ls.Value);
-                    recreation.DragonAgeDeclinatedCraftingNames[i].ForEach(ls => recreatedBlockData[ls.Id] = ls.Value);
+                    resource.DragonAgeDeclinatedCraftingNames.GetAdjectivesOfDeclination(i).ToList().ForEach(ls => originalBlockData[ls.Id] = ls.Value);
+                    recreation.DragonAgeDeclinatedCraftingNames.GetAdjectivesOfDeclination(i).ToList().ForEach(ls => originalBlockData[ls.Id] = ls.Value);
 
                     TestTextsFromReReadResource(originalBlockData, recreatedBlockData, $"declinatedAdjectives[{i}]");
                 }
