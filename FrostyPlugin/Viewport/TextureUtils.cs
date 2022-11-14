@@ -564,6 +564,7 @@ namespace Frosty.Core.Viewport
                 case "BC1A_UNORM": return SharpDX.DXGI.Format.BC1_Typeless;
                 case "BC1_SRGB": return SharpDX.DXGI.Format.BC1_Typeless;
                 case "BC1_UNORM": return SharpDX.DXGI.Format.BC1_Typeless;
+                case "BC2_SRGB": return SharpDX.DXGI.Format.BC2_Typeless;
                 case "BC2_UNORM": return SharpDX.DXGI.Format.BC2_Typeless;
                 //case "DXT3": return SharpDX.DXGI.Format.BC2_UNorm;
                 case "BC3_SRGB": return SharpDX.DXGI.Format.BC3_Typeless;
@@ -615,6 +616,7 @@ namespace Frosty.Core.Viewport
                 case "BC1A_UNORM": return SharpDX.DXGI.Format.BC1_UNorm;
                 case "BC1_SRGB": return SharpDX.DXGI.Format.BC1_UNorm_SRgb;
                 case "BC1_UNORM": return SharpDX.DXGI.Format.BC1_UNorm;
+                case "BC2_SRGB": return SharpDX.DXGI.Format.BC2_UNorm_SRgb;
                 case "BC2_UNORM": return SharpDX.DXGI.Format.BC2_UNorm;
                 //case "DXT3": return SharpDX.DXGI.Format.BC2_UNorm;
                 case "BC3_SRGB": return SharpDX.DXGI.Format.BC3_UNorm_SRgb;
