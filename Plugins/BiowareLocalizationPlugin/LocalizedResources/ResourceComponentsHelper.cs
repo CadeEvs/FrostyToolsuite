@@ -51,7 +51,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public void AddDragonAgeDeclinatedCraftingNamePart(DataCountAndOffsets coundAndOffset)
         {
-            MaxDeclinations = coundAndOffset.Count > MaxDeclinations ? (int) coundAndOffset.Count : MaxDeclinations;
+            MaxDeclinations++;
             DragonAgeDeclinatedCraftingNamePartsCountAndOffset.Add(coundAndOffset);
         }
 
@@ -418,6 +418,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         private readonly SortedDictionary<uint, LocalizedStringWithId[]> declinatedAdjectiveVariants;
 
+        public bool ContainsAdjectives => declinatedAdjectiveVariants.Count > 0;
+
         public DragonAgeDeclinatedAdjectiveTuples(int numberOfDeclinations)
         {
             this.NumberOfDeclinations = numberOfDeclinations;
@@ -485,6 +487,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 }
             }
             return allDeclinatedArticles;
+
         }
 
         /// <summary>
@@ -515,6 +518,46 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             return adjectives;
         }
 
+        /// <summary>
+        /// Builds a string representing this instance and all included adjectives.
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
 
+            StringBuilder sb = new StringBuilder();
+
+            foreach(var entry in declinatedAdjectiveVariants)
+            {
+                sb.Append("[")
+                    .Append(entry.Key.ToString("X8"))
+                    .Append(":");
+
+                bool firstEntry = true;
+                foreach(var declination in entry.Value)
+                {
+                    if(firstEntry)
+                    {
+                        firstEntry = false;
+                    }
+                    else
+                    {
+                        sb.Append(" | ");
+                    }
+                    if(declination != null)
+                    {
+                        sb.Append(declination.Value);
+                    }
+                    else
+                    {
+                        sb.Append("<null>");
+                    }
+                }
+                sb.Append("] ");
+            }
+
+
+            return sb.ToString();
+        }
     }
 }
