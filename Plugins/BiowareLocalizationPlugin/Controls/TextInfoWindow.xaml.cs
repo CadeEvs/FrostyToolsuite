@@ -47,7 +47,7 @@ namespace BiowareLocalizationPlugin.Controls
                 }
 
                 // ... add or rather retain the limited set of characters supported in all the of the resources
-                var supporedCharacters = resource.GetSupportedCharacters();
+                var supporedCharacters = resource.GetDefaultSupportedCharacters();
                 if(allSupportedCharacters == null)
                 {
                     allSupportedCharacters = new SortedSet<char>(supporedCharacters);

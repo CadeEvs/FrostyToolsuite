@@ -455,12 +455,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
         }
 
-        public IEnumerable<uint> GetDeclinatedArticleIds()
+        public IEnumerable<uint> GetDeclinatedAdjectiveIds()
         {
             return declinatedAdjectiveVariants.Keys;
         }
 
-        public IEnumerable<LocalizedString> GetDeclinatedArticle(uint articleID)
+        public IEnumerable<LocalizedString> GetDeclinatedAdjective(uint articleID)
         {
 
             bool entryExists = declinatedAdjectiveVariants.TryGetValue(articleID, out LocalizedStringWithId[] declinatedAdjectivesArray);

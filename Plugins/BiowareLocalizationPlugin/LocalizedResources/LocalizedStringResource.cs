@@ -109,15 +109,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public override void Read(NativeReader reader, AssetManager am, ResAssetEntry entry, ModifiedResource modifiedData)
         {
 
-            // Profile Version MEA = 20170321
-            // Profile Version DAI = 20141118
+            base.Read(reader, am, entry, modifiedData);
 
             Name = new StringBuilder(entry.Filename)
                 .Append(" - ")
                 .Append(entry.Name)
                 .ToString();
-
-            base.Read(reader, am, entry, modifiedData);
 
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem)
             {
@@ -125,6 +122,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
             else
             {
+                // Profile Version MEA = 20170321
+                // Profile Version DAI = 20141118
                 Read_MassEffect_DragonAge_Strings(reader);
             }
 
@@ -493,10 +492,10 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         }
 
         /// <summary>
-        /// Returns all the characters supported by this resource.
+        /// Returns all the characters supported by this resource by default.
         /// </summary>
         /// <returns>List of chars.</returns>
-        public IEnumerable<char> GetSupportedCharacters()
+        public IEnumerable<char> GetDefaultSupportedCharacters()
         {
             return _supportedCharacters;
         }
@@ -1005,6 +1004,86 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             return new List<uint>(_modifiedResource.AlteredTexts.Keys);
         }
+
+        /// <summary>
+        /// Returns the ids of all default declinated adjectives in this resource
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<uint> GetAllDefaultDeclinatedAdjectivesIds()
+        {
+            return DragonAgeDeclinatedCraftingNames.GetDeclinatedAdjectiveIds();
+        }
+
+        /// <summary>
+        /// Returns only the ids of the declinated adjectivs altered by a mod.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<uint> GetAllModifiedDeclinatedAdjectivesIds()
+        {
+            if(_modifiedResource != null)
+            {
+                return _modifiedResource.AlteredDeclinatedCraftingAdjectives.Keys;
+            }
+
+            return new uint[0];
+        }
+
+        /// <summary>
+        /// Returns the set of all adjective ids in this resource.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<uint> GetAllDeclinatedAdjectivesIds()
+        {
+            SortedSet<uint> adjectiveIds = new SortedSet<uint>();
+
+            adjectiveIds.UnionWith(GetAllDeclinatedAdjectivesIds());
+            adjectiveIds.UnionWith(GetAllModifiedDeclinatedAdjectivesIds());
+
+            return adjectiveIds;
+        }
+
+        /// <summary>
+        /// Returns the list of declinations for a single default adjective.
+        /// </summary>
+        /// <param name="adjectiveId"></param>
+        /// <returns></returns>
+        public List<string> GetDefaultDeclinatedAdjective(uint adjectiveId)
+        {
+            List<string> adjectiveStrings = new List<string>(DragonAgeDeclinatedCraftingNames.NumberOfDeclinations);
+
+            int i = 0;
+            foreach(LocalizedString entry in DragonAgeDeclinatedCraftingNames.GetDeclinatedAdjective(adjectiveId))
+            {
+                if(entry != null)
+                {
+                    adjectiveStrings[i] = entry.Value;
+                }
+                i++;
+            }
+
+            return adjectiveStrings;
+        }
+
+        /// <summary>
+        /// Returns the list of declinations for a modified adjective.
+        /// </summary>
+        /// <param name="adjectiveId"></param>
+        /// <returns></returns>
+        public List<string> GetDeclinatedAdjective(uint adjectiveId)
+        {
+
+            if(_modifiedResource != null)
+            {
+                bool modifiedExists = _modifiedResource.AlteredDeclinatedCraftingAdjectives.TryGetValue(adjectiveId, out List<string> output);
+                if(modifiedExists)
+                {
+                    return output;
+                }
+            }
+
+            return GetDefaultDeclinatedAdjective(adjectiveId);
+        }
+
     }
 
 
