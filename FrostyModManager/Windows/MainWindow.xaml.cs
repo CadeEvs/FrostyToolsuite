@@ -931,74 +931,7 @@ namespace FrostyModManager
                             else if (fi.Extension == ".7z") decompressor = new SevenZipDecompressor();
 
                             // search out fbmods in archive
-                            decompressor.OpenArchive(filename);
-                            foreach (CompressedFileInfo compressedFi in decompressor.EnumerateFiles())
-                            {
-
-                                if (compressedFi.Extension == ".fbpack")
-                                {
-                                    //create temp file
-                                    DirectoryInfo tempdir = new DirectoryInfo($"temp/");
-                                    FileInfo tempfile = new FileInfo(tempdir + compressedFi.Filename);
-
-                                    tempdir.Create();
-                                    decompressor.DecompressToFile(tempfile.FullName);
-
-                                    //install temp file
-                                    Dispatcher.Invoke(() => {
-                                        InstallMods(new string[] { tempfile.FullName });
-                                    });
-
-                                    //delete temp files
-                                    if (tempfile.Exists) tempfile.Delete();
-                                    if (tempdir.Exists) tempdir.Delete();
-
-                                    fbpacks++;
-                                }
-                                else if (compressedFi.Extension == ".fbcollection")
-                                {
-                                    collections.Add(compressedFi.Filename);
-                                }
-                                else if (compressedFi.Extension == ".fbmod")
-                                {
-                                    string modFilename = compressedFi.Filename;
-                                    byte[] buffer = decompressor.DecompressToMemory();
-
-                                    using (MemoryStream ms = new MemoryStream(buffer))
-                                    {
-                                        int retCode = VerifyMod(ms);
-                                        if (retCode >= 0)
-                                        {
-                                            if ((retCode & 1) != 0)
-                                            {
-                                                // continue with import (warning)
-                                                errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was designed for a different game version, it may or may not work.", isWarning = true });
-                                            }
-
-                                            // add mod
-                                            mods.Add(compressedFi.Filename);
-                                            format.Add((retCode & 0x8000) != 0 ? 1 : 0);
-                                        }
-                                        // ignore RetCode -1 here
-                                        else if (retCode == -2)
-                                        {
-                                            errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was not designed for this game." });
-                                        }
-                                    }
-                                }
-                                else if (compressedFi.Extension == ".archive")
-                                {
-                                    archives.Add(compressedFi.Filename);
-                                }
-                                else if (compressedFi.Filename == "manifest.json")
-                                {
-                                    using (StreamReader reader = new StreamReader(compressedFi.Stream))
-                                    {
-                                        packManifest = JsonConvert.DeserializeObject<PackManifest>(reader.ReadToEnd());
-                                    }
-                                }
-                            }
-                            decompressor.CloseArchive();
+                            ReadArchive(errors, ref packManifest, filename, mods, collections, format, archives, ref fbpacks, decompressor);
 
                             if (mods.Count == 0 && fbpacks == 0)
                             {
@@ -1387,6 +1320,103 @@ namespace FrostyModManager
                     appliedModsTabItem.IsSelected = true;
 
                     FrostyMessageBox.Show("Pack has been successfully imported", "Frosty Mod Manager");
+                }
+            }
+        }
+
+        private void ReadArchive(List<ImportErrorInfo> errors, ref PackManifest packManifest, string filename, List<string> mods, List<string> collections, List<int> format, List<string> archives, ref int fbpacks, IDecompressor decompressor)
+        {
+            try
+            {
+                decompressor.OpenArchive(filename);
+
+                var enumeratedFiles = decompressor.EnumerateFiles();
+                var enumerator = enumeratedFiles.GetEnumerator();
+                CompressedFileInfo compressedFi = null;
+                while (enumerator.MoveNext())
+                {
+                    compressedFi = enumerator.Current;
+                    try
+                    {
+                        CompressedFilesProcess(errors, ref packManifest, mods, collections, format, archives, ref fbpacks, decompressor, compressedFi);
+                    }
+                    catch (Exception ex)
+                    {
+                        Frosty.Core.App.Logger.Log(ex.ToString());
+                    }
+                }
+
+                decompressor.CloseArchive();
+            }
+            catch (Exception ex)
+            {
+                Frosty.Core.App.Logger.Log(ex.ToString());
+            }
+        }
+
+        private void CompressedFilesProcess(List<ImportErrorInfo> errors, ref PackManifest packManifest, List<string> mods, List<string> collections, List<int> format, List<string> archives, ref int fbpacks, IDecompressor decompressor, CompressedFileInfo compressedFi)
+        {
+            if (compressedFi.Extension == ".fbpack")
+            {
+                //create temp file
+                DirectoryInfo tempdir = new DirectoryInfo($"temp/");
+                FileInfo tempfile = new FileInfo(tempdir + compressedFi.Filename);
+
+                tempdir.Create();
+                decompressor.DecompressToFile(tempfile.FullName);
+
+                //install temp file
+                Dispatcher.Invoke(() =>
+                {
+                    InstallMods(new string[] { tempfile.FullName });
+                });
+
+                //delete temp files
+                if (tempfile.Exists) tempfile.Delete();
+                if (tempdir.Exists) tempdir.Delete();
+
+                fbpacks++;
+            }
+            else if (compressedFi.Extension == ".fbcollection")
+            {
+                collections.Add(compressedFi.Filename);
+            }
+            else if (compressedFi.Extension == ".fbmod")
+            {
+                string modFilename = compressedFi.Filename;
+                byte[] buffer = decompressor.DecompressToMemory();
+
+                using (MemoryStream ms = new MemoryStream(buffer))
+                {
+                    int retCode = VerifyMod(ms);
+                    if (retCode >= 0)
+                    {
+                        if ((retCode & 1) != 0)
+                        {
+                            // continue with import (warning)
+                            errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was designed for a different game version, it may or may not work.", isWarning = true });
+                        }
+
+                        // add mod
+                        mods.Add(compressedFi.Filename);
+                        format.Add((retCode & 0x8000) != 0 ? 1 : 0);
+                    }
+                    // ignore RetCode -1 here
+                    else if (retCode == -2)
+                    {
+                        errors.Add(new ImportErrorInfo() { filename = modFilename, error = "Mod was not designed for this game." });
+                    }
+                }
+            }
+            else if (compressedFi.Extension == ".archive")
+            {
+                archives.Add(compressedFi.Filename);
+            }
+            else if (compressedFi.Filename == "manifest.json")
+            {
+                using (StreamReader reader = new StreamReader(compressedFi.Stream))
+                {
+                    packManifest = JsonConvert.DeserializeObject<PackManifest>(reader.ReadToEnd());
                 }
             }
         }
