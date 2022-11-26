@@ -182,7 +182,9 @@ namespace FrostyEditor
                 if (foundMenuItem == null)
                 {
                     foundMenuItem = new MenuItem() { Header = menuExtension.TopLevelMenuName };
-                    menu.Items.Add(foundMenuItem);
+
+                    // insert the top-level Menu behind the Help Menu
+                    menu.Items.Insert(menu.Items.Count - 1, foundMenuItem);
                 }
 
                 if (!string.IsNullOrEmpty(menuExtension.SubLevelMenuName))
