@@ -85,6 +85,11 @@ namespace Frosty.Core.Windows
             TaskLogger = new FrostyTaskLogger(this);
             Loaded += FrostyTaskWindow_Loaded;
 
+            // ensure the current MainWindow has a TaskbarItemInfo assigned
+            if (Application.Current.MainWindow.TaskbarItemInfo == null)
+            {
+                Application.Current.MainWindow.TaskbarItemInfo = new TaskbarItemInfo();
+            }
             Application.Current.MainWindow.TaskbarItemInfo.ProgressState = TaskbarItemProgressState.Normal;
 
             BindingOperations.SetBinding(Application.Current.MainWindow.TaskbarItemInfo, TaskbarItemInfo.ProgressValueProperty, new Binding("Progress")
