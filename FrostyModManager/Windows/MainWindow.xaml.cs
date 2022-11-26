@@ -477,7 +477,7 @@ namespace FrostyModManager
             {
             }
 
-            LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+            LoadedPluginsList.ItemsSource = App.PluginManager.Plugins;
 
             if (Config.Get("ApplyModOrder", "List") == "List")
             {
@@ -1914,6 +1914,18 @@ namespace FrostyModManager
             appliedModsList.ItemContainerStyle = style;
 
             updateAppliedModButtons();
+        }
+
+        private void CopyFullExceptionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Plugin selectedPlugin = (Plugin)LoadedPluginsList.SelectedItem;
+
+            // retrieve the selected plugin's load exception, execute ToString on it, and add the result to the clipboard
+            Clipboard.SetText(string.Format("[{0}]\n{1}", new string[]
+            {
+                DateTime.Now.ToString(),
+                selectedPlugin.LoadException.ToString()
+            }));
         }
     }
 }

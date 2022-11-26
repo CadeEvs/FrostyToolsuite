@@ -172,6 +172,11 @@
     <Compile Include="Mod\RuntimeEbxResource.cs" />
     <Compile Include="Mod\RuntimeResources.cs" />
     <Compile Include="Mod\RuntimeResResource.cs" />
+    <Compile Include="Plugin.cs" />
+    <Compile Include="PluginLoadStatus.cs" />
+    <Compile Include="PluginLoadType.cs" />
+    <Compile Include="PluginManagerType.cs" />
+    <Compile Include="ShaderDefinition.cs" />
     <Compile Include="TypeExtensions.cs" />
     <Compile Include="Utils\UpdateChecker.cs" />
     <Compile Include="Windows\OptionsWindow.xaml.cs">
