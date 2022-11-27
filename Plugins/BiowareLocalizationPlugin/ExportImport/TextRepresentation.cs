@@ -4,7 +4,7 @@ using System.Xml.Serialization;
 namespace BiowareLocalizationPlugin.ExportImport
 {
     [Serializable()]
-    [XmlRootAttribute("TextFile", Namespace = "", IsNullable = false)]
+    [XmlRoot("TextFile", Namespace = "", IsNullable = false)]
     public class TextFile
     {
 
@@ -13,6 +13,10 @@ namespace BiowareLocalizationPlugin.ExportImport
         [XmlArray("Texts")]
         [XmlArrayItem("TextRepresentation")]
         public TextRepresentation[] Texts { get; set; }
+
+        [XmlArray("DeclinatedAdjectives", IsNullable = true)]
+        [XmlArrayItem("DeclinatedAdjective")]
+        public DeclinatedAdjectiveRepresentation[] DeclinatedAdjectives { get; set; }
     }
 
     [Serializable()]
@@ -24,5 +28,18 @@ namespace BiowareLocalizationPlugin.ExportImport
         [XmlArray("Resources")]
         [XmlArrayItem("TextResource")]
         public string[] Resources { get; set; }
+    }
+
+    [Serializable()]
+    public class DeclinatedAdjectiveRepresentation
+    {
+
+        public string Resource { get; set; }
+
+        public string AdjectiveId { get; set; }
+
+        [XmlArray("Declinations")]
+        [XmlArrayItem("Declination")]
+        public string[] Declinations { get; set; }
     }
 }

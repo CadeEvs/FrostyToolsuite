@@ -128,13 +128,13 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
 
             _modifiedResource = modifiedData as ModifiedLocalizationResource;
-            if(_modifiedResource != null)
+            if (_modifiedResource != null)
             {
                 _modifiedResource.InitResourceId(resRid);
             }
 
             // keep informed about changes...
-            entry.AssetModified += (s, e) => OnModified( (ResAssetEntry)s );
+            entry.AssetModified += (s, e) => OnModified((ResAssetEntry)s);
         }
 
         private void OnModified(ResAssetEntry assetEntry)
@@ -145,12 +145,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             ModifiedAssetEntry modifiedAsset = assetEntry.ModifiedEntry;
             ModifiedLocalizationResource newModifiedResource = modifiedAsset?.DataObject as ModifiedLocalizationResource;
 
-            if(PrintVerificationTexts)
+            if (PrintVerificationTexts)
             {
                 App.Logger.Log("Asset <{0}> entered onModified", assetEntry.DisplayName);
             }
 
-            if(newModifiedResource != _modifiedResource)
+            if (newModifiedResource != _modifiedResource)
             {
                 _modifiedResource = newModifiedResource;
                 ResourceEventHandlers?.Invoke(this, new EventArgs());
@@ -203,7 +203,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 if (hashToStringIdMapping.ContainsKey(hash))
                 {
                     foreach (uint stringId in hashToStringIdMapping[hash])
-                        _localizedStrings.Add(new LocalizedStringWithId(stringId, stringPosition, str ));
+                        _localizedStrings.Add(new LocalizedStringWithId(stringId, stringPosition, str));
                 }
                 else
                 {
@@ -221,7 +221,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             _headerData = ResourceUtils.ReadHeader(reader);
 
-            if(PrintVerificationTexts)
+            if (PrintVerificationTexts)
             {
                 App.Logger.Log("Read header data for <{0}>: {1}", Name, _headerData.ToString());
             }
@@ -245,7 +245,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             DragonAgeDeclinatedCraftingNames = new DragonAgeDeclinatedAdjectiveTuples(_headerData.MaxDeclinations);
 
-            for(int i = 0; i< _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset.Count; i++ )
+            for (int i = 0; i < _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset.Count; i++)
             {
                 DataCountAndOffsets dataCountAndOffset = _headerData.DragonAgeDeclinatedCraftingNamePartsCountAndOffset[i];
 
@@ -285,7 +285,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private static List<LocalizedStringWithId> ReadDragonAgeDeclinatedItemNamePartIdsAndOffsets(NativeReader reader, DataCountAndOffsets countAndOffset)
         {
 
-            List<LocalizedStringWithId > itemCraftingNameParts= new List<LocalizedStringWithId>();
+            List<LocalizedStringWithId> itemCraftingNameParts = new List<LocalizedStringWithId>();
             for (int i = 0; i < countAndOffset.Count; i++)
             {
                 uint textId = reader.ReadUInt();
@@ -294,7 +294,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 itemCraftingNameParts.Add(namePartInfo);
             }
 
-            if(PrintVerificationTexts && countAndOffset.Count > 0)
+            if (PrintVerificationTexts && countAndOffset.Count > 0)
             {
                 App.Logger.Log("... Read <{0}> declinated adjectives in a block", countAndOffset.Count);
             }
@@ -310,7 +310,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <param name="positionName">the name of the position as used in the warning message</param>
         private void PositionSanityCheck(NativeReader reader, uint expectedPosition, string positionName)
         {
-            if(reader.Position != expectedPosition)
+            if (reader.Position != expectedPosition)
             {
                 App.Logger.LogWarning("Reader for resource <{0}> is at the wrong position after {1}!", Name, positionName);
             }
@@ -333,11 +333,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 uint stringId = reader.ReadUInt();
                 int positionOffset = reader.ReadInt();
 
-                _localizedStrings.Add(new LocalizedStringWithId(stringId, positionOffset ));
+                _localizedStrings.Add(new LocalizedStringWithId(stringId, positionOffset));
 
                 // memorize which ids are all stored at the same position
                 List<uint> idList;
-                if ( !_stringIdsAtPositionOffset.ContainsKey(positionOffset))
+                if (!_stringIdsAtPositionOffset.ContainsKey(positionOffset))
                 {
                     idList = new List<uint>();
                     _stringIdsAtPositionOffset.Add(positionOffset, idList);
@@ -359,13 +359,13 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private void DataOffsetReaderPositionSanityCheck(NativeReader reader)
         {
 
-            uint currentPosition = (uint) reader.Position;
+            uint currentPosition = (uint)reader.Position;
             uint dataOffsetFromHeader = _headerData.DataOffset;
             if (currentPosition != dataOffsetFromHeader)
             {
 
                 uint dataOffsetFromMeta = BitConverter.ToUInt32(resMeta, 0);
-                if(currentPosition == dataOffsetFromMeta)
+                if (currentPosition == dataOffsetFromMeta)
                 {
                     App.Logger.LogWarning("Header data for for resource <{0}> is incorrect. 8ByteBlockData is stated to end at <{1}>, instead current reader position is <{2}>, as stated in the metadata!", Name, _headerData.DataOffset, currentPosition);
                     return;
@@ -417,18 +417,19 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             using (BitReader bitReader = new BitReader(new MemoryStream(values)))
             {
 
-                foreach(LocalizedString stringDefinition in allLocalizedStrings)
+                foreach (LocalizedString stringDefinition in allLocalizedStrings)
                 {
                     int bitOffset = stringDefinition.DefaultPosition;
                     string textName = stringDefinition.ToString();
 
                     bool sanitiyCheckSuccess = CheckPositionExists(textLengthInBytes, bitOffset, stringDefinition.ToString());
-                    if(sanitiyCheckSuccess)
+                    if (sanitiyCheckSuccess)
                     {
                         bitReader.SetPosition(bitOffset);
                         stringDefinition.Value = ReadSingleText(bitReader, rootNode);
 
-                    } else
+                    }
+                    else
                     {
                         // mark that the text could not be read - a generic warning might be bad, because it conflates all the different texts!
                         string dummy = string.Format("Text <{0}> could not be read!", stringDefinition.ToString());
@@ -478,7 +479,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
 
             int bytePosition = (bitPosition >> 5) * 4;
-            if( (bytePosition >= 0)
+            if ((bytePosition >= 0)
                 && (bytePosition < textLengthInBytes))
             {
                 return true;
@@ -516,9 +517,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 yield return new Tuple<uint, string, bool>(_localizedStrings[i].Id, _localizedStrings[i].Value, false);
             }
 
-            if(_modifiedResource != null)
+            if (_modifiedResource != null)
             {
-                foreach ( KeyValuePair<uint, string> modifiedEntry in _modifiedResource.AlteredTexts)
+                foreach (KeyValuePair<uint, string> modifiedEntry in _modifiedResource.AlteredTexts)
                 {
                     yield return new Tuple<uint, string, bool>(modifiedEntry.Key, modifiedEntry.Value, true);
                 }
@@ -537,17 +538,17 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             LocalizedStringWithId textEntry = null;
             foreach (LocalizedStringWithId searchTextEntry in _localizedStrings)
             {
-                if(searchTextEntry.Id == textId)
+                if (searchTextEntry.Id == textId)
                 {
                     textEntry = searchTextEntry;
                     break;
                 }
             }
 
-            if(textEntry != null && (textEntry.DefaultPosition >=0))
+            if (textEntry != null && (textEntry.DefaultPosition >= 0))
             {
                 bool valuePresent = _stringIdsAtPositionOffset.TryGetValue(textEntry.DefaultPosition, out List<uint> allStringIds);
-                if(valuePresent)
+                if (valuePresent)
                 {
                     return GetAllStringsIdsAsHex(allStringIds);
                 }
@@ -587,7 +588,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
              * -write strings with the new huffman encoding
              */
 
-            List<SortedDictionary<uint, string>> allTexts =GetAllSortedTextsToWrite();
+            List<SortedDictionary<uint, string>> allTexts = GetAllSortedTextsToWrite();
             HuffmanNode newRootNode = GetEncodingRootNode(allTexts);
 
             uint nodeOffset = _headerData.NodeOffset;
@@ -604,7 +605,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             uint newStringsCount = (uint)encodedTextsGrouping.PrimaryTextIdsAndPositions.Count;
 
-            uint blockOffset = newStringsOffset + (newStringsCount*8);
+            uint blockOffset = newStringsOffset + (newStringsCount * 8);
             uint lastBlockSize = 0;
             List<DataCountAndOffsets> recalculatedAdditionalOffsets = new List<DataCountAndOffsets>();
 
@@ -624,9 +625,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
 
             // two for the show: These are the ids and positions of the declinated adjectives used in DA:I crafting
-            foreach(var declinatedAdjectivesBlock in encodedTextsGrouping.DeclinatedAdjectivesIdsAndPositions)
+            foreach (var declinatedAdjectivesBlock in encodedTextsGrouping.DeclinatedAdjectivesIdsAndPositions)
             {
-                uint byteBlockCount8 = (uint) declinatedAdjectivesBlock.Count;
+                uint byteBlockCount8 = (uint)declinatedAdjectivesBlock.Count;
                 blockOffset += lastBlockSize;
                 recalculatedAdditionalOffsets.Add(new DataCountAndOffsets()
                 {
@@ -660,14 +661,14 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 writer.Write(newStringsCount);
                 writer.Write(newStringsOffset);
 
-                foreach( DataCountAndOffsets uds in recalculatedAdditionalOffsets)
+                foreach (DataCountAndOffsets uds in recalculatedAdditionalOffsets)
                 {
                     writer.Write(uds.Count);
                     writer.Write(uds.Offset);
                 }
 
                 if (PrintVerificationTexts)
-                    { App.Logger.Log(".. Writer Position before <{0}> nodes is <{1}>, expected <{2}> ", nodeList.Count, writer.Position, nodeOffset); }
+                { App.Logger.Log(".. Writer Position before <{0}> nodes is <{1}>, expected <{2}> ", nodeList.Count, writer.Position, nodeOffset); }
 
                 // Write huffman nodes
                 foreach (HuffmanNode node in nodeList)
@@ -677,7 +678,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
                 long actualStringsOffset = writer.Position;
                 if (PrintVerificationTexts)
-                    { App.Logger.Log(".. Writer Position before textlocations is <{0}>, expected <{1}> ", writer.Position, newStringsOffset); }
+                { App.Logger.Log(".. Writer Position before textlocations is <{0}>, expected <{1}> ", writer.Position, newStringsOffset); }
 
                 //Write string id positions
                 foreach (KeyValuePair<uint, EncodedTextPosition> entry in encodedTextsGrouping.PrimaryTextIdsAndPositions)
@@ -699,7 +700,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 }
 
                 // write the ids and positions of the declinated adjectives.
-                foreach( var declinationBlock in encodedTextsGrouping.DeclinatedAdjectivesIdsAndPositions)
+                foreach (var declinationBlock in encodedTextsGrouping.DeclinatedAdjectivesIdsAndPositions)
                 {
                     foreach (KeyValuePair<uint, EncodedTextPosition> entry in declinationBlock)
                     {
@@ -709,7 +710,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 }
 
                 if (PrintVerificationTexts)
-                    { App.Logger.Log(".. Writer Position before texts is <{0}>, expected <{1}>", writer.Position, newDataOffset); }
+                { App.Logger.Log(".. Writer Position before texts is <{0}>, expected <{1}>", writer.Position, newDataOffset); }
 
                 // Write encoded texts
                 byte[] bitTexts = ResourceUtils.GetTextRepresentationToWrite(encodedTextsGrouping.AllEncodedTextPositions);
@@ -744,12 +745,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 primaryTextsToWrite[entry.Item1] = entry.Item2;
             }
 
-            if(PrintVerificationTexts)
+            if (PrintVerificationTexts)
             {
                 App.Logger.Log("..Preparing to write resource <{0}>. Added <{1}> primary texts.", Name, primaryTextsToWrite.Count);
             }
 
-            for(int declination = 0; declination < DragonAgeDeclinatedCraftingNames.NumberOfDeclinations; declination++)
+            for (int declination = 0; declination < DragonAgeDeclinatedCraftingNames.NumberOfDeclinations; declination++)
             {
                 SortedDictionary<uint, string> declinatedTextsToWrite = new SortedDictionary<uint, string>();
                 allTextsToWrite.Add(declinatedTextsToWrite);
@@ -763,7 +764,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             if (_modifiedResource != null)
             {
                 // shouldn't be many
-                foreach(var adjectiveEntry in _modifiedResource.AlteredDeclinatedCraftingAdjectives)
+                foreach (var adjectiveEntry in _modifiedResource.AlteredDeclinatedCraftingAdjectives)
                 {
                     uint adjectiveId = adjectiveEntry.Key;
                     List<string> declinations = adjectiveEntry.Value;
@@ -772,12 +773,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     int currentDeclinationsCount = allTextsToWrite.Count - 1;
 
                     int iterationLimit = Math.Min(modiefiedDeclinationsCount, currentDeclinationsCount);
-                    for (int i = 0; i< iterationLimit; i++)
+                    for (int i = 0; i < iterationLimit; i++)
                     {
                         allTextsToWrite[i + 1][adjectiveId] = declinations[i];
                     }
 
-                    if(modiefiedDeclinationsCount > currentDeclinationsCount)
+                    if (modiefiedDeclinationsCount > currentDeclinationsCount)
                     {
                         // I have absolutely no clue if this even works or what else might need to be changed to support additional declinations...
                         for (int i = iterationLimit; i < modiefiedDeclinationsCount; i++)
@@ -791,7 +792,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 }
             }
 
-                if (PrintVerificationTexts)
+            if (PrintVerificationTexts)
             {
                 PrintDeclinatedAdjectivesWritingVerifications(allTextsToWrite);
             }
@@ -841,7 +842,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private HuffmanNode GetEncodingRootNode(List<SortedDictionary<uint, string>> allSortedTexts)
         {
 
-            if(_modifiedResource == null)
+            if (_modifiedResource == null)
             {
                 return _encodingRootNode;
             }
@@ -861,7 +862,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
 
             var allTexts = new HashSet<string>();
-            foreach(var entry in allSortedTexts)
+            foreach (var entry in allSortedTexts)
             {
                 allTexts.UnionWith(entry.Values);
             }
@@ -875,7 +876,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <param name="newDataOffset"></param>
         private void ReplaceMetaData(uint newDataOffset)
         {
-            using (NativeWriter metaDataWriter = new NativeWriter(new MemoryStream(16) ) )
+            using (NativeWriter metaDataWriter = new NativeWriter(new MemoryStream(16)))
             {
                 metaDataWriter.Write(newDataOffset);
                 metaDataWriter.Write(0);
@@ -903,9 +904,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             // -> drawback is long iteration over all texts or another huge instance of textid to text dictionary :(
 
             // have to try anyway as long as no dedicated remove is present..
-            foreach(var entry in _localizedStrings)
+            foreach (var entry in _localizedStrings)
             {
-                if(textId == entry.Id)
+                if (textId == entry.Id)
                 {
                     // found the right one
                     // neither the entryValue nor the given text can be null
@@ -930,7 +931,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public void RemoveText(uint textId)
         {
-            if(_modifiedResource != null)
+            if (_modifiedResource != null)
             {
                 _modifiedResource.RemoveText(textId);
 
@@ -955,7 +956,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             if (_modifiedResource != null
                 && _modifiedResource.AlteredTexts.Count == 0
-                && _modifiedResource.AlteredDeclinatedCraftingAdjectives.Count == 0 )
+                && _modifiedResource.AlteredDeclinatedCraftingAdjectives.Count == 0)
             {
                 // remove this resource, it isn't needed anymore
                 // This is also done via the listener, but whatever
@@ -997,7 +998,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public IEnumerable<uint> GetAllModifiedTextsIds()
         {
-            if(_modifiedResource == null)
+            if (_modifiedResource == null)
             {
                 return new List<uint>();
             }
@@ -1020,7 +1021,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <returns></returns>
         public IEnumerable<uint> GetAllModifiedDeclinatedAdjectivesIds()
         {
-            if(_modifiedResource != null)
+            if (_modifiedResource != null)
             {
                 return _modifiedResource.AlteredDeclinatedCraftingAdjectives.Keys;
             }
@@ -1052,9 +1053,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             List<string> adjectiveStrings = new List<string>(DragonAgeDeclinatedCraftingNames.NumberOfDeclinations);
 
             int i = 0;
-            foreach(LocalizedString entry in DragonAgeDeclinatedCraftingNames.GetDeclinatedAdjective(adjectiveId))
+            foreach (LocalizedString entry in DragonAgeDeclinatedCraftingNames.GetDeclinatedAdjective(adjectiveId))
             {
-                if(entry != null)
+                if (entry != null)
                 {
                     adjectiveStrings[i] = entry.Value;
                 }
@@ -1072,10 +1073,10 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public List<string> GetDeclinatedAdjective(uint adjectiveId)
         {
 
-            if(_modifiedResource != null)
+            if (_modifiedResource != null)
             {
                 bool modifiedExists = _modifiedResource.AlteredDeclinatedCraftingAdjectives.TryGetValue(adjectiveId, out List<string> output);
-                if(modifiedExists)
+                if (modifiedExists)
                 {
                     return output;
                 }
@@ -1084,6 +1085,30 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             return GetDefaultDeclinatedAdjective(adjectiveId);
         }
 
+        /// <summary>
+        /// Returns whether or not there are declinated adjectives included in this resource.
+        /// </summary>
+        /// <returns></returns>
+        public bool ContainsDeclinatedAdjectives()
+        {
+
+            bool modifiedAdjectivesExist = ContainsModifiedDeclinatedAdjectives();
+            return DragonAgeDeclinatedCraftingNames.ContainsAdjectives || modifiedAdjectivesExist;
+        }
+
+        /// <summary>
+        /// Returns true if this resource contains modified declinated crafting adjectives.
+        /// </summary>
+        /// <returns></returns>
+        public bool ContainsModifiedDeclinatedAdjectives()
+        {
+
+            if (_modifiedResource != null)
+            {
+                return _modifiedResource.AlteredDeclinatedCraftingAdjectives.Count > 0;
+            }
+            return false;
+        }
     }
 
 
@@ -1100,7 +1125,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// 1: Includes writing the primary texts as number of texts + textid text tuples
         /// 2: Adds another number altered adjectives, and then for each adjective the id and number of declinations, followed by the declinated adjectives themselves
         /// </summary>
-        private static readonly uint MOD_PERSISTENCE_VERSION= 2;
+        private static readonly uint MOD_PERSISTENCE_VERSION = 2;
 
         // Just to make sure we write / overwrite and merge the correct asset!
         private ulong _resRid = 0x0;
@@ -1159,10 +1184,10 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <param name="otherResRid"></param>
         public void InitResourceId(ulong otherResRid)
         {
-            if(_resRid != 0x0 && _resRid != otherResRid)
+            if (_resRid != 0x0 && _resRid != otherResRid)
             {
                 string errorMsg = string.Format(
-                        "Trying to initialize modified resource for resRid <{0}> with contents of resource resRid <{1}> - This may indicate a mod made for a different game version!",
+                        "Trying to initialize modified resource for resRid <{0}> with contents of resource resRid <{1}> - This may indicate a mod made for a different game or language version!",
                         _resRid.ToString("X"), otherResRid.ToString("X"));
                 App.Logger.LogWarning(errorMsg);
             }
@@ -1177,15 +1202,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public void Merge(ModifiedLocalizationResource higherPriorityModifiedResource)
         {
 
-            if(_resRid != higherPriorityModifiedResource._resRid)
+            if (_resRid != higherPriorityModifiedResource._resRid)
             {
-                String errorMsg =     string.Format(
+                string errorMsg = string.Format(
                         "Trying to merge resource with resRid <{0}> into resource for resRid <{1}> - This may indicate a mod made for a different game version!",
                         higherPriorityModifiedResource._resRid.ToString("X"), _resRid.ToString("X"));
                 App.Logger.LogWarning(errorMsg);
             }
 
-            foreach(KeyValuePair<uint, string> textEntry in higherPriorityModifiedResource.AlteredTexts)
+            foreach (KeyValuePair<uint, string> textEntry in higherPriorityModifiedResource.AlteredTexts)
             {
                 SetText(textEntry.Key, textEntry.Value);
             }
@@ -1206,21 +1231,30 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             uint modPersistenceVersion = reader.ReadUInt();
             InitResourceId(reader.ReadULong());
 
-            if(MOD_PERSISTENCE_VERSION < modPersistenceVersion)
+            if (MOD_PERSISTENCE_VERSION < modPersistenceVersion)
             {
                 ResAssetEntry asset = App.AssetManager.GetResEntry(_resRid);
                 string assetName = asset != null ? asset.Path : "<unknown>";
 
-                App.Logger.LogError("TextMod for localization resource <{0}> was written with a newer version of the Bioware Localization Plugin and cannot be read!", assetName);
+                string errorMessage = string.Format("A TextMod for localization resource <{0}> was written with a newer version of the Bioware Localization Plugin and cannot be read! Please update the used Plugin or remove the newer mod!", assetName);
+
+                // TODO make this a setting?!
+                bool shouldThrowExceptionOnPersistenceMisMatch = true;
+                if (shouldThrowExceptionOnPersistenceMisMatch)
+                {
+                    throw new InvalidOperationException(errorMessage);
+                }
+
+                App.Logger.LogError(errorMessage);
                 return;
             }
 
-            byte[] entryBytes = reader.ReadBytes((int) (reader.Length - reader.Position));
+            byte[] entryBytes = reader.ReadBytes((int)(reader.Length - reader.Position));
             using (BinaryReader textReader = new BinaryReader(new MemoryStream(entryBytes), Encoding.UTF8))
             {
                 ReadPrimaryVersion1Texts(textReader);
 
-                if(modPersistenceVersion>=2)
+                if (modPersistenceVersion >= 2)
                 {
                     ReadDeclinatedAdjectivesVersion2Texts(textReader);
                 }
@@ -1249,7 +1283,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
                 List<string> adjectives = new List<string>(numberOfDeclinations);
 
-                for(int j = 0; i< numberOfDeclinations; j++)
+                for (int j = 0; i < numberOfDeclinations; j++)
                 {
                     adjectives.Add(textReader.ReadString());
                 }
@@ -1270,7 +1304,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
 
             // assert this is for a valid resource!
-            if(_resRid == 0x0)
+            if (_resRid == 0x0)
             {
                 throw new InvalidOperationException("Modified resource not bound to any resource!");
             }

@@ -449,7 +449,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public void AddAllAdjectiveForDeclination(List<LocalizedStringWithId> articlesOfDeclination, int declination)
         {
-            foreach(LocalizedStringWithId localizedText in articlesOfDeclination)
+            foreach (LocalizedStringWithId localizedText in articlesOfDeclination)
             {
                 AddDeclinatedAdjective(localizedText, declination);
             }
@@ -498,18 +498,18 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public IEnumerable<LocalizedStringWithId> GetAdjectivesOfDeclination(int declinationNumber)
         {
 
-            if (declinationNumber<0 || declinationNumber>= NumberOfDeclinations)
+            if (declinationNumber < 0 || declinationNumber >= NumberOfDeclinations)
             {
                 return new LocalizedStringWithId[0];
             }
 
             List<LocalizedStringWithId> adjectives = new List<LocalizedStringWithId>();
-            foreach(var entry in declinatedAdjectiveVariants)
+            foreach (var entry in declinatedAdjectiveVariants)
             {
 
                 LocalizedStringWithId textEntry = entry.Value[declinationNumber];
 
-                if(textEntry != null)
+                if (textEntry != null)
                 {
                     adjectives.Add(textEntry);
                 }
@@ -527,16 +527,16 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             StringBuilder sb = new StringBuilder();
 
-            foreach(var entry in declinatedAdjectiveVariants)
+            foreach (var entry in declinatedAdjectiveVariants)
             {
                 sb.Append("[")
                     .Append(entry.Key.ToString("X8"))
                     .Append(":");
 
                 bool firstEntry = true;
-                foreach(var declination in entry.Value)
+                foreach (var declination in entry.Value)
                 {
-                    if(firstEntry)
+                    if (firstEntry)
                     {
                         firstEntry = false;
                     }
@@ -544,7 +544,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     {
                         sb.Append(" | ");
                     }
-                    if(declination != null)
+                    if (declination != null)
                     {
                         sb.Append(declination.Value);
                     }
