@@ -73,7 +73,7 @@ namespace BiowareLocalizationPlugin
                         languagesRepository[languageName] = bundleNames;
                     }
 
-                    foreach(string bundlepath in languageBundleListEntry.BundlePaths)
+                    foreach (string bundlepath in languageBundleListEntry.BundlePaths)
                     {
                         bundleNames.Add(bundlepath);
                     }
@@ -98,7 +98,7 @@ namespace BiowareLocalizationPlugin
         {
 
             bool canRead = uint.TryParse(stringId, NumberStyles.HexNumber, null, out uint textId);
-            if(canRead)
+            if (canRead)
             {
                 return GetString(textId);
             }
@@ -113,12 +113,12 @@ namespace BiowareLocalizationPlugin
         /// </summary>
         /// <param name="languageFormat"></param>
         /// <returns></returns>
-        private LanguageTextsDB GetLocalizedTextDB(string languageFormat)
+        public LanguageTextsDB GetLocalizedTextDB(string languageFormat)
         {
             bool isLoaded = _loadedLocalizedTextDBs.TryGetValue(languageFormat, out LanguageTextsDB localizedTextDb);
             if (!isLoaded)
             {
-                if(!_languageLocalizationBundles.ContainsKey(languageFormat))
+                if (!_languageLocalizationBundles.ContainsKey(languageFormat))
                 {
                     throw new ArgumentException(string.Format("LanguageFormat <{0}> does not exist in this game!", languageFormat));
                 }
@@ -275,7 +275,7 @@ namespace BiowareLocalizationPlugin
             LanguageTextsDB localizedDB = GetLocalizedTextDB(DefaultLanguage);
             IEnumerable<LocalizedStringResource> allTextResources = localizedDB.GetAllResourcesForTextId(id);
 
-            foreach(LocalizedStringResource textresource in allTextResources)
+            foreach (LocalizedStringResource textresource in allTextResources)
             {
                 localizedDB.SetText(textresource.Name, id, value);
             }
@@ -306,9 +306,9 @@ namespace BiowareLocalizationPlugin
             LanguageTextsDB localizedDB = GetLocalizedTextDB(DefaultLanguage);
 
             IEnumerable<uint> modifiedTextsIds = localizedDB.GetAllModifiedTextsIds();
-            foreach(uint textId in modifiedTextsIds)
+            foreach (uint textId in modifiedTextsIds)
             {
-                if(textId == id)
+                if (textId == id)
                 {
                     return true;
                 }
@@ -347,6 +347,48 @@ namespace BiowareLocalizationPlugin
         public IEnumerable<uint> EnumerateModifiedStrings()
         {
             return GetAllModifiedTextsIds(DefaultLanguage);
+        }
+
+        public IEnumerable<string> GetAllResourceNamesWithDeclinatedAdjectives(string languageFormat)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetAllResourceNamesWithDeclinatedAdjectives();
+        }
+
+        public IEnumerable<string> GetAllResourceNamesWithModifiedDeclinatedAdjectives(string languageFormat)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetAllResourceNamesWithModifiedDeclinatedAdjectives();
+        }
+
+        public IEnumerable<uint> GetAllDeclinatedAdjectiveIdsFromResource(string languageFormat, string resourceName)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetAllDeclinatedAdjectiveIdsFromResource(resourceName);
+        }
+
+        public IEnumerable<uint> GetModifiedDeclinatedAdjectiveIdsFromResource(string languageFormat, string resourceName)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetModifiedDeclinatedAdjectiveIdsFromResource(resourceName);
+        }
+
+        public List<string> GetDeclinatedAdjectives(string languageFormat, string resourceName, uint adjectiveId)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetDeclinatedAdjectives(resourceName, adjectiveId);
+        }
+
+        public void SetDeclinatedAdjectve(string languageFormat, string resourceName, uint adjectiveId, List<string> aAdjectives)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            textDb.SetDeclinatedAdjectve(resourceName, adjectiveId, aAdjectives);
+        }
+
+        public void RevertDeclinatedAdjective(string languageFormat, string resourceName, uint adjectiveId)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            textDb.RevertDeclinatedAdjective(resourceName, adjectiveId);
         }
     }
 }

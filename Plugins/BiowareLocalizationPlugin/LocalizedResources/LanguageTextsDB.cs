@@ -2,6 +2,7 @@
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
@@ -65,7 +66,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 TextId = textId;
                 DefaultResourceNames = new HashSet<string>();
 
-                if(isAddedResource)
+                if (isAddedResource)
                 {
                     AddedResourceNames.Add(resourceName);
                 }
@@ -81,7 +82,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             /// <param name="resourceName"></param>
             public void AddLocation(string resourceName)
             {
-                if(!DefaultResourceNames.Contains(resourceName))
+                if (!DefaultResourceNames.Contains(resourceName))
                 {
                     AddedResourceNames.Add(resourceName);
                 }
@@ -111,6 +112,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// The resources available
         /// </summary>
         private readonly SortedDictionary<string, LocalizedStringResource> _resourcesByName = new SortedDictionary<string, LocalizedStringResource>();
+
+        /// <summary>
+        /// Lists the names of all resources that include declinated adjectives (both of them for dai, one for mea).
+        /// </summary>
+        private readonly SortedSet<string> _declinatedAdjectiveIncludingResurces = new SortedSet<string>();
 
         public void Init(string languageName, IEnumerable<string> bundlePaths)
         {
@@ -153,6 +159,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <param name="resource"></param>
         private void FetchResourceTexts(LocalizedStringResource resource)
         {
+
+            string resourceName = resource.Name;
             foreach (var entry in resource.GetAllPrimaryTexts())
             {
                 uint textId = entry.Item1;
@@ -162,19 +170,24 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
                 bool textLocationExists = _resourcesForStringId.TryGetValue(textId, out TextLocation textlocation);
 
-                if(!textLocationExists)
+                if (!textLocationExists)
                 {
-                    textlocation = new TextLocation(textId, resource.Name, isModifiedText);
+                    textlocation = new TextLocation(textId, resourceName, isModifiedText);
                     _resourcesForStringId.Add(textId, textlocation);
                 }
                 else if (isModifiedText)
                 {
-                    textlocation.AddLocation(resource.Name);
+                    textlocation.AddLocation(resourceName);
                 }
                 else
                 {
-                    textlocation.DefaultResourceNames.Add(resource.Name);
+                    textlocation.DefaultResourceNames.Add(resourceName);
                 }
+            }
+
+            if (resource.ContainsDeclinatedAdjectives())
+            {
+                _declinatedAdjectiveIncludingResurces.Add(resourceName);
             }
         }
 
@@ -186,17 +199,17 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             // remove via explizit loop, too tired to figure out another way
             List<uint> textIdsToRemove = new List<uint>();
-            foreach(TextLocation textloc in _resourcesForStringId.Values)
+            foreach (TextLocation textloc in _resourcesForStringId.Values)
             {
-                if(textloc.AddedResourceNames.Remove(resourceName) && textloc.DefaultResourceNames.Count == 0)
+                if (textloc.AddedResourceNames.Remove(resourceName) && textloc.DefaultResourceNames.Count == 0)
                 {
-                    if(textloc.AddedResourceNames.Count == 0)
+                    if (textloc.AddedResourceNames.Count == 0)
                     {
                         textIdsToRemove.Add(textloc.TextId);
                     }
                 }
             }
-            foreach(uint toRemove in textIdsToRemove)
+            foreach (uint toRemove in textIdsToRemove)
             {
                 _resourcesForStringId.Remove(toRemove);
                 _textsForId.Remove(toRemove);
@@ -273,7 +286,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <returns></returns>
         private IEnumerable<LocalizedStringResource> GetResources(TextLocation textLocation, ResourceLocationRequest resourceLocations)
         {
-            if(ResourceLocationRequest.ALL == resourceLocations || ResourceLocationRequest.DEFAULT_ONLY == resourceLocations)
+            if (ResourceLocationRequest.ALL == resourceLocations || ResourceLocationRequest.DEFAULT_ONLY == resourceLocations)
             {
                 foreach (string resourceName in textLocation.DefaultResourceNames)
                 {
@@ -283,7 +296,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             if (ResourceLocationRequest.ALL == resourceLocations || ResourceLocationRequest.ADDED == resourceLocations)
             {
-                foreach(string addedResourceName in textLocation.AddedResourceNames)
+                foreach (string addedResourceName in textLocation.AddedResourceNames)
                 {
                     yield return _resourcesByName[addedResourceName];
                 }
@@ -315,7 +328,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
             HashSet<uint> modifiedTextIds = new HashSet<uint>();
 
-            foreach(LocalizedStringResource resource in _resourcesByName.Values)
+            foreach (LocalizedStringResource resource in _resourcesByName.Values)
             {
                 modifiedTextIds.UnionWith(resource.GetAllModifiedTextsIds());
             }
@@ -333,7 +346,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
 
             bool resourceExists = _resourcesByName.TryGetValue(resourceName, out LocalizedStringResource resource);
-            if(!resourceExists)
+            if (!resourceExists)
             {
                 throw new InvalidOperationException(string.Format("Resource of name <{0}> does not exist for language <{1}>!", resourceName, LanguageIdentifier));
             }
@@ -341,7 +354,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             resource.SetText(textId, text);
 
             bool locExists = _resourcesForStringId.TryGetValue(textId, out TextLocation textLocation);
-            if(!locExists)
+            if (!locExists)
             {
                 textLocation = new TextLocation(textId);
                 _resourcesForStringId.Add(textId, textLocation);
@@ -362,7 +375,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             TextLocation textLocation = _resourcesForStringId[textId];
             textLocation.AddedResourceNames.Remove(resourceName);
 
-            if(textLocation.AddedResourceNames.Count == 0 && textLocation.DefaultResourceNames.Count == 0)
+            if (textLocation.AddedResourceNames.Count == 0 && textLocation.DefaultResourceNames.Count == 0)
             {
                 _resourcesForStringId.Remove(textId);
             }
@@ -391,11 +404,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
             string defaultText = null;
             ISet<string> nonDefaultResourceNames = _resourcesForStringId[textId].AddedResourceNames;
-            var resources = new List<LocalizedStringResource>( GetAllResourcesForTextId(textId));
+            var resources = new List<LocalizedStringResource>(GetAllResourcesForTextId(textId));
 
             foreach (LocalizedStringResource resource in resources)
             {
-                if(defaultText == null)
+                if (defaultText == null)
                 {
                     defaultText = resource.GetDefaultText(textId);
                 }
@@ -403,13 +416,68 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 nonDefaultResourceNames.Remove(resource.Name);
             }
 
-            if(defaultText != null)
+            if (defaultText != null)
             {
                 UpdateTextCache(textId, defaultText);
             }
             else
             {
                 RemoveTextFromCache(textId);
+            }
+        }
+
+        public IEnumerable<string> GetAllResourceNamesWithDeclinatedAdjectives()
+        {
+            return _declinatedAdjectiveIncludingResurces;
+        }
+
+        public IEnumerable<string> GetAllResourceNamesWithModifiedDeclinatedAdjectives()
+        {
+            foreach(string resourceName in _declinatedAdjectiveIncludingResurces)
+            {
+                LocalizedStringResource resource = _resourcesByName[resourceName];
+                
+                if(resource.ContainsModifiedDeclinatedAdjectives())
+                {
+                    yield return resourceName;
+                }
+            }
+        }
+
+        public IEnumerable<uint> GetAllDeclinatedAdjectiveIdsFromResource(string resourceName)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            return resource.GetAllDeclinatedAdjectivesIds();
+        }
+
+        public IEnumerable<uint> GetModifiedDeclinatedAdjectiveIdsFromResource(string resourceName)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            return resource.GetAllModifiedDeclinatedAdjectivesIds();
+        }
+
+        public List<string> GetDeclinatedAdjectives(string resourceName, uint adjectiveId)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            return resource.GetDeclinatedAdjective(adjectiveId);
+        }
+
+        public void SetDeclinatedAdjectve(string resourceName, uint adjectiveId, List<string> aAdjectives)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            resource.SetAdjectiveDeclinations(adjectiveId, aAdjectives);
+
+            _declinatedAdjectiveIncludingResurces.Add(resourceName);
+        }
+
+        public void RevertDeclinatedAdjective(string resourceName, uint adjectiveId)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            resource.RemoveAdjectiveDeclination(adjectiveId);
+
+            if(!resource.ContainsDeclinatedAdjectives())
+            {
+                _declinatedAdjectiveIncludingResurces.Remove(resourceName);
             }
         }
     }
