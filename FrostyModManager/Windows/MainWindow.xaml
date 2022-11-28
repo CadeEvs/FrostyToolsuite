@@ -1012,7 +1012,7 @@
                                                                                 Value="{StaticResource pluginStatusImageContextMenu}" />
                                                                         <Setter Property="Data"
                                                                                 TargetName="statusIcon"
-                                                                                Value="{Binding Path=Data, Source={StaticResource RemoveButtonIcon}}" />
+                                                                                Value="{StaticResource ClearIcon}" />
                                                                         <Setter Property="ToolTip"
                                                                                 TargetName="statusIcon"
                                                                                 Value="This plugin has failed to load. You may use the context menu of this image to copy the full exception." />
