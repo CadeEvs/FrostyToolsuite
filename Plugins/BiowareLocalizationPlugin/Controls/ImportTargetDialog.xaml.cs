@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
+using Application = System.Windows.Application;
 
 namespace BiowareLocalizationPlugin.Controls
 {
@@ -100,6 +101,14 @@ namespace BiowareLocalizationPlugin.Controls
                 importResourcesSet.UnionWith(text.Resources);
             }
 
+            if (textFile.DeclinatedAdjectives != null)
+            {
+                foreach (var adjectiveEntry in textFile.DeclinatedAdjectives)
+                {
+                    importResourcesSet.Add(adjectiveEntry.Resource);
+                }
+            }
+
             List<string> importResourcesList = importResourcesSet.ToList();
             importResourcesList.Sort();
             return importResourcesList;
@@ -109,7 +118,7 @@ namespace BiowareLocalizationPlugin.Controls
         {
             TargetResourceList.Clear();
 
-            if(_selectedImportLanguageFormat != null)
+            if (_selectedImportLanguageFormat != null)
             {
                 TargetResourceList.AddRange(GetTargetResourceList(_selectedImportLanguageFormat));
             }
@@ -226,7 +235,22 @@ namespace BiowareLocalizationPlugin.Controls
                 LanguageFormat = _selectedImportLanguageFormat
             };
 
-            List<TextRepresentation> targetRepesentations = new List<TextRepresentation>();
+
+            TextRepresentation[] targetTextRepresentations = CreateTargetTextRepresentations(resourceTranslation);
+            updatedTarget.Texts = targetTextRepresentations;
+
+            DeclinatedAdjectiveRepresentation[] targetAdjectiveRepresentations = CreateTargetAdjectiveRepresentations(resourceTranslation);
+            updatedTarget.DeclinatedAdjectives = targetAdjectiveRepresentations;
+
+            SaveValue = updatedTarget;
+            DialogResult = true;
+
+            Close();
+        }
+
+        private TextRepresentation[] CreateTargetTextRepresentations(Dictionary<string, string> resourceTranslation)
+        {
+            List<TextRepresentation> targetRepresentations = new List<TextRepresentation>();
             foreach (TextRepresentation importRepresentation in _importTextFile.Texts)
             {
                 TextRepresentation updatedRepresentation = new TextRepresentation()
@@ -236,15 +260,32 @@ namespace BiowareLocalizationPlugin.Controls
                     Resources = importRepresentation.Resources.Select(r => resourceTranslation[r]).ToArray()
                 };
 
-                targetRepesentations.Add(updatedRepresentation);
+                targetRepresentations.Add(updatedRepresentation);
+            }
+            return targetRepresentations.ToArray();
+        }
+
+        private DeclinatedAdjectiveRepresentation[] CreateTargetAdjectiveRepresentations(Dictionary<string, string> resourceTranslation)
+        {
+
+            if (_importTextFile.DeclinatedAdjectives == null)
+            {
+                return null;
             }
 
-            updatedTarget.Texts = targetRepesentations.ToArray();
+            List<DeclinatedAdjectiveRepresentation> targetRepresentations = new List<DeclinatedAdjectiveRepresentation>();
+            foreach (DeclinatedAdjectiveRepresentation importRepresentation in _importTextFile.DeclinatedAdjectives)
+            {
+                DeclinatedAdjectiveRepresentation updatedRepresentation = new DeclinatedAdjectiveRepresentation()
+                {
+                    Resource = resourceTranslation[importRepresentation.Resource],
+                    AdjectiveId = importRepresentation.AdjectiveId,
+                    Declinations = importRepresentation.Declinations
+                };
 
-            SaveValue = updatedTarget;
-            DialogResult = true;
-
-            Close();
+                targetRepresentations.Add(updatedRepresentation);
+            }
+            return targetRepresentations.ToArray();
         }
 
         public void Abort(object sender, RoutedEventArgs e)
@@ -262,13 +303,16 @@ namespace BiowareLocalizationPlugin.Controls
         public string TextResource { get; set; }
 
         private string _targetResource;
-        public string TargetResource {
+        public string TargetResource
+        {
             get { return _targetResource; }
 
-            set {
+            set
+            {
                 _targetResource = value;
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TargetResource)));
-            } }
+            }
+        }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }
