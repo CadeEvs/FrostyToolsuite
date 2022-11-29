@@ -14,6 +14,7 @@ namespace BiowareLocalizationPlugin.ExportImport
         [XmlArrayItem("TextRepresentation")]
         public TextRepresentation[] Texts { get; set; }
 
+        //[CanBeNull]
         [XmlArray("DeclinatedAdjectives", IsNullable = true)]
         [XmlArrayItem("DeclinatedAdjective")]
         public DeclinatedAdjectiveRepresentation[] DeclinatedAdjectives { get; set; }
