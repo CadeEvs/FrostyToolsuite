@@ -31,7 +31,7 @@ namespace Frosty.Core.Viewport
                 ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat,
                 ProfileVersion.Fifa21, ProfileVersion.Madden22,
                 ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 TextureParameters = ebxEntry.TextureParameters;
             }
@@ -138,7 +138,7 @@ namespace Frosty.Core.Viewport
                 ProfileVersion.NeedForSpeedHeat,
                 ProfileVersion.Fifa21, ProfileVersion.Madden22,
                 ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 IsLoaded = true;
                 return;
@@ -300,7 +300,7 @@ namespace Frosty.Core.Viewport
                 ProfileVersion.NeedForSpeedHeat,
                 ProfileVersion.Fifa21, ProfileVersion.Madden22,
                 ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 IsLoaded = true;
                 return;
