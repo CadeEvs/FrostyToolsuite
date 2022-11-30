@@ -69,7 +69,7 @@ namespace Frosty.Core.Viewport
                 hash = (hash * 16777619) ^ (uint)desc.StencilWriteMask.GetHashCode();
                 return hash;
             }
-            
+
             public static uint Hash(D3D11.BlendStateDescription desc)
             {
                 uint hash = 2166136261;
@@ -323,7 +323,7 @@ namespace Frosty.Core.Viewport
         public static D3D11.BlendState CreateBlendState(
             params D3D11.RenderTargetBlendDescription[] targets)
         {
-            D3D11.BlendStateDescription desc = new D3D11.BlendStateDescription {IndependentBlendEnable = targets.Length > 1};
+            D3D11.BlendStateDescription desc = new D3D11.BlendStateDescription { IndependentBlendEnable = targets.Length > 1 };
             for (int i = 0; i < targets.Length; i++)
             {
                 desc.RenderTarget[i] = targets[i];
@@ -565,6 +565,7 @@ namespace Frosty.Core.Viewport
                 case "BC1A_UNORM": return SharpDX.DXGI.Format.BC1_Typeless;
                 case "BC1_SRGB": return SharpDX.DXGI.Format.BC1_Typeless;
                 case "BC1_UNORM": return SharpDX.DXGI.Format.BC1_Typeless;
+                case "BC2_SRGB": return SharpDX.DXGI.Format.BC2_Typeless;
                 case "BC2_UNORM": return SharpDX.DXGI.Format.BC2_Typeless;
                 //case "DXT3": return SharpDX.DXGI.Format.BC2_UNorm;
                 case "BC3_SRGB": return SharpDX.DXGI.Format.BC3_Typeless;
@@ -616,6 +617,7 @@ namespace Frosty.Core.Viewport
                 case "BC1A_UNORM": return SharpDX.DXGI.Format.BC1_UNorm;
                 case "BC1_SRGB": return SharpDX.DXGI.Format.BC1_UNorm_SRgb;
                 case "BC1_UNORM": return SharpDX.DXGI.Format.BC1_UNorm;
+                case "BC2_SRGB": return SharpDX.DXGI.Format.BC2_UNorm_SRgb;
                 case "BC2_UNORM": return SharpDX.DXGI.Format.BC2_UNorm;
                 //case "DXT3": return SharpDX.DXGI.Format.BC2_UNorm;
                 case "BC3_SRGB": return SharpDX.DXGI.Format.BC3_UNorm_SRgb;
