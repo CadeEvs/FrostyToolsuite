@@ -141,7 +141,15 @@ namespace FrostySdk.Resources
             Width = reader.ReadUShort();
             Height = reader.ReadUShort();
             Depth = reader.ReadUShort();
-            m_sliceCount = reader.ReadUShort();
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+            {
+                m_sliceCount = reader.ReadByte();
+            }
+            else
+            {
+                m_sliceCount = reader.ReadUShort();
+            }
+                
 
             if (m_version <= 10)
             {
@@ -150,8 +158,12 @@ namespace FrostySdk.Resources
 
             MipCount = reader.ReadByte();
             FirstMip = reader.ReadByte();
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+            {
+                reader.ReadByte();
+            }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
             {
                 Unknown3[0] = reader.ReadUInt();
             }
@@ -192,7 +204,7 @@ namespace FrostySdk.Resources
                 Unknown3[0] = reader.ReadUInt();
             }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
             {
                 reader.ReadLong();
             }
@@ -249,7 +261,7 @@ namespace FrostySdk.Resources
                 writer.Write(FirstMip);
 
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
                 {
                     writer.Write(Unknown3[0]);
                 }

@@ -378,7 +378,7 @@ namespace MeshSetPlugin
                 ProfileVersion.Battlefield5,
                 ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                 ProfileVersion.StarWarsSquadrons,
-                ProfileVersion.Battlefield2042) && meshAsset != null)
+                ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound) && meshAsset != null)
             {
                 int procIndex = 0;
                 dynamic skinnedProcAnim = meshAsset.SkinnedProceduralAnimation;
@@ -591,7 +591,7 @@ namespace MeshSetPlugin
                             ProfileVersion.Battlefield5,
                             ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                             ProfileVersion.StarWarsSquadrons,
-                            ProfileVersion.Battlefield2042))
+                            ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
                         {
                             subIndex = boneList[subIndex];
                         }

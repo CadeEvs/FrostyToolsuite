@@ -555,14 +555,13 @@ namespace MeshSetPlugin.Resources
             uint boneCount = 0;
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 boneListOffset = reader.ReadLong();
                 boneCount = reader.ReadUShort();
 
-                m_unk1 = reader.ReadUShort();
-                m_bonesPerVertex = (byte)(m_unk1 & 0xf);
-                m_unk1 >>= 4;
+                m_bonesPerVertex = reader.ReadByte();
+                m_unk1 = reader.ReadByte();
 
                 m_materialId = reader.ReadUShort();
 
@@ -576,7 +575,7 @@ namespace MeshSetPlugin.Resources
 
                 m_unk2 = reader.ReadUInt();
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
                 {
                     reader.ReadLong();
                 }
@@ -748,7 +747,7 @@ namespace MeshSetPlugin.Resources
             {
                 reader.Pad(16);
             }
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 reader.ReadLong(); // some hash
 
@@ -756,7 +755,7 @@ namespace MeshSetPlugin.Resources
                 {
                     reader.ReadLong(); // some other hash
                 }
-                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
                 {
                     reader.ReadUInt(); // some other hash
                 }
@@ -880,7 +879,7 @@ namespace MeshSetPlugin.Resources
             meshContainer.WriteRelocPtr("STR", m_sectionIndex + ":" + m_materialName, writer);
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23))
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 if (m_boneList.Count > 0)
                 {
@@ -891,7 +890,8 @@ namespace MeshSetPlugin.Resources
                     writer.Write((ulong)0);
                 }
 
-                writer.Write((ushort)(m_bonesPerVertex | (m_unk1 << 4)));
+                writer.Write(m_bonesPerVertex);
+                writer.Write((byte)m_unk1);
 
                 writer.Write(m_materialId);
 
@@ -1057,7 +1057,7 @@ namespace MeshSetPlugin.Resources
             {
                 writer.WritePadding(16);
             }
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 // @todo
                 // some hash
@@ -1066,7 +1066,7 @@ namespace MeshSetPlugin.Resources
                 {
                     // some other hash
                 }
-                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
                 {
                     // some other hash
                 }
@@ -1295,7 +1295,7 @@ namespace MeshSetPlugin.Resources
                 m_adjacencyData = new byte[m_adjacencyBufferSize];
             }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
             {
                 reader.ReadLong();
             }
@@ -1827,6 +1827,7 @@ namespace MeshSetPlugin.Resources
                     case (int)ProfileVersion.StarWarsBattlefrontII:
                     case (int)ProfileVersion.StarWarsSquadrons:
                     case (int)ProfileVersion.Battlefield2042:
+                    case (int)ProfileVersion.NeedForSpeedUnbound:
                         return true;
                     default:
                         return false;
@@ -1885,7 +1886,7 @@ namespace MeshSetPlugin.Resources
             m_nameHash = reader.ReadUInt();
             m_meshType = (MeshType)reader.ReadUInt();
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
             {
                 m_meshType = (MeshType)((uint)m_meshType & 0xFF);
                 // unk
@@ -1940,7 +1941,7 @@ namespace MeshSetPlugin.Resources
             ushort lodCount = reader.ReadUShort();
             ushort sectionCount = reader.ReadUShort();
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 ushort unk1 = reader.ReadUShort();
                 ushort unk2 = reader.ReadUShort();
