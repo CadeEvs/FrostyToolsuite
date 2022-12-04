@@ -32,25 +32,34 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Label Grid.Column="0" Content="Search Text with ID:" Margin="1,-2,4,0"/>
+                                            <Button Grid.Column="0" Name="PART_ToggleDisplayTextsOrAdjectives" Margin="1,-2,4,0" Padding="10,0,10,0">Search Text with ID</Button>
                                             <CheckBox Grid.Column="1" x:Name="PART_hexSearchCB" IsChecked="True" IsThreeState="False" Margin="6,2,0,1">
-                                                <Label Content="0x" Margin="0,-5,0,0"/>
+                                                <Label Content="0x" Margin="0,-5,0,0"
+                                                       ToolTip="When enabled the given ID is parsed as hexadecimal value. If disabled it is parsed as decimal value instead."/>
                                             </CheckBox>
                                             <TextBox Grid.Column="2" Name="PART_Searchfield" Text="" FontFamily="Global User Interface" BorderThickness="1" Margin="0,2,4,1"/>
-                                            <Button Grid.Column="3" Name="PART_SearchButton" ClickMode="Press" Margin="1,0,4,1" Padding="10,0,10,0">Search</Button>
+                                            <Button Grid.Column="3" Name="PART_SearchButton" ClickMode="Press" Margin="1,0,4,1" Padding="10,0,10,0"
+                                                    ToolTip="Search for the Text with the specified ID">Search</Button>
                                             <CheckBox Grid.Column="4" Name="PART_UpdateTextIdFieldCB" IsThreeState="False" Margin="6,2,2,1">
-                                                <Label Content="Update text ID field" Margin="0,-5,0,0"/>
+                                                <Label Content="Update text ID field" Margin="0,-5,0,0"
+                                                       ToolTip="Updates the Search ID field with the id of the currently selected entry, when enabled."/>
                                             </CheckBox>
-                                            <Button Grid.Column="5" Name="PART_SearchTextButton" ClickMode="Press" Margin="8,0,4,2" Padding="10,0,10,0">Search for Text</Button>
+                                            <Button Grid.Column="5" Name="PART_SearchTextButton" ClickMode="Press" Margin="8,0,4,2" Padding="10,0,10,0"
+                                                    ToolTip="Opens a new window to search for a text">Search for Text</Button>
                                             <CheckBox Grid.Column="6" Name="PART_ModifiedOnlyCB" IsThreeState="False" Margin="6,2,2,1">
-                                                <Label Content="Show only modified" Margin="0,-5,0,0"/>
+                                                <Label Content="Show only modified" Margin="0,-5,0,0"
+                                                       ToolTip="Shows only modified or added texts when enabled."/>
                                             </CheckBox>
-                                            <Button Grid.Column="8" Name="PART_RefreshButton" ClickMode="Press" Margin="1,2,8,1" Padding="10,0,10,0">Refresh</Button>
-                                            <ComboBox Grid.Column="9" Name="PART_LanguageSelector" BorderThickness="1" Width="250" Height="Auto"/>
+                                            <Label Grid.Column="7" Content="Select Resource(s):" Margin="10,-2,4,0"/>
+                                            <ComboBox Grid.Column="8" Name="PART_ResourceSelector" BorderThickness="1" Width="250" Height="Auto"/>
+                                            <Button Grid.Column="10" Name="PART_RefreshButton" ClickMode="Press" Margin="1,2,8,1" Padding="10,0,10,0">Refresh</Button>
+                                            <ComboBox Grid.Column="11" Name="PART_LanguageSelector" BorderThickness="1" Width="250" Height="Auto"/>
                                         </Grid>
                                     </Border>
                                 </DockPanel>
@@ -81,11 +90,18 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Name="PART_AddEdit" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0">Add / Edit</Button>
-                                <Button Grid.Column="1" Name="PART_Remove" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0">Remove / Revert</Button>
-                                <Button Grid.Column="2" Name="PART_ShowTextInfo" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0">Show Text Info</Button>
-                                <Button Grid.Column="4" Name="PART_Export" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0">Export</Button>
-                                <Button Grid.Column="5" Name="PART_Import" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0">Import</Button>
+                                <Button Grid.Column="0" Name="PART_AddEdit" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                        ToolTip="Edit a selected Text or add a new one">Add / Edit</Button>
+                                <Button Grid.Column="1" Name="PART_Remove" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                        ToolTip="Revers the selected text back to its vanilla state. I.e., Removes new texts and reverts edited texts. Does not remove vanilla texts"
+                                        ToolTipService.ShowOnDisabled="True">Remove / Revert</Button>
+                                <Button Grid.Column="2" Name="PART_ShowTextInfo" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                        ToolTip="Show some miscellaneous information about the selected text in the vanilla resource(s)"
+                                        ToolTipService.ShowOnDisabled="True">Show Text Info</Button>
+                                <Button Grid.Column="4" Name="PART_Export" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                        ToolTip="Exports the modified text from the currently selected language into an .xml file">Export</Button>
+                                <Button Grid.Column="5" Name="PART_Import" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                        ToolTip="Imports texts from an .xml file">Import</Button>
                             </Grid>
                             
                         </Grid>

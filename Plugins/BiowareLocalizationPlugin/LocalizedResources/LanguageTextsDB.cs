@@ -480,5 +480,18 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 _declinatedAdjectiveIncludingResurces.Remove(resourceName);
             }
         }
+
+        public IEnumerable<uint> GetAllTextIdsFromResource(string resourceName)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            var entries = resource.GetAllPrimaryTexts();
+            return entries.Select(tuple => tuple.Item1);
+        }
+
+        public IEnumerable<uint> GetAllModifiedTextIdsFromResource(string resourceName)
+        {
+            LocalizedStringResource resource = _resourcesByName[resourceName];
+            return resource.GetAllModifiedTextsIds();
+        }
     }
 }

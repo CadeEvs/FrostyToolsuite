@@ -5,6 +5,7 @@ using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 
 namespace BiowareLocalizationPlugin
@@ -273,12 +274,11 @@ namespace BiowareLocalizationPlugin
         public void SetString(uint id, string value)
         {
             LanguageTextsDB localizedDB = GetLocalizedTextDB(DefaultLanguage);
-            IEnumerable<LocalizedStringResource> allTextResources = localizedDB.GetAllResourcesForTextId(id);
 
-            foreach (LocalizedStringResource textresource in allTextResources)
-            {
-                localizedDB.SetText(textresource.Name, id, value);
-            }
+            IEnumerable<LocalizedStringResource> allTextResources = localizedDB.GetAllResourcesForTextId(id);
+            IEnumerable<string> textResourceNames = allTextResources.Select(resource => resource.Name);
+
+            SetText(DefaultLanguage, textResourceNames, id, value);
         }
 
         // // Basically identical to SetText, this method was added in the 1.06 beta interface
@@ -389,6 +389,18 @@ namespace BiowareLocalizationPlugin
         {
             LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
             textDb.RevertDeclinatedAdjective(resourceName, adjectiveId);
+        }
+
+        public IEnumerable<uint> GetAllTextIdsFromResource(string languageFormat, string resourceName)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetAllTextIdsFromResource(resourceName);
+        }
+
+        public IEnumerable<uint> GetAllModifiedTextIdsFromResource(string languageFormat, string resourceName)
+        {
+            LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
+            return textDb.GetAllModifiedTextIdsFromResource(resourceName);
         }
     }
 }
