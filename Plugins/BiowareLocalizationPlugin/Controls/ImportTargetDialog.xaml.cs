@@ -92,7 +92,6 @@ namespace BiowareLocalizationPlugin.Controls
             targetResources.ItemsSource = TargetResourceList;
         }
 
-
         private static List<string> GetTextResources(TextFile textFile)
         {
             HashSet<string> importResourcesSet = new HashSet<string>();
