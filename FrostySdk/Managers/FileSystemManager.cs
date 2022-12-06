@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using FrostySdk.Managers;
 using Frosty.Hash;
 using FrostySdk.Managers.Entries;
+using System.Collections.Concurrent;
 
 namespace FrostySdk
 {
@@ -65,7 +66,7 @@ namespace FrostySdk
         public Guid Id;
         public string Name;
         public bool AlwaysInstalled;
-        public Dictionary<string, bool> SuperBundles = new Dictionary<string, bool>();
+        public Dictionary<string, Tuple<bool, bool>> SuperBundles = new Dictionary<string, Tuple<bool, bool>>();
     }
 
     public class FileSystemManager
@@ -221,7 +222,7 @@ namespace FrostySdk
 
         public string GetCatalog(ManifestFileRef fileRef) => catalogs[fileRef.CatalogIndex].Name;
 
-        public int GetCatalogIndex(CatalogInfo catalogInfo) => catalogs.IndexOf(catalogInfo);
+        public int GetCatalogIndex(string catalog) => catalogs.FindIndex(c => c.Name.Equals(catalog));
 
         public IEnumerable<CatalogInfo> EnumerateCatalogInfos()
         {
@@ -289,13 +290,13 @@ namespace FrostySdk
             using (DbReader reader = new DbReader(new FileStream(path, FileMode.Open, FileAccess.Read), CreateDeobfuscator()))
             {
                 DbObject initfs = reader.ReadDbObject();
-                
+
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa19,
                     ProfileVersion.Anthem, ProfileVersion.Fifa20,
                     ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat,
                     ProfileVersion.Fifa21, ProfileVersion.Madden22,
                     ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                    ProfileVersion.Madden23))
+                    ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
                 {
                     byte[] buffer = initfs.GetValue<byte[]>("encrypted");
                     if (buffer != null)
@@ -349,7 +350,7 @@ namespace FrostySdk
             }
         }
 
-        public void WriteInitFs(string source, string dest, Dictionary<string, DbObject> modifiedFsFiles)
+        public void WriteInitFs(string source, string dest, ConcurrentDictionary<string, DbObject> modifiedFsFiles)
         {
             FileInfo baseFi = new FileInfo(source);
             if (baseFi.Exists)
@@ -357,13 +358,22 @@ namespace FrostySdk
                 byte[] key = KeyManager.Instance.GetKey("Key1");
                 Dictionary<string, DbObject> fsFiles = new Dictionary<string, DbObject>();
 
+                byte[] obfuscationheader;
+                bool encrypted = false;
+
                 using (DbReader reader = new DbReader(new FileStream(source, FileMode.Open, FileAccess.Read), CreateDeobfuscator()))
                 {
+                    int headerSize = (int)reader.Position;
+                    reader.Position = 0;
+                    obfuscationheader = reader.ReadBytes(headerSize);
+                    // TODO: obfuscation for older games
+
                     DbObject initfs = reader.ReadDbObject();
                     if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
                      || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
                         )
                     {
+                        encrypted = true;
                         byte[] buffer = initfs.GetValue<byte[]>("encrypted");
                         if (buffer != null)
                         {
@@ -405,17 +415,6 @@ namespace FrostySdk
                     }
                 }
 
-                //if (memoryFs.ContainsKey("__fsinternal__"))
-                //{
-                //    DbObject obj = null;
-                //    using (DbReader reader = new DbReader(new MemoryStream(memoryFs["__fsinternal__"]), null))
-                //        obj = reader.ReadDbObject();
-
-                //    memoryFs.Remove("__fsinternal__");
-                //    if (obj.GetValue<bool>("inheritContent"))
-                //        LoadInitfs(key, patched: false);
-                //}
-
                 foreach (KeyValuePair<string, DbObject> kv in modifiedFsFiles)
                 {
                     if (fsFiles.ContainsKey(kv.Key))
@@ -424,16 +423,15 @@ namespace FrostySdk
                     }
                 }
 
-                using (DbWriter writer = new DbWriter(new FileStream(dest, FileMode.Create, FileAccess.Write), true))
+                using (DbWriter writer = new DbWriter(new FileStream(dest, FileMode.Create, FileAccess.Write)))
                 {
+                    writer.Write(obfuscationheader);
                     DbObject initFs = DbObject.CreateList();
 
                     foreach (KeyValuePair<string, DbObject> kv in fsFiles)
                         initFs.Add(kv.Value);
 
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
-                     || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
-                        )
+                    if (encrypted)
                     {
                         MemoryStream ms = new MemoryStream();
                         using (DbWriter writer2 = new DbWriter(ms))
@@ -556,7 +554,7 @@ namespace FrostySdk
                             (!ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                             ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21,
                             ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                            ProfileVersion.Battlefield2042, ProfileVersion.Madden23)))
+                            ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound)))
                         {
                             // BFV needs even non existent catalogs to be in the list for indexing to work
                             if (!ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
@@ -580,7 +578,7 @@ namespace FrostySdk
                         };
 
                         foreach (string superBundle in installChunk.GetValue<DbObject>("superBundles"))
-                            info.SuperBundles.Add(superBundle.ToLower(), false);
+                            info.SuperBundles.Add(superBundle.ToLower(), new Tuple<bool, bool>(true, false));
                     }
 
                     if (installChunk.HasValue("persistentIndex"))
@@ -624,10 +622,10 @@ namespace FrostySdk
                             string superBundle = superBundleContainer.GetValue<string>("superBundle").ToLower();
                             if (!info.SuperBundles.ContainsKey(superBundle))
                             {
-                                info.SuperBundles.Add(superBundle, true);
+                                info.SuperBundles.Add(superBundle, new Tuple<bool, bool>(false, true));
                             }
 
-                            info.SuperBundles[superBundle] = true;
+                            info.SuperBundles[superBundle] = new Tuple<bool, bool>(info.SuperBundles[superBundle].Item1, true);
                             superBundles.Find(si => si.Name == superBundle).SplitSuperBundles.Add(path);
                         }
                     }
@@ -639,10 +637,10 @@ namespace FrostySdk
                             string superBundle = "win32/" + superBundleContainer.GetValue<string>("superbundle").ToLower();
                             if (!info.SuperBundles.ContainsKey(superBundle))
                             {
-                                info.SuperBundles.Add(superBundle, true);
+                                info.SuperBundles.Add(superBundle, new Tuple<bool, bool>(false, true));
                             }
 
-                            info.SuperBundles[superBundle] = true;
+                            info.SuperBundles[superBundle] = new Tuple<bool, bool>(info.SuperBundles[superBundle].Item1, true);
                             superBundles.Find(si => si.Name == superBundle).SplitSuperBundles.Add(path);
                         }
                     }
@@ -654,7 +652,7 @@ namespace FrostySdk
                 CatalogInfo ci = new CatalogInfo() { Name = "" };
                 foreach (SuperBundleInfo si in superBundles)
                 {
-                    ci.SuperBundles.Add(si.Name, false);
+                    ci.SuperBundles.Add(si.Name, new Tuple<bool, bool>(true, false));
                 }
 
                 catalogs.Add(ci);
@@ -702,12 +700,12 @@ namespace FrostySdk
                 string path = (fi.file.IsInPatch ? "native_patch/" : "native_data/") + catalogs[fi.file.CatalogIndex].Name + "/cas_" + fi.file.CasIndex.ToString("D2") + ".cas";
                 entry.Location = AssetDataLocation.CasNonIndexed;
                 entry.Size = fi.size;
+
                 entry.ExtraData = new AssetExtraData
                 {
                     DataOffset = fi.offset,
                     CasPath = path
                 };
-                entry.FirstMip = -1;
 
                 chunks.Add(entry);
             }
@@ -824,7 +822,7 @@ namespace FrostySdk
                     writer.Write(ci.fileIndex);
                 }
 
-                return writer.ToByteArray(); ;
+                return writer.ToByteArray();
             }
         }
 

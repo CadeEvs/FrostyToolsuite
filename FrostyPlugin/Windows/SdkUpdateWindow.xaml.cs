@@ -185,7 +185,8 @@ namespace Frosty.Core.Windows
                 "488b05???????? 48894108 48890d???????? C3",
                 "488b05???????? 48894108 48890d????????",
                 "488b05???????? 488905???????? 488d05???????? 488905???????? E9",
-                "488b05???????? 4885C074 ???????? 488b40" // not really a pattern but seems to work for bf2042?
+                "488b05???????? 4885C074 ???????? 488b40", // not really a pattern but seems to work for bf2042?
+                "48391D???????? ????488b4310"
             };
 
             // TODO: manually adding offsets for new games, need to find the pattern
@@ -194,9 +195,9 @@ namespace Frosty.Core.Windows
                 case (int)ProfileVersion.Madden22:
                     updateState.TypeInfoOffset = 0x146987A18;
                     break;
-                case (int)ProfileVersion.Battlefield2042:
-                    updateState.TypeInfoOffset = 0x14677EA30;
-                    break;
+                //case (int)ProfileVersion.Battlefield2042:
+                //    updateState.TypeInfoOffset = 0x14677EA30;
+                //    break;
                 case (int)ProfileVersion.Madden23:
                     updateState.TypeInfoOffset = 0x146BA7088;
                     break;

@@ -373,8 +373,9 @@ namespace AtlasTexturePlugin
                         ResAssetEntry resEntry = App.AssetManager.GetResEntry(resRid);
                         ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
 
+                        // causes issues with duped asset and not needed?
                         // revert any modifications
-                        App.AssetManager.RevertAsset(assetEntry, dataOnly: true);
+                        //App.AssetManager.RevertAsset(assetEntry, dataOnly: true);
 
                         // modify chunk (for now)
                         App.AssetManager.ModifyChunk(chunkEntry.Id, data);

@@ -1,45 +1,62 @@
 ﻿using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using FrostySdk.Resources;
 using System;
 using System.IO;
-using FrostySdk.Managers.Entries;
 
 namespace AtlasTexturePlugin
 {
+    [Flags]
+    public enum AtlasFlags : ushort
+    {
+        NormalMap = 1,
+        PerFrameBorder = 2,
+        LightCookie = 4,
+        LightPrefilteredCookie = 8
+    }
+
     public class AtlasTexture : Resource
     {
-        public ushort Width => width;
-        public ushort Height => height;
-        public Stream Data => data;
-        public Guid ChunkId => chunkId;
+        public ushort Width => m_width;
+        public ushort Height => m_height;
+        public Stream Data => m_data;
+        public Guid ChunkId => m_chunkId;
         public int MipCount
         {
             get
             {
-                if (ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII)
+                if (m_version < 3)
                     return 1;
 
-                int tmpCount = 0;
-                for (int i = 0; i < mipSizes.Length; i++)
+                for (int i = 0; i < m_mipSizes.Length; i++)
                 {
-                    if (mipSizes[i] > 0)
-                        tmpCount++;
+                    if (m_mipSizes[i] == 0)
+                        return i;
                 }
-                return tmpCount;
+                return m_mipSizes.Length;
             }
         }
+        public int Version => m_version;
+        public AtlasFlags AtlasType => m_atlasFlags;
+        public uint NameHash => m_nameHash;
+        public ushort Unknown => m_unknown;
+        public float BorderWidth => m_borderWidth;
+        public float BorderHeight => m_borderHeight;
 
-        private ushort atlasType;
-        private ushort width;
-        private ushort height;
-        private ushort unknown2;
-        private float unknown3;
-        private float unknown4;
-        private Guid chunkId;
-        private Stream data;
-        private uint[] mipSizes = new uint[15];
+
+        private int m_version;
+        private uint m_nameHash;
+        private AtlasFlags m_atlasFlags;
+        private ushort m_width;
+        private ushort m_height;
+        private ushort m_unknown;
+        private float m_borderWidth;
+        private float m_borderHeight;
+        private Guid m_chunkId;
+        private Stream m_data;
+        private uint[] m_mipSizes = new uint[15];
 
         public AtlasTexture()
         {
@@ -48,79 +65,101 @@ namespace AtlasTexturePlugin
         public override void Read(NativeReader reader, AssetManager am, ResAssetEntry entry, ModifiedResource modifiedData)
         {
             base.Read(reader, am, entry, modifiedData);
-            atlasType = reader.ReadUShort();
-            width = reader.ReadUShort();
-            height = reader.ReadUShort();
-            unknown2 = reader.ReadUShort();
-            unknown3 = reader.ReadFloat();
-            unknown4 = reader.ReadFloat();
-            chunkId = reader.ReadGuid();
+            
+            m_version = BitConverter.ToInt32(resMeta, 0);
+            m_nameHash = BitConverter.ToUInt32(resMeta, 4);
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+            m_atlasFlags = (AtlasFlags)reader.ReadUShort();
+            m_width = reader.ReadUShort();
+            m_height = reader.ReadUShort();
+            m_unknown = reader.ReadUShort();
+            m_borderWidth = reader.ReadFloat();
+            m_borderHeight = reader.ReadFloat();
+            m_chunkId = reader.ReadGuid();
+
+            if (m_version >= 3)
             {
                 for (int i = 0; i < 15; i++)
-                    mipSizes[i] = reader.ReadUInt();
+                    m_mipSizes[i] = reader.ReadUInt();
             }
 
-            data = am.GetChunk(am.GetChunkEntry(chunkId));
+            m_data = am.GetChunk(am.GetChunkEntry(m_chunkId));
         }
 
         public AtlasTexture(AtlasTexture other)
         {
-            atlasType = other.atlasType;
-            unknown2 = other.unknown2;
-            unknown3 = other.unknown3;
-            unknown4 = other.unknown4;
-            chunkId = other.chunkId;
-            data = other.data;
+            m_version = other.m_version;
+            m_nameHash = other.m_nameHash;
+            m_atlasFlags = other.m_atlasFlags;
+            m_unknown = other.m_unknown;
+            m_borderWidth = other.m_borderWidth;
+            m_borderHeight = other.m_borderHeight;
+            m_chunkId = other.m_chunkId;
+            m_data = other.m_data;
+            resMeta = other.resMeta;
         }
 
         public void SetData(int w, int h, Guid newChunkId, AssetManager am)
         {
-            width = (ushort)w;
-            height = (ushort)h;
-            chunkId = newChunkId;
-            data = am.GetChunk(am.GetChunkEntry(chunkId));
+            m_width = (ushort)w;
+            m_height = (ushort)h;
+            m_chunkId = newChunkId;
+            m_data = am.GetChunk(am.GetChunkEntry(m_chunkId));
 
-            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII)
-                return;
-
-            uint totalSize = (uint)data.Length;
+            uint totalSize = (uint)m_data.Length;
             int stride = 4;
 
-            for (int i = 0; i < 15; i++)
+            if (m_version >= 3)
             {
-                if (totalSize > 0)
+                for (int i = 0; i < 15; i++)
                 {
-                    w = Math.Max(1, w);
-                    h = Math.Max(1, h);
+                    if (totalSize > 0)
+                    {
+                        w = Math.Max(1, w);
+                        h = Math.Max(1, h);
 
-                    uint mipSize = (uint)(Math.Max(1, ((w + 3) / 4)) * stride * h);
-                    mipSizes[i] = mipSize;
+                        uint mipSize = (uint)(Math.Max(1, ((w + 3) / 4)) * stride * h);
+                        m_mipSizes[i] = mipSize;
 
-                    totalSize -= mipSize;
-                    w >>= 1;
-                    h >>= 1;
+                        totalSize -= mipSize;
+                        w >>= 1;
+                        h >>= 1;
+                    }
                 }
             }
+        }
+
+        public void SetNameHash(uint nameHash)
+        {
+            m_nameHash = nameHash;
         }
 
         public override byte[] SaveBytes()
         {
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
-                writer.Write(atlasType);
-                writer.Write(width);
-                writer.Write(height);
-                writer.Write(unknown2);
-                writer.Write(unknown3);
-                writer.Write(unknown4);
-                writer.Write(chunkId);
+                writer.Write((ushort)m_atlasFlags);
+                writer.Write(m_width);
+                writer.Write(m_height);
+                writer.Write(m_unknown);
+                writer.Write(m_borderWidth);
+                writer.Write(m_borderHeight);
+                writer.Write(m_chunkId);
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                if (m_version >= 3)
                 {
                     for (int i = 0; i < 15; i++)
-                        writer.Write(mipSizes[i]);
+                        writer.Write(m_mipSizes[i]);
+                }
+
+                unsafe
+                {
+                    // update the res meta
+                    fixed (byte* ptr = &resMeta[0])
+                    {
+                        *(int*)(ptr + 0) = m_version;
+                        *(uint*)(ptr + 4) = m_nameHash;
+                    }
                 }
 
                 return writer.ToByteArray();

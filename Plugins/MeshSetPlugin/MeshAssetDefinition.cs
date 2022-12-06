@@ -118,7 +118,9 @@ namespace MeshSetPlugin
             settings.ExportAdditionalMeshes = exportAdditionalMeshes;
 
             if (settings is SkinnedMeshExportSettings exportSettings)
+            {
                 exportSettings.SkeletonAsset = skeleton;
+            }
 
             outSettings = settings;
             return FrostyImportExportBox.Show<MeshExportSettings>("Mesh Export Settings", FrostyImportExportType.Export, settings) == MessageBoxResult.OK;
@@ -138,7 +140,9 @@ namespace MeshSetPlugin
             // get skeleton (if required)
             string skeleton = "";
             if (meshSet.Type == MeshType.MeshType_Skinned)
+            {
                 skeleton = ((SkinnedMeshExportSettings)settings).SkeletonAsset;
+            }
 
             FrostyTaskWindow.Show("Exporting MeshSet", "", (task) =>
             {
@@ -156,7 +160,9 @@ namespace MeshSetPlugin
             Config.Add("MeshSetExportExportAdditionalMeshes", settings.ExportAdditionalMeshes, ConfigScope.Game);
 
             if (settings is SkinnedMeshExportSettings exportSettings)
+            {
                 Config.Add("MeshSetExportSkeleton", exportSettings.SkeletonAsset, ConfigScope.Game);
+            }
 
             Config.Save();
         }

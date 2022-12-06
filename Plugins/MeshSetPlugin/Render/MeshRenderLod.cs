@@ -48,12 +48,16 @@ namespace MeshSetPlugin.Render
                 if (lod.IsSectionRenderable(section) || lod.IsSectionInCategory(section, MeshSubsetCategory.MeshSubsetCategory_ZOnly))
                 {
                     if (section.VertexCount == 0)
+                    {
                         continue;
+                    }
 
                     MeshMaterial material = materials[section.MaterialId];
                     EbxAssetEntry shaderAsset = App.AssetManager.GetEbxEntry(material.Shader.External.FileGuid);
                     if (shaderAsset == null)
+                    {
                         continue;
+                    }
 
                     ShaderPermutation permutation = state.ShaderLibrary.GetUserShader(shaderAsset.Name, section.GeometryDeclDesc[0]);
 
@@ -61,7 +65,9 @@ namespace MeshSetPlugin.Render
                     if (permutation != null)
                     {
                         if (!permutation.LoadShaders(state.Device))
+                        {
                             permutation = null;
+                        }
                     }
                     renderSection.StartIndex = (int)section.StartIndex;
                     renderSection.VertexOffset = (int)section.VertexOffset;
@@ -120,12 +126,16 @@ namespace MeshSetPlugin.Render
             if (permutation != null)
             {
                 if (!permutation.LoadShaders(state.Device))
+                {
                     permutation = null;
+                }
             }
 
             bool bRequiresRebuild = (section.IsFallback && permutation != null) || (!section.IsFallback && permutation == null);
             if (bRequiresRebuild)
+            {
                 RebuildSection(state, section, permutation, GetChunkData());
+            }
 
             if (section.IsFallback)
             {
@@ -146,7 +156,9 @@ namespace MeshSetPlugin.Render
             foreach (MeshRenderSection section in sections)
             {
                 if (section.MeshSection.MaterialId == materialIdx)
+                {
                     UpdateSectionMaterial(state, section, material);
+                }
             }
         }
 
@@ -155,42 +167,57 @@ namespace MeshSetPlugin.Render
             foreach (MeshRenderSection section in sections)
             {
                 if (section.MeshSection.MaterialId < materials.Count)
+                {
                     UpdateSectionMaterial(state, section, materials[section.MeshSection.MaterialId]);
+                }
             }
         }
 
         public MeshRenderSection GetSection(int idx)
         {
             if (idx >= sections.Count)
+            {
                 return null;
+            }
+
             return sections[idx];
         }
 
         public override void Render(D3D11.DeviceContext context, MeshRenderPath renderPath)
         {
             if (sections.Count == 0)
+            {
                 return;
+            }
 
             context.InputAssembler.SetIndexBuffer(indexBuffer, indexBufferFormat, 0);
             foreach (MeshRenderSection section in sections)
             {
                 // during shadow pass, draw Z-Only meshes
                 if (renderPath == MeshRenderPath.Shadows && !meshLod.IsSectionInCategory(section.MeshSection, MeshSubsetCategory.MeshSubsetCategory_ZOnly))
+                {
                     continue;
+                }
 
                 // during deferred pass, draw renderable meshes
                 if (renderPath != MeshRenderPath.Shadows && !meshLod.IsSectionRenderable(section.MeshSection))
+                {
                     continue;
+                }
 
                 // only render selected sections during selection pass
                 if (renderPath == MeshRenderPath.Selection && !section.IsSelected)
+                {
                     continue;
+                }
 
                 // dont render invisible sections (exception during selection pass if selected)
                 if (!section.IsVisible)
                 {
                     if (renderPath != MeshRenderPath.Selection || !section.IsSelected)
+                    {
                         continue;
+                    }
                 }
 
                 D3DUtils.BeginPerfEvent(context, section.DebugName);
@@ -211,7 +238,9 @@ namespace MeshSetPlugin.Render
             if (section.VertexBuffers != null)
             {
                 foreach (D3D11.Buffer vb in section.VertexBuffers)
+                {
                     vb.Dispose();
+                }
             }
 
             using (NativeReader reader = new NativeReader(new MemoryStream(chunkData)))
@@ -261,13 +290,17 @@ namespace MeshSetPlugin.Render
                     foreach (uint boneIdx in section.MeshSection.BoneList)
                     {
                         while (section.BoneIndices.Count <= boneIdx)
+                        {
                             section.BoneIndices.Add(i++);
+                        }
                     }
                 }
                 else if (meshLod.PartCount > 0)
                 {
                     for (uint i = 0; i < meshLod.PartCount; i++)
+                    {
                         section.BoneIndices.Add(i);
+                    }
                 }
                 else
                 {
@@ -278,19 +311,19 @@ namespace MeshSetPlugin.Render
             {
                 // add section bones to list
                 foreach (ushort boneId in section.MeshSection.BoneList)
+                {
                     section.BoneIndices.Add(boneId);
+                }
 
                 // special handling for games that only use the mesh lod bone list
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20
-#if FROSTY_DEVELOPER || FROSTY_ALPHA
-                    || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
-#endif
-                    )
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.Fifa19,
+                    ProfileVersion.Fifa20, ProfileVersion.PlantsVsZombiesBattleforNeighborville))
                 {
                     section.BoneIndices.Clear();
                     section.BoneIndices.AddRange(meshLod.BoneIndexArray);
                 }
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20)
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden19, ProfileVersion.Fifa17,
+                    ProfileVersion.Fifa18, ProfileVersion.Madden20))
                 {
                     section.BoneIndices.Clear();
                     uint i = 0;
@@ -298,7 +331,9 @@ namespace MeshSetPlugin.Render
                     foreach (uint boneIdx in meshLod.BoneIndexArray)
                     {
                         while (section.BoneIndices.Count <= boneIdx)
+                        {
                             section.BoneIndices.Add(i++);
+                        }
                     }
                 }
             }
@@ -309,7 +344,10 @@ namespace MeshSetPlugin.Render
             ChunkAssetEntry entry = App.AssetManager.GetChunkEntry(meshLod.ChunkId);
             byte[] chunkData = meshLod.InlineData;
             if (entry != null)
+            {
                 chunkData = new NativeReader(App.AssetManager.GetChunk(entry)).ReadToEnd();
+            }
+
             return chunkData;
         }
 
@@ -319,15 +357,17 @@ namespace MeshSetPlugin.Render
         private void AssignFallbackVertices(RenderCreateState state, MeshRenderSection section, MeshSetSection meshSection, NativeReader reader, long indexBufferOffset)
         {
             FallbackVertex[] vertices = new FallbackVertex[meshSection.VertexCount];
-            int totalStride = 0;
             bool bitangentSign = false;
-            //bool bRecalculateNormals = ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20;
+            //bool bRecalculateNormals = ProfilesLibrary.IsLoaded(ProfileVersion.Madden20);
 
             // re-organize vertices into the fallback shader layout
-            foreach (GeometryDeclarationDesc.Stream stream in meshSection.GeometryDeclDesc[0].Streams)
+            for (int i = 0; i < meshSection.GeometryDeclDesc[0].Streams.Length; i++)
             {
+                GeometryDeclarationDesc.Stream stream = meshSection.GeometryDeclDesc[0].Streams[i];
                 if (stream.VertexStride == 0)
+                {
                     continue;
+                }
 
                 for (int v = 0; v < meshSection.VertexCount; v++)
                 {
@@ -337,11 +377,13 @@ namespace MeshSetPlugin.Render
                     foreach (GeometryDeclarationDesc.Element element in meshSection.GeometryDeclDesc[0].Elements)
                     {
                         if (element.Usage == VertexElementUsage.Unknown)
+                        {
                             continue;
+                        }
 
                         //reader.Position = section.VertexOffset + v * section.VertexStride + element.Offset;
 
-                        if (currentStride >= totalStride && currentStride < (totalStride + stream.VertexStride))
+                        if (element.StreamIndex == i && currentStride < stream.VertexStride)
                         {
                             if (element.Usage == VertexElementUsage.Pos)
                             {
@@ -349,8 +391,9 @@ namespace MeshSetPlugin.Render
                                 {
                                     vertex.Position = new Vector3(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat());
                                     if (element.Format == VertexElementFormat.Float4)
+                                    {
                                         reader.ReadFloat();
-
+                                    }
                                 }
                                 else if (element.Format == VertexElementFormat.Half3 || element.Format == VertexElementFormat.Half4)
                                 {
@@ -358,7 +401,9 @@ namespace MeshSetPlugin.Render
                                                                   HalfUtils.Unpack(reader.ReadUShort()),
                                                                   HalfUtils.Unpack(reader.ReadUShort()));
                                     if (element.Format == VertexElementFormat.Half4)
+                                    {
                                         HalfUtils.Unpack(reader.ReadUShort());
+                                    }
                                 }
                             }
                             else if (element.Usage == VertexElementUsage.Normal)
@@ -367,13 +412,17 @@ namespace MeshSetPlugin.Render
                                 {
                                     vertex.Normal = new Vector4(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), 1.0f);
                                     if (element.Format == VertexElementFormat.Float4)
+                                    {
                                         vertex.Normal.W = reader.ReadFloat();
+                                    }
                                 }
                                 else if (element.Format == VertexElementFormat.Half3 || element.Format == VertexElementFormat.Half4)
                                 {
                                     vertex.Normal = new Vector4(HalfUtils.Unpack(reader.ReadUShort()), HalfUtils.Unpack(reader.ReadUShort()), HalfUtils.Unpack(reader.ReadUShort()), 1.0f);
                                     if (element.Format == VertexElementFormat.Half4)
+                                    {
                                         vertex.Normal.W = HalfUtils.Unpack(reader.ReadUShort());
+                                    }
                                 }
                             }
                             else if (element.Usage == VertexElementUsage.Binormal)
@@ -382,13 +431,17 @@ namespace MeshSetPlugin.Render
                                 {
                                     vertex.Bitangent = new Vector4(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), 1.0f);
                                     if (element.Format == VertexElementFormat.Float4)
+                                    {
                                         vertex.Bitangent.W = reader.ReadFloat();
+                                    }
                                 }
                                 else if (element.Format == VertexElementFormat.Half3 || element.Format == VertexElementFormat.Half4)
                                 {
                                     vertex.Bitangent = new Vector4(HalfUtils.Unpack(reader.ReadUShort()), HalfUtils.Unpack(reader.ReadUShort()), HalfUtils.Unpack(reader.ReadUShort()), 1.0f);
                                     if (element.Format == VertexElementFormat.Half4)
+                                    {
                                         vertex.Bitangent.W = HalfUtils.Unpack(reader.ReadUShort());
+                                    }
                                 }
                             }
                             else if (element.Usage == VertexElementUsage.Tangent)
@@ -397,13 +450,17 @@ namespace MeshSetPlugin.Render
                                 {
                                     vertex.Tangent = new Vector4(reader.ReadFloat(), reader.ReadFloat(), reader.ReadFloat(), 1.0f);
                                     if (element.Format == VertexElementFormat.Float4)
+                                    {
                                         vertex.Tangent.W = reader.ReadFloat();
+                                    }
                                 }
                                 else if (element.Format == VertexElementFormat.Half3 || element.Format == VertexElementFormat.Half4)
                                 {
                                     vertex.Tangent = new Vector4(HalfUtils.Unpack(reader.ReadUShort()), HalfUtils.Unpack(reader.ReadUShort()), HalfUtils.Unpack(reader.ReadUShort()), 1.0f);
                                     if (element.Format == VertexElementFormat.Half4)
+                                    {
                                         vertex.Tangent.W = HalfUtils.Unpack(reader.ReadUShort());
+                                    }
                                 }
 
                                 //if (vertex.BitangentSign == 0.0f)
@@ -442,7 +499,9 @@ namespace MeshSetPlugin.Render
                                     vertex.TangentSpace = 1;
                                 }
                                 else
+                                {
                                     vertex.TangentSpace = reader.ReadUInt();
+                                }
                             }
                             else if (element.Usage == VertexElementUsage.TexCoord0)
                             {
@@ -556,17 +615,25 @@ namespace MeshSetPlugin.Render
                                 vertex.BoneWeights7 = reader.ReadByte() / 255.0f;
                             }
                             else
+                            {
                                 reader.Position += element.Size;
-                        }
+                            }
 
-                        currentStride += element.Size;
+                            currentStride += element.Size;
+                        }
+                    }
+
+                    // rivals pads the vertex stride
+                    if (currentStride != stream.VertexStride)
+                    {
+                        reader.Position += stream.VertexStride - currentStride;
                     }
 
                     if (meshLod.Type == MeshType.MeshType_Composite)
                     {
                         vertex.BoneWeights3 = 1.0f;
                     }
-                    else if (meshLod.Type == MeshType.MeshType_Rigid /*|| meshLod.Type == MeshType.MeshType_Composite*/)
+                    else if (meshLod.Type == MeshType.MeshType_Rigid)
                     {
                         vertex.BoneIndices0 = 0;
                         vertex.BoneIndices1 = 0;
@@ -588,12 +655,7 @@ namespace MeshSetPlugin.Render
                     }
 
                     vertices[v] = vertex;
-
-                    if (currentStride < stream.VertexStride)
-                        reader.Position += (stream.VertexStride - currentStride);
                 }
-
-                totalStride += stream.VertexStride;
             }
 
             //if (bRecalculateNormals)
@@ -677,7 +739,10 @@ namespace MeshSetPlugin.Render
             using (DataStream stream = new DataStream(size, false, true))
             {
                 foreach (FallbackVertex vert in vertices)
+                {
                     stream.Write<FallbackVertex>(vert);
+                }
+
                 stream.Position = 0;
 
                 section.VertexBuffers[0] = new D3D11.Buffer(state.Device, stream, size, D3D11.ResourceUsage.Default, D3D11.BindFlags.VertexBuffer, D3D11.CpuAccessFlags.None, D3D11.ResourceOptionFlags.None, 0);
@@ -690,7 +755,10 @@ namespace MeshSetPlugin.Render
             foreach (MeshRenderSection section in sections)
             {
                 foreach (D3D11.Buffer vb in section.VertexBuffers)
+                {
                     vb.Dispose();
+                }
+
                 section.PixelParameters?.Dispose();
                 section.PixelTextures.Clear();
             }

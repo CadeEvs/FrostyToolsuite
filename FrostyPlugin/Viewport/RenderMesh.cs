@@ -812,7 +812,7 @@ namespace Frosty.Core.Viewport
                 else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17, ProfileVersion.Fifa18,
                     ProfileVersion.Fifa19, ProfileVersion.Fifa20,
                     ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21,
-                    ProfileVersion.Fifa22))
+                    ProfileVersion.Fifa22, ProfileVersion.NeedForSpeedUnbound))
                 {
                     paramName = paramName.ToLower();
                     if (paramName.StartsWith("colortexture") || paramName.StartsWith("diffuse") || paramName.Contains("basecolor"))
@@ -853,7 +853,7 @@ namespace Frosty.Core.Viewport
                     {
                         if (NormTexture == null)
                         {
-                            NormTexture =  state.TextureLibrary.LoadTextureAsset(value.External.FileGuid);
+                            NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid);
                             if (paramName.StartsWith("nsm"))
                                 CustomParam1 = 2;
                         }
@@ -1045,6 +1045,30 @@ namespace Frosty.Core.Viewport
                     else if (paramName.Contains("normal")) { NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
                 }
 
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042))
+                {
+                    if (paramName.StartsWith("_CS") || paramName.Contains("Color")) { DiffuseTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid); }
+                    else if (paramName.Contains("NX") || paramName.Contains("NMT") || paramName.Contains("Normal"))
+                    {
+                        EbxAssetEntry entry = App.AssetManager.GetEbxEntry(value.External.FileGuid);
+                        if (entry != null)
+                        {
+                            string filename = entry.Filename;
+
+                            if (filename.EndsWith("NMT"))
+                            {
+                                CustomParam1 = 1;
+                            }
+                            else if (filename.Contains("NX"))
+                            {
+                                CustomParam1 = 3;
+                                CustomParam2 = 2;
+                            }
+                        }
+                        NormTexture = state.TextureLibrary.LoadTextureAsset(value.External.FileGuid);
+                    }
+                }
+
                 // Anything else
                 else
                 {
@@ -1070,7 +1094,7 @@ namespace Frosty.Core.Viewport
                 MaskTexture = state.TextureLibrary.LoadTextureAsset(App.AssetManager.GetEbxEntry(ProfilesLibrary.DefaultMask).Guid);
             }
 
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedHeat, ProfileVersion.NeedForSpeedUnbound))
             {
                 bool tangentSpace = false;
                 foreach (var elem in section.MeshSection.GeometryDeclDesc[0].Elements)
@@ -2027,7 +2051,7 @@ namespace Frosty.Core.Viewport
                 if (idx != -1) material.TextureParameters[idx] = param;
                 else material.TextureParameters.Add(param);
             }
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Anthem, ProfileVersion.StarWarsSquadrons, ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
             {
                 foreach (dynamic param in shader.ConditionalParameters)
                 {

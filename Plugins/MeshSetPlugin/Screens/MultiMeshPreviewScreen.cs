@@ -54,7 +54,10 @@ namespace MeshSetPlugin.Screens
         public MeshSet GetMesh(int meshId)
         {
             if (meshId >= renderMeshes.Count)
+            {
                 return null;
+            }
+
             return renderMeshes[meshId].Mesh;
         }
 
@@ -65,7 +68,9 @@ namespace MeshSetPlugin.Screens
             {
                 // just build a dummy one if one wasnt provided
                 if (skeleton == null)
+                {
                     skeleton = new MeshRenderSkeleton();
+                }
 
                 IsLoading = true;
                 MeshRenderMesh renderMesh = new MeshRenderMesh(state, mesh, materials, skeleton);
@@ -126,7 +131,9 @@ namespace MeshSetPlugin.Screens
         {
             int idx = renderLights.FindIndex((LightRenderInstance inst) => inst.LightId == lightId);
             if (idx != -1)
+            {
                 renderLights.RemoveAt(idx);
+            }
         }
 
         public void ClearMeshes(bool clearAll = false)
@@ -136,11 +143,15 @@ namespace MeshSetPlugin.Screens
                 MeshAndPreviewContainer rootMesh = renderMeshes[0];
                 renderMeshes.Clear();
                 if (!clearAll)
+                {
                     renderMeshes.Add(rootMesh);
+                }
             });
 
             if (clearAll)
+            {
                 currentMeshId = 0;
+            }
         }
 
         public void ClearLights()
@@ -364,7 +375,9 @@ namespace MeshSetPlugin.Screens
                 Vector3 center = aabb.Minimum + (aabb.Maximum - aabb.Minimum) * 0.5f;
                 Vector3 offset = center + new Vector3(0, Math.Abs(aabb.Maximum.Y - aabb.Minimum.Y) / 1.25f, (aabb.Maximum - aabb.Minimum).Length() * 0.9f);
                 if (offset.Y < 0.5f)
+                {
                     offset.Y = 0.5f;
+                }
 
                 fpCamera.SetViewParams(offset, center);
             }
@@ -386,9 +399,13 @@ namespace MeshSetPlugin.Screens
                 bb.Maximum.X = tmp;
 
                 if (i++ == 0)
+                {
                     aabb = bb;
+                }
                 else
+                {
                     aabb = BoundingBox.Merge(aabb, bb);
+                }
             }
 
             return aabb;
