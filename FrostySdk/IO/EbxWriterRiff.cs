@@ -76,7 +76,10 @@ namespace FrostySdk.IO
             foreach (RelocPtr ptr in relocPtrs)
             {
                 writer.Position = ptr.Offset;
-                writer.Write(ptr.DataOffset);
+                // runtime pointers are 64 bits but file pointers only need to be 32 bits
+                // so cast down to uint, then back up to ulong to drop any leftovers in a negative pointer
+                uint off = (uint)ptr.DataOffset;
+                writer.Write((ulong)off);
             }
         }
 
@@ -497,15 +500,16 @@ namespace FrostySdk.IO
                 EbxFieldMetaAttribute fta = pi.GetCustomAttribute<EbxFieldMetaAttribute>();
                 EbxFieldType ebxType = fta.Type;
 
-                if (ebxType == EbxFieldType.Struct)
-                {
-                    Type structType = pi.PropertyType;
-                    ProcessClass(structType, isBaseClass);
-                }
-                else if (ebxType == EbxFieldType.Array)
-                {
-                    ebxType = fta.ArrayType;
+                // only certain types need to be processed to be referenced in the EBX data
+                // this seems to only include structs/classes used by arrays
 
+                //if (ebxType == EbxFieldType.Struct)
+                //{
+                //    Type structType = pi.PropertyType;
+                //    ProcessClass(structType, isBaseClass);
+                //}
+                if (ebxType == EbxFieldType.Array)
+                {
                     Type arrayType = pi.PropertyType;
                     if (FindExistingClass(arrayType) == -1)
                     {
@@ -514,7 +518,7 @@ namespace FrostySdk.IO
                         {
                             arrayTypes.Add(fta);
                         }
-                        if (ebxType == EbxFieldType.Struct)
+                        if (fta.ArrayType == EbxFieldType.Struct)
                         {
                             Type structType = arrayType.GenericTypeArguments[0];
                             ProcessClass(structType, isBaseClass);
@@ -616,6 +620,7 @@ namespace FrostySdk.IO
                 }
             }
 
+            exportedCount = (uint)exportedObjs.Count;
             object root = exportedObjs[0];
             exportedObjs.RemoveAt(0);
 
@@ -639,6 +644,30 @@ namespace FrostySdk.IO
             sortedObjs.AddRange(exportedObjs);
             sortedObjs.AddRange(otherObjs);
 
+            imports.Sort((EbxImportReference a, EbxImportReference b) =>
+            {
+                byte[] bA = a.FileGuid.ToByteArray();
+                byte[] bB = b.FileGuid.ToByteArray();
+
+                uint idA = (uint)(bA[0] << 24 | bA[1] << 16 | bA[2] << 8 | bA[3]);
+                uint idB = (uint)(bB[0] << 24 | bB[1] << 16 | bB[2] << 8 | bB[3]);
+
+                // collision usually means imports are coming from the same file
+                // in that case, compare the class/instance GUIDs instead
+                if (idA != idB)
+                {
+                    return idA.CompareTo(idB);
+                }
+
+                bA = a.ClassGuid.ToByteArray();
+                bB = b.ClassGuid.ToByteArray();
+
+                idA = (uint)(bA[0] << 24 | bA[1] << 16 | bA[2] << 8 | bA[3]);
+                idB = (uint)(bB[0] << 24 | bB[1] << 16 | bB[2] << 8 | bB[3]);
+
+                return idA.CompareTo(idB);
+            });
+
             MemoryStream dataStream = new MemoryStream();
             using (NativeWriter writer = new NativeWriter(dataStream))
             {
@@ -654,7 +683,6 @@ namespace FrostySdk.IO
                 };
 
                 ushort count = 0;
-                exportedCount++;
 
                 for (int i = 0; i < sortedObjs.Count; i++)
                 {
@@ -679,8 +707,6 @@ namespace FrostySdk.IO
                             ClassRef = (ushort)classIdx,
                             IsExported = guid.IsExported
                         };
-                        exportedCount += (ushort)((inst.IsExported) ? 1 : 0);
-
                         count = 0;
                     }
 
@@ -697,9 +723,16 @@ namespace FrostySdk.IO
                         writer.Write((ulong)0);
                     }
 
-                    // both unknown but seem to always be the same (needs more testing)
-                    writer.Write(2u);
-                    writer.Write(45312u); // possibly flags?
+                    writer.Write(2u); // seems to always be the same (needs more testing)
+                    // flags?
+                    if (guid.IsExported)
+                    {
+                        writer.Write(45312u);
+                    }
+                    else
+                    {
+                        writer.Write(40960u);
+                    }
 
                     WriteClass(sortedObjs[i], type, writer);
                     count++;
@@ -832,9 +865,9 @@ namespace FrostySdk.IO
 
                         case EbxFieldType.Struct:
                             {
-                                EbxClass structType = GetClass(objType);
-                                writer.WritePadding(structType.Alignment);
-                                writer.Write(new byte[structType.Size]);
+                                EbxClassMetaAttribute meta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+                                writer.WritePadding(meta.Alignment);
+                                writer.Write(new byte[meta.Size]);
                             }
                             break;
 
@@ -914,7 +947,9 @@ namespace FrostySdk.IO
                                 dependencies.Add(imports[importIdx].FileGuid);
                             }
                             importOffsets.Add((uint)writer.Position);
-                            writer.Write((ulong)pointerIndex);
+                            // the import list in the EBX counts both GUIDs of each import separately
+                            // what we want is the index to the class GUID
+                            writer.Write((ulong)(importIdx * 2 + 1));
                         }
                         else if (pointer.Type == PointerRefType.Internal)
                         {
@@ -929,9 +964,9 @@ namespace FrostySdk.IO
                     {
                         object structValue = obj;
                         Type structType = structValue.GetType();
+                        EbxClassMetaAttribute cta = structType.GetCustomAttribute<EbxClassMetaAttribute>();
 
-                        EbxClass structClassType = classTypes[FindExistingClass(structType)];
-                        writer.WritePadding(structClassType.Alignment);
+                        writer.WritePadding(cta.Alignment);
 
                         WriteClass(structValue, structType, writer);
                     }
@@ -962,12 +997,14 @@ namespace FrostySdk.IO
                             }
 
                             arrayIdx = arrays.Count;
+                            ushort arrayTypeFlags = (ushort)((uint)fieldMeta.ArrayType << 5);
+                            arrayTypeFlags |= (ushort)((uint)EbxFieldCategory.ArrayType << 1);
                             arrays.Add(
                                 new EbxArray()
                                 {
                                     Count = (uint)count,
                                     ClassRef = arrayClassIdx,
-                                    Type = fieldMeta.ArrayFlags
+                                    Type = arrayTypeFlags
                                 });
                             arrayData.Add(arrayStream.ToArray());
                             riffEbxContainer.AddRelocPtr("ARRAY", $"arr_{arrayIdx}", writer);

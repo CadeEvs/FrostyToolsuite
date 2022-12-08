@@ -581,7 +581,7 @@ namespace FrostySdk.IO
                     }
                 }
 
-                return new BoxedValueRef(value, (EbxFieldType)boxedValue.Type, subType);
+                return new BoxedValueRef(value, boxedValuetype, subType);
             }
             finally
             {
