@@ -120,6 +120,7 @@ namespace FrostySdk.IO
         public int ClassRef;
         public uint Offset;
         public uint Count;
+        public ushort Type;
     }
 
     public struct EbxBoxedValue
