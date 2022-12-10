@@ -140,6 +140,9 @@ namespace BiowareLocalizationPlugin.Controls
         private const string SHOW_ALL_RESOURCES = "<Show All>";
         private ComboBox resourceSelectorCb;
 
+        /// <summary>
+        /// The last selected resource - Note that this can be null!
+        /// </summary>
         private string _selectedResource = SHOW_ALL_RESOURCES;
 
         //##############################################################################
@@ -214,11 +217,10 @@ namespace BiowareLocalizationPlugin.Controls
             languageSelectorCb = GetTemplateChild(PART_LanguageSelector) as ComboBox;
             languageSelectorCb.ItemsSource = _textDB.GellAllLanguages();
             languageSelectorCb.SelectedItem = _selectedLanguageFormat;
-            languageSelectorCb.SelectedItem = SHOW_ALL_RESOURCES;
+            languageSelectorCb.SelectionChanged += SelectLanguage;
 
             resourceSelectorCb = GetTemplateChild(PART_ResourceSelector) as ComboBox;
-            resourceSelectorCb.ItemsSource = GetApplicableResources();
-            resourceSelectorCb.SelectionChanged += SelectLanguage;
+            SetSelectableResources();
             resourceSelectorCb.SelectionChanged += SelectResource;
 
             Loaded += LoadFirstTime;
@@ -251,6 +253,12 @@ namespace BiowareLocalizationPlugin.Controls
             bool? nullableModifiedOnly = modifiedOnlyCB.IsChecked;
             bool modifiedOnly = nullableModifiedOnly.HasValue && nullableModifiedOnly.Value;
 
+            if (_selectedResource == null)
+            {
+                _textIdsList = new List<uint>();
+                return;
+            }
+            
             switch (_displayType)
             {
                 case DisplayType.SHOW_TEXTS:
@@ -272,17 +280,10 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void LoadTexts0(bool modifiedOnly)
         {
+            bool showTextsFromAllResources = SHOW_ALL_RESOURCES.Equals(_selectedResource);
             FrostyTaskWindow.Show("Loading texts", "", (task) =>
             {
-
-                if (modifiedOnly)
-                {
-                    _textIdsList = _textDB.GetAllModifiedTextsIds(_selectedLanguageFormat).ToList();
-                }
-                else
-                {
-                    _textIdsList = _textDB.GetAllTextIds(_selectedLanguageFormat).ToList();
-                }
+                _textIdsList = LoadTextIds(modifiedOnly, showTextsFromAllResources);
             });
 
             _textIdsList.Sort();
@@ -293,9 +294,86 @@ namespace BiowareLocalizationPlugin.Controls
             }
         }
 
+        private List<uint> LoadTextIds(bool modifiedOnly, bool showTextsFromAllResources)
+        {
+
+            List<uint> textIds;
+
+            if (!modifiedOnly && showTextsFromAllResources)
+            {
+                textIds = _textDB.GetAllTextIds(_selectedLanguageFormat).ToList();
+            }
+            else if (modifiedOnly && showTextsFromAllResources)
+            {
+                textIds = _textDB.GetAllModifiedTextsIds(_selectedLanguageFormat).ToList();
+            }
+            else if (modifiedOnly && !showTextsFromAllResources)
+            {
+                textIds = _textDB.GetAllModifiedTextIdsFromResource(_selectedLanguageFormat, _selectedResource).ToList();
+            }
+            else //if( !modifiedOnly && !showTextsFromAllResources)
+            {
+                textIds = _textDB.GetAllTextIdsFromResource(_selectedLanguageFormat, _selectedResource).ToList();
+            }
+
+            return textIds;
+        }
+
         private void LoadAdjectives0(bool modifiedOnly)
         {
-            // TODO implement me!
+            
+            FrostyTaskWindow.Show("Loading adjectives", "", (task) =>
+            {
+                _textIdsList = LoadAdjectiveIds(modifiedOnly);
+            });
+
+            _textIdsList.Sort();
+
+            foreach (uint adjectiveId in _textIdsList)
+            {
+                List<string> adjectives = _textDB.GetDeclinatedAdjectives(_selectedLanguageFormat, _selectedResource, adjectiveId);
+
+                string firstAdjective = adjectives.Count > 0 ? adjectives[0] : "";
+
+                stringIdListBox.Items.Add(adjectiveId.ToString("X8") + " - " + firstAdjective);
+            }
+        }
+
+        private List<uint> LoadAdjectiveIds(bool modifiedOnly)
+        {
+            App.Logger.Log("LoadAdjectiveIds");
+            if (modifiedOnly)
+            {
+                return _textDB.GetModifiedDeclinatedAdjectiveIdsFromResource(_selectedLanguageFormat, _selectedResource).ToList();
+            }
+            else
+            {
+                return _textDB.GetAllDeclinatedAdjectiveIdsFromResource(_selectedLanguageFormat, _selectedResource).ToList();
+            }
+        }
+
+        /// <summary>
+        /// Sets the list of currently applicable resources in the resource selector.
+        /// </summary>
+        private void SetSelectableResources()
+        {
+
+            resourceSelectorCb.Items.Clear();
+            List<string> resourceNames = GetApplicableResources();
+
+            foreach (string resourceName in resourceNames)
+            {
+                resourceSelectorCb.Items.Add(resourceName);
+            }
+            
+            if (resourceNames.Count > 0)
+            {
+                resourceSelectorCb.SelectedItem = resourceSelectorCb.Items[0];
+            }
+            else
+            {
+                resourceSelectorCb.SelectedItem = null;
+            }
         }
 
         /// <summary>
@@ -425,7 +503,8 @@ namespace BiowareLocalizationPlugin.Controls
             toggleTextsOrAdjectivesButton.Content = buttonText;
             toggleTextsOrAdjectivesButton.ToolTip = buttonTooltip;
 
-            ReLoadStrings(sender, e);
+            //ReLoadStrings(sender, e);
+            SetSelectableResources();
         }
 
         private void GetUpdateFromTextField(NumberStyles style, Action<uint> textIdAction)
@@ -482,13 +561,7 @@ namespace BiowareLocalizationPlugin.Controls
             {
                 _selectedLanguageFormat = newLanguageFormat;
 
-                // TODO implement me not currently functional!
-                resourceSelectorCb.Items.Clear();
-                resourceSelectorCb.ItemsSource = GetApplicableResources();
-
-                // TODO IMPLEMENT ME!
-
-                //ReLoadStrings(sender, e);
+                SetSelectableResources();
             }
         }
 
@@ -509,10 +582,20 @@ namespace BiowareLocalizationPlugin.Controls
 
             string newResource = (string)resourceSelectorCb.SelectedItem;
 
-            if (!_selectedResource.Equals(newResource))
+            bool changed = false;
+            if(_selectedResource == null || newResource == null)
             {
                 _selectedResource = newResource;
-
+                changed = true;
+            }
+            else if (!_selectedResource.Equals(newResource))
+            {
+                _selectedResource = newResource;
+                changed = true;
+            }
+            
+            if (changed)
+            { 
                 ReLoadStrings(sender, e);
             }
         }
