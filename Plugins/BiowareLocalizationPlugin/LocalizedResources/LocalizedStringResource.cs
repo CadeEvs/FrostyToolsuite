@@ -1037,7 +1037,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
             SortedSet<uint> adjectiveIds = new SortedSet<uint>();
 
-            adjectiveIds.UnionWith(GetAllDeclinatedAdjectivesIds());
+            adjectiveIds.UnionWith(GetAllDefaultDeclinatedAdjectivesIds());
             adjectiveIds.UnionWith(GetAllModifiedDeclinatedAdjectivesIds());
 
             return adjectiveIds;
@@ -1057,7 +1057,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             {
                 if (entry != null)
                 {
-                    adjectiveStrings[i] = entry.Value;
+                    adjectiveStrings.Insert(i, entry.Value);
                 }
                 i++;
             }

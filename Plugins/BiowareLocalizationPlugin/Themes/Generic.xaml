@@ -57,7 +57,7 @@
                                                        ToolTip="Shows only modified or added texts when enabled."/>
                                             </CheckBox>
                                             <Label Grid.Column="7" Content="Select Resource(s):" Margin="10,-2,4,0"/>
-                                            <ComboBox Grid.Column="8" Name="PART_ResourceSelector" BorderThickness="1" Width="250" Height="Auto"/>
+                                            <ComboBox Grid.Column="8" Name="PART_ResourceSelector" BorderThickness="1" Width="300" Height="Auto"/>
                                             <Button Grid.Column="10" Name="PART_RefreshButton" ClickMode="Press" Margin="1,2,8,1" Padding="10,0,10,0">Refresh</Button>
                                             <ComboBox Grid.Column="11" Name="PART_LanguageSelector" BorderThickness="1" Width="250" Height="Auto"/>
                                         </Grid>
