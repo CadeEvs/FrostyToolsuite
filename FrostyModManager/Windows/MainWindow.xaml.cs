@@ -1289,7 +1289,7 @@ namespace FrostyModManager
                                     }
                                 }
 
-                                fi = new FileInfo("Mods/" + ProfilesLibrary.ProfileName + "/" + fi.Name.Replace(".daimod", ".fbmod"));
+                                fi = new FileInfo(Path.Combine(modsDir.FullName, fi.Name.Replace(".daimod", ".fbmod")));
                                 lastInstalledMod = AddMod(fi.FullName, 0);
                             }
                         }
