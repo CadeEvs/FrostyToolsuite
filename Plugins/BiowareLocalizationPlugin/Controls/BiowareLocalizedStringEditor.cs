@@ -3,11 +3,11 @@ using Frosty.Core;
 using Frosty.Core.Controls;
 using Frosty.Core.Windows;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -110,7 +110,8 @@ namespace BiowareLocalizationPlugin.Controls
         /// These can be the texts as defined in the text id block, or the declinated adjectives used for the generated names of crafted items in DA:I.
         /// Maybe even a combination of those, currently the text ids and adjective ids do not overlapp afaik.
         /// </summary>
-        private enum DisplayType {
+        private enum DisplayType
+        {
 
             /// <summary>
             /// Show only the texts - this is the defaul behaviour.
@@ -128,8 +129,8 @@ namespace BiowareLocalizationPlugin.Controls
         /// </summary>
         private DisplayType _displayType = DisplayType.SHOW_TEXTS;
 
-        private readonly string toggleDisplayButtonTextsString      = "Search Text with ID:";
-        private readonly string toggleDisplayButtonAdjectiveString  = "Search Adjective with ID:";
+        private readonly string toggleDisplayButtonTextsString = "Search Text with ID:";
+        private readonly string toggleDisplayButtonAdjectiveString = "Search Adjective with ID:";
 
         private readonly string toggleDisplayButtonTooltipTextsString = "Searches for text entries from the default text id space\r\n"
             + "Use this toggle to show only declinated adjectives used for names of crafted items in DA:I";
@@ -258,7 +259,7 @@ namespace BiowareLocalizationPlugin.Controls
                 _textIdsList = new List<uint>();
                 return;
             }
-            
+
             switch (_displayType)
             {
                 case DisplayType.SHOW_TEXTS:
@@ -268,7 +269,7 @@ namespace BiowareLocalizationPlugin.Controls
                     LoadAdjectives0(modifiedOnly);
                     break;
                 default:
-                    throw new ArgumentException("Unknown state: " + _displayType + "!");
+                    throw new InvalidEnumArgumentException("Unknown DisplayType: " + _displayType);
             }
 
             if (_textIdsList.Count == 0)
@@ -321,7 +322,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void LoadAdjectives0(bool modifiedOnly)
         {
-            
+
             FrostyTaskWindow.Show("Loading adjectives", "", (task) =>
             {
                 _textIdsList = LoadAdjectiveIds(modifiedOnly);
@@ -341,7 +342,6 @@ namespace BiowareLocalizationPlugin.Controls
 
         private List<uint> LoadAdjectiveIds(bool modifiedOnly)
         {
-            App.Logger.Log("LoadAdjectiveIds");
             if (modifiedOnly)
             {
                 return _textDB.GetModifiedDeclinatedAdjectiveIdsFromResource(_selectedLanguageFormat, _selectedResource).ToList();
@@ -365,7 +365,7 @@ namespace BiowareLocalizationPlugin.Controls
             {
                 resourceSelectorCb.Items.Add(resourceName);
             }
-            
+
             if (resourceNames.Count > 0)
             {
                 resourceSelectorCb.SelectedItem = resourceSelectorCb.Items[0];
@@ -383,7 +383,7 @@ namespace BiowareLocalizationPlugin.Controls
         private List<string> GetApplicableResources()
         {
 
-            if(_selectedLanguageFormat == null)
+            if (_selectedLanguageFormat == null)
             {
                 // we are either still in setup or something went wrong...
                 return new List<string>();
@@ -391,7 +391,7 @@ namespace BiowareLocalizationPlugin.Controls
 
             List<string> resourceList = new List<string>();
 
-            switch(_displayType)
+            switch (_displayType)
             {
                 case DisplayType.SHOW_DECLINATED_ADJECTIVES:
                     resourceList.AddRange(_textDB.GetAllResourceNamesWithDeclinatedAdjectives(_selectedLanguageFormat));
@@ -444,7 +444,42 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void PopulateLocalizedString(uint textId)
         {
-            localizedStringTb.Text = _textDB.GetText(_selectedLanguageFormat, textId);
+
+            string textToShow;
+            switch (_displayType)
+            {
+                case DisplayType.SHOW_TEXTS:
+                    textToShow = _textDB.GetText(_selectedLanguageFormat, textId);
+                    break;
+
+                case DisplayType.SHOW_DECLINATED_ADJECTIVES:
+                    textToShow = LoadDeclinatedAdjectiveToShow(textId);
+                    break;
+
+                default:
+                    throw new InvalidEnumArgumentException("Unknown DisplayType: " + _displayType);
+            }
+
+            localizedStringTb.Text = textToShow;
+        }
+
+        private string LoadDeclinatedAdjectiveToShow(uint adjectiveId)
+        {
+
+            if (_selectedResource == null)
+            {
+                return "";
+            }
+
+            List<string> declinations = _textDB.GetDeclinatedAdjectives(_selectedLanguageFormat, _selectedResource, adjectiveId);
+
+            StringBuilder displayBuilder = new StringBuilder();
+            foreach (string declination in declinations)
+            {
+                displayBuilder.AppendLine(declination);
+            }
+
+            return displayBuilder.ToString();
         }
 
         #endregion string selection listeners
@@ -484,7 +519,7 @@ namespace BiowareLocalizationPlugin.Controls
             string buttonText;
             string buttonTooltip;
 
-            switch(_displayType)
+            switch (_displayType)
             {
                 case DisplayType.SHOW_TEXTS:
                     _displayType = DisplayType.SHOW_DECLINATED_ADJECTIVES;
@@ -583,7 +618,7 @@ namespace BiowareLocalizationPlugin.Controls
             string newResource = (string)resourceSelectorCb.SelectedItem;
 
             bool changed = false;
-            if(_selectedResource == null || newResource == null)
+            if (_selectedResource == null || newResource == null)
             {
                 _selectedResource = newResource;
                 changed = true;
@@ -593,9 +628,9 @@ namespace BiowareLocalizationPlugin.Controls
                 _selectedResource = newResource;
                 changed = true;
             }
-            
+
             if (changed)
-            { 
+            {
                 ReLoadStrings(sender, e);
             }
         }
@@ -611,6 +646,13 @@ namespace BiowareLocalizationPlugin.Controls
         /// <param name="e"></param>
         private void ShowTextInfo(object sender, RoutedEventArgs e)
         {
+
+            if (DisplayType.SHOW_DECLINATED_ADJECTIVES == _displayType)
+            {
+                App.Logger.Log("This function is currently not available for adjectives");
+                return;
+            }
+
             uint stringId = GetCurrentStringId();
 
             TextInfoWindow infoWindow = new TextInfoWindow
@@ -630,6 +672,12 @@ namespace BiowareLocalizationPlugin.Controls
         /// <param name="e"></param>
         private void ShowAddEditWindow(object sender, RoutedEventArgs e)
         {
+
+            if (DisplayType.SHOW_DECLINATED_ADJECTIVES == _displayType)
+            {
+                App.Logger.Log("This function is currently not available for adjectives");
+                return;
+            }
 
             uint stringId = GetCurrentStringId();
             AddEditWindow editWindow = new AddEditWindow(_textDB, _selectedLanguageFormat)
@@ -672,6 +720,12 @@ namespace BiowareLocalizationPlugin.Controls
         /// <param name="e"></param>
         private void Remove(object sender, RoutedEventArgs e)
         {
+
+            if (DisplayType.SHOW_DECLINATED_ADJECTIVES == _displayType)
+            {
+                App.Logger.Log("This function is currently not available for adjectives");
+                return;
+            }
 
             int index = stringIdListBox.SelectedIndex;
 
