@@ -38,18 +38,18 @@ namespace FrostySdk.IO
             }
         }
 
-        protected EbxWriteFlags flags;
-        protected List<string> strings = new List<string>();
-        protected List<EbxBoxedValue> boxedValues = new List<EbxBoxedValue>();
-        protected List<byte[]> boxedValueData = new List<byte[]>();
-        protected NativeWriter boxedValueWriter = new NativeWriter(new MemoryStream());
+        protected EbxWriteFlags m_flags;
+        protected List<string> m_strings = new List<string>();
+        protected List<EbxBoxedValue> m_boxedValues = new List<EbxBoxedValue>();
+        protected List<byte[]> m_boxedValueData = new List<byte[]>();
+        protected NativeWriter m_boxedValueWriter = new NativeWriter(new MemoryStream());
 
-        protected uint stringsLength = 0;
+        protected uint m_stringsLength = 0;
 
         internal EbxBaseWriter(Stream inStream, EbxWriteFlags inFlags = EbxWriteFlags.None, bool leaveOpen = false)
             : base(inStream, leaveOpen)
         {
-            flags = inFlags;
+            m_flags = inFlags;
         }
 
         public virtual void WriteAsset(EbxAsset asset)
@@ -84,33 +84,33 @@ namespace FrostySdk.IO
                     case EbxFieldType.String: writer.WriteFixedSizedString((string)obj, 32); break;
                     case EbxFieldType.ResourceRef: writer.Write((ResourceRef)obj); break;
 
-                    default: throw new InvalidDataException("Error");
+                    default: throw new InvalidDataException($"Unhandled field type: {value.Type}");
                 }
 
                 return writer.ToByteArray();;
             }
         }
 
-        protected uint AddString(string stringToAdd)
+        protected virtual uint AddString(string stringToAdd)
         {
             if (stringToAdd == "")
                 return 0xFFFFFFFF;
 
             uint offset = 0;
-            if (strings.Contains(stringToAdd))
+            if (m_strings.Contains(stringToAdd))
             {
-                for (int i = 0; i < strings.Count; i++)
+                for (int i = 0; i < m_strings.Count; i++)
                 {
-                    if (strings[i] == stringToAdd)
+                    if (m_strings[i] == stringToAdd)
                         break;
-                    offset += (uint)(strings[i].Length + 1);
+                    offset += (uint)(m_strings[i].Length + 1);
                 }
             }
             else
             {
-                offset = stringsLength;
-                strings.Add(stringToAdd);
-                stringsLength += (uint)(stringToAdd.Length + 1);
+                offset = m_stringsLength;
+                m_strings.Add(stringToAdd);
+                m_stringsLength += (uint)(stringToAdd.Length + 1);
             }
 
             return offset;
@@ -146,12 +146,12 @@ namespace FrostySdk.IO
         internal EbxWriter(Stream inStream, EbxWriteFlags inFlags = EbxWriteFlags.None, bool leaveOpen = false)
             : base(inStream, inFlags, leaveOpen)
         {
-            flags = inFlags;
+            m_flags = inFlags;
         }
 
         public override void WriteAsset(EbxAsset asset)
         {
-            if (flags.HasFlag(EbxWriteFlags.DoNotSort))
+            if (m_flags.HasFlag(EbxWriteFlags.DoNotSort))
             {
                 foreach (object obj in asset.Objects)
                     ExtractClass(obj.GetType(), obj);
@@ -290,7 +290,7 @@ namespace FrostySdk.IO
             WritePadding(16);
 
             long boxedValueRefOffset = Position;
-            for (int i = 0; i < boxedValues.Count; i++)
+            for (int i = 0; i < m_boxedValues.Count; i++)
             {
                 Write(0);
                 Write(0);
@@ -299,11 +299,11 @@ namespace FrostySdk.IO
 
             stringsOffset = (uint)Position;
 
-            foreach (string str in strings)
+            foreach (string str in m_strings)
                 WriteNullTerminatedString(str);
             WritePadding(16);
 
-            stringsLength = (uint)(Position - stringsOffset);
+            m_stringsLength = (uint)(Position - stringsOffset);
 
             offset = Position;
             Write(data);
@@ -339,12 +339,12 @@ namespace FrostySdk.IO
                 WritePadding(16);
             }
 
-            boxedValueOffset = (uint)(Position - stringsLength - stringsOffset);
-            if (boxedValueWriter.Position > 0)
+            boxedValueOffset = (uint)(Position - m_stringsLength - stringsOffset);
+            if (m_boxedValueWriter.Position > 0)
             {
-                Write(boxedValueWriter.ToByteArray());
+                Write(m_boxedValueWriter.ToByteArray());
                 WritePadding(16);
-                boxedValueWriter.Close();
+                m_boxedValueWriter.Close();
             }
             stringsAndDataLen = (uint)(Position - stringsOffset);
 
@@ -354,7 +354,7 @@ namespace FrostySdk.IO
 
             Position = 0x1A;
             Write(typeNamesLen);
-            Write(stringsLength);
+            Write(m_stringsLength);
 
             Position = 0x24;
             Write(dataLen);
@@ -370,15 +370,15 @@ namespace FrostySdk.IO
             if (((ProfilesLibrary.EbxVersion & 4) != 0))
             {
                 Position = 0x38;
-                Write(boxedValues.Count);
+                Write(m_boxedValues.Count);
                 Write(boxedValueOffset);
 
                 Position = boxedValueRefOffset;
-                for (int i = 0; i < boxedValues.Count; i++)
+                for (int i = 0; i < m_boxedValues.Count; i++)
                 {
-                    Write(boxedValues[i].Offset);
-                    Write(boxedValues[i].ClassRef);
-                    Write(boxedValues[i].Type);
+                    Write(m_boxedValues[i].Offset);
+                    Write(m_boxedValues[i].ClassRef);
+                    Write(m_boxedValues[i].Type);
                 }
             }
         }
@@ -399,7 +399,7 @@ namespace FrostySdk.IO
 
             foreach (PropertyInfo pi in pis)
             {
-                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                     continue;
 
                 if (pi.PropertyType == typeof(PointerRef))
@@ -478,7 +478,7 @@ namespace FrostySdk.IO
 
             foreach (PropertyInfo pi in allProps)
             {
-                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                     continue;
                 pis.Add(pi);
             }
@@ -596,7 +596,7 @@ namespace FrostySdk.IO
                 foreach (PropertyInfo pi in allProps)
                 {
                     // ignore transients if saving to project
-                    if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                    if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                         continue;
 
                     // ignore instance guid
@@ -762,7 +762,7 @@ namespace FrostySdk.IO
             foreach (PropertyInfo pi in pis)
             {
                 // ignore transients if not saving to project
-                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                     continue;
 
                 // ignore the instance guid
@@ -902,7 +902,7 @@ namespace FrostySdk.IO
                 case EbxFieldType.BoxedValueRef:
                     {
                         BoxedValueRef value = (BoxedValueRef)obj;
-                        int index = boxedValues.Count;
+                        int index = m_boxedValues.Count;
 
                         if (value.Type == EbxFieldType.Inherited)
                         {
@@ -910,8 +910,8 @@ namespace FrostySdk.IO
                         }
                         else
                         {
-                            boxedValueWriter.Write(0);
-                            EbxBoxedValue boxedValue = new EbxBoxedValue() { Offset = (uint)boxedValueWriter.Position, Type = (ushort)value.Type };
+                            m_boxedValueWriter.Write(0);
+                            EbxBoxedValue boxedValue = new EbxBoxedValue() { Offset = (uint)m_boxedValueWriter.Position, Type = (ushort)value.Type };
                             if (value.Type == EbxFieldType.Enum)
                             {
                                 boxedValue.ClassRef = ProcessClass(value.Value.GetType());
@@ -924,13 +924,13 @@ namespace FrostySdk.IO
                                 if (count != typesToProcess.Count)
                                     ProcessType((int)boxedValue.ClassRef);
 
-                                WriteField(value.Value, EbxFieldType.Struct, 0, boxedValueWriter, isReference);
+                                WriteField(value.Value, EbxFieldType.Struct, 0, m_boxedValueWriter, isReference);
                             }
                             else
                             {
-                                boxedValueWriter.Write(WriteBoxedValueRef(value));
+                                m_boxedValueWriter.Write(WriteBoxedValueRef(value));
                             }
-                            boxedValues.Add(boxedValue);
+                            m_boxedValues.Add(boxedValue);
                         }
 
                         writer.Write(index);
@@ -1035,7 +1035,7 @@ namespace FrostySdk.IO
 
         public override void WriteAsset(EbxAsset asset)
         {
-            if (flags.HasFlag(EbxWriteFlags.DoNotSort))
+            if (m_flags.HasFlag(EbxWriteFlags.DoNotSort))
             {
                 foreach (object obj in asset.Objects)
                     ExtractClass(obj.GetType(), obj);
@@ -1179,7 +1179,7 @@ namespace FrostySdk.IO
             WritePadding(16);
 
             long boxedValueRefOffset = Position;
-            for (int i = 0; i < boxedValues.Count; i++)
+            for (int i = 0; i < m_boxedValues.Count; i++)
             {
                 Write(0);
                 Write(0);
@@ -1192,7 +1192,7 @@ namespace FrostySdk.IO
                 WriteNullTerminatedString(str);
             WritePadding(16);
 
-            stringsLength = (uint)(Position - stringsOffset);
+            m_stringsLength = (uint)(Position - stringsOffset);
 
             offset = Position;
             Write(data);
@@ -1229,18 +1229,18 @@ namespace FrostySdk.IO
             }
 
             
-            boxedValueOffset = (uint)(Position - stringsLength - stringsOffset);
-            if (boxedValueData.Count > 0)
+            boxedValueOffset = (uint)(Position - m_stringsLength - stringsOffset);
+            if (m_boxedValueData.Count > 0)
             {
-                for (int i = 0; i < boxedValueData.Count; i++)
+                for (int i = 0; i < m_boxedValueData.Count; i++)
                 {
-                    var boxedValue = boxedValues[i];
+                    var boxedValue = m_boxedValues[i];
 
                     Write(0);
                     boxedValue.Offset = (uint)(Position - boxedValueOffset);
-                    Write(boxedValueData[i]);
+                    Write(m_boxedValueData[i]);
 
-                    boxedValues[i] = boxedValue;
+                    m_boxedValues[i] = boxedValue;
                 }
                 WritePadding(16);
             }
@@ -1253,7 +1253,7 @@ namespace FrostySdk.IO
             Position = 0x1A;
             //Write(typeNamesLen);
             Write((ushort)0x00);
-            Write(stringsLength);
+            Write(m_stringsLength);
 
             Position = 0x24;
             Write(dataLen);
@@ -1269,15 +1269,15 @@ namespace FrostySdk.IO
             if (ProfilesLibrary.EbxVersion == 4)
             {
                 Position = 0x38;
-                Write(boxedValueData.Count);
+                Write(m_boxedValueData.Count);
                 Write(boxedValueOffset);
 
                 Position = boxedValueRefOffset;
-                for (int i = 0; i < boxedValues.Count; i++)
+                for (int i = 0; i < m_boxedValues.Count; i++)
                 {
-                    Write(boxedValues[i].Offset);
-                    Write(boxedValues[i].ClassRef);
-                    Write(boxedValues[i].Type);
+                    Write(m_boxedValues[i].Offset);
+                    Write(m_boxedValues[i].ClassRef);
+                    Write(m_boxedValues[i].Type);
                 }
             }
         }
@@ -1298,7 +1298,7 @@ namespace FrostySdk.IO
 
             foreach (PropertyInfo pi in pis)
             {
-                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                     continue;
 
                 if (pi.PropertyType == typeof(PointerRef))
@@ -1377,7 +1377,7 @@ namespace FrostySdk.IO
 
             foreach (PropertyInfo pi in allProps)
             {
-                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                     continue;
                 pis.Add(pi);
             }
@@ -1496,7 +1496,7 @@ namespace FrostySdk.IO
                 foreach (PropertyInfo pi in allProps)
                 {
                     // ignore transients if saving to project
-                    if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !flags.HasFlag(EbxWriteFlags.IncludeTransient))
+                    if (pi.GetCustomAttribute<IsTransientAttribute>() != null && !m_flags.HasFlag(EbxWriteFlags.IncludeTransient))
                         continue;
 
                     // ignore instance guid
@@ -1890,7 +1890,7 @@ namespace FrostySdk.IO
                 case EbxFieldType.BoxedValueRef:
                     {
                         BoxedValueRef value = (BoxedValueRef)obj;
-                        int index = boxedValues.Count;
+                        int index = m_boxedValues.Count;
 
                         if (value.Type == EbxFieldType.Inherited)
                         {
@@ -1900,8 +1900,8 @@ namespace FrostySdk.IO
                         {
                             EbxBoxedValue boxedValue = new EbxBoxedValue() { Offset = 0, Type = (ushort)value.Type };
 
-                            boxedValues.Add(boxedValue);
-                            boxedValueData.Add(WriteBoxedValueRef(value));
+                            m_boxedValues.Add(boxedValue);
+                            m_boxedValueData.Add(WriteBoxedValueRef(value));
                         }
 
                         Write(index);
@@ -2001,9 +2001,9 @@ namespace FrostySdk.IO
             }
             else
             {
-                offset = stringsLength;
+                offset = m_stringsLength;
                 strings.Add(stringToAdd);
-                stringsLength += (uint)(stringToAdd.Length + 1);
+                m_stringsLength += (uint)(stringToAdd.Length + 1);
             }
 
             return offset;

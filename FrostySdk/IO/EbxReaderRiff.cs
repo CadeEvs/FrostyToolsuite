@@ -481,7 +481,14 @@ namespace FrostySdk.IO
 
         internal override TypeRef ReadTypeRef()
         {
-            return new TypeRef(ReadUInt().ToString());
+            uint type = ReadUInt();
+            Position += 4;
+            if ((type & 0x80000000) == 0)
+            {
+                return new TypeRef("0");
+            }
+            EbxFieldType valuetype = (EbxFieldType)((type >> 5) & 0x1F);
+            return new TypeRef(valuetype.ToString());
         }
 
         internal override PointerRef ReadPointerRef(bool dontRefCount)
