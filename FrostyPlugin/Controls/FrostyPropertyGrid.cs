@@ -1725,26 +1725,29 @@ namespace Frosty.Core.Controls
                     actualDefaultValue = typeOverrideDefaultValue;
                 }
 
-                FrostyPropertyGridItemData subItem = new FrostyPropertyGridItemData(name, pi.Name, pi.GetValue(actualObject), pi.GetValue(actualDefaultValue), rootChild, flags) {Binding = new PropertyValueBinding(pi, actualObject)};
+                if (pi.GetValue(actualObject) != null) // Checks if property object is null.
+                {
+                    FrostyPropertyGridItemData subItem = new FrostyPropertyGridItemData(name, pi.Name, pi.GetValue(actualObject), pi.GetValue(actualDefaultValue), rootChild, flags) { Binding = new PropertyValueBinding(pi, actualObject) };
 
-                if (attributes.GetCustomAttribute<FrostySdk.Attributes.IsReadOnlyAttribute>() != null)
-                    subItem.IsReadOnly = true;
-                if (attributes.GetCustomAttribute<FrostySdk.Attributes.DescriptionAttribute>() != null)
-                    subItem.Description = attributes.GetCustomAttribute<FrostySdk.Attributes.DescriptionAttribute>().Description;
-                if (attributes.GetCustomAttribute<DependsOnAttribute>() != null)
-                    subItem.DependsOn = attributes.GetCustomAttribute<DependsOnAttribute>().Name;
-                if (attributes.GetCustomAttribute<FrostySdk.Attributes.EditorAttribute>() != null)
-                    subItem.TypeEditor = attributes.GetCustomAttribute<FrostySdk.Attributes.EditorAttribute>().EditorType;
-                if (attributes.GetCustomAttribute<IsExpandedByDefaultAttribute>() != null)
-                    subItem.IsExpanded = true;
-                if (attributes.GetCustomAttribute<FixedSizeArrayAttribute>() != null)
-                    subItem.IsEnabled = false;
+                    if (attributes.GetCustomAttribute<FrostySdk.Attributes.IsReadOnlyAttribute>() != null)
+                        subItem.IsReadOnly = true;
+                    if (attributes.GetCustomAttribute<FrostySdk.Attributes.DescriptionAttribute>() != null)
+                        subItem.Description = attributes.GetCustomAttribute<FrostySdk.Attributes.DescriptionAttribute>().Description;
+                    if (attributes.GetCustomAttribute<DependsOnAttribute>() != null)
+                        subItem.DependsOn = attributes.GetCustomAttribute<DependsOnAttribute>().Name;
+                    if (attributes.GetCustomAttribute<FrostySdk.Attributes.EditorAttribute>() != null)
+                        subItem.TypeEditor = attributes.GetCustomAttribute<FrostySdk.Attributes.EditorAttribute>().EditorType;
+                    if (attributes.GetCustomAttribute<IsExpandedByDefaultAttribute>() != null)
+                        subItem.IsExpanded = true;
+                    if (attributes.GetCustomAttribute<FixedSizeArrayAttribute>() != null)
+                        subItem.IsEnabled = false;
 
-                subItem.MetaData.AddRange(attributes.GetCustomAttributes<EditorMetaDataAttribute>());
-                subItem.Attributes.AddRange(attributes.GetCustomAttributes<Attribute>());
+                    subItem.MetaData.AddRange(attributes.GetCustomAttributes<EditorMetaDataAttribute>());
+                    subItem.Attributes.AddRange(attributes.GetCustomAttributes<Attribute>());
 
-                categories[category].Children.Add(subItem);
-                rootChild.Children.Add(subItem);
+                    categories[category].Children.Add(subItem);
+                    rootChild.Children.Add(subItem);
+                }
             }
 
             return categories.Values.ToArray();
