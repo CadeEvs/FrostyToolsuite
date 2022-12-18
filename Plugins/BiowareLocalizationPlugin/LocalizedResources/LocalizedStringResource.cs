@@ -970,6 +970,52 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public void SetAdjectiveDeclinations(uint adjectiveId, List<string> declinations)
         {
+            List<LocalizedString> defaultDeclinations = DragonAgeDeclinatedCraftingNames.GetDeclinatedAdjective(adjectiveId).ToList();
+
+            bool shouldSet = AreDeclinationsDifferentFromDefault(defaultDeclinations, declinations);
+
+            if(shouldSet)
+            {
+                SetAdjectiveDeclinations0(adjectiveId, declinations);
+            }
+            else
+            {
+                RemoveAdjectiveDeclination(adjectiveId);
+            }
+        }
+
+        private bool AreDeclinationsDifferentFromDefault(List<LocalizedString> defaultDeclinations, List<string> newDeclinations)
+        {
+
+            int entryNumber = defaultDeclinations.Count;
+            if (entryNumber != newDeclinations.Count)
+            {
+                return true;
+            }
+
+            for (int i = 0; i < entryNumber; i++)
+            {
+                LocalizedString original = defaultDeclinations[i];
+                string altered = newDeclinations[i];
+
+                if (original != null && altered != null)
+                {
+                    if(!altered.Equals(original.Value))
+                    {
+                        return true;
+                    }
+                }
+                else if (original == null && altered != null)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void SetAdjectiveDeclinations0(uint adjectiveId, List<string> declinations)
+        {
             ModifyResourceBeforeInsert();
             _modifiedResource.SetDeclinatedCraftingAdjective(adjectiveId, declinations);
         }
