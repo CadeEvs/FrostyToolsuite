@@ -1329,7 +1329,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
                 List<string> adjectives = new List<string>(numberOfDeclinations);
 
-                for (int j = 0; i < numberOfDeclinations; j++)
+                for (int j = 0; j < numberOfDeclinations; j++)
                 {
                     adjectives.Add(textReader.ReadString());
                 }

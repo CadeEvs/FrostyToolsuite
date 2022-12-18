@@ -20,7 +20,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="38"/>
             <RowDefinition Height="2"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="26"/>
@@ -46,12 +46,12 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <Label Grid.Column="0" FontFamily="Global User Interface" HorizontalAlignment="Left" VerticalAlignment="Top">Resources:</Label>
+            <Label Grid.Column="0" FontFamily="Global User Interface" HorizontalAlignment="Left" VerticalAlignment="Top">Resource:</Label>
             <Button Grid.Column="2" x:Name="addResource" Content="Add" Width="60" Margin="2,2,2,2" HorizontalAlignment="Right" ClickMode="Press" Click="AddResources"/>
             <Button Grid.Column="3" x:Name="removeResource" Content="Remove" Width="60" Margin="2,2,2,2" HorizontalAlignment="Right" ClickMode="Press" Click="RemoveResources"/>
         </Grid>
 
-        <ListBox Grid.Row="2" x:Name="addedResourcesListBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2,2,2,2"
+        <ListBox Grid.Row="2" x:Name="resourcesListBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2,2,2,2"
                          SelectionMode="Extended">
             <ListBox.CommandBindings>
                 <CommandBinding Command="ApplicationCommands.Copy" Executed="CopySelectionToClipboard"/>
