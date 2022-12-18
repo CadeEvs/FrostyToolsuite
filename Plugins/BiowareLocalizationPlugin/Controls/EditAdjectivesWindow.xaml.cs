@@ -18,7 +18,7 @@ namespace BiowareLocalizationPlugin.Controls
     /// </summary>
     [TemplatePart(Name = "adjectiveIdField", Type = typeof(TextBox))]
     [TemplatePart(Name = "localizedAdjectiveListBox", Type = typeof(ListBox))]
-    [TemplatePart(Name = "addedResourcesListBox", Type = typeof(ListBox))]
+    [TemplatePart(Name = "resourcesListBox", Type = typeof(ListBox))]
     [TemplatePart(Name = "saveButton", Type = typeof(Button))]
     [TemplatePart(Name = "cancelButton", Type = typeof(Button))]
     public partial class EditAdjectivesWindow : FrostyDockableWindow
@@ -33,9 +33,9 @@ namespace BiowareLocalizationPlugin.Controls
         private string _selectedResource;
 
         /// <summary>
-        /// The save value tuple consiting of the text id, and text. This is only available after the save action!
+        /// The save value tuple consiting of the adjective id, and the declinations or the adjective. This is only available after the save action!
         /// </summary>
-        public Tuple<uint, string> SaveValue { get; private set; }
+        public Tuple<uint, List<string>> SaveValue { get; private set; }
 
         public EditAdjectivesWindow(BiowareLocalizedStringDatabase stringDb, string languageFormat, string resource)
         {
@@ -59,6 +59,8 @@ namespace BiowareLocalizationPlugin.Controls
                 adjectiveIdField.Text = adjectiveId.ToString("X8");
             }
             UpdateData(adjectiveId);
+
+            resourcesListBox.Items.Add(_selectedResource);
         }
 
         private void Update(object sender, RoutedEventArgs e)
@@ -85,50 +87,34 @@ namespace BiowareLocalizationPlugin.Controls
 
                 foreach (string declination in declinations)
                 {
-                    TextBox declinationBox = new TextBox();
-                    declinationBox.IsReadOnly = false;
-                    declinationBox.AcceptsReturn = false;
-                    declinationBox.Text = declination;
+                    TextBox declinationBox = new TextBox
+                    {
+                        Text = declination,
+                        IsReadOnly = false,
+                        AcceptsReturn = false,
+                        HorizontalAlignment = HorizontalAlignment.Stretch
+                    };
+
                     localizedAdjectiveListBox.Items.Add(declinationBox);
                 }
-
-                IEnumerable<LocalizedStringResource> addedResources = _stringDb.GetAddedLocalizedStringResourcesForTextId(_selectedLanguageFormat, adjectiveId);
-                foreach (LocalizedStringResource res in addedResources)
-                {
-                    addedResourcesListBox.Items.Add(res.Name);
-                }
-
-                IEnumerable<LocalizedStringResource> defaultResources = _stringDb.GetDefaultLocalizedStringResourcesForTextId(_selectedLanguageFormat, adjectiveId);
-                ListBoxUtils.SortListIntoListBox(defaultResources.Select(r => r.Name), addedResourcesListBox);
             }
         }
 
         private void Save(object sender, RoutedEventArgs e)
         {
-            uint textId = ReadAdjectiveId();
+            uint adjectiveId = ReadAdjectiveId();
 
-            if (textId != 0)
+            if (adjectiveId != 0 && _selectedResource != null)
             {
 
-                // TODO move all this text handling into a dedicated handler or something.
-                // This is currently all over the place >_<
+                List<string> adjectiveDeclinations = new List<string>();
+                foreach(TextBox declinationBox in localizedAdjectiveListBox.Items)
+                {
+                    adjectiveDeclinations.Add(declinationBox.Text);
+                }
+                _stringDb.SetDeclinatedAdjectve(_selectedLanguageFormat, _selectedResource, adjectiveId, adjectiveDeclinations);
 
-                //_stringDb.RemoveText(_selectedLanguageFormat, _removedResources, textId);
-
-                //List<string> resources = new List<string>();
-                //foreach (string resourceName in defaultResourcesListBox.Items)
-                //{
-                //    resources.Add(resourceName);
-                //}
-                //foreach (string resourceName in addedResourcesListBox.Items)
-                //{
-                //    resources.Add(resourceName);
-                //}
-
-                //string text = localizedTextBox.Text;
-                //_stringDb.SetText(_selectedLanguageFormat, resources, textId, text);
-
-                //SaveValue = Tuple.Create(textId, text);
+                SaveValue = Tuple.Create(adjectiveId, adjectiveDeclinations);
 
 
                 DialogResult = true;
@@ -175,30 +161,40 @@ namespace BiowareLocalizationPlugin.Controls
         {
 
             IEnumerable<string> selectableResources = _stringDb.GetAllResourceNames(_selectedLanguageFormat)
-                .Where(r => !addedResourcesListBox.Items.Contains(r));
+                .Where(r => !resourcesListBox.Items.Contains(r));
 
             ResourceSelectionWindow selectionDialog = new ResourceSelectionWindow(selectableResources);
             bool? saved = selectionDialog.ShowDialog();
 
             if (saved != null && saved.Value)
             {
-                foreach (string resourceName in selectionDialog.SelectedResources)
-                {
-                    addedResourcesListBox.Items.Add(resourceName);
 
-                    // TODO multiSelect is actually not allowed here!
-                    _selectedResource = resourceName;
+                int selectionCount = selectionDialog.SelectedResources.Count;
+
+                if (selectionCount == 0)
+                {
+                    return;
                 }
+
+                // TODO multiSelect is actually not allowed here!
+                if( selectionDialog.SelectedResources.Count > 1 )
+                {
+                    App.Logger.LogError("Can only select a single resource for adjectives at the moment!");
+                }
+
+                string resourceName = selectionDialog.SelectedResources[0];
+                resourcesListBox.Items.Add(resourceName);
+                _selectedResource = resourceName;
             }
         }
 
         private void RemoveResources(object sender, RoutedEventArgs e)
         {
 
-            List<string> selectedToRemove = addedResourcesListBox.SelectedItems.OfType<string>().ToList();
+            List<string> selectedToRemove = resourcesListBox.SelectedItems.OfType<string>().ToList();
             foreach (string itemToRemove in selectedToRemove)
             {
-                addedResourcesListBox.Items.Remove(itemToRemove);
+                resourcesListBox.Items.Remove(itemToRemove);
             }
             _selectedResource = null;
         }

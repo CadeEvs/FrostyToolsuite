@@ -1,7 +1,6 @@
 ﻿using BiowareLocalizationPlugin.ExportImport;
 using Frosty.Core;
 using Frosty.Core.Controls;
-using Frosty.Core.Sdk.AnthemDemo;
 using Frosty.Core.Windows;
 using System;
 using System.Collections.Generic;
@@ -12,6 +11,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+
 
 namespace BiowareLocalizationPlugin.Controls
 {
@@ -740,7 +740,29 @@ namespace BiowareLocalizationPlugin.Controls
             bool? save = editWindow.ShowDialog();
             if (save.HasValue && save.Value)
             {
-                App.Logger.LogWarning("Not yet implemented!");
+
+                Tuple<uint, List<string>> saveValue = editWindow.SaveValue;
+
+                adjectiveId = saveValue.Item1;
+                List<string> declinations = saveValue.Item2;
+
+                string firstDeclination = declinations.Count > 0 ? declinations[0] : "";
+
+                string entry = adjectiveId.ToString("X8") + " - " + firstDeclination;
+
+                int entryIndex = _textIdsList.IndexOf(adjectiveId);
+
+                if (entryIndex < 0)
+                {
+                    stringIdListBox.Items.Add(entry);
+                    _textIdsList.Add(adjectiveId);
+                }
+                else
+                {
+                    stringIdListBox.Items[entryIndex] = entry;
+                }
+
+                SearchTextId(adjectiveId);
             }
         }
 
