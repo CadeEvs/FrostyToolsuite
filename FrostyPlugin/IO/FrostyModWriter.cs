@@ -114,7 +114,13 @@ namespace Frosty.Core.IO
                 if (entry.HasModifiedData)
                 {
                     userData = entry.ModifiedEntry.UserData;
-                    using (EbxBaseWriter ebxWriter = EbxBaseWriter.CreateWriter(new MemoryStream()))
+                    EbxWriteFlags flags = EbxWriteFlags.None;
+                    if (ProfilesLibrary.EbxVersion == 6)
+                    {
+                        flags |= EbxWriteFlags.DoNotSort;
+                    }
+
+                    using (EbxBaseWriter ebxWriter = EbxBaseWriter.CreateWriter(new MemoryStream(), flags))
                     {
                         ebxWriter.WriteAsset(entry.ModifiedEntry.DataObject as EbxAsset);
 

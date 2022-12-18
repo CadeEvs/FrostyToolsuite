@@ -41,11 +41,11 @@ namespace FrostySdk.IO
 
             // EBX
             uint ebxHeader = ReadUInt(Endian.Big);
-            if (ebxHeader != 0x45425800 && ebxHeader != 0x45425853) // EBXS ????
+            if (ebxHeader != (uint)RiffEbxSection.EBX && ebxHeader != (uint)RiffEbxSection.EBXS) // EBXS ????
                 throw new InvalidDataException("Not valid EBX/EBXS.");
 
             // EBXD
-            if (ReadUInt(Endian.Big) != 0x45425844)
+            if (ReadUInt(Endian.Big) != (uint)RiffEbxSection.EBXD)
             {
                 throw new InvalidDataException("Not valid EBXD chunk.");
             }
@@ -63,7 +63,7 @@ namespace FrostySdk.IO
             Pad(2);
 
             // EFIX
-            if (ReadUInt(Endian.Big) != 0x45464958)
+            if (ReadUInt(Endian.Big) != (uint)RiffEbxSection.EFIX)
                 throw new InvalidDataException("Not valid EFIX chunk.");
             uint efixSize = ReadUInt();
 
@@ -171,7 +171,7 @@ namespace FrostySdk.IO
             }
 
             // EBXX
-            if (ReadUInt(Endian.Big) != 0x45425858)
+            if (ReadUInt(Endian.Big) != (uint)RiffEbxSection.EBXX)
                 throw new InvalidDataException("Not valid EBXX chunk.");
             uint ebxxSize = ReadUInt();
             arrayCount = ReadUInt();
@@ -481,7 +481,14 @@ namespace FrostySdk.IO
 
         internal override TypeRef ReadTypeRef()
         {
-            return new TypeRef(ReadUInt().ToString());
+            uint type = ReadUInt();
+            Position += 4;
+            if ((type & 0x80000000) == 0)
+            {
+                return new TypeRef("0");
+            }
+            EbxFieldType valuetype = (EbxFieldType)((type >> 5) & 0x1F);
+            return new TypeRef(valuetype.ToString());
         }
 
         internal override PointerRef ReadPointerRef(bool dontRefCount)
@@ -581,7 +588,7 @@ namespace FrostySdk.IO
                     }
                 }
 
-                return new BoxedValueRef(value, (EbxFieldType)boxedValue.Type, subType);
+                return new BoxedValueRef(value, boxedValuetype, subType);
             }
             finally
             {

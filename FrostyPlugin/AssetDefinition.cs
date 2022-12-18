@@ -199,9 +199,15 @@ namespace Frosty.Core
                 return;
             }
 
-            if (ProfilesLibrary.EnableExecution)
+            if (ProfilesLibrary.EnableExecution && entry.HasModifiedData)
             {
-                using (EbxBaseWriter writer = EbxBaseWriter.CreateWriter(new MemoryStream()))
+                EbxWriteFlags flags = EbxWriteFlags.None;
+                if (ProfilesLibrary.EbxVersion == 6)
+                {
+                    flags |= EbxWriteFlags.DoNotSort;
+                }
+
+                using (EbxBaseWriter writer = EbxBaseWriter.CreateWriter(new MemoryStream(), flags))
                 {
                     writer.WriteAsset(App.AssetManager.GetEbx(entry));
                     using (NativeWriter fileWriter = new NativeWriter(new FileStream(path, FileMode.Create, FileAccess.Write)))

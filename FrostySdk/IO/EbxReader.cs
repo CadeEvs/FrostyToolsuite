@@ -68,6 +68,16 @@ namespace FrostySdk.IO
         Version6 = 0x46464952 // RIFF LE
     }
 
+    internal enum RiffEbxSection
+    {
+        EBX  = 0x45425800, // BE
+        EBXS = 0x45425853, // BE
+        EBXD = 0x45425844, // BE
+        EFIX = 0x45464958, // BE
+        EBXX = 0x45425858, // BE
+        REFL = 0x5245464C  // BE
+    }
+
     public struct EbxField
     {
         public string Name;
@@ -110,6 +120,7 @@ namespace FrostySdk.IO
         public int ClassRef;
         public uint Offset;
         public uint Count;
+        public ushort Type;
     }
 
     public struct EbxBoxedValue
