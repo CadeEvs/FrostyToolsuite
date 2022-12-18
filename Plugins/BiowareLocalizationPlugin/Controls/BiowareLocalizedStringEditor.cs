@@ -1,6 +1,7 @@
 ﻿using BiowareLocalizationPlugin.ExportImport;
 using Frosty.Core;
 using Frosty.Core.Controls;
+using Frosty.Core.Sdk.AnthemDemo;
 using Frosty.Core.Windows;
 using System;
 using System.Collections.Generic;
@@ -353,7 +354,7 @@ namespace BiowareLocalizationPlugin.Controls
         }
 
         /// <summary>
-        /// Sets the list of currently applicable resources in the resource selector.
+        /// Sets the list of currently applicable resources for the selected language and displaytype in the resource selector.
         /// </summary>
         private void SetSelectableResources()
         {
@@ -426,11 +427,13 @@ namespace BiowareLocalizationPlugin.Controls
             uint selectedTextId = GetCurrentStringId();
             PopulateLocalizedString(selectedTextId);
 
-            bool isTextSelected = e.AddedItems.Count > 0;
-            textInfoBt.IsEnabled = isTextSelected;
-            removeButton.IsEnabled = isTextSelected;
+            bool isSelectionValid = e.AddedItems.Count > 0;
+            bool isTextSelection = DisplayType.SHOW_TEXTS == _displayType;
 
-            if (isTextSelected && updateTextIdFieldCB.IsChecked == true)
+            textInfoBt.IsEnabled = isSelectionValid && isTextSelection;
+            removeButton.IsEnabled = isSelectionValid;
+
+            if (isSelectionValid && updateTextIdFieldCB.IsChecked == true)
             {
                 SetTextIdInSearchField(selectedTextId);
             }
@@ -673,18 +676,31 @@ namespace BiowareLocalizationPlugin.Controls
         private void ShowAddEditWindow(object sender, RoutedEventArgs e)
         {
 
-            if (DisplayType.SHOW_DECLINATED_ADJECTIVES == _displayType)
+            uint stringId = GetCurrentStringId();
+
+            switch (_displayType)
             {
-                App.Logger.Log("This function is currently not available for adjectives");
-                return;
+                case DisplayType.SHOW_TEXTS:
+                    ShowTextEditWindow(stringId);
+                    break;
+
+                case DisplayType.SHOW_DECLINATED_ADJECTIVES:
+                    ShowAdjectiveEditWindow(stringId);
+                    break;
+
+                default:
+                    throw new InvalidEnumArgumentException("Unknown DisplayType: " + _displayType);
             }
 
-            uint stringId = GetCurrentStringId();
+        }
+
+        private void ShowTextEditWindow(uint textId)
+        {
             AddEditWindow editWindow = new AddEditWindow(_textDB, _selectedLanguageFormat)
             {
                 Owner = Application.Current.MainWindow
             };
-            editWindow.Init(stringId);
+            editWindow.Init(textId);
 
             bool? save = editWindow.ShowDialog();
             if (save.HasValue && save.Value)
@@ -692,7 +708,7 @@ namespace BiowareLocalizationPlugin.Controls
                 Tuple<uint, string> saveValue = editWindow.SaveValue;
 
                 // textId is not necessarily the stringId originally given to the dialog!
-                uint textId = saveValue.Item1;
+                textId = saveValue.Item1;
                 string text = saveValue.Item2;
 
                 string entry = textId.ToString("X8") + " - " + text;
@@ -713,6 +729,21 @@ namespace BiowareLocalizationPlugin.Controls
             }
         }
 
+        private void ShowAdjectiveEditWindow(uint adjectiveId)
+        {
+            EditAdjectivesWindow editWindow = new EditAdjectivesWindow(_textDB, _selectedLanguageFormat, _selectedResource)
+            {
+                Owner = Application.Current.MainWindow
+            };
+            editWindow.Init(adjectiveId);
+
+            bool? save = editWindow.ShowDialog();
+            if (save.HasValue && save.Value)
+            {
+                App.Logger.LogWarning("Not yet implemented!");
+            }
+        }
+
         /// <summary>
         /// Removes / Reverts the selected text.
         /// </summary>
@@ -720,12 +751,6 @@ namespace BiowareLocalizationPlugin.Controls
         /// <param name="e"></param>
         private void Remove(object sender, RoutedEventArgs e)
         {
-
-            if (DisplayType.SHOW_DECLINATED_ADJECTIVES == _displayType)
-            {
-                App.Logger.Log("This function is currently not available for adjectives");
-                return;
-            }
 
             int index = stringIdListBox.SelectedIndex;
 
@@ -736,7 +761,40 @@ namespace BiowareLocalizationPlugin.Controls
                 return;
             }
 
-            uint textId = _textIdsList[index];
+            uint selectedId = _textIdsList[index];
+
+            bool entryStillExists;
+            switch (_displayType)
+            {
+                case DisplayType.SHOW_TEXTS:
+                    entryStillExists = RemoveText0(index, selectedId);
+                    break;
+
+                case DisplayType.SHOW_DECLINATED_ADJECTIVES:
+                    entryStillExists = RevertAdjective0(index, selectedId);
+                    break;
+
+                default:
+                    throw new InvalidEnumArgumentException("Unknown DisplayType: " + _displayType);
+            }
+
+            if (!entryStillExists)
+            {
+                stringIdListBox.Items.RemoveAt(index);
+                _textIdsList.RemoveAt(index);
+            }
+
+            SearchTextId(selectedId);
+        }
+
+        /// <summary>
+        /// Calls the appropriate methods to revert or delete a text entry. Returns whether or not a text of the given id still exists afterwards.
+        /// </summary>
+        /// <param name="idIndex"></param>
+        /// <param name="textId"></param>
+        /// <returns>true if a text of the id still exists, false if no such text exists anymore</returns>
+        private bool RemoveText0(int idIndex, uint textId)
+        {
 
             _textDB.RevertText(_selectedLanguageFormat, textId);
 
@@ -745,15 +803,36 @@ namespace BiowareLocalizationPlugin.Controls
             if (text != null)
             {
                 string entry = textId.ToString("X8") + " - " + text;
-                stringIdListBox.Items[index] = entry;
-            }
-            else
-            {
-                stringIdListBox.Items.RemoveAt(index);
-                _textIdsList.RemoveAt(index);
+                stringIdListBox.Items[idIndex] = entry;
+
+                return true;
             }
 
-            SearchTextId(textId);
+            return false;
+        }
+
+        /// <summary>
+        /// Calls the appropriate methods to revert or delete an adjective entry. Returns whether or not the declinated adjective of the given id still exists afterwards.
+        /// </summary>
+        /// <param name="idIndex"></param>
+        /// <param name="adjectiveId"></param>
+        /// <returns>true if an adjective entry of the id still exists, false if no such entry exists anymore</returns>
+        private bool RevertAdjective0(int idIndex, uint adjectiveId)
+        {
+
+            _textDB.RevertDeclinatedAdjective(_selectedLanguageFormat, _selectedResource, adjectiveId);
+
+            List<string> declinations = _textDB.GetDeclinatedAdjectives(_selectedLanguageFormat, _selectedResource, adjectiveId);
+
+            if (declinations != null && declinations.Count > 0)
+            {
+                string entry = adjectiveId.ToString("X8") + " - " + declinations[0];
+                stringIdListBox.Items[idIndex] = entry;
+
+                return true;
+            }
+
+            return false;
         }
 
         private void Export(object sender, RoutedEventArgs e)

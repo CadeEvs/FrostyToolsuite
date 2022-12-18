@@ -50,7 +50,7 @@
                                                        ToolTip="Updates the Search ID field with the id of the currently selected entry, when enabled."/>
                                             </CheckBox>
                                             <Button Grid.Column="5" Name="PART_SearchTextButton" ClickMode="Press" Margin="8,0,4,2" Padding="10,0,10,0"
-                                                    ToolTip="Opens a new window to search for a text">Search for Text</Button>
+                                                    ToolTip="Opens a new window to search for a text in the currently displayed range of text ids">Search for Text</Button>
                                             <CheckBox Grid.Column="6" Name="PART_ModifiedOnlyCB" IsThreeState="False" Margin="6,2,2,1">
                                                 <Label Content="Show only modified" Margin="0,-5,0,0"
                                                        ToolTip="Shows only modified or added texts when enabled."/>

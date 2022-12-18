@@ -34,21 +34,21 @@ namespace BiowareLocalizationPlugin.Controls
             var allResourceNames = new List<string>();
             var allUniqueTextIds = new SortedSet<string>();
             SortedSet<char> allSupportedCharacters = null;
-            foreach(LocalizedStringResource resource in localizedResources)
+            foreach (LocalizedStringResource resource in localizedResources)
             {
                 // add the resource name...
                 allResourceNames.Add(resource.Name);
 
                 // ...add the other texts ids that share the position and such text...
                 IEnumerable<string> textIds = resource.GetAllTextIdsAtPositionOf(textId);
-                foreach(string anotherTextId in textIds)
+                foreach (string anotherTextId in textIds)
                 {
                     allUniqueTextIds.Add(anotherTextId);
                 }
 
                 // ... add or rather retain the limited set of characters supported in all the of the resources
                 var supporedCharacters = resource.GetDefaultSupportedCharacters();
-                if(allSupportedCharacters == null)
+                if (allSupportedCharacters == null)
                 {
                     allSupportedCharacters = new SortedSet<char>(supporedCharacters);
                 }
@@ -61,7 +61,7 @@ namespace BiowareLocalizationPlugin.Controls
             ListBoxUtils.SortListIntoListBox(allResourceNames, resourceList);
             ListBoxUtils.SortListIntoListBox(allUniqueTextIds, stringIdList);
 
-            if(allSupportedCharacters != null)
+            if (allSupportedCharacters != null)
             {
                 ListBoxUtils.SortListIntoListBox(allSupportedCharacters, charactersList);
             }
