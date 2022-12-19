@@ -701,6 +701,9 @@ namespace FrostySdk.Managers
                 IsAdded = true,
                 IsDirty = true
             };
+            CompressionType compressType = ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Madden23) ? CompressionType.Oodle : CompressionType.Default;
 
             while (m_resRidList.ContainsKey(entry.ResRid))
             {
@@ -710,7 +713,7 @@ namespace FrostySdk.Managers
             entry.AddedBundles.AddRange(bundles);
             entry.ModifiedEntry = new ModifiedAssetEntry
             {
-                Data = Utils.CompressFile(buffer),
+                Data = Utils.CompressFile(buffer, resType: resType, compressionOverride: compressType),
                 OriginalSize = buffer.Length,
                 IsInline = false,
                 ResMeta = entry.ResMeta
@@ -730,7 +733,9 @@ namespace FrostySdk.Managers
         public Guid AddChunk(byte[] buffer, Guid? overrideGuid = null, Texture texture = null, params int[] bundles)
         {
             ChunkAssetEntry entry = new ChunkAssetEntry { IsAdded = true, IsDirty = true };
-            CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18)) ? CompressionType.Oodle : CompressionType.Default;
+            CompressionType compressType = ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Madden23) ? CompressionType.Oodle : CompressionType.Default;
 
             entry.ModifiedEntry = new ModifiedAssetEntry
             {
@@ -781,11 +786,9 @@ namespace FrostySdk.Managers
             }
 
             ChunkAssetEntry entry = m_chunkList[chunkId];
-            CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20)) ? CompressionType.Oodle : CompressionType.Default;
-            if ((ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19)) && texture != null)
-            {
-                compressType = CompressionType.Oodle;
-            }
+            CompressionType compressType = ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Madden23) ? CompressionType.Oodle : CompressionType.Default;
 
             if (entry.ModifiedEntry == null)
             {
@@ -824,7 +827,9 @@ namespace FrostySdk.Managers
             }
 
             ResAssetEntry entry = m_resRidList[resRid];
-            CompressionType compressType = (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20, ProfileVersion.Fifa21)) ? CompressionType.Oodle : CompressionType.Default;
+            CompressionType compressType = ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Madden23) ? CompressionType.Oodle : CompressionType.Default;
 
             if (entry.ModifiedEntry == null)
             {
@@ -877,7 +882,9 @@ namespace FrostySdk.Managers
             }
 
             ResAssetEntry entry = m_resList[resName];
-            CompressionType compressType = (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18) ? CompressionType.Oodle : CompressionType.Default;
+            CompressionType compressType = ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa20,
+                ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Madden23) ? CompressionType.Oodle : CompressionType.Default;
 
             if (entry.ModifiedEntry == null)
             {
@@ -1733,7 +1740,7 @@ namespace FrostySdk.Managers
                 return false;
 
             WriteToLog("Loading data (" + m_fileSystem.CacheName + ".cache)");
-            bool bIsPatched = false;
+            bool isPatched = false;
 
             using (NativeReader reader = new NativeReader(new FileStream(m_fileSystem.CacheName + ".cache", FileMode.Open, FileAccess.Read)))
             {
@@ -1752,23 +1759,29 @@ namespace FrostySdk.Managers
                 uint head = reader.ReadUInt();
                 if (head != m_fileSystem.Head)
                 {
-                    bIsPatched = true;
+                    isPatched = true;
                     prePatchCache = new List<EbxAssetEntry>();
                 }
 
                 int count = reader.ReadInt();
 
                 // SWBF2/BFV
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                 {
-                    m_superBundles.Add(new SuperBundleEntry() { Name = "<none>" });
+                    if (!isPatched)
+                    {
+                        m_superBundles.Add(new SuperBundleEntry() { Name = "<none>" });
+                    }
                 }
                 else
                 {
                     for (int i = 0; i < count; i++)
                     {
                         SuperBundleEntry sbentry = new SuperBundleEntry { Name = reader.ReadNullTerminatedString() };
-                        m_superBundles.Add(sbentry);
+                        if (!isPatched)
+                        {
+                            m_superBundles.Add(sbentry);
+                        }
                     }
                 }
 
@@ -1789,7 +1802,7 @@ namespace FrostySdk.Managers
                     if (bentry.Name.StartsWith("win32/Win32"))
                         bentry.Name = bentry.Name.Remove(0, 6);
 
-                    if (!bIsPatched)
+                    if (!isPatched)
                         m_bundles.Add(bentry);
                 }
 
@@ -1833,7 +1846,7 @@ namespace FrostySdk.Managers
                     for (int j = 0; j < subCount; j++)
                         entry.DependentAssets.Add(reader.ReadGuid());
 
-                    if (bIsPatched)
+                    if (isPatched)
                     {
                         entry.Guid = ebxGuid;
                         prePatchCache.Add(entry);
@@ -1889,7 +1902,7 @@ namespace FrostySdk.Managers
                     for (int j = 0; j < subCount; j++)
                         entry.Bundles.Add(reader.ReadInt());
 
-                    if (!bIsPatched)
+                    if (!isPatched)
                     {
                         m_resList.Add(entry.Name, entry);
                         if (entry.ResRid != 0)
@@ -1950,12 +1963,12 @@ namespace FrostySdk.Managers
                     for (int j = 0; j < subCount; j++)
                         entry.Bundles.Add(reader.ReadInt());
 
-                    if (!bIsPatched)
+                    if (!isPatched)
                         m_chunkList.Add(entry.Id, entry);
                 }
             }
 
-            return !bIsPatched;
+            return !isPatched;
         }
 
         private void WriteToCache()
@@ -2089,6 +2102,8 @@ namespace FrostySdk.Managers
         }
 
         private void WriteToLog(string text, params object[] vars) => m_logger?.Log(text, vars);
+
+        private void ReportProgress(int current, int total) => m_logger?.Log("progress:" + current / (float)total * 100d);
 
         private static Sha1 GenerateSha1(byte[] buffer)
         {

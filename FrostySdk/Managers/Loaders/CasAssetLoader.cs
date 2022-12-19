@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FrostySdk.Managers
@@ -16,60 +15,6 @@ namespace FrostySdk.Managers
         HasBaseBundles = 1, // base toc has bundles that the patch doesnt have
         HasBaseChunks = 2, // base toc has chunks that the patch doesnt have
         HasCompressedNames = 4 // bundle names are huffman encoded
-    }
-
-    public class HuffmanDecoder
-    {
-        private int[] table;
-        private uint[] data;
-
-        public void ReadEncryptedData(NativeReader reader, int count, Endian inEndian = Endian.Little)
-        {
-            data = new uint[count];
-            for (int i = 0; i < count; i++)
-                data[i] = reader.ReadUInt(inEndian);
-        }
-
-        public void ReadHuffmanTable(NativeReader reader, int count, Endian inEndian = Endian.Little)
-        {
-
-            table = new int[count];
-            for (int i = 0; i < count; i++)
-                table[i] = reader.ReadInt(inEndian);
-        }
-
-        public string ReadHuffmanEncodedString(int bitIndex)
-        {
-            if (table == null || data == null)
-                throw new InvalidDataException("No table or data.");
-
-            StringBuilder sb = new StringBuilder();
-            while (true)
-            {
-                int val = table.Length / 2 - 1;
-
-                do
-                {
-                    uint index = (data[bitIndex / 32] >> (bitIndex % 32)) & 1;
-                    val = table[val * 2 + index];
-                    bitIndex++;
-                }
-                while (val >= 0);
-
-                char c = (char)(-1 - val);
-
-                if (c == 0)
-                    return sb.ToString();
-
-                sb.Append(c);
-            }
-        }
-
-        public void Dispose()
-        {
-            table = null;
-            data = null;
-        }
     }
 
     public partial class AssetManager
@@ -89,6 +34,7 @@ namespace FrostySdk.Managers
 
                     // load default superbundle
                     parent.WriteToLog("Loading data ({0})", sbName);
+                    parent.ReportProgress(parent.m_superBundles.Count, parent.m_fileSystem.SuperBundleCount);
 
                     // parse superbundle toc files from patch and data
                     bool isPatch = true;
@@ -185,7 +131,7 @@ namespace FrostySdk.Managers
                     if (flags.HasFlag(Flags.HasCompressedNames))
                     {
                         reader.Position = namesOffset;
-                        huffmanDecoder.ReadEncryptedData(reader, namesCount, Endian.Big);
+                        huffmanDecoder.ReadEncodedData(reader, namesCount, Endian.Big);
 
                         reader.Position = tableOffset;
                         huffmanDecoder.ReadHuffmanTable(reader, tableCount, Endian.Big);

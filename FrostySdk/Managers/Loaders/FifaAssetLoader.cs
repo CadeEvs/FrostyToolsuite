@@ -45,10 +45,10 @@ namespace FrostySdk.Managers
                         {
                             parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
                             sbIndex = parent.m_superBundles.Count - 1;
+                            parent.ReportProgress(parent.m_superBundles.Count, parent.m_fileSystem.SuperBundleCount);
                         }
 
                         parent.WriteToLog("Loading data ({0})", sbName);
-                        parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
 
                         string sbPath = sbName;
                         if (catalog.SuperBundles[sbName].Item1)
