@@ -323,7 +323,7 @@ namespace Frosty.ModSupport
                                         res.SetValue("offset", (int)casWriter.Position);
                                         res.SetValue("resRid", (long)entry.ResRid);
                                         res.SetValue("resMeta", entry.ResMeta);
-                                        res.SetValue("resType", entry.ResType);
+                                        res.SetValue("resType", (int)entry.ResType);
                                         if (parent.m_hasPatchFolder)
                                         {
                                             res.SetValue("patch", true);
@@ -352,7 +352,7 @@ namespace Frosty.ModSupport
                                     res.SetValue("offset", (int)casWriter.Position);
                                     res.SetValue("resRid", (long)entry.ResRid);
                                     res.SetValue("resMeta", entry.ResMeta);
-                                    res.SetValue("resType", entry.ResType);
+                                    res.SetValue("resType", (int)entry.ResType);
                                     if (parent.m_hasPatchFolder)
                                     {
                                         res.SetValue("patch", true);
@@ -403,8 +403,8 @@ namespace Frosty.ModSupport
                                             chunk.SetValue("catalog", catalogIndex);
                                             chunk.SetValue("cas", casFileIndex);
                                             chunk.SetValue("offset", (uint)casWriter.Position);
-                                            chunk.SetValue("logicalOffset", entry.LogicalOffset);
-                                            chunk.SetValue("logicalSize", entry.LogicalSize);
+                                            chunk.SetValue("logicalOffset", (int)entry.LogicalOffset);
+                                            chunk.SetValue("logicalSize", (int)entry.LogicalSize);
                                             if (parent.m_hasPatchFolder)
                                             {
                                                 chunk.SetValue("patch", true);
@@ -457,8 +457,8 @@ namespace Frosty.ModSupport
                                     chunk.SetValue("catalog", catalogIndex);
                                     chunk.SetValue("cas", casFileIndex);
                                     chunk.SetValue("offset", (uint)casWriter.Position);
-                                    chunk.SetValue("logicalOffset", entry.LogicalOffset);
-                                    chunk.SetValue("logicalSize", entry.LogicalSize);
+                                    chunk.SetValue("logicalOffset", (int)entry.LogicalOffset);
+                                    chunk.SetValue("logicalSize", (int)entry.LogicalSize);
                                     if (parent.m_hasPatchFolder)
                                     {
                                         chunk.SetValue("patch", true);
