@@ -1134,7 +1134,7 @@ namespace FrostySdk.IO
 
         private (ushort, ushort) WriteTypeRef(TypeRef typeRef, bool addSignature, NativeWriter writer)
         {
-            if (typeRef.Name == "0" || typeRef.Name == "Inherited")
+            if (typeRef.IsNull() || typeRef.Name == "0" || typeRef.Name == "Inherited")
             {
                 writer.Write(0x00);
                 writer.Write(0x00);
@@ -1160,6 +1160,7 @@ namespace FrostySdk.IO
             {
                 if (typeIdx == -1)
                 {
+                    // boxed value type refs shouldn't end up here, as they're already handled when processing classes
                     typeIdx = AddClass(typeRefType.Name, typeRefType, addSignature);
                 }
                 typeFlags = (uint)(typeIdx << 2);

@@ -23,6 +23,16 @@ namespace FrostySdk.Ebx
         {
             typeGuid = guid;
             typeName = TypeLibrary.Reflection.LookupType(guid);
+            // type is likely using a signed GUID
+            if (typeName == "" || typeName == guid.ToString())
+            {
+                Type refType = TypeLibrary.GetType(guid);
+                if (refType == null)
+                {
+                    throw new Exception($"Could not find a type with the GUID {guid}");
+                }
+                typeName = refType.Name;
+            }
         }
 
         public static implicit operator string(TypeRef value)
@@ -36,6 +46,6 @@ namespace FrostySdk.Ebx
 
         public bool IsNull() => string.IsNullOrEmpty(typeName);
 
-        public override string ToString() => "TypeRef '" + ((string.IsNullOrEmpty(typeName)) ? "(null)" : typeName) + "'";
+        public override string ToString() => "TypeRef '" + (IsNull() ? "(null)" : typeName) + "'";
     }
 }

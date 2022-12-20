@@ -478,7 +478,7 @@ namespace FrostySdk.IO
             Position += 4;
             if (type == 0)
             {
-                return new TypeRef("0");
+                return new TypeRef();
             }
 
             // (always?) primitive type
@@ -495,12 +495,11 @@ namespace FrostySdk.IO
                 Guid? classGuid = classGuids[classRef];
                 if (classGuid.HasValue)
                 {
-                    Type refClassType = TypeLibrary.GetType(classGuid.Value);
-                    return new TypeRef(refClassType.Name);
+                    return new TypeRef(classGuid.Value);
                 }
                 else
                 {
-                    return new TypeRef("0");
+                    return new TypeRef();
                 }
             }
         }
