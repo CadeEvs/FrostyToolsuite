@@ -1,11 +1,7 @@
 ﻿using Frosty.Core;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Windows.Automation;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
@@ -188,12 +184,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
     {
         public List<bool> Value { get; }
 
-        private readonly int _hashValue;
+        private readonly int m_hashValue;
 
         public EncodedText(List<bool> encodedText)
         {
             this.Value = encodedText ?? throw new InvalidOperationException("\"encodedText\" must not be null!");
-            _hashValue = ComputeHash(encodedText);
+            m_hashValue = ComputeHash(encodedText);
         }
 
         public int GetLength()
@@ -202,7 +198,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public override int GetHashCode()
         {
-            return _hashValue;
+            return m_hashValue;
         }
 
         public override bool Equals(object obj)
@@ -251,13 +247,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public EncodedText EncodedText { get; }
         public int Position { get; set; } = -1;
 
-        public EncodedTextPosition(EncodedText encodedText)
+        public EncodedTextPosition(EncodedText inEncodedText)
         {
-            EncodedText = encodedText;
+            EncodedText = inEncodedText;
         }
 
         public int GetLength()
-        { return EncodedText.GetLength(); }
+        {
+            return EncodedText.GetLength();
+        }
 
         public int CompareTo(EncodedTextPosition other)
         {
@@ -271,7 +269,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public override bool Equals(object obj)
         {
-            if (this.GetType() == obj.GetType())
+            if (GetType() == obj.GetType())
             {
                 EncodedTextPosition other = (EncodedTextPosition)obj;
 
@@ -335,14 +333,14 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public readonly int DefaultPosition;
         public string Value { get; set; }
 
-        public LocalizedString(int position)
+        public LocalizedString(int inPosition)
         {
-            this.DefaultPosition = position;
+            DefaultPosition = inPosition;
         }
 
-        public LocalizedString(int position, string text) : this(position)
+        public LocalizedString(int inPosition, string inText) : this(inPosition)
         {
-            Value = text;
+            Value = inText;
         }
 
         public override string ToString()
@@ -359,15 +357,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
     {
         public readonly uint Id;
 
-        public LocalizedStringWithId(uint id, int defaultPosition) : base(defaultPosition)
+        public LocalizedStringWithId(uint inId, int inDefaultPosition) : base(inDefaultPosition)
         {
-            this.Id = id;
+            this.Id = inId;
         }
 
-        public LocalizedStringWithId(uint id, int defaultPosition, string text)
-            : base(defaultPosition, text)
+        public LocalizedStringWithId(uint inId, int inDefaultPosition, string inText)
+            : base(inDefaultPosition, inText)
         {
-            this.Id = id;
+            this.Id = inId;
         }
 
         public override string ToString()
@@ -416,14 +414,14 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public int NumberOfDeclinations { get; private set; }
 
-        private readonly SortedDictionary<uint, LocalizedStringWithId[]> declinatedAdjectiveVariants;
+        public bool ContainsAdjectives => m_declinatedAdjectiveVariants.Count > 0;
 
-        public bool ContainsAdjectives => declinatedAdjectiveVariants.Count > 0;
+        private readonly SortedDictionary<uint, LocalizedStringWithId[]> m_declinatedAdjectiveVariants;
 
-        public DragonAgeDeclinatedAdjectiveTuples(int numberOfDeclinations)
+        public DragonAgeDeclinatedAdjectiveTuples(int inNumberOfDeclinations)
         {
-            this.NumberOfDeclinations = numberOfDeclinations;
-            declinatedAdjectiveVariants = new SortedDictionary<uint, LocalizedStringWithId[]>();
+            this.NumberOfDeclinations = inNumberOfDeclinations;
+            m_declinatedAdjectiveVariants = new SortedDictionary<uint, LocalizedStringWithId[]>();
         }
 
         public void AddDeclinatedAdjective(LocalizedStringWithId localizedText, int declination)
@@ -436,12 +434,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 return;
             }
 
-            bool entryExists = declinatedAdjectiveVariants.TryGetValue(textId, out LocalizedStringWithId[] declinatedAdjectivesArray);
+            bool entryExists = m_declinatedAdjectiveVariants.TryGetValue(textId, out LocalizedStringWithId[] declinatedAdjectivesArray);
 
             if (!entryExists)
             {
                 declinatedAdjectivesArray = new LocalizedStringWithId[NumberOfDeclinations];
-                declinatedAdjectiveVariants.Add(textId, declinatedAdjectivesArray);
+                m_declinatedAdjectiveVariants.Add(textId, declinatedAdjectivesArray);
             }
 
             declinatedAdjectivesArray[declination] = localizedText;
@@ -457,13 +455,13 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public IEnumerable<uint> GetDeclinatedAdjectiveIds()
         {
-            return declinatedAdjectiveVariants.Keys;
+            return m_declinatedAdjectiveVariants.Keys;
         }
 
         public IEnumerable<LocalizedString> GetDeclinatedAdjective(uint articleID)
         {
 
-            bool entryExists = declinatedAdjectiveVariants.TryGetValue(articleID, out LocalizedStringWithId[] declinatedAdjectivesArray);
+            bool entryExists = m_declinatedAdjectiveVariants.TryGetValue(articleID, out LocalizedStringWithId[] declinatedAdjectivesArray);
             if (entryExists)
             {
                 return declinatedAdjectivesArray;
@@ -476,7 +474,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         {
 
             List<LocalizedString> allDeclinatedArticles = new List<LocalizedString>();
-            foreach (var adjectiveIdArray in declinatedAdjectiveVariants.Values)
+            foreach (var adjectiveIdArray in m_declinatedAdjectiveVariants.Values)
             {
                 foreach (LocalizedString declination in adjectiveIdArray)
                 {
@@ -504,7 +502,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
 
             List<LocalizedStringWithId> adjectives = new List<LocalizedStringWithId>();
-            foreach (var entry in declinatedAdjectiveVariants)
+            foreach (var entry in m_declinatedAdjectiveVariants)
             {
 
                 LocalizedStringWithId textEntry = entry.Value[declinationNumber];
@@ -527,7 +525,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             StringBuilder sb = new StringBuilder();
 
-            foreach (var entry in declinatedAdjectiveVariants)
+            foreach (var entry in m_declinatedAdjectiveVariants)
             {
                 sb.Append("[")
                     .Append(entry.Key.ToString("X8"))

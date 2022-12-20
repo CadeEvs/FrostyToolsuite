@@ -1,5 +1,4 @@
-﻿using BiowareLocalizationPlugin.LocalizedResources;
-using Frosty.Controls;
+﻿using Frosty.Controls;
 using Frosty.Core;
 using System;
 using System.Collections.Generic;
@@ -24,27 +23,27 @@ namespace BiowareLocalizationPlugin.Controls
     public partial class EditAdjectivesWindow : FrostyDockableWindow
     {
 
-        private readonly string _selectedLanguageFormat;
-        private readonly BiowareLocalizedStringDatabase _stringDb;
-
-        /// <summary>
-        /// The resource(s?) where to edit the adjective
-        /// </summary>
-        private string _selectedResource;
-
         /// <summary>
         /// The save value tuple consiting of the adjective id, and the declinations or the adjective. This is only available after the save action!
         /// </summary>
         public Tuple<uint, List<string>> SaveValue { get; private set; }
 
-        public EditAdjectivesWindow(BiowareLocalizedStringDatabase stringDb, string languageFormat, string resource)
+        private readonly string m_selectedLanguageFormat;
+        private readonly BiowareLocalizedStringDatabase m_stringDb;
+
+        /// <summary>
+        /// The resource(s?) where to edit the adjective
+        /// </summary>
+        private string m_selectedResource;
+
+        public EditAdjectivesWindow(BiowareLocalizedStringDatabase inStringDb, string inLanguageFormat, string inResource)
         {
             InitializeComponent();
 
-            _selectedLanguageFormat = languageFormat;
-            _stringDb = stringDb;
+            m_selectedLanguageFormat = inLanguageFormat;
+            m_stringDb = inStringDb;
 
-            _selectedResource = resource;
+            m_selectedResource = inResource;
         }
 
         /// <summary>
@@ -60,7 +59,7 @@ namespace BiowareLocalizationPlugin.Controls
             }
             UpdateData(adjectiveId);
 
-            resourcesListBox.Items.Add(_selectedResource);
+            resourcesListBox.Items.Add(m_selectedResource);
         }
 
         private void Update(object sender, RoutedEventArgs e)
@@ -75,7 +74,7 @@ namespace BiowareLocalizationPlugin.Controls
         private void UpdateData(uint adjectiveId)
         {
 
-            if (adjectiveId == 0 || _selectedResource == null)
+            if (adjectiveId == 0 || m_selectedResource == null)
             {
                 // revert;
                 localizedAdjectiveListBox.Items.Clear();
@@ -83,7 +82,7 @@ namespace BiowareLocalizationPlugin.Controls
             else
             {
 
-                List<string> declinations = _stringDb.GetDeclinatedAdjectives(_selectedLanguageFormat, _selectedResource, adjectiveId);
+                List<string> declinations = m_stringDb.GetDeclinatedAdjectives(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
 
                 foreach (string declination in declinations)
                 {
@@ -104,7 +103,7 @@ namespace BiowareLocalizationPlugin.Controls
         {
             uint adjectiveId = ReadAdjectiveId();
 
-            if (adjectiveId != 0 && _selectedResource != null)
+            if (adjectiveId != 0 && m_selectedResource != null)
             {
 
                 List<string> adjectiveDeclinations = new List<string>();
@@ -112,7 +111,7 @@ namespace BiowareLocalizationPlugin.Controls
                 {
                     adjectiveDeclinations.Add(declinationBox.Text);
                 }
-                _stringDb.SetDeclinatedAdjectve(_selectedLanguageFormat, _selectedResource, adjectiveId, adjectiveDeclinations);
+                m_stringDb.SetDeclinatedAdjectve(m_selectedLanguageFormat, m_selectedResource, adjectiveId, adjectiveDeclinations);
 
                 SaveValue = Tuple.Create(adjectiveId, adjectiveDeclinations);
 
@@ -160,7 +159,7 @@ namespace BiowareLocalizationPlugin.Controls
         private void AddResources(object sender, RoutedEventArgs e)
         {
 
-            IEnumerable<string> selectableResources = _stringDb.GetAllResourceNames(_selectedLanguageFormat)
+            IEnumerable<string> selectableResources = m_stringDb.GetAllResourceNames(m_selectedLanguageFormat)
                 .Where(r => !resourcesListBox.Items.Contains(r));
 
             ResourceSelectionWindow selectionDialog = new ResourceSelectionWindow(selectableResources);
@@ -184,7 +183,7 @@ namespace BiowareLocalizationPlugin.Controls
 
                 string resourceName = selectionDialog.SelectedResources[0];
                 resourcesListBox.Items.Add(resourceName);
-                _selectedResource = resourceName;
+                m_selectedResource = resourceName;
             }
         }
 
@@ -196,7 +195,7 @@ namespace BiowareLocalizationPlugin.Controls
             {
                 resourcesListBox.Items.Remove(itemToRemove);
             }
-            _selectedResource = null;
+            m_selectedResource = null;
         }
 
         /// <summary>

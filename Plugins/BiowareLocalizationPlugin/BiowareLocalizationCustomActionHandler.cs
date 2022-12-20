@@ -29,34 +29,34 @@ namespace BiowareLocalizationPlugin
 
 
             // The resType is vital to be kept (its always LocalizedStringResource, but whatever)
-            private readonly uint _resType;
+            private readonly uint m_resType;
 
             // these other two fields may have to be written to the mod as well
-            private readonly ulong _resRid;
-            private readonly byte[] _resMeta;
+            private readonly ulong m_resRid;
+            private readonly byte[] m_resMeta;
 
 
-            public BiowareLocalizationModResource(ResAssetEntry entry, FrostyModWriter.Manifest manifest) : base(entry)
+            public BiowareLocalizationModResource(ResAssetEntry inEntry, FrostyModWriter.Manifest inManifest) : base(inEntry)
             {
 
                 // This constructor does the exact same thing as the ones in the TestPlugin
 
                 // obtain the modified data
-                ModifiedLocalizationResource md = entry.ModifiedEntry.DataObject as ModifiedLocalizationResource;
+                ModifiedLocalizationResource md = inEntry.ModifiedEntry.DataObject as ModifiedLocalizationResource;
                 byte[] data = md.Save();
 
                 // store data and details about resource
-                name = entry.Name.ToLower();
+                name = inEntry.Name.ToLower();
                 sha1 = Utils.GenerateSha1(data);
-                resourceIndex = manifest.Add(sha1, data);
+                resourceIndex = inManifest.Add(sha1, data);
                 size = data.Length;
 
                 // set the handler hash to the hash of the res type name
-                handlerHash = Fnv1.HashString(entry.Type.ToLower());
+                handlerHash = Fnv1.HashString(inEntry.Type.ToLower());
 
-                _resType = entry.ResType;
-                _resRid = entry.ResRid;
-                _resMeta = entry.ResMeta;
+                m_resType = inEntry.ResType;
+                m_resRid = inEntry.ResRid;
+                m_resMeta = inEntry.ResMeta;
             }
 
             /// <summary>
@@ -75,13 +75,13 @@ namespace BiowareLocalizationPlugin
                 base.Write(writer);
 
                 // write the required res type:
-                writer.Write(_resType);
+                writer.Write(m_resType);
 
-                writer.Write(_resRid);
-                writer.Write((_resMeta != null) ? _resMeta.Length : 0);
-                if (_resMeta != null)
+                writer.Write(m_resRid);
+                writer.Write((m_resMeta != null) ? m_resMeta.Length : 0);
+                if (m_resMeta != null)
                 {
-                    writer.Write(_resMeta);
+                    writer.Write(m_resMeta);
                 }
             }
         }

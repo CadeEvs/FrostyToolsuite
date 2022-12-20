@@ -25,25 +25,25 @@ namespace BiowareLocalizationPlugin.Controls
     public partial class AddEditWindow : FrostyDockableWindow
     {
 
-        private readonly string _selectedLanguageFormat;
-        private readonly BiowareLocalizedStringDatabase _stringDb;
-
-        /// <summary>
-        /// List to keep track of resources where a text id was removed from.
-        /// </summary>
-        private readonly List<string> _removedResources = new List<string>();
-
         /// <summary>
         /// The save value tuple consiting of the text id, and text. This is only available after the save action!
         /// </summary>
         public Tuple<uint, string> SaveValue { get; private set; }
 
-        public AddEditWindow(BiowareLocalizedStringDatabase stringDb, string languageFormat)
+        private readonly string m_selectedLanguageFormat;
+        private readonly BiowareLocalizedStringDatabase m_stringDb;
+
+        /// <summary>
+        /// List to keep track of resources where a text id was removed from.
+        /// </summary>
+        private readonly List<string> m_removedResources = new List<string>();
+
+        public AddEditWindow(BiowareLocalizedStringDatabase inStringDb, string inLanguageFormat)
         {
             InitializeComponent();
 
-            _selectedLanguageFormat = languageFormat;
-            _stringDb = stringDb;
+            m_selectedLanguageFormat = inLanguageFormat;
+            m_stringDb = inStringDb;
         }
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace BiowareLocalizationPlugin.Controls
         public void Init(uint textId)
         {
 
-            if(textId != 0)
+            if (textId != 0)
             {
                 textIdField.Text = textId.ToString("X8");
             }
@@ -80,16 +80,16 @@ namespace BiowareLocalizationPlugin.Controls
             }
             else
             {
-                localizedTextBox.Text = _stringDb.FindText(_selectedLanguageFormat, textId);
+                localizedTextBox.Text = m_stringDb.FindText(m_selectedLanguageFormat, textId);
                 DeselectAllResources();
 
-                IEnumerable<LocalizedStringResource> addedResources = _stringDb.GetAddedLocalizedStringResourcesForTextId(_selectedLanguageFormat, textId);
+                IEnumerable<LocalizedStringResource> addedResources = m_stringDb.GetAddedLocalizedStringResourcesForTextId(m_selectedLanguageFormat, textId);
                 foreach (LocalizedStringResource res in addedResources)
                 {
                     addedResourcesListBox.Items.Add(res.Name);
                 }
 
-                IEnumerable<LocalizedStringResource> defaultResources = _stringDb.GetDefaultLocalizedStringResourcesForTextId(_selectedLanguageFormat, textId);
+                IEnumerable<LocalizedStringResource> defaultResources = m_stringDb.GetDefaultLocalizedStringResourcesForTextId(m_selectedLanguageFormat, textId);
                 ListBoxUtils.SortListIntoListBox(defaultResources.Select(r => r.Name), defaultResourcesListBox);
             }
         }
@@ -99,20 +99,20 @@ namespace BiowareLocalizationPlugin.Controls
             defaultResourcesListBox.Items.Clear();
             addedResourcesListBox.Items.Clear();
 
-            _removedResources.Clear();
+            m_removedResources.Clear();
         }
 
         private void Save(object sender, RoutedEventArgs e)
         {
             uint textId = ReadTextId();
 
-            if(textId != 0)
+            if (textId != 0)
             {
 
                 // TODO move all this text handling into a dedicated handler or something.
                 // This is currently all over the place >_<
 
-                _stringDb.RemoveText(_selectedLanguageFormat, _removedResources, textId);
+                m_stringDb.RemoveText(m_selectedLanguageFormat, m_removedResources, textId);
 
                 List<string> resources = new List<string>();
                 foreach (string resourceName in defaultResourcesListBox.Items)
@@ -125,7 +125,7 @@ namespace BiowareLocalizationPlugin.Controls
                 }
 
                 string text = localizedTextBox.Text;
-                _stringDb.SetText(_selectedLanguageFormat, resources, textId, text);
+                m_stringDb.SetText(m_selectedLanguageFormat, resources, textId, text);
 
                 SaveValue = Tuple.Create(textId, text);
 
@@ -172,16 +172,16 @@ namespace BiowareLocalizationPlugin.Controls
         private void AddResources(object sender, RoutedEventArgs e)
         {
 
-            IEnumerable<string> selectableResources = _stringDb.GetAllResourceNames(_selectedLanguageFormat)
+            IEnumerable<string> selectableResources = m_stringDb.GetAllResourceNames(m_selectedLanguageFormat)
                 .Where(r => !defaultResourcesListBox.Items.Contains(r)
-                    && !addedResourcesListBox.Items.Contains(r) );
+                    && !addedResourcesListBox.Items.Contains(r));
 
             ResourceSelectionWindow selectionDialog = new ResourceSelectionWindow(selectableResources);
             bool? saved = selectionDialog.ShowDialog();
 
-            if(saved != null && saved.Value)
+            if (saved != null && saved.Value)
             {
-                foreach(string resourceName in selectionDialog.SelectedResources)
+                foreach (string resourceName in selectionDialog.SelectedResources)
                 {
                     addedResourcesListBox.Items.Add(resourceName);
                 }
@@ -192,12 +192,12 @@ namespace BiowareLocalizationPlugin.Controls
         {
 
             List<string> selectedToRemove = addedResourcesListBox.SelectedItems.OfType<string>().ToList();
-            foreach(string itemToRemove in selectedToRemove)
+            foreach (string itemToRemove in selectedToRemove)
             {
                 addedResourcesListBox.Items.Remove(itemToRemove);
             }
 
-            _removedResources.AddRange(selectedToRemove);
+            m_removedResources.AddRange(selectedToRemove);
         }
 
         /// <summary>

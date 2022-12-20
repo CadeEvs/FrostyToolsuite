@@ -10,6 +10,10 @@ using System.Text;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
+    /// <summary>
+    /// This class includes some test functionality especially for veryfiying that a given resource can be written correctly enough to be read again by this plugin.
+    /// The methods herein should *NEVER* be calles in production use! But I'm too lazy to write the same test methods each time again, so i just leave them all here...
+    /// </summary>
     public class ResourceTestUtils
     {
         private ResourceTestUtils() { }
