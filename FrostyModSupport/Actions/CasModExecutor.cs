@@ -758,6 +758,8 @@ namespace Frosty.ModSupport
                     if (isDefaultTocModified)
                     {
                         string modTocPath = string.Format("{0}\\{1}.toc", modPath, SuperBundleInfo.Name);
+                        FileInfo fi = new FileInfo(modTocPath);
+                        Directory.CreateDirectory(fi.DirectoryName);
                         NativeWriter sbWriter = null;
                         if (!tocFlags.HasFlag(InternalFlags.HasInlineSb))
                         {
@@ -766,7 +768,7 @@ namespace Frosty.ModSupport
                             sbWriter.Write((byte)0);
                             sbWriter.Position = 0;
                         }
-                        using (DbWriter writer = new DbWriter(new FileStream(modTocPath, FileMode.Create, FileAccess.Write)))
+                        using (DbWriter writer = new DbWriter(new FileStream(fi.FullName, FileMode.Create, FileAccess.Write)))
                         {
                             writer.Write(0x01CED100);
                             writer.Position += 0x228;
@@ -1034,13 +1036,15 @@ namespace Frosty.ModSupport
                         {
                             string sbName = SuperBundleInfo.Name.Replace("win32", SuperBundleInfo.SplitSuperBundles[splitIndex]);
                             string modTocPath = string.Format("{0}\\{1}.toc", modPath, sbName);
+                            FileInfo fi = new FileInfo(modTocPath);
+                            Directory.CreateDirectory(fi.DirectoryName);
                             NativeWriter sbWriter = null;
                             if (!tocFlags.HasFlag(InternalFlags.HasInlineSb))
                             {
                                 string modSbPath = string.Format("{0}\\{1}.sb", modPath, sbName);
                                 sbWriter = new NativeWriter(new FileStream(modSbPath, FileMode.Create, FileAccess.Write));
                             }
-                            using (DbWriter writer = new DbWriter(new FileStream(modTocPath, FileMode.Create, FileAccess.Write)))
+                            using (DbWriter writer = new DbWriter(new FileStream(fi.FullName, FileMode.Create, FileAccess.Write)))
                             {
                                 writer.Write(0x01CED100);
                                 writer.Position += 0x228;
