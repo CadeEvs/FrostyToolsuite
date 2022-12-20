@@ -158,8 +158,6 @@ namespace FrostySdk.IO
                         writer.Write(guid);
                     }
 
-                    Debug.Assert(m_classSignatures.Count == m_classGuids.Count, "Class signature count should always be equal to the class GUID count");
-
                     writer.Write(m_classSignatures.Count);
                     foreach (uint sig in m_classSignatures)
                     {
@@ -442,45 +440,123 @@ namespace FrostySdk.IO
                 EbxFieldType ebxType = fta.Type;
 
                 // only certain types need to be processed to be referenced in the EBX data
-                // this seems to only include structs/classes used by arrays
+                // this seems to only include structs/classes used by arrays and boxed values
 
-                if (ebxType == EbxFieldType.Struct)
+                switch (ebxType)
                 {
-                    Type structType = pi.PropertyType;
-                    // exclude struct properties from being processed unless they contain arrays
-                    ProcessClass(structType, pi.GetValue(obj), shouldAddType: false, isBaseType: false);
-                }
-                else if (ebxType == EbxFieldType.Array)
-                {
-                    Type arrayElemType = pi.PropertyType.GenericTypeArguments[0];
-                    if (FindExistingClass(arrayElemType) == -1)
-                    {
-                        IList arrayObj = (IList)pi.GetValue(obj);
-
-                        // empty arrays shouldn't have their types processed
-                        if (arrayObj.Count == 0)
+                    case EbxFieldType.Struct:
                         {
-                            continue;
+                            Type structType = pi.PropertyType;
+                            // exclude struct properties from being processed unless they contain arrays
+                            ProcessClass(structType, pi.GetValue(obj), shouldAddType: false, isBaseType: false);
                         }
+                        break;
 
-                        m_arrayTypes.Add(fta);
-
-                        if (fta.ArrayType == EbxFieldType.Struct)
+                    case EbxFieldType.Array:
                         {
-                            // need to iterate through elements in case some elements contain more types to process than others
-                            foreach (object elemObj in arrayObj)
+                            if (fta.ArrayType != EbxFieldType.Struct && fta.ArrayType != EbxFieldType.Enum)
                             {
-                                ProcessClass(arrayElemType, elemObj);
+                                break;
+                            }
+
+                            Type arrayElemType = pi.PropertyType.GenericTypeArguments[0];
+                            bool addType = true;
+                            if (FindExistingClass(arrayElemType) != -1)
+                            {
+                                addType = false;
+                            }
+
+                            IList arrayObj = (IList)pi.GetValue(obj);
+
+                            // empty arrays shouldn't have their types processed
+                            if (arrayObj.Count == 0)
+                            {
+                                break;
+                            }
+
+                            if (fta.ArrayType == EbxFieldType.Struct)
+                            {
+                                // need to iterate through elements in case some elements contain more types to process than others
+                                foreach (object elemObj in arrayObj)
+                                {
+                                    ProcessClass(arrayElemType, elemObj);
+                                }
+                            }
+                            else if (fta.ArrayType == EbxFieldType.Enum && addType)
+                            {
+                                
+                                AddClass(arrayElemType.Name, arrayElemType);
+                            }
+
+                            if (addType)
+                            {
+                                m_arrayTypes.Add(fta);
+                            }
+
+                            // owner struct should only be added if it contains an array
+                            // it always seems to be added after the first array encountered
+                            if (!shouldAddType && !isBaseType && FindExistingClass(objType) == -1)
+                            {
+                                index = AddClass(objType.Name, objType);
                             }
                         }
+                        break;
 
-                        // owner struct should only be added if it contains an array
-                        // it always seems to be added after the first array encountered
-                        if (!shouldAddType && !isBaseType && FindExistingClass(objType) == -1)
+                    case EbxFieldType.BoxedValueRef:
                         {
-                            index = AddClass(objType.Name, objType);
+                            BoxedValueRef boxedValueRef = (BoxedValueRef)pi.GetValue(obj);
+                            if (boxedValueRef.Value == null)
+                            {
+                                break;
+                            }
+
+                            if (boxedValueRef.Type != EbxFieldType.Struct && boxedValueRef.Type != EbxFieldType.Array && boxedValueRef.Type != EbxFieldType.Enum)
+                            {
+                                break;
+                            }
+
+                            Type valueRefType = boxedValueRef.Value.GetType();
+                            if (boxedValueRef.Type == EbxFieldType.Array)
+                            {
+                                valueRefType = valueRefType.GenericTypeArguments[0];
+                            }
+
+                            if (FindExistingClass(valueRefType) != -1)
+                            {
+                                break;
+                            }
+
+                            if (boxedValueRef.Type == EbxFieldType.Array)
+                            {
+                                IList arrayObj = (IList)boxedValueRef.Value;
+
+                                // empty arrays shouldn't have their types processed
+                                if (arrayObj.Count == 0)
+                                {
+                                    break;
+                                }
+
+                                if (boxedValueRef.ArrayType == EbxFieldType.Struct)
+                                {
+                                    // need to iterate through elements in case some elements contain more types to process than others
+                                    foreach (object elemObj in arrayObj)
+                                    {
+                                        ProcessClass(valueRefType, elemObj);
+                                    }
+                                }
+                            }
+                            else if (boxedValueRef.Type == EbxFieldType.Struct)
+                            {
+                                ProcessClass(valueRefType, boxedValueRef.Value);
+                            }
+                            else
+                            {
+                                AddClass(valueRefType.Name, valueRefType);
+                            }
                         }
-                    }
+                        break;
+
+                    default: break;
                 }
             }
 
@@ -550,9 +626,7 @@ namespace FrostySdk.IO
             EbxFieldMetaAttribute fta = pi.GetCustomAttribute<EbxFieldMetaAttribute>();
 
             Type propType = pi.PropertyType;
-            ushort classRef = (ushort)m_typesToProcess.FindIndex((Type value) => value == propType);
-            //if (classRef == 0xFFFF)
-            //    classRef = 0;
+            ushort classRef = (ushort)FindExistingClass(propType);
 
             AddField(pi.Name, fta.Flags, classRef, fta.Offset, 0);
         }
@@ -674,6 +748,8 @@ namespace FrostySdk.IO
                         writer.Write(guid.ExportedGuid);
                     }
                     m_exportOffsets.Add((uint)writer.Position);
+                    long classStartOffset = writer.Position;
+
                     writer.Write((ulong)classIdx);
                     if (classType.Alignment != 0x04)
                     {
@@ -691,7 +767,7 @@ namespace FrostySdk.IO
                         writer.Write(40960u);
                     }
 
-                    WriteClass(m_sortedObjs[i], type, writer);
+                    WriteClass(m_sortedObjs[i], type, classStartOffset, writer);
                     count++;
                 }
 
@@ -753,7 +829,17 @@ namespace FrostySdk.IO
                         }
                         else
                         {
-                            alignment = m_classTypes[array.ClassRef].Alignment;
+                            EbxClass arrayClass = m_classTypes[array.ClassRef];
+                            switch (arrayClass.DebugCategory)
+                            {
+                                case EbxFieldCategory.EnumType:
+                                    alignment = 4; break;
+                                case EbxFieldCategory.Pointer:
+                                case EbxFieldCategory.ArrayType:
+                                case EbxFieldCategory.DelegateType:
+                                    alignment = 8; break;
+                                default: alignment = arrayClass.Alignment; break;
+                            }
                         }
                         writer.WritePadding(alignment);
                         // shift where the count is so that the array data is properly aligned
@@ -787,6 +873,57 @@ namespace FrostySdk.IO
                         continue;
                     }
 
+                    byte alignment;
+                    if (boxedValue.ClassRef == 0xFFFF)
+                    {
+                        EbxFieldType boxedValType = (EbxFieldType)((boxedValue.Type >> 5) & 0x1F);
+                        switch (boxedValType)
+                        {
+                            case EbxFieldType.Boolean:
+                                alignment = 1; break;
+                            case EbxFieldType.Int8:
+                            case EbxFieldType.UInt8:
+                            case EbxFieldType.Int16:
+                            case EbxFieldType.UInt16:
+                                alignment = 2; break;
+                            case EbxFieldType.Enum:
+                            case EbxFieldType.TypeRef:
+                            case EbxFieldType.String:
+                            case EbxFieldType.Float32:
+                            case EbxFieldType.Int32:
+                            case EbxFieldType.UInt32:
+                                alignment = 4; break;
+
+                            case EbxFieldType.Float64:
+                            case EbxFieldType.Int64:
+                            case EbxFieldType.UInt64:
+                            case EbxFieldType.CString:
+                            case EbxFieldType.FileRef:
+                            case EbxFieldType.Delegate:
+                            case EbxFieldType.Pointer:
+                            case EbxFieldType.ResourceRef:
+                            case EbxFieldType.BoxedValueRef:
+                                alignment = 8; break;
+                            //case EbxFieldType.Guid: alignment = 16; break;
+
+                            default: alignment = 4; break;
+                        }
+                    }
+                    else
+                    {
+                        EbxClass boxedValClass = m_classTypes[boxedValue.ClassRef];
+                        switch (boxedValClass.DebugCategory)
+                        {
+                            case EbxFieldCategory.EnumType:
+                                alignment = 4; break;
+                            case EbxFieldCategory.Pointer:
+                            case EbxFieldCategory.ArrayType:
+                            case EbxFieldCategory.DelegateType:
+                                alignment = 8; break;
+                            default: alignment = boxedValClass.Alignment; break;
+                        }
+                    }
+                    writer.WritePadding(alignment);
                     boxedValue.Offset = (uint)writer.Position;
                     m_boxedValues[i] = boxedValue;
 
@@ -806,23 +943,30 @@ namespace FrostySdk.IO
             m_uniqueClassCount = (ushort)uniqueTypes.Count;
         }
 
-        private void WriteClass(object obj, Type objType, NativeWriter writer)
+        private void WriteClass(object obj, Type objType, long startOffset, NativeWriter writer, bool writeClassBytes = true)
         {
+            EbxClass classType = GetClass(objType);
+            //EbxClassMetaAttribute cta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+
+            if (writeClassBytes)
+            {
+                int diff = (int)(writer.Position - startOffset);
+                writer.Write(new byte[classType.Size - diff]);
+            }
+
             if (objType.BaseType.Namespace == "FrostySdk.Ebx")
             {
-                WriteClass(obj, objType.BaseType, writer);
+                WriteClass(obj, objType.BaseType, startOffset, writer, false);
             }
 
             PropertyInfo[] pis = objType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-            // properties need to be sorted by offset
+            // sort properties by field index for better accuracy
             IEnumerable<PropertyInfo> sortedPis = pis.OrderBy(p =>
             {
-                EbxFieldMetaAttribute fta = p.GetCustomAttribute<EbxFieldMetaAttribute>();
-                return fta.Offset;
+                FieldIndexAttribute fia = p.GetCustomAttribute<FieldIndexAttribute>();
+                return fia.Index;
             });
-
-            EbxClassMetaAttribute cta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
 
             foreach (PropertyInfo pi in sortedPis)
             {
@@ -882,21 +1026,22 @@ namespace FrostySdk.IO
                     continue;
                 }
 
-                
-                WriteField(pi.GetValue(obj), fta.Type, fta, cta.Alignment, writer, isReference);
+                writer.Position = startOffset + fta.Offset;
+                WriteField(pi.GetValue(obj), fta.Type, fta, writer, isReference);
             }
 
-            writer.WritePadding(cta.Alignment);
+            writer.Position = startOffset + classType.Size;
+            writer.WritePadding(classType.Alignment);
         }
 
-        private void WriteField(object obj, EbxFieldType ebxType, EbxFieldMetaAttribute fieldMeta, byte classAlignment, NativeWriter writer, bool isReference)
+        private void WriteField(object obj, EbxFieldType ebxType, EbxFieldMetaAttribute fieldMeta, NativeWriter writer, bool isReference)
         {
             switch (ebxType)
             {
                 case EbxFieldType.TypeRef:
                     {
                         TypeRef typeRefObj = (TypeRef)obj;
-                        WriteTypeRef(typeRefObj, writer);
+                        WriteTypeRef(typeRefObj, false, writer);
                     }
                     break;
 
@@ -917,30 +1062,7 @@ namespace FrostySdk.IO
                 case EbxFieldType.Pointer:
                     {
                         PointerRef pointer = (PointerRef)obj;
-                        uint pointerIndex = 0;
-
-                        if (pointer.Type == PointerRefType.External)
-                        {
-                            int importIdx = m_imports.FindIndex((EbxImportReference value) => value == pointer.External);
-                            pointerIndex = (uint)(importIdx | 0x80000000);
-
-                            if (isReference && !m_dependencies.Contains(m_imports[importIdx].FileGuid))
-                            {
-                                m_dependencies.Add(m_imports[importIdx].FileGuid);
-                            }
-                            // the import list in the EBX counts both GUIDs of each import separately
-                            // what we want is the index to the class GUID
-                            writer.Write((ulong)(importIdx * 2 + 1));
-                        }
-                        else if (pointer.Type == PointerRefType.Internal)
-                        {
-                            ulong objIdx = (ulong)m_sortedObjs.FindIndex((object value) => value == pointer.Internal);
-                            writer.Write(objIdx);
-                        }
-                        else if (pointer.Type == PointerRefType.Null)
-                        {
-                            writer.Write((ulong)0);
-                        }
+                        WritePointer(pointer, isReference, writer);
                     }
                     break;
 
@@ -951,86 +1073,45 @@ namespace FrostySdk.IO
                         EbxClassMetaAttribute cta = structType.GetCustomAttribute<EbxClassMetaAttribute>();
 
                         writer.WritePadding(cta.Alignment);
-
-                        WriteClass(structValue, structType, writer);
+                        WriteClass(structValue, structType, writer.Position, writer);
                     }
                     break;
 
                 case EbxFieldType.Array:
                     {
-                        int arrayClassIdx = m_typesToProcess.FindIndex((Type item) => item == obj.GetType().GenericTypeArguments[0]);
-                        int arrayIdx = 0;
-
-                        // cast to IList to avoid having to invoke methods manually
-                        IList arrayObj = (IList)obj;
-                        int count = arrayObj.Count;
-
-                        if (count != 0)
-                        {
-                            MemoryStream arrayStream = new MemoryStream();
-                            using (NativeWriter arrayWriter = new NativeWriter(arrayStream))
-                            {
-                                for (int i = 0; i < count; i++)
-                                {
-                                    object subValue = arrayObj[i];
-                                    WriteField(subValue, fieldMeta.ArrayType, fieldMeta, classAlignment, arrayWriter, isReference);
-                                }
-                            }
-
-                            m_arrayData.Add(arrayStream.ToArray());
-                        }
-                        else
-                        {
-                            m_arrayData.Add(null);
-                        }
-
-                        arrayIdx = m_arrays.Count;
-                        ushort arrayTypeFlags = (ushort)((uint)fieldMeta.ArrayType << 5);
-                        arrayTypeFlags |= (ushort)((uint)EbxFieldCategory.ArrayType << 1);
-                        m_arrays.Add(
-                            new EbxArray()
-                            {
-                                Count = (uint)count,
-                                ClassRef = arrayClassIdx,
-                                Type = arrayTypeFlags
-                            });
-                        writer.Write((ulong)arrayIdx);
+                        WriteArray(obj, fieldMeta, isReference, writer);
                     }
                     break;
 
-                case EbxFieldType.Enum: writer.Write((int)obj); break;
-                case EbxFieldType.Float32: writer.Write((float)obj); break;
-                case EbxFieldType.Float64: writer.Write((double)obj); break;
-                case EbxFieldType.Boolean: writer.Write((byte)(((bool)obj) ? 0x01 : 0x00)); break;
-                case EbxFieldType.Int8: writer.Write((sbyte)obj); break;
-                case EbxFieldType.UInt8: writer.Write((byte)obj); break;
-                case EbxFieldType.Int16: writer.Write((short)obj); break;
-                case EbxFieldType.UInt16: writer.Write((ushort)obj); break;
-                case EbxFieldType.Int32: writer.Write((int)obj); break;
-                case EbxFieldType.UInt32: writer.Write((uint)obj); break;
-                case EbxFieldType.Int64: writer.Write((long)obj); break;
-                case EbxFieldType.UInt64: writer.Write((ulong)obj); break;
-                case EbxFieldType.Guid: writer.Write((Guid)obj); break;
-                case EbxFieldType.Sha1: writer.Write((Sha1)obj); break;
-                case EbxFieldType.String: writer.WriteFixedSizedString((string)obj, 32); break;
-                case EbxFieldType.ResourceRef:
-                    {
-                        m_resourceRefOffsets.Add((uint)writer.Position);
-                        writer.Write((ResourceRef)obj);
-                    }
-                    break;
+                case EbxFieldType.Enum:        writer.Write((int)obj); break;
+                case EbxFieldType.Float32:     writer.Write((float)obj); break;
+                case EbxFieldType.Float64:     writer.Write((double)obj); break;
+                case EbxFieldType.Boolean:     writer.Write((byte)(((bool)obj) ? 0x01 : 0x00)); break;
+                case EbxFieldType.Int8:        writer.Write((sbyte)obj); break;
+                case EbxFieldType.UInt8:       writer.Write((byte)obj); break;
+                case EbxFieldType.Int16:       writer.Write((short)obj); break;
+                case EbxFieldType.UInt16:      writer.Write((ushort)obj); break;
+                case EbxFieldType.Int32:       writer.Write((int)obj); break;
+                case EbxFieldType.UInt32:      writer.Write((uint)obj); break;
+                case EbxFieldType.Int64:       writer.Write((long)obj); break;
+                case EbxFieldType.UInt64:      writer.Write((ulong)obj); break;
+                case EbxFieldType.Guid:        writer.Write((Guid)obj); break;
+                case EbxFieldType.Sha1:        writer.Write((Sha1)obj); break;
+                case EbxFieldType.String:      writer.WriteFixedSizedString((string)obj, 32); break;
+                case EbxFieldType.ResourceRef: writer.Write((ResourceRef)obj); break;
+
                 case EbxFieldType.BoxedValueRef:
                     {
                         BoxedValueRef value = (BoxedValueRef)obj;
-                        TypeRef typeRef = new TypeRef(value.Type.ToString());
-                        (ushort, short) tiPair = WriteTypeRef(typeRef, writer);
+                        TypeRef typeRef = new TypeRef(value.TypeString);
+                        (ushort, ushort) tiPair = WriteTypeRef(typeRef, true, writer);
 
                         int index = m_boxedValues.Count;
                         EbxBoxedValue boxedValue = new EbxBoxedValue()
                         {
                             Offset = 0,
                             Type = tiPair.Item1,
-                            ClassRef = (ushort)tiPair.Item2
+                            ClassRef = tiPair.Item2
                         };
 
                         m_boxedValues.Add(boxedValue);
@@ -1051,7 +1132,7 @@ namespace FrostySdk.IO
             }
         }
 
-        private (ushort, short) WriteTypeRef(TypeRef typeRef, NativeWriter writer)
+        private (ushort, ushort) WriteTypeRef(TypeRef typeRef, bool addSignature, NativeWriter writer)
         {
             if (typeRef.Name == "0" || typeRef.Name == "Inherited")
             {
@@ -1059,25 +1140,174 @@ namespace FrostySdk.IO
                 writer.Write(0x00);
                 return (0, 0);
             }
+
+            Type typeRefType = TypeLibrary.GetType(typeRef.Name);
+            int typeIdx = FindExistingClass(typeRefType);
+            EbxClassMetaAttribute cta = typeRefType.GetCustomAttribute<EbxClassMetaAttribute>();
+
+            (ushort, ushort) tiPair;
+            uint typeFlags = (uint)cta.Type << 5;
+            typeFlags |= (uint)(cta.Flags & 0xF) << 1;
+            typeFlags |= 1;
+
+            tiPair.Item1 = (ushort)typeFlags;
+            if ((EbxFieldCategory)(cta.Flags & 0xF) == EbxFieldCategory.PrimitiveType)
+            {
+                typeFlags |= 0x80000000;
+                tiPair.Item2 = (ushort)typeIdx;
+            }
             else
             {
-                Type typeRefType = TypeLibrary.GetType(typeRef.Name);
-                int typeIdx = m_typesToProcess.FindIndex((Type item) => item == typeRefType);
-                uint typeFlags = 0;
-                EbxClassMetaAttribute cta = typeRefType.GetCustomAttribute<EbxClassMetaAttribute>();
+                if (typeIdx == -1)
+                {
+                    typeIdx = AddClass(typeRefType.Name, typeRefType, addSignature);
+                }
+                typeFlags = (uint)(typeIdx << 2);
+                typeFlags |= 2;
+                // boxed value info in the EBXX section needs the class index
+                // the type ref just sets it to zero
+                tiPair.Item2 = (ushort)typeIdx;
+                typeIdx = 0;
+            }
+            writer.Write(typeFlags);
+            writer.Write(typeIdx);
+            return tiPair;
+        }
 
-                (ushort, short) tiPair;
-                typeFlags = (uint)cta.Type << 5;
-                typeFlags |= (uint)(cta.Flags & 0xF) << 1;
-                typeFlags |= 1;
+        private void WritePointer(PointerRef pointer, bool isReference, NativeWriter writer)
+        {
+            if (pointer.Type == PointerRefType.External)
+            {
+                int importIdx = m_imports.FindIndex((EbxImportReference value) => value == pointer.External);
 
-                tiPair.Item1 = (ushort)typeFlags;
-                tiPair.Item2 = (short)typeIdx;
+                if (isReference && !m_dependencies.Contains(m_imports[importIdx].FileGuid))
+                {
+                    m_dependencies.Add(m_imports[importIdx].FileGuid);
+                }
+                // the import list in the EBX counts both GUIDs of each import separately
+                // what we want is the index to the class GUID
+                writer.Write((ulong)(importIdx * 2 + 1));
+            }
+            else if (pointer.Type == PointerRefType.Internal)
+            {
+                ulong objIdx = (ulong)m_sortedObjs.FindIndex((object value) => value == pointer.Internal);
+                writer.Write(objIdx);
+            }
+            else if (pointer.Type == PointerRefType.Null)
+            {
+                writer.Write((ulong)0);
+            }
+        }
 
-                typeFlags |= 0x80000000;
-                writer.Write(typeFlags);
-                writer.Write(typeIdx);
-                return tiPair;
+        private void WriteArray(object obj, EbxFieldMetaAttribute fieldMeta, bool isReference, NativeWriter writer)
+        {
+            int arrayClassIdx = FindExistingClass(obj.GetType().GenericTypeArguments[0]);
+            int arrayIdx = 0;
+
+            // cast to IList to avoid having to invoke methods manually
+            IList arrayObj = (IList)obj;
+            int count = arrayObj.Count;
+
+            if (count != 0)
+            {
+                MemoryStream arrayStream = new MemoryStream();
+                using (NativeWriter arrayWriter = new NativeWriter(arrayStream))
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        object subValue = arrayObj[i];
+                        WriteField(subValue, fieldMeta.ArrayType, fieldMeta, arrayWriter, isReference);
+                    }
+                }
+
+                m_arrayData.Add(arrayStream.ToArray());
+            }
+            else
+            {
+                m_arrayData.Add(null);
+            }
+
+            arrayIdx = m_arrays.Count;
+            ushort arrayTypeFlags = (ushort)((uint)fieldMeta.ArrayType << 5);
+            arrayTypeFlags |= (ushort)((uint)EbxFieldCategory.ArrayType << 1);
+            m_arrays.Add(
+                new EbxArray()
+                {
+                    Count = (uint)count,
+                    ClassRef = arrayClassIdx,
+                    Type = arrayTypeFlags
+                });
+            writer.Write((ulong)arrayIdx);
+        }
+
+        protected override byte[] WriteBoxedValueRef(BoxedValueRef value)
+        {
+            // @todo: Does not at all handle boxed value arrays
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                object obj = value.Value;
+                switch (value.Type)
+                {
+                    case EbxFieldType.TypeRef:
+                        {
+                            TypeRef typeRefObj = (TypeRef)obj;
+                            WriteTypeRef(typeRefObj, false, writer);
+                        }
+                        break;
+
+                    case EbxFieldType.FileRef:
+                        {
+                            string str = (FileRef)obj;
+                            writer.Write((long)AddString(str));
+                        }
+                        break;
+
+                    case EbxFieldType.CString:
+                        {
+                            string str = (CString)obj;
+                            writer.Write((long)AddString(str));
+                        }
+                        break;
+
+                    case EbxFieldType.Pointer:
+                        {
+                            PointerRef pointer = (PointerRef)obj;
+                            WritePointer(pointer, false, writer);
+                        }
+                        break;
+
+                    case EbxFieldType.Struct:
+                        {
+                            object structValue = obj;
+                            Type structType = structValue.GetType();
+                            EbxClassMetaAttribute cta = structType.GetCustomAttribute<EbxClassMetaAttribute>();
+
+                            writer.WritePadding(cta.Alignment);
+                            WriteClass(structValue, structType, writer.Position, writer);
+                        }
+                        break;
+
+                    case EbxFieldType.Enum:        writer.Write((int)obj); break;
+                    case EbxFieldType.Float32:     writer.Write((float)obj); break;
+                    case EbxFieldType.Float64:     writer.Write((double)obj); break;
+                    case EbxFieldType.Boolean:     writer.Write((byte)(((bool)obj) ? 0x01 : 0x00)); break;
+                    case EbxFieldType.Int8:        writer.Write((sbyte)obj); break;
+                    case EbxFieldType.UInt8:       writer.Write((byte)obj); break;
+                    case EbxFieldType.Int16:       writer.Write((short)obj); break;
+                    case EbxFieldType.UInt16:      writer.Write((ushort)obj); break;
+                    case EbxFieldType.Int32:       writer.Write((int)obj); break;
+                    case EbxFieldType.UInt32:      writer.Write((uint)obj); break;
+                    case EbxFieldType.Int64:       writer.Write((long)obj); break;
+                    case EbxFieldType.UInt64:      writer.Write((ulong)obj); break;
+                    case EbxFieldType.Guid:        writer.Write((Guid)obj); break;
+                    case EbxFieldType.Sha1:        writer.Write((Sha1)obj); break;
+                    case EbxFieldType.String:      writer.WriteFixedSizedString((string)obj, 32); break;
+                    case EbxFieldType.ResourceRef: writer.Write((ResourceRef)obj); break;
+
+                    default: throw new InvalidDataException($"Unhandled field type: {value.Type}");
+                }
+
+                return writer.ToByteArray();
             }
         }
 
@@ -1122,38 +1352,29 @@ namespace FrostySdk.IO
                 writer.Position += sizeof(int);
                 writer.Position += sizeof(int);
 
-                FixupClass(m_sortedObjs[i], type, writer);
-
-                //List<EbxField> fields = new List<EbxField>();
-                //for (int j = 0; j < classType.FieldCount; ++j)
-                //{
-                //    fields.Add(GetField(classType, classType.FieldIndex + j));
-                //}
-
-                //fields.Sort((EbxField a, EbxField b) => a.DataOffset.CompareTo(b.DataOffset));
+                FixupClass(m_sortedObjs[i], type, m_exportOffsets[i], writer);
             }
         }
 
-        private void FixupClass(object obj, Type objType, NativeWriter writer)
+        private void FixupClass(object obj, Type objType, long startOffset, NativeWriter writer)
         {
             // sweep through the EBX data after writing it to patch pointers/offsets
 
             if (objType.BaseType.Namespace == "FrostySdk.Ebx")
             {
-                FixupClass(obj, objType.BaseType, writer);
+                FixupClass(obj, objType.BaseType, startOffset, writer);
             }
 
             PropertyInfo[] pis = objType.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
 
-            // properties need to be sorted by offset
+            // sort properties by field index for better accuracy
             IEnumerable<PropertyInfo> sortedPis = pis.OrderBy(p =>
             {
-                EbxFieldMetaAttribute fta = p.GetCustomAttribute<EbxFieldMetaAttribute>();
-                return fta.Offset;
+                FieldIndexAttribute fia = p.GetCustomAttribute<FieldIndexAttribute>();
+                return fia.Index;
             });
 
-            EbxClassMetaAttribute cta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
-            string typeName = objType.Name;
+            EbxClass classType = GetClass(objType);
 
             foreach (PropertyInfo pi in sortedPis)
             {
@@ -1210,15 +1431,13 @@ namespace FrostySdk.IO
                     continue;
                 }
 
-                if (fta.Type == EbxFieldType.Array)
-                {
-
-                }
+                writer.Position = startOffset + fta.Offset;
 
                 FixupField(pi.GetValue(obj), fta.Type, writer);
             }
 
-            while (writer.Position % cta.Alignment != 0)
+            writer.Position = startOffset + classType.Size;
+            while (writer.Position % classType.Alignment != 0)
             {
                 ++writer.Position;
             }
@@ -1272,7 +1491,7 @@ namespace FrostySdk.IO
                             ++writer.Position;
                         }
 
-                        FixupClass(structValue, structType, writer);
+                        FixupClass(structValue, structType, writer.Position, writer);
                     }
                     break;
 
@@ -1284,8 +1503,7 @@ namespace FrostySdk.IO
 
                 case EbxFieldType.ResourceRef:
                     {
-                        m_resourceRefOffsets.Add((uint)writer.Position);
-                        writer.Position += sizeof(long);
+                        FixupResourceRef(writer.Position, writer);
                     }
                     break;
                 case EbxFieldType.BoxedValueRef:
@@ -1295,21 +1513,21 @@ namespace FrostySdk.IO
                     }
                     break;
 
-                case EbxFieldType.Enum: writer.Position += sizeof(int); break;
+                case EbxFieldType.Enum:    writer.Position += sizeof(int); break;
                 case EbxFieldType.Float32: writer.Position += sizeof(float); break;
                 case EbxFieldType.Float64: writer.Position += sizeof(double); break;
                 case EbxFieldType.Boolean: writer.Position += sizeof(bool); break;
-                case EbxFieldType.Int8: writer.Position += sizeof(byte); break;
-                case EbxFieldType.UInt8: writer.Position += sizeof(byte); break;
-                case EbxFieldType.Int16: writer.Position += sizeof(short); break;
-                case EbxFieldType.UInt16: writer.Position += sizeof(short); break;
-                case EbxFieldType.Int32: writer.Position += sizeof(int); break;
-                case EbxFieldType.UInt32: writer.Position += sizeof(int); break;
-                case EbxFieldType.Int64: writer.Position += sizeof(long); break;
-                case EbxFieldType.UInt64: writer.Position += sizeof(long); break;
-                case EbxFieldType.Guid: writer.Position += 16; break;
-                case EbxFieldType.Sha1: writer.Position += 20; break;
-                case EbxFieldType.String: writer.Position += 32; break;
+                case EbxFieldType.Int8:    writer.Position += sizeof(byte); break;
+                case EbxFieldType.UInt8:   writer.Position += sizeof(byte); break;
+                case EbxFieldType.Int16:   writer.Position += sizeof(short); break;
+                case EbxFieldType.UInt16:  writer.Position += sizeof(short); break;
+                case EbxFieldType.Int32:   writer.Position += sizeof(int); break;
+                case EbxFieldType.UInt32:  writer.Position += sizeof(int); break;
+                case EbxFieldType.Int64:   writer.Position += sizeof(long); break;
+                case EbxFieldType.UInt64:  writer.Position += sizeof(long); break;
+                case EbxFieldType.Guid:    writer.Position += 16; break;
+                case EbxFieldType.Sha1:    writer.Position += 20; break;
+                case EbxFieldType.String:  writer.Position += 32; break;
 
                 default: throw new InvalidDataException($"Unhandled field type: {ebxType}");
             }
@@ -1365,7 +1583,9 @@ namespace FrostySdk.IO
             {
                 // arrays with zero elements always point to an empty value 16 bytes into the array section
                 long offset = m_arraysOffset + 0x10;
-                writer.Write(offset - writer.Position);
+                offset -= writer.Position;
+                writer.Write((int)offset);
+                writer.Write(0);
             }
             else
             {
@@ -1407,6 +1627,21 @@ namespace FrostySdk.IO
             }
 
             m_typeInfoOffsets.Add((uint)fieldOffset);
+        }
+
+        private void FixupResourceRef(long fieldOffset, NativeWriter writer)
+        {
+            byte[] refBytes = new byte[sizeof(long)];
+            writer.BaseStream.Read(refBytes, 0, sizeof(long));
+
+            ulong resourceRef = BitConverter.ToUInt64(refBytes, 0);
+
+            if (resourceRef == 0)
+            {
+                return;
+            }
+
+            m_resourceRefOffsets.Add((uint)fieldOffset);
         }
 
         private void FixupBoxedValue(object obj, long fieldOffset, NativeWriter writer)
@@ -1455,7 +1690,7 @@ namespace FrostySdk.IO
             }
         }
 
-        private int AddClass(string name, Type classType)
+        private int AddClass(string name, Type classType, bool addSignature = true)
         {
             Guid classGuid = classType.GetCustomAttribute<GuidAttribute>().Guid;
             m_classGuids.Add(classGuid);
@@ -1463,8 +1698,11 @@ namespace FrostySdk.IO
             EbxClass ebxClass = GetClass(classType);
             m_classTypes.Add(ebxClass);
 
-            Guid tiGuid = classType.GetCustomAttribute<TypeInfoGuidAttribute>().Guid;
-            m_classSignatures.Add(BitConverter.ToUInt32(tiGuid.ToByteArray(), 12));
+            if (addSignature)
+            {
+                Guid tiGuid = classType.GetCustomAttribute<TypeInfoGuidAttribute>().Guid;
+                m_classSignatures.Add(BitConverter.ToUInt32(tiGuid.ToByteArray(), 12));
+            }
 
             AddTypeName(name);
             m_typesToProcess.Add(classType);
