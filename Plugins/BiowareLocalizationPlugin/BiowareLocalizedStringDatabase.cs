@@ -21,28 +21,12 @@ namespace BiowareLocalizationPlugin
         /// <summary>
         /// Holds all the languages supported by the local game and their bundles
         /// </summary>
-        private SortedDictionary<string, HashSet<string>> _languageLocalizationBundles;
+        private SortedDictionary<string, HashSet<string>> m_languageLocalizationBundles;
 
         /// <summary>
         /// Dictionary of all currently loaded localized texts.
         /// </summary>
-        private readonly Dictionary<string, LanguageTextsDB> _loadedLocalizedTextDBs = new Dictionary<string, LanguageTextsDB>();
-
-        /// <summary>
-        /// Initializes the db.
-        /// </summary>
-        public void Initialize()
-        {
-
-            DefaultLanguage = "LanguageFormat_" + Config.Get<string>("Language", "English", scope: ConfigScope.Game);
-
-            _languageLocalizationBundles = GetLanguageDictionary();
-
-            LanguageTextsDB defaultLocalizedTexts = new LanguageTextsDB();
-            defaultLocalizedTexts.Init(DefaultLanguage, _languageLocalizationBundles[DefaultLanguage]);
-
-            _loadedLocalizedTextDBs.Add(DefaultLanguage, defaultLocalizedTexts);
-        }
+        private readonly Dictionary<string, LanguageTextsDB> m_loadedLocalizedTextDBs = new Dictionary<string, LanguageTextsDB>();
 
         /// <summary>
         /// Fills the language dictionary with all available languages and their bundles.
@@ -85,6 +69,22 @@ namespace BiowareLocalizationPlugin
         }
 
         /// <summary>
+        /// Initializes the db.
+        /// </summary>
+        public void Initialize()
+        {
+
+            DefaultLanguage = "LanguageFormat_" + Config.Get<string>("Language", "English", scope: ConfigScope.Game);
+
+            m_languageLocalizationBundles = GetLanguageDictionary();
+
+            LanguageTextsDB defaultLocalizedTexts = new LanguageTextsDB();
+            defaultLocalizedTexts.Init(DefaultLanguage, m_languageLocalizationBundles[DefaultLanguage]);
+
+            m_loadedLocalizedTextDBs.Add(DefaultLanguage, defaultLocalizedTexts);
+        }
+
+        /// <summary>
         /// Tries to return the text for the given uid, throws an exception if the text id is not known.
         /// @see #FindText
         /// </summary>
@@ -116,18 +116,18 @@ namespace BiowareLocalizationPlugin
         /// <returns></returns>
         public LanguageTextsDB GetLocalizedTextDB(string languageFormat)
         {
-            bool isLoaded = _loadedLocalizedTextDBs.TryGetValue(languageFormat, out LanguageTextsDB localizedTextDb);
+            bool isLoaded = m_loadedLocalizedTextDBs.TryGetValue(languageFormat, out LanguageTextsDB localizedTextDb);
             if (!isLoaded)
             {
-                if (!_languageLocalizationBundles.ContainsKey(languageFormat))
+                if (!m_languageLocalizationBundles.ContainsKey(languageFormat))
                 {
                     throw new ArgumentException(string.Format("LanguageFormat <{0}> does not exist in this game!", languageFormat));
                 }
 
                 localizedTextDb = new LanguageTextsDB();
-                localizedTextDb.Init(languageFormat, _languageLocalizationBundles[languageFormat]);
+                localizedTextDb.Init(languageFormat, m_languageLocalizationBundles[languageFormat]);
 
-                _loadedLocalizedTextDBs.Add(languageFormat, localizedTextDb);
+                m_loadedLocalizedTextDBs.Add(languageFormat, localizedTextDb);
             }
             return localizedTextDb;
         }
@@ -267,7 +267,7 @@ namespace BiowareLocalizationPlugin
 
         public IEnumerable<string> GellAllLanguages()
         {
-            return new List<string>(_languageLocalizationBundles.Keys);
+            return new List<string>(m_languageLocalizationBundles.Keys);
         }
 
         // basically identical to SetText, this method was added in the 1.06 beta interface

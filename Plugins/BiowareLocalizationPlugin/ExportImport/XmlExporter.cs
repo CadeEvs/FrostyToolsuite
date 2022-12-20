@@ -3,14 +3,12 @@ using BiowareLocalizationPlugin.LocalizedResources;
 using Frosty.Core;
 using Frosty.Core.Controls;
 using Frosty.Core.Windows;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace BiowareLocalizationPlugin.ExportImport
 {

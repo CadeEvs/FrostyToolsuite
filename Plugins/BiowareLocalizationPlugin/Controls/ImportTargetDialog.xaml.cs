@@ -7,7 +7,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows;
-using Application = System.Windows.Application;
 
 namespace BiowareLocalizationPlugin.Controls
 {
@@ -17,46 +16,103 @@ namespace BiowareLocalizationPlugin.Controls
     public partial class ImportTargetDialog : FrostyDockableWindow
     {
 
-        /// <summary>
-        /// Both ME:A and DA:I have this with the language as part of their (or most) text resources.
-        /// </summary>
-        private static readonly string TEXTTABLE_PATTERN = "/texttable/[a-z]+/";
-        private static readonly string TEXTTABLE_EN_PATH = "/texttable/en/";
-
-        // These resources change name depending on whether english or any other localization is used.
-        private static readonly string GLOBALMASTER = "globalmaster";
-        private static readonly string GLOBALTRANSLATED = "globaltranslated";
-
         public TextFile SaveValue { get; set; }
 
         public ObservableCollection<ResourceRow> GridSource = new ObservableCollection<ResourceRow>();
 
         public List<string> TargetResourceList { get; } = new List<string>();
 
-        private readonly BiowareLocalizedStringDatabase _textDb;
-        private readonly TextFile _importTextFile;
+        /// <summary>
+        /// Both ME:A and DA:I have this with the language as part of their (or most) text resources.
+        /// </summary>
+        private static readonly string m_TEXTTABLE_PATTERN = "/texttable/[a-z]+/";
+        private static readonly string m_TEXTTABLE_EN_PATH = "/texttable/en/";
 
-        private string _selectedImportLanguageFormat;
+        // These resources change name depending on whether english or any other localization is used.
+        private static readonly string m_GLOBALMASTER = "globalmaster";
+        private static readonly string m_GLOBALTRANSLATED = "globaltranslated";
 
-        public ImportTargetDialog(BiowareLocalizedStringDatabase textDB, TextFile textFile)
+        private readonly BiowareLocalizedStringDatabase m_textDb;
+        private readonly TextFile m_importTextFile;
+
+        private string m_selectedImportLanguageFormat;
+
+        public ImportTargetDialog(BiowareLocalizedStringDatabase inTextDB, TextFile inTextFile)
         {
             InitializeComponent();
             Owner = Application.Current.MainWindow;
 
-            _textDb = textDB;
-            _importTextFile = textFile;
+            m_textDb = inTextDB;
+            m_importTextFile = inTextFile;
 
             // TODO disable import button while not all texts are set!
 
-            InitLanguage(_importTextFile.LanguageFormat);
+            InitLanguage(m_importTextFile.LanguageFormat);
             InitResources();
+        }
+
+        public void LanguageFormatChanged(object sender, RoutedEventArgs e)
+        {
+            m_selectedImportLanguageFormat = (string)languageSelector.SelectedItem;
+
+            FillTargetResourceList();
+
+            string targetTextTablePath = GetTargetTexttableSubstring();
+            foreach (ResourceRow entry in GridSource)
+            {
+                entry.TargetResource = GetTargetResourceFor(entry.TextResource, targetTextTablePath);
+            }
+        }
+
+        public void Import(object sender, RoutedEventArgs e)
+        {
+
+            Dictionary<string, string> resourceTranslation = new Dictionary<string, string>();
+            foreach (ResourceRow resourceRow in GridSource)
+            {
+
+                if (resourceRow.TargetResource == null)
+                {
+
+                    string msg = string.Format("No target resource for <{0}> selected!", resourceRow.TextResource);
+                    MessageBox.Show(msg, "Missing Entry", MessageBoxButton.OK);
+
+                    return;
+                }
+
+                resourceTranslation.Add(resourceRow.TextResource, resourceRow.TargetResource);
+            }
+
+            TextFile updatedTarget = new TextFile()
+            {
+                LanguageFormat = m_selectedImportLanguageFormat
+            };
+
+
+            TextRepresentation[] targetTextRepresentations = CreateTargetTextRepresentations(resourceTranslation);
+            updatedTarget.Texts = targetTextRepresentations;
+
+            DeclinatedAdjectiveRepresentation[] targetAdjectiveRepresentations = CreateTargetAdjectiveRepresentations(resourceTranslation);
+            updatedTarget.DeclinatedAdjectives = targetAdjectiveRepresentations;
+
+            SaveValue = updatedTarget;
+            DialogResult = true;
+
+            Close();
+        }
+
+        public void Abort(object sender, RoutedEventArgs e)
+        {
+            SaveValue = null;
+            DialogResult = false;
+            Close();
         }
 
         private void InitLanguage(string importLanguage)
         {
             languageTextBox.Text = importLanguage;
 
-            var availableLanguages = _textDb.GellAllLanguages();
+            var availableLanguages = m_textDb.GellAllLanguages();
             languageSelector.ItemsSource = availableLanguages;
 
             languageSelector.SelectionChanged += LanguageFormatChanged;
@@ -71,7 +127,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void InitResources()
         {
-            List<string> importResourcesList = GetTextResources(_importTextFile);
+            List<string> importResourcesList = GetTextResources(m_importTextFile);
 
             FillTargetResourceList();
 
@@ -117,15 +173,15 @@ namespace BiowareLocalizationPlugin.Controls
         {
             TargetResourceList.Clear();
 
-            if (_selectedImportLanguageFormat != null)
+            if (m_selectedImportLanguageFormat != null)
             {
-                TargetResourceList.AddRange(GetTargetResourceList(_selectedImportLanguageFormat));
+                TargetResourceList.AddRange(GetTargetResourceList(m_selectedImportLanguageFormat));
             }
         }
 
         private List<string> GetTargetResourceList(string languageFormat)
         {
-            return _textDb.GetAllResourceNames(languageFormat).ToList();
+            return m_textDb.GetAllResourceNames(languageFormat).ToList();
         }
 
         private string GetTargetResourceFor(string importResource, string targetTextTablePath)
@@ -163,7 +219,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private static string GetTextTableSubString(string textDonor)
         {
-            Match match = Regex.Match(textDonor, TEXTTABLE_PATTERN);
+            Match match = Regex.Match(textDonor, m_TEXTTABLE_PATTERN);
             return match.Success ? match.Value : null;
         }
 
@@ -173,18 +229,18 @@ namespace BiowareLocalizationPlugin.Controls
 
             // globalmaster resources in english are named globaltranslated for other languages
             // for ME:A the globaltranslated resources are also in a subfolder, whereas globalmaster is not!
-            if (importResource.Contains(GLOBALMASTER) && !targetTextTablePath.Equals(TEXTTABLE_EN_PATH))
+            if (importResource.Contains(m_GLOBALMASTER) && !targetTextTablePath.Equals(m_TEXTTABLE_EN_PATH))
             {
-                targetResource = targetResource.Replace(GLOBALMASTER, GLOBALTRANSLATED);
+                targetResource = targetResource.Replace(m_GLOBALMASTER, m_GLOBALTRANSLATED);
 
                 if (ProfilesLibrary.DataVersion == ((int)ProfileVersion.MassEffectAndromeda))
                 {
                     targetResource = targetResource.Replace("/game/globaltranslated", "/game/localization/config/globaltranslated");
                 }
             }
-            else if (importResource.Contains(GLOBALTRANSLATED) && targetTextTablePath.Equals(TEXTTABLE_EN_PATH))
+            else if (importResource.Contains(m_GLOBALTRANSLATED) && targetTextTablePath.Equals(m_TEXTTABLE_EN_PATH))
             {
-                targetResource = targetResource.Replace(GLOBALTRANSLATED, GLOBALMASTER);
+                targetResource = targetResource.Replace(m_GLOBALTRANSLATED, m_GLOBALMASTER);
 
                 if (ProfilesLibrary.DataVersion == ((int)ProfileVersion.MassEffectAndromeda))
                 {
@@ -197,60 +253,10 @@ namespace BiowareLocalizationPlugin.Controls
             return index >= 0 ? TargetResourceList[index] : null;
         }
 
-        public void LanguageFormatChanged(object sender, RoutedEventArgs e)
-        {
-            _selectedImportLanguageFormat = (string)languageSelector.SelectedItem;
-
-            FillTargetResourceList();
-
-            string targetTextTablePath = GetTargetTexttableSubstring();
-            foreach (ResourceRow entry in GridSource)
-            {
-                entry.TargetResource = GetTargetResourceFor(entry.TextResource, targetTextTablePath);
-            }
-        }
-
-        public void Import(object sender, RoutedEventArgs e)
-        {
-
-            Dictionary<string, string> resourceTranslation = new Dictionary<string, string>();
-            foreach (ResourceRow resourceRow in GridSource)
-            {
-
-                if (resourceRow.TargetResource == null)
-                {
-
-                    string msg = string.Format("No target resource for <{0}> selected!", resourceRow.TextResource);
-                    MessageBox.Show(msg, "Missing Entry", MessageBoxButton.OK);
-
-                    return;
-                }
-
-                resourceTranslation.Add(resourceRow.TextResource, resourceRow.TargetResource);
-            }
-
-            TextFile updatedTarget = new TextFile()
-            {
-                LanguageFormat = _selectedImportLanguageFormat
-            };
-
-
-            TextRepresentation[] targetTextRepresentations = CreateTargetTextRepresentations(resourceTranslation);
-            updatedTarget.Texts = targetTextRepresentations;
-
-            DeclinatedAdjectiveRepresentation[] targetAdjectiveRepresentations = CreateTargetAdjectiveRepresentations(resourceTranslation);
-            updatedTarget.DeclinatedAdjectives = targetAdjectiveRepresentations;
-
-            SaveValue = updatedTarget;
-            DialogResult = true;
-
-            Close();
-        }
-
         private TextRepresentation[] CreateTargetTextRepresentations(Dictionary<string, string> resourceTranslation)
         {
             List<TextRepresentation> targetRepresentations = new List<TextRepresentation>();
-            foreach (TextRepresentation importRepresentation in _importTextFile.Texts)
+            foreach (TextRepresentation importRepresentation in m_importTextFile.Texts)
             {
                 TextRepresentation updatedRepresentation = new TextRepresentation()
                 {
@@ -267,13 +273,13 @@ namespace BiowareLocalizationPlugin.Controls
         private DeclinatedAdjectiveRepresentation[] CreateTargetAdjectiveRepresentations(Dictionary<string, string> resourceTranslation)
         {
 
-            if (_importTextFile.DeclinatedAdjectives == null)
+            if (m_importTextFile.DeclinatedAdjectives == null)
             {
                 return null;
             }
 
             List<DeclinatedAdjectiveRepresentation> targetRepresentations = new List<DeclinatedAdjectiveRepresentation>();
-            foreach (DeclinatedAdjectiveRepresentation importRepresentation in _importTextFile.DeclinatedAdjectives)
+            foreach (DeclinatedAdjectiveRepresentation importRepresentation in m_importTextFile.DeclinatedAdjectives)
             {
                 DeclinatedAdjectiveRepresentation updatedRepresentation = new DeclinatedAdjectiveRepresentation()
                 {
@@ -285,13 +291,6 @@ namespace BiowareLocalizationPlugin.Controls
                 targetRepresentations.Add(updatedRepresentation);
             }
             return targetRepresentations.ToArray();
-        }
-
-        public void Abort(object sender, RoutedEventArgs e)
-        {
-            SaveValue = null;
-            DialogResult = false;
-            Close();
         }
 
     }

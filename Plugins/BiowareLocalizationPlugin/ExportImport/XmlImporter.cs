@@ -10,16 +10,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Security;
-using System.Windows.Media.TextFormatting;
 using System.Xml.Serialization;
-using static System.Net.Mime.MediaTypeNames;
+
 
 namespace BiowareLocalizationPlugin.ExportImport
 {
     public class XmlImporter
     {
-
-
         public static void Import(BiowareLocalizedStringDatabase textDb)
         {
             FrostyOpenFileDialog openDialog = new FrostyOpenFileDialog("Import Custom Texts", "*.xml (XML File)|*.xml", "LocalizedTexts_");
