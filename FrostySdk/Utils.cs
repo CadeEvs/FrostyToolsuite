@@ -927,7 +927,7 @@ namespace FrostySdk
         {
             get
             {
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa19, ProfileVersion.Fifa20, ProfileVersion.Fifa22, ProfileVersion.Fifa23))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Fifa19, ProfileVersion.Fifa20, ProfileVersion.Fifa21, ProfileVersion.Fifa22))
                     return 0x40000;
                 return 0x10000;
             }
