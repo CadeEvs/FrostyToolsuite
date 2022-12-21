@@ -20,13 +20,16 @@ namespace BiowareLocalizationPlugin.Controls
         /// <summary>
         /// Creates a new resource selection dialog.
         /// </summary>
-        /// <param name="textDB">The db of localized strings.</param>
-        /// <param name="languageFormat">The current language format.</param>
-        /// <param name="resourcesToShow">The list of already assigned resources, that do not need to be displayed or selectable here.</param>
-        public ResourceSelectionWindow(IEnumerable<string> resourcesToShow)
+        /// <param name="inResourcesToShow">The list of selectable resources to display.</param>
+        public ResourceSelectionWindow(IEnumerable<string> inResourcesToShow)
         {
             InitializeComponent();
-            Loaded += (s, e) => ListBoxUtils.SortListIntoListBox(resourcesToShow, resourcesListBox);
+            Loaded += (s, e) => ListBoxUtils.SortListIntoListBox(inResourcesToShow, resourcesListBox);
+        }
+
+        public ResourceSelectionWindow(IEnumerable<string> inResourcesToShow, SelectionMode inResourceSelectionMode) : this(inResourcesToShow)
+        {
+            Loaded += (s, e) => resourcesListBox.SelectionMode = inResourceSelectionMode;
         }
 
         private void Save(object sender, RoutedEventArgs e)

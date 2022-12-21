@@ -22,7 +22,7 @@ Header
 
 			// Until the nodeOffset is reached
 			// If there are three or more entries in here,
-			// then the corresponding 8ByteBlockData after the second one contain ids and bit offsets for the declinated adjectives for text parts used for crafted items in DA:I
+			// then the corresponding 8ByteBlockData after the second one contain ids and bit offsets for the declinated adjectives for text parts used for crafted items in DA:I (Note that these ids are not the same accross languages!)
 		N times Unknown8ByteBlockCountAndOffset
 		{
 			uint unknownCounts
