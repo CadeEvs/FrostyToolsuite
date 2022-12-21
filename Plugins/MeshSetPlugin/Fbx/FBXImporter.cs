@@ -1162,6 +1162,17 @@ namespace MeshSetPlugin
 
                             ushort[] finalBoneIndices = vertex.GetValue<ushort[]>("BoneIndices");
                             byte[] finalBoneWeights = vertex.GetValue<byte[]>("BoneWeights");
+                            
+                            // for some reason some rigid meshes have bone indices and weights
+                            // so we just make them all 0
+                            if (finalBoneIndices == null)
+                            {
+                                finalBoneIndices = new ushort[8];
+                            }
+                            if (finalBoneWeights == null)
+                            {
+                                finalBoneWeights = new byte[8];
+                            }
 
                             int currentStride = 0;
                             foreach (GeometryDeclarationDesc.Element elem in meshSection.GeometryDeclDesc[0].Elements)
