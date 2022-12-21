@@ -57,9 +57,8 @@ namespace BiowareLocalizationPlugin.Controls
             {
                 adjectiveIdField.Text = adjectiveId.ToString("X8");
             }
-            UpdateData(adjectiveId);
-
             resourcesListBox.Items.Add(m_selectedResource);
+            UpdateData(adjectiveId);
         }
 
         private void Update(object sender, RoutedEventArgs e)
@@ -74,28 +73,38 @@ namespace BiowareLocalizationPlugin.Controls
         private void UpdateData(uint adjectiveId)
         {
 
+            // revert;
+            localizedAdjectiveListBox.Items.Clear();
+
             if (adjectiveId == 0 || m_selectedResource == null)
             {
-                // revert;
-                localizedAdjectiveListBox.Items.Clear();
+                return;
             }
-            else
+
+            List<string> declinations = m_stringDb.GetDeclinatedAdjectives(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
+
+            // workaround to get the required number of display entries:
+            if(declinations.Count == 0)
             {
-
-                List<string> declinations = m_stringDb.GetDeclinatedAdjectives(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
-
-                foreach (string declination in declinations)
+                for(int i = 0; i< declinations.Capacity; i++)
                 {
-                    TextBox declinationBox = new TextBox
-                    {
-                        Text = declination,
-                        IsReadOnly = false,
-                        AcceptsReturn = false,
-                        HorizontalAlignment = HorizontalAlignment.Stretch
-                    };
-
-                    localizedAdjectiveListBox.Items.Add(declinationBox);
+                    declinations.Add(null);
                 }
+            }
+
+            foreach (string declination in declinations)
+            {
+                TextBox declinationBox = new TextBox
+                {
+                    Text = declination,
+                    IsReadOnly = false,
+                    AcceptsReturn = false,
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    MinWidth = 60
+                    //Width = localizedAdjectiveListBox.ActualWidth
+                };
+
+                localizedAdjectiveListBox.Items.Add(declinationBox);
             }
         }
 
@@ -162,7 +171,7 @@ namespace BiowareLocalizationPlugin.Controls
             IEnumerable<string> selectableResources = m_stringDb.GetAllResourceNames(m_selectedLanguageFormat)
                 .Where(r => !resourcesListBox.Items.Contains(r));
 
-            ResourceSelectionWindow selectionDialog = new ResourceSelectionWindow(selectableResources);
+            ResourceSelectionWindow selectionDialog = new ResourceSelectionWindow(selectableResources, SelectionMode.Single);
             bool? saved = selectionDialog.ShowDialog();
 
             if (saved != null && saved.Value)
