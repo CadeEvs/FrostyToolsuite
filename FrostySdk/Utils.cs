@@ -567,7 +567,7 @@ namespace FrostySdk
                 ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa20,
                 ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21,
                 ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                ProfileVersion.Battlefield2042, ProfileVersion.Madden23
+                ProfileVersion.Battlefield2042, ProfileVersion.Madden23,
                 ProfileVersion.Fifa23, ProfileVersion.NeedForSpeedUnbound))
             {
                 Compress2 = Marshal.GetDelegateForFunctionPointer<CompressFunc2>(Kernel32.GetProcAddress(handle, "OodleLZ_Compress"));
