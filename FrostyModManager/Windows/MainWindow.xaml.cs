@@ -771,7 +771,7 @@ namespace FrostyModManager
                     if (modObj == null)
                         return -1;
 
-                    if (modObj.GetValue<string>("gameProfile") != ProfilesLibrary.ProfileName)
+                    if (modObj.GetValue<string>("gameProfile").ToLower() != ProfilesLibrary.ProfileName.ToLower())
                         return -2;
 
                     if (modObj.GetValue<int>("gameVersion") != fs.Head)
