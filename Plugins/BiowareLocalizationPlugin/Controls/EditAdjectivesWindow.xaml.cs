@@ -101,7 +101,6 @@ namespace BiowareLocalizationPlugin.Controls
                     AcceptsReturn = false,
                     HorizontalAlignment = HorizontalAlignment.Stretch,
                     MinWidth = 60
-                    //Width = localizedAdjectiveListBox.ActualWidth
                 };
 
                 localizedAdjectiveListBox.Items.Add(declinationBox);
@@ -184,7 +183,7 @@ namespace BiowareLocalizationPlugin.Controls
                     return;
                 }
 
-                // TODO multiSelect is actually not allowed here!
+                // MultiSelect is actually not allowed here!
                 if( selectionDialog.SelectedResources.Count > 1 )
                 {
                     App.Logger.LogError("Can only select a single resource for adjectives at the moment!");

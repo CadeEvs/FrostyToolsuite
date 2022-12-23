@@ -85,21 +85,24 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <Button Grid.Column="0" Name="PART_AddEdit" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
                                         ToolTip="Edit a selected Text or add a new one">Add / Edit</Button>
-                                <Button Grid.Column="1" Name="PART_Remove" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                <Button Grid.Column="1" Name="PART_Replace" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                        ToolTip="Replace several Texts">Replace Texts</Button>
+                                <Button Grid.Column="2" Name="PART_Remove" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
                                         ToolTip="Revers the selected text back to its vanilla state. I.e., Removes new texts and reverts edited texts. Does not remove vanilla texts"
                                         ToolTipService.ShowOnDisabled="True">Remove / Revert</Button>
-                                <Button Grid.Column="2" Name="PART_ShowTextInfo" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                <Button Grid.Column="3" Name="PART_ShowTextInfo" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
                                         ToolTip="Show some miscellaneous information about the selected text in the vanilla resource(s)"
                                         ToolTipService.ShowOnDisabled="True">Show Text Info</Button>
-                                <Button Grid.Column="4" Name="PART_Export" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                <Button Grid.Column="5" Name="PART_Export" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
                                         ToolTip="Exports the modified text from the currently selected language into an .xml file">Export</Button>
-                                <Button Grid.Column="5" Name="PART_Import" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
+                                <Button Grid.Column="6" Name="PART_Import" ClickMode="Press" Margin="1,1,2,1" Padding="10,0,10,0"
                                         ToolTip="Imports texts from an .xml file">Import</Button>
                             </Grid>
                             

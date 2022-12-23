@@ -21,7 +21,6 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="36"/>
-            <RowDefinition Height="1"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="26"/>
         </Grid.RowDefinitions>
@@ -58,7 +57,7 @@
             </ListBox.CommandBindings>
         </ListBox>
 
-        <ListBox Grid.Row="4" x:Name="localizedAdjectiveListBox"
+        <ListBox Grid.Row="3" x:Name="localizedAdjectiveListBox"
                  HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                  Padding="4" Margin="2,2,2,2"
                  SelectionMode="Extended">
@@ -67,7 +66,7 @@
             </ListBox.CommandBindings>
         </ListBox>
 
-        <Grid Grid.Row="5" Background="{StaticResource WindowBackground}">
+        <Grid Grid.Row="4" Background="{StaticResource WindowBackground}">
             <Button x:Name="cancelButton" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,2,2,2" Width="90"
                 ClickMode="Press" Click="Close" IsCancel="True"/>
             <Button x:Name="saveButton" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2,2,2,2" Width="90"
