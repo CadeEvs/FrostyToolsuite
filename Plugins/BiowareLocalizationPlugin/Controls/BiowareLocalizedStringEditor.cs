@@ -30,6 +30,7 @@ namespace BiowareLocalizationPlugin.Controls
     [TemplatePart(Name = PART_UpdateTextIdFieldCB, Type = typeof(CheckBox))]
     [TemplatePart(Name = PART_ShowTextInfo, Type = typeof(Button))]
     [TemplatePart(Name = PART_AddEdit, Type = typeof(Button))]
+    [TemplatePart(Name = PART_Replace, Type = typeof(Button))]
     [TemplatePart(Name = PART_Remove, Type = typeof(Button))]
     [TemplatePart(Name = PART_LanguageSelector, Type = typeof(ComboBox))]
     [TemplatePart(Name = PART_RefreshButton, Type = typeof(Button))]
@@ -54,7 +55,7 @@ namespace BiowareLocalizationPlugin.Controls
         private const string PART_ShowTextInfo = "PART_ShowTextInfo";
 
         private const string PART_AddEdit = "PART_AddEdit";
-
+        private const string PART_Replace = "PART_Replace";
         private const string PART_Remove = "PART_Remove";
 
         private const string PART_LanguageSelector = "PART_LanguageSelector";
@@ -106,6 +107,8 @@ namespace BiowareLocalizationPlugin.Controls
 
         private Button m_textInfoBt;
 
+        private Button m_replaceButton;
+
         private Button m_removeButton;
 
         private ComboBox m_languageSelectorCb;
@@ -145,7 +148,7 @@ namespace BiowareLocalizationPlugin.Controls
         /// <summary>
         /// The last selected resource - Note that this can be null!
         /// </summary>
-        private string _selectedResource = m_SHOW_ALL_RESOURCES;
+        private string m_selectedResource = m_SHOW_ALL_RESOURCES;
 
         //##############################################################################
         #endregion constants and variables
@@ -202,6 +205,9 @@ namespace BiowareLocalizationPlugin.Controls
             Button addButton = GetTemplateChild(PART_AddEdit) as Button;
             addButton.Click += ShowAddEditWindow;
 
+            m_replaceButton = GetTemplateChild(PART_Replace) as Button;
+            m_replaceButton.Click += ShowReplaceWindow;
+
             m_removeButton = GetTemplateChild(PART_Remove) as Button;
             m_removeButton.IsEnabled = false; // initially disabled until a text is selected
             m_removeButton.Click += Remove;
@@ -255,7 +261,7 @@ namespace BiowareLocalizationPlugin.Controls
             bool? nullableModifiedOnly = m_modifiedOnlyCB.IsChecked;
             bool modifiedOnly = nullableModifiedOnly.HasValue && nullableModifiedOnly.Value;
 
-            if (_selectedResource == null)
+            if (m_selectedResource == null)
             {
                 m_textIdsList = new List<uint>();
                 return;
@@ -282,7 +288,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void LoadTexts0(bool modifiedOnly)
         {
-            bool showTextsFromAllResources = m_SHOW_ALL_RESOURCES.Equals(_selectedResource);
+            bool showTextsFromAllResources = m_SHOW_ALL_RESOURCES.Equals(m_selectedResource);
             FrostyTaskWindow.Show("Loading texts", "", (task) =>
             {
                 m_textIdsList = LoadTextIds(modifiedOnly, showTextsFromAllResources);
@@ -311,11 +317,11 @@ namespace BiowareLocalizationPlugin.Controls
             }
             else if (modifiedOnly && !showTextsFromAllResources)
             {
-                textIds = m_textDB.GetAllModifiedTextIdsFromResource(m_selectedLanguageFormat, _selectedResource).ToList();
+                textIds = m_textDB.GetAllModifiedTextIdsFromResource(m_selectedLanguageFormat, m_selectedResource).ToList();
             }
             else //if( !modifiedOnly && !showTextsFromAllResources)
             {
-                textIds = m_textDB.GetAllTextIdsFromResource(m_selectedLanguageFormat, _selectedResource).ToList();
+                textIds = m_textDB.GetAllTextIdsFromResource(m_selectedLanguageFormat, m_selectedResource).ToList();
             }
 
             return textIds;
@@ -333,7 +339,7 @@ namespace BiowareLocalizationPlugin.Controls
 
             foreach (uint adjectiveId in m_textIdsList)
             {
-                List<string> adjectives = m_textDB.GetDeclinatedAdjectives(m_selectedLanguageFormat, _selectedResource, adjectiveId);
+                List<string> adjectives = m_textDB.GetDeclinatedAdjectives(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
 
                 string firstAdjective = adjectives.Count > 0 ? adjectives[0] : "";
 
@@ -345,11 +351,11 @@ namespace BiowareLocalizationPlugin.Controls
         {
             if (modifiedOnly)
             {
-                return m_textDB.GetModifiedDeclinatedAdjectiveIdsFromResource(m_selectedLanguageFormat, _selectedResource).ToList();
+                return m_textDB.GetModifiedDeclinatedAdjectiveIdsFromResource(m_selectedLanguageFormat, m_selectedResource).ToList();
             }
             else
             {
-                return m_textDB.GetAllDeclinatedAdjectiveIdsFromResource(m_selectedLanguageFormat, _selectedResource).ToList();
+                return m_textDB.GetAllDeclinatedAdjectiveIdsFromResource(m_selectedLanguageFormat, m_selectedResource).ToList();
             }
         }
 
@@ -469,12 +475,12 @@ namespace BiowareLocalizationPlugin.Controls
         private string LoadDeclinatedAdjectiveToShow(uint adjectiveId)
         {
 
-            if (_selectedResource == null)
+            if (m_selectedResource == null)
             {
                 return "";
             }
 
-            List<string> declinations = m_textDB.GetDeclinatedAdjectives(m_selectedLanguageFormat, _selectedResource, adjectiveId);
+            List<string> declinations = m_textDB.GetDeclinatedAdjectives(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
 
             StringBuilder displayBuilder = new StringBuilder();
             foreach (string declination in declinations)
@@ -528,6 +534,7 @@ namespace BiowareLocalizationPlugin.Controls
                     m_displayType = DisplayType.SHOW_DECLINATED_ADJECTIVES;
                     buttonText = m_toggleDisplayButtonAdjectiveString;
                     buttonTooltip = m_toggleDisplayButtonTooltipAdjectiveString;
+                    m_replaceButton.IsEnabled = false;
                     break;
 
                 case DisplayType.SHOW_DECLINATED_ADJECTIVES:
@@ -535,13 +542,13 @@ namespace BiowareLocalizationPlugin.Controls
                     m_displayType = DisplayType.SHOW_TEXTS;
                     buttonText = m_toggleDisplayButtonTextsString;
                     buttonTooltip = m_toggleDisplayButtonTooltipTextsString;
+                    m_replaceButton.IsEnabled = true;
                     break;
             }
 
             m_toggleTextsOrAdjectivesButton.Content = buttonText;
             m_toggleTextsOrAdjectivesButton.ToolTip = buttonTooltip;
 
-            //ReLoadStrings(sender, e);
             SetSelectableResources();
         }
 
@@ -621,14 +628,14 @@ namespace BiowareLocalizationPlugin.Controls
             string newResource = (string)m_resourceSelectorCb.SelectedItem;
 
             bool changed = false;
-            if (_selectedResource == null || newResource == null)
+            if (m_selectedResource == null || newResource == null)
             {
-                _selectedResource = newResource;
+                m_selectedResource = newResource;
                 changed = true;
             }
-            else if (!_selectedResource.Equals(newResource))
+            else if (!m_selectedResource.Equals(newResource))
             {
-                _selectedResource = newResource;
+                m_selectedResource = newResource;
                 changed = true;
             }
 
@@ -731,7 +738,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void ShowAdjectiveEditWindow(uint adjectiveId)
         {
-            EditAdjectivesWindow editWindow = new EditAdjectivesWindow(m_textDB, m_selectedLanguageFormat, _selectedResource)
+            EditAdjectivesWindow editWindow = new EditAdjectivesWindow(m_textDB, m_selectedLanguageFormat, m_selectedResource)
             {
                 Owner = Application.Current.MainWindow
             };
@@ -842,9 +849,9 @@ namespace BiowareLocalizationPlugin.Controls
         private bool RevertAdjective0(int idIndex, uint adjectiveId)
         {
 
-            m_textDB.RevertDeclinatedAdjective(m_selectedLanguageFormat, _selectedResource, adjectiveId);
+            m_textDB.RevertDeclinatedAdjective(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
 
-            List<string> declinations = m_textDB.GetDeclinatedAdjectives(m_selectedLanguageFormat, _selectedResource, adjectiveId);
+            List<string> declinations = m_textDB.GetDeclinatedAdjectives(m_selectedLanguageFormat, m_selectedResource, adjectiveId);
 
             if (declinations != null && declinations.Count > 0)
             {
@@ -855,6 +862,20 @@ namespace BiowareLocalizationPlugin.Controls
             }
 
             return false;
+        }
+
+        private void ShowReplaceWindow(object sender, RoutedEventArgs e)
+        {
+            ReplaceWindow replaceWindow = new ReplaceWindow(m_textDB, m_selectedLanguageFormat, m_stringIdListBox)
+            {
+                Owner = Application.Current.MainWindow
+            };
+
+            bool? save = replaceWindow.ShowDialog();
+            if (save.HasValue && save.Value && replaceWindow.WasAnyTextReplaced)
+            {
+                ReLoadStrings(sender, e);
+            }
         }
 
         private void Export(object sender, RoutedEventArgs e)

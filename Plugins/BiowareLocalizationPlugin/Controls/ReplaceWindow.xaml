@@ -1,0 +1,142 @@
+﻿<ctrl:FrostyDockableWindow
+    x:Class="BiowareLocalizationPlugin.Controls.ReplaceWindow"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Replace Text" Height="450" Width="900">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Background="{StaticResource ListBackground}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="0.5*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" x:Name="Part_TextIdLabel" Content="TextId:" FontFamily="Global User Interface" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="1,1,0,0" Height="27"/>
+                <TextBox Grid.Column="1" Name="Part_TextIdField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" HorizontalAlignment="Left" Margin="1,1,4,1" Width="100" IsEnabled="False" />
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" x:Name="Part_ToFindLabel" Content="Find:" FontFamily="Global User Interface" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="1,1,0,0" Height="27"/>
+                <TextBox Grid.Column="1" Name="Part_ToFindTextField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" HorizontalAlignment="Stretch" Margin="1,1,4,1" />
+                <CheckBox Grid.Column="2" x:Name="Part_CaseSensitiveSearchCB" IsThreeState="False" Margin="4,4,2,1">
+                    <Label Content="Case sensitive" Margin="0,-5,0,0"/>
+                </CheckBox>
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Label Grid.Column="0" x:Name="Part_ReplaceWithLabel" Content="Replace with:" FontFamily="Global User Interface" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="1,1,0,0" Height="27"/>
+                <TextBox Grid.Column="1" Name="Part_ReplaceWithField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" HorizontalAlignment="Stretch" Margin="1,1,4,1" />
+            </Grid>
+
+            <TextBox Grid.Row="3" x:Name="Part_OriginalTextBox"
+                     TextWrapping="Wrap" Text=""
+                     SelectionTextBrush="red"
+                     IsReadOnly="True"
+                     AcceptsReturn="True"
+                     IsEnabled="False"
+                     VerticalAlignment="Stretch"
+                     VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
+                     Padding="4" BorderThickness="1"/>
+
+            <TextBox Grid.Row="4" x:Name="Part_EditedTextBox"
+                     TextWrapping="Wrap" Text=""
+                     IsReadOnly="False"
+                     SelectionTextBrush="Green"
+                     AcceptsReturn="True"
+                     VerticalAlignment="Stretch"
+                     VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
+                     Padding="4" BorderThickness="1"/>
+
+        </Grid>
+
+        <Grid Grid.Column="1" Background="{StaticResource WindowBackground}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Button
+                Grid.Row="1"
+                x:Name="Part_FindNextButton" Content="Find Next Text"
+                HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                Width="Auto" Height="27"
+                Margin="2,3,2,3"
+                ClickMode="Press" Click="FindNext"/>
+
+            <Button
+                Grid.Row="2"
+                x:Name="Part_ReplaceButton" Content="Replace Text"
+                HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                Width="Auto" Height="27"
+                Margin="2,3,2,3"
+                ClickMode="Press" Click="Replace"/>
+
+            <Button
+                Grid.Row="3"
+                x:Name="Part_EditButton" Content="Edit Text"
+                HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                Width="Auto" Height="27"
+                Margin="2,3,2,3"
+                ClickMode="Press" Click="Edit"/>
+
+            <Button
+                Grid.Row="4"
+                x:Name="Part_ReplaceAndFindNextButton" Content="Replace &amp; Find Next" VerticalAlignment="Top"
+                Width="Auto" Height="27"
+                Margin="2,3,2,3"
+                ClickMode="Press" Click="ReplaceAndFindNext"/>
+
+            <Button
+                Grid.Row="6"
+                x:Name="Part_CancelButton" Content="Cancel"
+                HorizontalAlignment="Stretch" VerticalAlignment="Bottom"
+                Width="Auto" Height="27"
+                Margin="2,3,2,3"
+                ClickMode="Press" Click="Close" IsCancel="True"/>
+
+        </Grid>
+
+    </Grid>
+</ctrl:FrostyDockableWindow>

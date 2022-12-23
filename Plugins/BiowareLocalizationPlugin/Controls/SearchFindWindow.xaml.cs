@@ -12,13 +12,13 @@ namespace BiowareLocalizationPlugin.Controls
     {
 
         // this is the list box from the main edit window - we search and select directly on there!
-        private readonly ListBox _mainWindowTextSelectionBox;
+        private readonly ListBox m_mainWindowTextSelectionBox;
 
-        public SearchFindWindow(ListBox stringSelectionBox)
+        public SearchFindWindow(ListBox inStringSelectionBox)
         {
             InitializeComponent();
             Owner = Application.Current.MainWindow;
-            _mainWindowTextSelectionBox = stringSelectionBox;
+            m_mainWindowTextSelectionBox = inStringSelectionBox;
 
             searchTextField.Focus();
         }
@@ -36,8 +36,8 @@ namespace BiowareLocalizationPlugin.Controls
         private void Search(object sender, RoutedEventArgs e)
         {
 
-            string searchText = searchTextField.Text;
-            if(searchText == null || searchText.Length == 0)
+            string searchedFor = searchTextField.Text;
+            if(searchedFor == null || searchedFor.Length == 0)
             {
                 return;
             }
@@ -60,19 +60,19 @@ namespace BiowareLocalizationPlugin.Controls
 
             StringComparison comparisonType = searchCaseSensitive ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
 
-            int searchIndex = _mainWindowTextSelectionBox.SelectedIndex;
+            int searchIndex = m_mainWindowTextSelectionBox.SelectedIndex;
             searchIndex = updFctn(searchIndex);
 
-            while(searchIndex >=0 && searchIndex < _mainWindowTextSelectionBox.Items.Count)
+            while(searchIndex >=0 && searchIndex < m_mainWindowTextSelectionBox.Items.Count)
             {
-                string queriedText = (string)_mainWindowTextSelectionBox.Items[searchIndex];
+                string queriedText = (string)m_mainWindowTextSelectionBox.Items[searchIndex];
 
                 // first 8 chars are the text Id, followed by 3 chars delimiter -> text starts at index 10
-                int searchTextPosition = queriedText.IndexOf(searchText, 10, comparisonType);
+                int searchTextPosition = queriedText.IndexOf(searchedFor, 10, comparisonType);
                 if(searchTextPosition > 0)
                 {
-                    _mainWindowTextSelectionBox.SelectedIndex = searchIndex;
-                    _mainWindowTextSelectionBox.ScrollIntoView(_mainWindowTextSelectionBox.SelectedItem);
+                    m_mainWindowTextSelectionBox.SelectedIndex = searchIndex;
+                    m_mainWindowTextSelectionBox.ScrollIntoView(m_mainWindowTextSelectionBox.SelectedItem);
                     return;
                 }
 
