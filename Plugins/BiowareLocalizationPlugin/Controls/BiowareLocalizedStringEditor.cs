@@ -866,15 +866,21 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void ShowReplaceWindow(object sender, RoutedEventArgs e)
         {
+
             ReplaceWindow replaceWindow = new ReplaceWindow(m_textDB, m_selectedLanguageFormat, m_stringIdListBox)
             {
                 Owner = Application.Current.MainWindow
             };
 
             bool? save = replaceWindow.ShowDialog();
-            if (save.HasValue && save.Value && replaceWindow.WasAnyTextReplaced)
+            if (save.HasValue && save.Value)
             {
+                // the replace window currently updates the selection of this view.
+                uint lastSelected = GetCurrentStringId();
+
                 ReLoadStrings(sender, e);
+
+                SearchTextId(lastSelected);
             }
         }
 
