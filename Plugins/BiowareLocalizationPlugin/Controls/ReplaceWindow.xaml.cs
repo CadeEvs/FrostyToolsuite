@@ -1,11 +1,14 @@
 ﻿using Frosty.Controls;
 using Frosty.Core;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace BiowareLocalizationPlugin.Controls
 {
@@ -35,11 +38,10 @@ namespace BiowareLocalizationPlugin.Controls
         /// Marker whether any text was replaced at all.
         /// </summary>
         private bool m_wasAnythingReplaced = false;
-        public bool WasAnyTextReplaced => m_wasAnythingReplaced;
 
         public ReplaceWindow(BiowareLocalizedStringDatabase inStringDb, string inSelectedLanguage, ListBox inTextListBox)
         {
-            // TODO need better input than the list box, maybe do add replace all function after all? Otoh, NO!
+            // TODO need better input than the list box from the main window
             InitializeComponent();
 
             m_stringDb = inStringDb;
@@ -47,6 +49,45 @@ namespace BiowareLocalizationPlugin.Controls
             m_mainWindowTextSelectionBox = inTextListBox;
         }
 
+        // https://stackoverflow.com/questions/53319918/highlighting-coloring-charactars-in-a-wpf-richtextbox
+        private static void HighlightText(RichTextBox richTextBox, int startPoint, int endPoint, Color color)
+        {
+            //Trying to highlight charactars here
+            TextPointer pointer = richTextBox.Document.ContentStart;
+            TextRange range = new TextRange(pointer.GetPositionAtOffset(startPoint), pointer.GetPositionAtOffset(endPoint));
+            range.ApplyPropertyValue(TextElement.BackgroundProperty, new SolidColorBrush(color));
+        }
+
+        /// <summary>
+        /// Sest the given text into the given textbox and highlights the given consecutive (!) charachter offsets in the given color.
+        /// </summary>
+        /// <param name="textBox"></param>
+        /// <param name="textToSet"></param>
+        /// <param name="partsToHighlight"></param>
+        /// <param name="color"></param>
+        private static void SetTextAndHighlightParts(RichTextBox textBox, string textToSet, List<int[]> partsToHighlight, Color color)
+        {
+
+            Paragraph paragraph = new Paragraph(new Run(textToSet))
+            {
+                TextIndent = 0d,
+            };
+            textBox.Document.Blocks.Add(paragraph);
+
+            int charOffset = 2;
+            // the highlighting method works with texpointers which include non character symbols, like start and end tags for the hightlighting...
+            foreach (int[] segment in partsToHighlight)
+            {
+                HighlightText(textBox, segment[0]+ charOffset, segment[1]+ charOffset, color);
+                charOffset += 4;
+            }
+        }
+
+        /// <summary>
+        /// Finds the next text in the textSelectionBox which contains the searched for string.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void FindNext(object sender, RoutedEventArgs e)
         {
 
@@ -73,8 +114,8 @@ namespace BiowareLocalizationPlugin.Controls
             {
                 string queriedText = (string)m_mainWindowTextSelectionBox.Items[searchIndex];
 
-                // first 8 chars are the text Id, followed by 3 chars delimiter -> text starts at index 10
-                int searchTextPosition = queriedText.IndexOf(searchedFor, 10, comparisonType);
+                // first 8 chars are the text Id, followed by 3 chars delimiter -> text starts at index 11
+                int searchTextPosition = queriedText.IndexOf(searchedFor, 11, comparisonType);
                 if (searchTextPosition > 0)
                 {
                     m_mainWindowTextSelectionBox.SelectedIndex = searchIndex;
@@ -86,69 +127,121 @@ namespace BiowareLocalizationPlugin.Controls
             }
         }
 
+        /// <summary>
+        /// Clears the current selection, in order to prepare for the next finding that may never come.
+        /// </summary>
         private void ClearSelection()
         {
-            Part_TextIdField.Text = "";
-            Part_OriginalTextBox.Text = "";
-            Part_EditedTextBox.Text = "";
 
-            Part_EditedTextBox.IsEnabled = false;
+
+            Part_TextIdField.Text = "";
+
+            Part_OriginalTextBox.Document.Blocks.Clear();
+            Part_EditedTextBox.Document.Blocks.Clear();
+
+            Part_EditedTextBox.IsReadOnly = true;
         }
 
+        /// <summary>
+        /// Creates the replacement text and updates all ui elements with the new data.
+        /// </summary>
+        /// <param name="selectedTextEntryWithId"></param>
+        /// <param name="searchedText"></param>
+        /// <param name="searchCaseSensitive"></param>
         private void HandleFoundTextToReplace(string selectedTextEntryWithId, string searchedText, bool searchCaseSensitive)
         {
-            string textIdPart = selectedTextEntryWithId.Substring(0, 8);
+            Part_TextIdField.Text = selectedTextEntryWithId.Substring(0, 8);
+
+            string originalTextToDisplay = selectedTextEntryWithId.Substring(11);
+
+            List<int[]> partsToReplace = GetSearchPositionsInOriginalText(originalTextToDisplay, searchedText, searchCaseSensitive);
+            SetTextAndHighlightParts(Part_OriginalTextBox, originalTextToDisplay, partsToReplace, Colors.DarkRed);
 
             string replaceWith = Part_ReplaceWithField.Text;
 
-            string originalTextToDisplay = selectedTextEntryWithId.Substring(10);
-
-            string replacedText;
-            if (searchCaseSensitive)
-            {
-                replacedText = originalTextToDisplay.Replace(searchedText, replaceWith);
-            }
-            else
-            {
-                replacedText = ReplaceTextCaseInsensitive(originalTextToDisplay, searchedText, replaceWith);
-            }
-
-
-            Part_TextIdField.Text = textIdPart;
-            Part_OriginalTextBox.Text = originalTextToDisplay;
-            Part_EditedTextBox.Text = replacedText;
-
-            // TODO mark the original and changed parts in the textboxes accordingly...
+            string replacedText = GetEditTextAndUpdatePositions(originalTextToDisplay, replaceWith, partsToReplace);
+            SetTextAndHighlightParts(Part_EditedTextBox, replacedText, partsToReplace, Colors.DarkGreen);
         }
 
-        private string ReplaceTextCaseInsensitive(string originalText, string toReplace, string replacement)
+        /// <summary>
+        /// Returns a list of character posisitons (as array of start and end position) of each finding in the given original text.
+        /// </summary>
+        /// <param name="originalText"></param>
+        /// <param name="toReplace"></param>
+        /// <param name="searchCaseSensitive"></param>
+        /// <returns></returns>
+        private List<int[]> GetSearchPositionsInOriginalText(string originalText, string toReplace, bool searchCaseSensitive)
         {
 
+            StringComparison comparetype = searchCaseSensitive ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
             int toReplaceLength = toReplace.Length;
 
-            int currentPosition = 0;
-            int lastPosition = 0;
+            int currentPartStart = 0;
+            int lastPartEnd = 0;
 
-            StringBuilder sb = new StringBuilder();
+            List<int[]> positionsToReplace = new List<int[]>();
 
-            while (currentPosition >= 0)
+            while (currentPartStart >= 0)
             {
-                currentPosition = originalText.IndexOf(toReplace, lastPosition, StringComparison.InvariantCultureIgnoreCase);
+                currentPartStart = originalText.IndexOf(toReplace, lastPartEnd, comparetype);
 
-                if (currentPosition >= 0)
+                if (currentPartStart >= 0)
                 {
-                    int length = currentPosition - lastPosition;
-                    sb.Append(originalText.Substring(lastPosition, length));
-                    sb.Append(replacement);
-                    lastPosition = currentPosition + toReplaceLength;
+                    lastPartEnd = currentPartStart + toReplaceLength;
+
+                    positionsToReplace.Add(new int[] { currentPartStart, lastPartEnd });
                 }
             }
 
-            sb.Append(originalText.Substring(lastPosition));
+            return positionsToReplace;
+        }
+
+        /// <summary>
+        /// Returns a new string, replacing each of the given positionsToReplace in the given originalText with the replacement.
+        /// Also updates the list of positions, so they now show the new offset(s) for the replacement string.
+        /// </summary>
+        /// <param name="originalText"></param>
+        /// <param name="replacement"></param>
+        /// <param name="positionsToReplace"></param>
+        /// <returns></returns>
+        private string GetEditTextAndUpdatePositions(string originalText, string replacement, List<int[]> positionsToReplace)
+        {
+            int replacementLength = replacement.Length;
+
+            int lastSelectPosition = 0;
+            int currentWritePosition = 0;
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (int[] segment in positionsToReplace)
+            {
+
+                // part before replace
+                int selectLength = segment[0] - lastSelectPosition;
+                string partBefore = originalText.Substring(lastSelectPosition, selectLength);
+
+                sb.Append(partBefore);
+                currentWritePosition += selectLength;
+                segment[0] = currentWritePosition;
+
+                // replace
+                sb.Append(replacement);
+
+                lastSelectPosition = segment[1];
+                currentWritePosition += replacementLength;
+                segment[1] = currentWritePosition;
+            }
+
+            sb.Append(originalText.Substring(lastSelectPosition));
 
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Basically 'save': Sets the current edit textbox's content as the new text for the text id in all resources that it currently exists in.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Replace(object sender, RoutedEventArgs e)
         {
             string stringIdAsText = Part_TextIdField.Text;
@@ -166,20 +259,45 @@ namespace BiowareLocalizationPlugin.Controls
                 return;
             }
 
+            string editedText = GetEditedReplacementText();
 
             var resourceNames = m_stringDb.GetAllLocalizedStringResourcesForTextId(m_selectedLanguageFormat, textId).Select(r => r.Name).ToList();
-            m_stringDb.SetText(m_selectedLanguageFormat, resourceNames, textId, Part_EditedTextBox.Text);
+            m_stringDb.SetText(m_selectedLanguageFormat, resourceNames, textId, editedText);
 
             App.Logger.Log("Replaced text <{0}>", stringIdAsText);
 
             m_wasAnythingReplaced = true;
         }
 
+        // https://learn.microsoft.com/en-us/dotnet/desktop/wpf/controls/how-to-extract-the-text-content-from-a-richtextbox
+        // Why didn't they just add that as default method in the fuckin richtextbox in the first place?
+        private string GetEditedReplacementText()
+        {
+            TextRange textRange = new TextRange(
+                Part_EditedTextBox.Document.ContentStart,
+                Part_EditedTextBox.Document.ContentEnd
+            );
+
+            string text = textRange.Text.TrimEnd("\r\n".ToCharArray());
+            return text;
+        }
+
+        /// <summary>
+        /// Allows editing the edit textboxes content. Primarily removes all highlights.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Edit(object sender, RoutedEventArgs e)
         {
-            Part_EditedTextBox.IsEnabled = true;
+
+            TextRange range = new TextRange(Part_EditedTextBox.Document.ContentStart, Part_EditedTextBox.Document.ContentEnd);
+
+            SolidColorBrush defaultBackground = FindResource("WindowBackground") as SolidColorBrush;
+            range.ApplyPropertyValue(TextElement.BackgroundProperty, defaultBackground);
+
+            Part_EditedTextBox.IsReadOnly = false;
             Part_EditedTextBox.Focus();
-            Part_EditedTextBox.Select(0, 0);
+            Part_EditedTextBox.CaretPosition = Part_EditedTextBox.Document.ContentStart;
         }
 
         private void ReplaceAndFindNext(object sender, RoutedEventArgs e)
@@ -190,7 +308,7 @@ namespace BiowareLocalizationPlugin.Controls
 
         private void Close(object sender, RoutedEventArgs e)
         {
-            DialogResult = WasAnyTextReplaced;
+            DialogResult = m_wasAnythingReplaced;
 
             Close();
         }

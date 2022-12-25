@@ -67,7 +67,7 @@ namespace BiowareLocalizationPlugin.Controls
             {
                 string queriedText = (string)m_mainWindowTextSelectionBox.Items[searchIndex];
 
-                // first 8 chars are the text Id, followed by 3 chars delimiter -> text starts at index 10
+                // first 8 chars are the text Id, followed by 3 chars delimiter -> text starts at index 11
                 int searchTextPosition = queriedText.IndexOf(searchedFor, 10, comparisonType);
                 if(searchTextPosition > 0)
                 {

@@ -39,7 +39,18 @@
                 </Grid.ColumnDefinitions>
 
                 <Label Grid.Column="0" x:Name="Part_TextIdLabel" Content="TextId:" FontFamily="Global User Interface" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="1,1,0,0" Height="27"/>
-                <TextBox Grid.Column="1" Name="Part_TextIdField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" HorizontalAlignment="Left" Margin="1,1,4,1" Width="100" IsEnabled="False" />
+                <TextBox Grid.Column="1"
+                         Name="Part_TextIdField"
+                         Text=""
+                         FontFamily="Global User Interface"
+                         BorderThickness="1"
+                         HorizontalAlignment="Left"
+                         Padding="4"
+                         Margin="1,1,4,1"
+                         Width="100"
+                         IsReadOnly="True"
+                         Background="{StaticResource ControlBackground}"
+                         />
             </Grid>
 
             <Grid Grid.Row="1">
@@ -66,24 +77,23 @@
                 <TextBox Grid.Column="1" Name="Part_ReplaceWithField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" HorizontalAlignment="Stretch" Margin="1,1,4,1" />
             </Grid>
 
-            <TextBox Grid.Row="3" x:Name="Part_OriginalTextBox"
-                     TextWrapping="Wrap" Text=""
-                     SelectionTextBrush="red"
-                     IsReadOnly="True"
-                     AcceptsReturn="True"
-                     IsEnabled="False"
-                     VerticalAlignment="Stretch"
-                     VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
-                     Padding="4" BorderThickness="1"/>
+            <RichTextBox Grid.Row="3" x:Name="Part_OriginalTextBox"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         VerticalAlignment="Stretch" HorizontalAlignment="Left"
+                         VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
+                         Padding="4"
+                         Margin="1,1,4,1"
+                         BorderThickness="1"/>
 
-            <TextBox Grid.Row="4" x:Name="Part_EditedTextBox"
-                     TextWrapping="Wrap" Text=""
-                     IsReadOnly="False"
-                     SelectionTextBrush="Green"
-                     AcceptsReturn="True"
-                     VerticalAlignment="Stretch"
-                     VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
-                     Padding="4" BorderThickness="1"/>
+            <RichTextBox Grid.Row="4" x:Name="Part_EditedTextBox"
+                         IsReadOnly="True"
+                         AcceptsReturn="True"
+                         VerticalAlignment="Stretch" HorizontalAlignment="Left"
+                         VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
+                         Padding="4"
+                         Margin="1,1,4,1"
+                         BorderThickness="1"/>
 
         </Grid>
 
