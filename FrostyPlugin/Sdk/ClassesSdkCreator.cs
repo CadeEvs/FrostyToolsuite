@@ -300,13 +300,20 @@ namespace Frosty.Core.Sdk
                         sb.Append(WriteClass(classObj));
                         sb.AppendLine("}");
                     }
-                    else if (type == EbxFieldType.Delegate || type == EbxFieldType.Function)
+                    else if (type == EbxFieldType.Delegate)
                     {
                         sb.AppendLine("namespace Reflection\r\n{");
-                        sb.AppendLine("[" + typeof(DisplayNameAttribute).Name + "(\"" + classObj.GetValue<string>("name") + "\")]");
+                        sb.Append(WriteDelegate(classObj));
+                        sb.AppendLine("}");
+                    }
+                    else if (type == EbxFieldType.Function)
+                    {
+                        sb.AppendLine("namespace Reflection\r\n{");
+                        //sb.AppendLine("[" + typeof(DisplayNameAttribute).Name + "(\"" + classObj.GetValue<string>("name") + "\")]");
                         sb.AppendLine("[" + typeof(GuidAttribute).Name + "(\"" + classObj.GetValue<Guid>("guid") + "\")]");
-                        sb.AppendLine($"[{typeof(HashAttribute).Name}({classObj.GetValue<int>("nameHash")})]");
-                        sb.AppendLine("public class Delegate_" + classObj.GetValue<Guid>("guid").ToString().Replace('-', '_') + " { }\r\n}");
+                        sb.AppendLine(string.Format("[{0}({1})]", typeof(HashAttribute).Name, classObj.GetValue<int>("nameHash", 0)));
+                        //sb.AppendLine("public class Delegate_" + classObj.GetValue<Guid>("guid").ToString().Replace('-', '_') + " { }\r\n}");
+                        sb.AppendLine(string.Format("public class {0} {{ }} }}", classObj.GetValue<string>("name")));
                     }
                 }
 
@@ -354,7 +361,7 @@ namespace Frosty.Core.Sdk
             compilerParams.ReferencedAssemblies.Add("FrostySdk.dll");
 
             CompilerResults results = provider.CompileAssemblyFromFile(compilerParams, "temp.cs");
-            File.Delete("temp.cs");
+            //File.Delete("temp.cs");
 
 #if FROSTY_ALPHA || FROSTY_DEVELOPER
             if (results.Errors.Count > 0)
@@ -368,6 +375,45 @@ namespace Frosty.Core.Sdk
                 }
             }
 #endif
+        }
+
+        private string WriteDelegate(DbObject delegateObj)
+        {
+            StringBuilder sb = new StringBuilder();
+            {
+                sb.Append(WriteClassAttributes(delegateObj));
+                string returnType = "void";
+
+                StringBuilder inputParams = new StringBuilder();
+                {
+                    foreach (DbObject parameterObj in delegateObj.GetValue<DbObject>("parameters"))
+                    {
+                        switch (parameterObj.GetValue<byte>("parameterType"))
+                        {
+                            case 0:
+                                inputParams.Append(string.Format("{0} {1}, ", parameterObj.GetValue<string>("baseType"), parameterObj.GetValue<string>("name")));
+                                break;
+                            case 1:
+                                returnType = parameterObj.GetValue<string>("baseType");
+                                break;
+                            case 2:
+                                // in ptr
+                                inputParams.Append(string.Format("{0} {1}, ", parameterObj.GetValue<string>("baseType"), parameterObj.GetValue<string>("name")));
+                                break;
+                            case 3:
+                                // out ptr
+                                returnType = parameterObj.GetValue<string>("baseType");
+                                break;
+                        }
+                    }
+                    if (inputParams.Length > 0)
+                    {
+                        inputParams.Remove(inputParams.Length - 2, 2);
+                    }
+                }
+                sb.AppendLine(string.Format("public delegate {0} {1} ({2});", returnType, delegateObj.GetValue<string>("name"), inputParams.ToString()));
+            }
+            return sb.ToString();
         }
 
         private string WriteEnum(DbObject enumObj)
@@ -527,11 +573,6 @@ namespace Frosty.Core.Sdk
                             continue;
                         }
 
-                        if ((EbxFieldType)fieldObj.GetValue<int>("type") == EbxFieldType.Delegate || (EbxFieldType)fieldObj.GetValue<int>("type") == EbxFieldType.Function)
-                        {
-                            continue;
-                        }
-
                         string fieldName = fieldObj.GetValue<string>("name");
                         sb.AppendLine(((z++ != 0) ? "&& " : "") + fieldName + " == b." + fieldName);
                     }
@@ -543,11 +584,6 @@ namespace Frosty.Core.Sdk
                     {
                         DbObject fieldMeta = fieldObj.GetValue<DbObject>("meta");
                         if (fieldMeta != null && fieldMeta.HasValue("hidden"))
-                        {
-                            continue;
-                        }
-
-                        if ((EbxFieldType)fieldObj.GetValue<int>("type") == EbxFieldType.Delegate || (EbxFieldType)fieldObj.GetValue<int>("type") == EbxFieldType.Function)
                         {
                             continue;
                         }
@@ -864,6 +900,8 @@ namespace Frosty.Core.Sdk
                 case EbxFieldType.Pointer: return "PointerRef";
                 case EbxFieldType.Enum: return baseType;
                 case EbxFieldType.Struct: return baseType;
+                case EbxFieldType.Delegate: return baseType;
+                case EbxFieldType.Function: return baseType;
             }
 
             return "";
@@ -894,6 +932,7 @@ namespace Frosty.Core.Sdk
             public long ParentClass;
             public long ArrayTypeOffset;
             public List<FieldInfo> Fields = new List<FieldInfo>();
+            public List<ParameterInfo> Parameters = new List<ParameterInfo>();
 
             public virtual void Read(MemoryReader reader)
             {
@@ -1132,6 +1171,22 @@ namespace Frosty.Core.Sdk
                 Offset = reader.ReadUInt();
                 Padding1 = reader.ReadUShort();
                 TypeOffset = reader.ReadLong();
+            }
+
+            public virtual void Modify(DbObject fieldObj)
+            {
+            }
+        }
+
+        public class ParameterInfo
+        {
+            public string Name;
+            public long TypeOffset;
+            public long Type;
+            public object DefaultValue;
+
+            public virtual void Read(MemoryReader reader)
+            {
             }
 
             public virtual void Modify(DbObject fieldObj)
@@ -1685,13 +1740,20 @@ namespace Frosty.Core.Sdk
                         fieldObj.AddValue("nameHash", field.NameHash);
                     }
 
-                    if (field.DebugType == EbxFieldType.Pointer || field.DebugType == EbxFieldType.Struct || field.DebugType == EbxFieldType.Enum)
+                    if (field.DebugType == EbxFieldType.Pointer || field.DebugType == EbxFieldType.Struct || field.DebugType == EbxFieldType.Enum || field.DebugType == EbxFieldType.Delegate || field.DebugType == EbxFieldType.Function)
                     {
                         string baseTypeName = origField.GetValue<string>("baseType");
                         int idx = m_values.FindIndex((Tuple<EbxClass, DbObject> a) => a.Item1.Name == baseTypeName && !a.Item2.HasValue("basic"));
                         if (idx != -1)
                         {
-                            fieldObj.AddValue("baseType", m_values[idx].Item1.Name);
+                            if (field.DebugType == EbxFieldType.Delegate || field.DebugType == EbxFieldType.Function)
+                            {
+                                fieldObj.AddValue("baseType", string.Format("Reflection.{0}", m_values[idx].Item1.Name));
+                            }
+                            else
+                            {
+                                fieldObj.AddValue("baseType", m_values[idx].Item1.Name);
+                            }
                         }
                         else if (field.DebugType == EbxFieldType.Enum)
                         {
@@ -1933,6 +1995,10 @@ namespace Frosty.Core.Sdk
                     }
                     CreateClassObject(classInfo, ref classList);
                 }
+                else if (classInfo.TypeInfo.Type == 0x1c)
+                {
+                    CreateDelegateObject(classInfo, ref classList);
+                }
                 else if (classInfo.TypeInfo.Type != 4)
                 {
                     CreateBasicClassObject(classInfo, ref classList);
@@ -2044,6 +2110,62 @@ namespace Frosty.Core.Sdk
             }
 
             classObj.AddValue("fields", fieldList);
+            classList.Add(classObj);
+
+            m_alreadyProcessedClasses.Add(classInfo.TypeInfo.Name);
+        }
+
+        private void CreateDelegateObject(ClassInfo classInfo, ref DbObject classList)
+        {
+            if (m_alreadyProcessedClasses.Contains(classInfo.TypeInfo.Name))
+            {
+                return;
+            }
+
+            int alignment = classInfo.TypeInfo.Alignment;
+            int size = (int)classInfo.TypeInfo.Size;
+
+            ClassInfo arrayType = (m_offsetClassInfoMappings.ContainsKey(classInfo.TypeInfo.ArrayTypeOffset)) ? m_offsetClassInfoMappings[classInfo.TypeInfo.ArrayTypeOffset] : null;
+
+            DbObject classObj = DbObject.CreateObject();
+            classObj.SetValue("name", classInfo.TypeInfo.Name);
+            classObj.SetValue("type", classInfo.TypeInfo.Type);
+            classObj.SetValue("flags", (int)classInfo.TypeInfo.Flags);
+            classObj.SetValue("alignment", alignment);
+            classObj.SetValue("size", size);
+            classObj.SetValue("runtimeSize", size);
+            if (classInfo.TypeInfo.Guid != Guid.Empty)
+            {
+                classObj.SetValue("guid", classInfo.TypeInfo.Guid);
+            }
+            if (arrayType != null && arrayType.TypeInfo.Guid != Guid.Empty)
+            {
+                classObj.AddValue("arrayGuid", arrayType.TypeInfo.Guid);
+            }
+            classObj.SetValue("namespace", classInfo.TypeInfo.NameSpace);
+            classObj.SetValue("fields", DbObject.CreateList());
+            classObj.SetValue("parent", "");
+
+            classInfo.TypeInfo.Modify(classObj, m_offsetClassInfoMappings);
+
+            DbObject parameterList = new DbObject(false);
+            foreach (ParameterInfo parameter in classInfo.TypeInfo.Parameters)
+            {
+                DbObject parameterObj = new DbObject();
+
+                ClassInfo parameterType = m_offsetClassInfoMappings[parameter.TypeOffset];
+                parameterObj.AddValue("name", parameter.Name);
+                parameterObj.AddValue("type", parameterType.TypeInfo.Type);
+                parameterObj.AddValue("flags", (int)parameterType.TypeInfo.Flags);
+                parameterObj.AddValue("baseType", parameterType.TypeInfo.Name);
+                parameterObj.AddValue("defaultValue", parameter.DefaultValue);
+                parameterObj.AddValue("parameterType", parameter.Type);
+
+                parameter.Modify(parameterObj);
+                parameterList.Add(parameterObj);
+            }
+
+            classObj.AddValue("parameters", parameterList);
             classList.Add(classObj);
 
             m_alreadyProcessedClasses.Add(classInfo.TypeInfo.Name);
