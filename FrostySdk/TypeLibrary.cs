@@ -50,7 +50,7 @@ namespace FrostySdk.Attributes
         public HashAttribute(int inHash) { Hash = inHash; }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
     public class ArrayHashAttribute : Attribute
     {
         public int Hash { get; set; }
@@ -60,14 +60,14 @@ namespace FrostySdk.Attributes
     /// <summary>
     /// Specifies the guid for the class, used when looking up type refs
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
     public class GuidAttribute : Attribute
     {
         public Guid Guid { get; set; }
         public GuidAttribute(string inGuid) { Guid = Guid.Parse(inGuid); }
     }
 
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = false, Inherited = false)]
     public class ArrayGuidAttribute : Attribute
     {
         public Guid Guid { get; set; }
@@ -77,7 +77,7 @@ namespace FrostySdk.Attributes
     /// <summary>
     /// Used by Anthem to obtain the correct class during ebx reading
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, AllowMultiple = true, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = true, Inherited = false)]
     public class TypeInfoGuidAttribute : Attribute
     {
         public Guid Guid { get; set; }
@@ -359,7 +359,7 @@ namespace FrostySdk.Attributes
     /// <summary>
     /// Mandatory attribute for all Ebx based classes
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = false)]
     public class EbxClassMetaAttribute : Attribute
     {
         public EbxFieldType Type => (EbxFieldType)((Flags >> 4) & 0x1F);
