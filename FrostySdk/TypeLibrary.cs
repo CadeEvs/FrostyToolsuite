@@ -567,7 +567,11 @@ namespace FrostySdk
                     {
                         EbxAsset asset = am.GetEbx(entry);
                         if (!typeInfos.ContainsKey(asset.RootInstanceGuid))
-                            typeInfos.Add(asset.RootInstanceGuid, ((dynamic)asset.RootObject).TypeName);
+                        {
+                            string typeName = ((dynamic)asset.RootObject).TypeName;
+                            typeInfos.Add(asset.RootInstanceGuid, typeName);
+                        }
+                            
                     }
                     foreach (Type type in GetConcreteTypes())
                     {
@@ -576,7 +580,9 @@ namespace FrostySdk
                         {
                             string name = type.Name;
                             if (type.GetCustomAttribute<DisplayNameAttribute>() != null)
+                            {
                                 name = type.GetCustomAttribute<DisplayNameAttribute>().Name;
+                            }
                             typeInfos.Add(attr.Guid, name);
                         }
                         ArrayGuidAttribute arrayAttr = type.GetCustomAttribute<ArrayGuidAttribute>();
@@ -584,7 +590,9 @@ namespace FrostySdk
                         {
                             string name = type.Name;
                             if (type.GetCustomAttribute<DisplayNameAttribute>() != null)
+                            {
                                 name = type.GetCustomAttribute<DisplayNameAttribute>().Name;
+                            }
                             typeInfos.Add(arrayAttr.Guid, $"List<{name}>");
                         }
                     }
@@ -625,7 +633,20 @@ namespace FrostySdk
                 {
                     foreach (Type t in TypeLibrary.GetConcreteTypes())
                     {
-                        typeInfosByHash.Add((uint)Fnv1.HashString(t.Name), t);
+                        string name = t.Name;
+                        DisplayNameAttribute dispNameAttr = t.GetCustomAttribute<DisplayNameAttribute>();
+                        if (dispNameAttr != null)
+                        {
+                            name = t.GetCustomAttribute<DisplayNameAttribute>().Name;
+                        }
+
+                        ArrayGuidAttribute arrayAttr = t.GetCustomAttribute<ArrayGuidAttribute>();
+                        if (arrayAttr != null)
+                        {
+                            name = $"List<{name}>";
+                        }
+
+                        typeInfosByHash.Add((uint)Fnv1.HashString(name), t);
                     }
                 }
 

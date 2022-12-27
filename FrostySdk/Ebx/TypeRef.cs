@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Frosty.Hash;
+using System;
 
 namespace FrostySdk.Ebx
 {
@@ -24,7 +25,7 @@ namespace FrostySdk.Ebx
             typeGuid = guid;
             typeName = TypeLibrary.Reflection.LookupType(guid);
             // type is likely using a signed GUID
-            if (typeName == "" || typeName == guid.ToString())
+            if (typeName == guid.ToString())
             {
                 Type refType = TypeLibrary.GetType(guid);
                 if (refType == null)
@@ -32,6 +33,30 @@ namespace FrostySdk.Ebx
                     throw new Exception($"Could not find a type with the GUID {guid}");
                 }
                 typeName = refType.Name;
+            }
+        }
+
+        public Type GetReferencedType()
+        {
+            // should be a primitive type if the GUID is empty
+            if (typeGuid == Guid.Empty)
+            {
+                Type refType = TypeLibrary.GetType(typeName);
+                if (refType == null)
+                {
+                    throw new Exception($"Could not find the type {typeName}");
+                }
+                return refType;
+            }
+            else
+            {
+
+                Type refType = TypeLibrary.GetType((uint)Fnv1.HashString(typeName));
+                if (refType == null)
+                {
+                    throw new Exception($"Could not find the type {typeName}");
+                }
+                return refType;
             }
         }
 

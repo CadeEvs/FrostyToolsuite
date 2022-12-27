@@ -1141,17 +1141,30 @@ namespace FrostySdk.IO
                 return (0, 0);
             }
 
-            Type typeRefType = TypeLibrary.GetType(typeRef.Name);
+            Type typeRefType = typeRef.GetReferencedType();
             int typeIdx = FindExistingClass(typeRefType);
             EbxClassMetaAttribute cta = typeRefType.GetCustomAttribute<EbxClassMetaAttribute>();
 
+            EbxFieldType type = EbxFieldType.Inherited;
+            EbxFieldCategory category = EbxFieldCategory.None;
+            if (cta != null)
+            {
+                type = cta.Type;
+                category = (EbxFieldCategory)(cta.Flags & 0xF);
+            }
+            else if (typeRefType.Name.StartsWith("Delegate"))
+            {
+                type = EbxFieldType.Delegate;
+                category = EbxFieldCategory.DelegateType;
+            }
+
             (ushort, ushort) tiPair;
-            uint typeFlags = (uint)cta.Type << 5;
-            typeFlags |= (uint)(cta.Flags & 0xF) << 1;
+            uint typeFlags = (uint)type << 5;
+            typeFlags |= (uint)category << 1;
             typeFlags |= 1;
 
             tiPair.Item1 = (ushort)typeFlags;
-            if ((EbxFieldCategory)(cta.Flags & 0xF) == EbxFieldCategory.PrimitiveType)
+            if (category == EbxFieldCategory.PrimitiveType)
             {
                 typeFlags |= 0x80000000;
                 tiPair.Item2 = (ushort)typeIdx;
@@ -1745,6 +1758,32 @@ namespace FrostySdk.IO
                 break;
             }
 
+            if (!classType.HasValue)
+            {
+                if (objType.Name.StartsWith("Delegate"))
+                {
+                    classType = new EbxClass()
+                    {
+                        Type = 456,
+                        Name = objType.GetCustomAttribute<DisplayNameAttribute>().Name
+                    };
+                }
+                else
+                {
+                    EbxClassMetaAttribute cta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+                    if (cta == null)
+                    {
+                        throw new InvalidDataException($"Unhandled type: {objType.Name}");
+                    }
+                    classType = new EbxClass()
+                    {
+                        Type = cta.Flags,
+                        Name = objType.Name,
+                        Alignment = cta.Alignment,
+                        Size = cta.Size
+                    };
+                }
+            }
             return classType.Value;
         }
 
