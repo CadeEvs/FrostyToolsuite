@@ -1364,8 +1364,8 @@ namespace Frosty.ModSupport
                     }
                 }
 
-                int namesCount = 0;
-                int tableCount = 0;
+                uint namesCount = 0;
+                uint tableCount = 0;
                 uint tableOffset = uint.MaxValue;
                 HuffmanDecoder huffmanDecoder = null;
 
@@ -1373,8 +1373,8 @@ namespace Frosty.ModSupport
                 {
                     tocFlags |= InternalFlags.HasCompressedStrings;
                     huffmanDecoder = new HuffmanDecoder();
-                    namesCount = reader.ReadInt(Endian.Big);
-                    tableCount = reader.ReadInt(Endian.Big);
+                    namesCount = reader.ReadUInt(Endian.Big);
+                    tableCount = reader.ReadUInt(Endian.Big);
                     tableOffset = reader.ReadUInt(Endian.Big) + startPos;
                 }
 

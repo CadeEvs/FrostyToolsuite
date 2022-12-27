@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace FrostySdk.Managers
@@ -16,6 +17,62 @@ namespace FrostySdk.Managers
         HasBaseChunks = 2, // base toc has chunks that the patch doesnt have
         HasCompressedNames = 4 // bundle names are huffman encoded
     }
+
+    //public class HuffmanDecoder
+    //{
+    //    private int[] table;
+    //    private uint[] data;
+
+    //    public void ReadEncryptedData(NativeReader reader, int count, Endian inEndian = Endian.Little)
+    //    {
+    //        data = new uint[count];
+    //        for (int i = 0; i < count; i++)
+    //            data[i] = reader.ReadUInt(inEndian);
+    //    }
+
+    //    public void ReadHuffmanTable(NativeReader reader, int count, Endian inEndian = Endian.Little)
+    //    {
+
+    //        table = new int[count];
+    //        for (int i = 0; i < count; i++)
+    //            table[i] = reader.ReadInt(inEndian);
+    //    }
+
+    //    public string ReadHuffmanEncodedString(int bitIndex)
+    //    {
+    //        if (table == null || data == null)
+    //            throw new InvalidDataException("No table or data.");
+
+    //        StringBuilder sb = new StringBuilder();
+    //        while (true)
+    //        {
+    //            int val = table.Length / 2 - 1;
+
+    //            do
+    //            {
+    //                uint index = (data[bitIndex / 32] >> (bitIndex % 32)) & 1;
+    //                val = table[val * 2 + index];
+    //                bitIndex++;
+    //            }
+    //            while (val >= 0);
+
+    //            char c = (char)(~val);
+
+    //            if (c == 0)
+    //            {
+    //                return sb.ToString();
+    //            }
+
+    //            sb.Append(c);
+    //        }
+    //    }
+
+    //    public void Dispose()
+    //    {
+    //        table = null;
+    //        data = null;
+    //    }
+    //}
 
     public partial class AssetManager
     {
@@ -109,16 +166,16 @@ namespace FrostySdk.Managers
                         ReadToc(parent, sbName, baseReader, ref bundles, false);
                 }
 
-                int namesCount = 0;
-                int tableCount = 0;
+                uint namesCount = 0;
+                uint tableCount = 0;
                 uint tableOffset = uint.MaxValue;
                 HuffmanDecoder huffmanDecoder = null;
 
                 if (flags.HasFlag(Flags.HasCompressedNames))
                 {
                     huffmanDecoder = new HuffmanDecoder();
-                    namesCount = reader.ReadInt(Endian.Big);
-                    tableCount = reader.ReadInt(Endian.Big);
+                    namesCount = reader.ReadUInt(Endian.Big);
+                    tableCount = reader.ReadUInt(Endian.Big);
                     tableOffset = reader.ReadUInt(Endian.Big) + startPos;
                 }
 

@@ -47,7 +47,7 @@ namespace FrostySdk
         /// <param name="reader">The <see cref="NativeReader"/> the Huffman Table gets read from.</param>
         /// <param name="count">The number of Huffman Nodes the Table contains.</param>
         /// <param name="endian">The Endianess in which the Huffman Table gets read.</param>
-        public void ReadHuffmanTable(NativeReader reader, int count, Endian endian = Endian.Little)
+        public void ReadHuffmanTable(NativeReader reader, uint count, Endian endian = Endian.Little)
         {
             m_rootNode = null;
             HuffmanNode leftNode = null;
@@ -98,7 +98,7 @@ namespace FrostySdk
         /// <param name="reader">The <see cref="NativeReader"/> the encoded data gets read from.</param>
         /// <param name="count">The number of <see cref="int"/>s the data contains.</param>
         /// <param name="endian">The Endianess in which the encoded data gets read.</param>
-        public void ReadEncodedData(NativeReader reader, int count, Endian endian = Endian.Little)
+        public void ReadEncodedData(NativeReader reader, uint count, Endian endian = Endian.Little)
         {
             m_data = new int[count];
 
