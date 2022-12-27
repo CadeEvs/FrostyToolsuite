@@ -361,7 +361,7 @@ namespace Frosty.Core.Sdk
             compilerParams.ReferencedAssemblies.Add("FrostySdk.dll");
 
             CompilerResults results = provider.CompileAssemblyFromFile(compilerParams, "temp.cs");
-            //File.Delete("temp.cs");
+            File.Delete("temp.cs");
 
 #if FROSTY_ALPHA || FROSTY_DEVELOPER
             if (results.Errors.Count > 0)
