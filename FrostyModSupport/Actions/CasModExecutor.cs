@@ -627,6 +627,94 @@ namespace Frosty.ModSupport
                             }
                         }
 
+                        // check for modified toc chunks
+                        if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                        {
+                            foreach (Guid chunkId in parent.m_modifiedBundles[s_chunksBundleHash].Modify.Chunks)
+                            {
+                                if (chunks.ContainsKey(chunkId))
+                                {
+                                    ChunkInfo chunkInfo = chunks[chunkId];
+
+                                    ChunkAssetEntry entry = parent.m_modifiedChunks[chunkId];
+
+                                    string catalog;
+                                    if (chunkInfo.SplitIndex != -1)
+                                    {
+                                        isSplitTocModified[chunkInfo.SplitIndex] = true;
+                                        catalog = SuperBundleInfo.SplitSuperBundles[chunkInfo.SplitIndex];
+                                    }
+                                    else
+                                    {
+                                        isDefaultTocModified = true;
+                                        catalog = m_catalog;
+                                    }
+
+                                    // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
+                                    if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
+                                    {
+                                        casWriter?.Close();
+                                        casWriter = GetNextCas(catalog, out casFileIndex);
+                                    }
+
+                                    chunkInfo.IsPatch = true;
+                                    chunkInfo.CasFileInfo.IsPatch = parent.m_hasPatchFolder;
+                                    chunkInfo.CasFileInfo.CatalogIndex = (byte)parent.m_fs.GetCatalogIndex(catalog);
+                                    chunkInfo.CasFileInfo.CasIndex = (byte)casFileIndex;
+                                    chunkInfo.CasFileInfo.Offset = (uint)casWriter.Position;
+                                    chunkInfo.CasFileInfo.Size = (uint)parent.m_archiveData[entry.Sha1].Data.Length;
+
+                                    casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
+                                }
+                            }
+
+                            // TODO: added chunks
+                            if (SuperBundleInfo.Name.EndsWith("globals"))
+                            {
+                                foreach (Guid chunkId in parent.m_modifiedBundles[s_chunksBundleHash].Add.Chunks)
+                                {
+                                    ChunkInfo chunkInfo = new ChunkInfo()
+                                    {
+                                        Guid = chunkId,
+                                        SplitIndex = -1,
+                                        SbName = SuperBundleInfo.Name
+                                    };
+
+                                    chunks.Add(chunkId, chunkInfo);
+
+                                    ChunkAssetEntry entry = parent.m_modifiedChunks[chunkId];
+
+                                    string catalog;
+                                    if (chunkInfo.SplitIndex != -1)
+                                    {
+                                        isSplitTocModified[chunkInfo.SplitIndex] = true;
+                                        catalog = SuperBundleInfo.SplitSuperBundles[chunkInfo.SplitIndex];
+                                    }
+                                    else
+                                    {
+                                        isDefaultTocModified = true;
+                                        catalog = m_catalog;
+                                    }
+
+                                    // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
+                                    if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
+                                    {
+                                        casWriter?.Close();
+                                        casWriter = GetNextCas(catalog, out casFileIndex);
+                                    }
+
+                                    chunkInfo.IsPatch = true;
+                                    chunkInfo.CasFileInfo.IsPatch = parent.m_hasPatchFolder;
+                                    chunkInfo.CasFileInfo.CatalogIndex = (byte)parent.m_fs.GetCatalogIndex(catalog);
+                                    chunkInfo.CasFileInfo.CasIndex = (byte)casFileIndex;
+                                    chunkInfo.CasFileInfo.Offset = (uint)casWriter.Position;
+                                    chunkInfo.CasFileInfo.Size = (uint)parent.m_archiveData[entry.Sha1].Data.Length;
+
+                                    casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
+                                }
+                            }
+                        }
+
                         if (isDefaultTocModified || isSplitTocModified.FirstOrDefault(b => b))
                         {
                             foreach (BundleInfo bundleInfo in bundles.Values)
@@ -681,11 +769,11 @@ namespace Frosty.ModSupport
                                     //    patchReader?.Dispose();
                                     //    if (tocFlags.HasFlag(InternalFlags.HasInlineSb))
                                     //    {
-                                    //        patchReader = new NativeReader(new FileStream(parent.fs.ResolvePath(string.Format("native_patch/{0}.toc", patchSbPath)), FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator());
+                                    //        patchReader = new NativeReader(new FileStream(parent.m_fs.ResolvePath(string.Format("native_patch/{0}.toc", patchSbPath)), FileMode.Open, FileAccess.Read), parent.m_fs.CreateDeobfuscator());
                                     //    }
                                     //    else
                                     //    {
-                                    //        patchReader = new NativeReader(new FileStream(parent.fs.ResolvePath(string.Format("native_patch/{0}.sb", patchSbPath)), FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator());
+                                    //        patchReader = new NativeReader(new FileStream(parent.m_fs.ResolvePath(string.Format("native_patch/{0}.sb", patchSbPath)), FileMode.Open, FileAccess.Read), parent.m_fs.CreateDeobfuscator());
                                     //    }
                                     //}
 
@@ -704,50 +792,6 @@ namespace Frosty.ModSupport
                                     modWriter.WritePadding(4);
                                 }
                             }
-                        }
-
-                        // check for modified toc chunks
-                        if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
-                        {
-                            foreach (Guid chunkId in parent.m_modifiedBundles[s_chunksBundleHash].Modify.Chunks)
-                            {
-                                if (chunks.ContainsKey(chunkId))
-                                {
-                                    ChunkInfo chunkInfo = chunks[chunkId];
-
-                                    ChunkAssetEntry entry = parent.m_modifiedChunks[chunkId];
-
-                                    string catalog;
-                                    if (chunkInfo.SplitIndex != -1)
-                                    {
-                                        isSplitTocModified[chunkInfo.SplitIndex] = true;
-                                        catalog = SuperBundleInfo.SplitSuperBundles[chunkInfo.SplitIndex];
-                                    }
-                                    else
-                                    {
-                                        isDefaultTocModified = true;
-                                        catalog = m_catalog;
-                                    }
-
-                                    // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                    if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
-                                    {
-                                        casWriter?.Close();
-                                        casWriter = GetNextCas(catalog, out casFileIndex);
-                                    }
-
-                                    chunkInfo.IsPatch = true;
-                                    chunkInfo.CasFileInfo.IsPatch = parent.m_hasPatchFolder;
-                                    chunkInfo.CasFileInfo.CatalogIndex = (byte)parent.m_fs.GetCatalogIndex(catalog);
-                                    chunkInfo.CasFileInfo.CasIndex = (byte)casFileIndex;
-                                    chunkInfo.CasFileInfo.Offset = (uint)casWriter.Position;
-                                    chunkInfo.CasFileInfo.Size = (uint)parent.m_archiveData[entry.Sha1].Data.Length;
-
-                                    casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
-                                }
-                            }
-
-                            // TODO: added chunks
                         }
                     }
 
