@@ -24,8 +24,8 @@ using System.Windows;
 [assembly: Guid("4b612468-9b6a-4304-88a5-055c3575eb3d")]
 
 [assembly: PluginDisplayName("Launch Platform")]
-[assembly: PluginAuthor("Cade")]
-[assembly: PluginVersion("1.0.0.0")]
+[assembly: PluginAuthor("Cade and t3m1X")]
+[assembly: PluginVersion("1.0.1.0")]
 
 [assembly: RegisterOptionsExtension(typeof(LaunchOptions), Frosty.Core.PluginManagerType.Both)]
 [assembly: RegisterExecutionAction(typeof(LaunchExecutionAction))]

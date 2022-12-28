@@ -477,7 +477,7 @@ namespace FrostyModManager
             {
             }
 
-            LoadedPluginsList.ItemsSource = App.PluginManager.LoadedPlugins;
+            LoadedPluginsList.ItemsSource = App.PluginManager.Plugins;
 
             if (Config.Get("ApplyModOrder", "List") == "List")
             {
@@ -789,7 +789,7 @@ namespace FrostyModManager
                     if (modObj == null)
                         return -1;
 
-                    if (modObj.GetValue<string>("gameProfile") != ProfilesLibrary.ProfileName)
+                    if (modObj.GetValue<string>("gameProfile").ToLower() != ProfilesLibrary.ProfileName.ToLower())
                         return -2;
 
                     if (modObj.GetValue<int>("gameVersion") != fs.Head)
@@ -1158,7 +1158,7 @@ namespace FrostyModManager
                                 string newDesc = "(Converted from .daimod)\r\n\r\n" + elem["description"].InnerText + "\r\n\r\n" + configValues;
 
                                 DbObject modObject = new DbObject();
-                                modObject.AddValue("magic", "FBMODV2");
+                                modObject.AddValue("magic", "FBMODV3");
                                 modObject.AddValue("gameProfile", ProfilesLibrary.ProfileName);
                                 modObject.AddValue("gameVersion", 0);
 
@@ -1235,9 +1235,13 @@ namespace FrostyModManager
                                         resource.AddValue("rangeEnd", uint.Parse(subElem.GetAttribute("rangeEnd")));
                                         resource.AddValue("logicalOffset", uint.Parse(subElem.GetAttribute("logicalOffset")));
                                         resource.AddValue("logicalSize", uint.Parse(subElem.GetAttribute("logicalSize")));
+                                        resource.AddValue("h32", int.Parse(subElem.GetAttribute("chunkH32")));
 
-                                        if (subElem.GetAttribute("meta") != "00")
-                                            resource.SetValue("firstMip", 3);
+                                        string meta = subElem.GetAttribute("meta");
+                                        if (meta != "00")
+                                        {
+                                            resource.SetValue("firstMip", int.Parse(meta.Substring(20, 8), NumberStyles.HexNumber));
+                                        }
 
                                         // add special chunks bundle
                                         DbObject action = new DbObject();
@@ -1914,6 +1918,18 @@ namespace FrostyModManager
             appliedModsList.ItemContainerStyle = style;
 
             updateAppliedModButtons();
+        }
+
+        private void CopyFullExceptionMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Plugin selectedPlugin = (Plugin)LoadedPluginsList.SelectedItem;
+
+            // retrieve the selected plugin's load exception, execute ToString on it, and add the result to the clipboard
+            Clipboard.SetText(string.Format("[{0}]\n{1}", new string[]
+            {
+                DateTime.Now.ToString(),
+                selectedPlugin.LoadException.ToString()
+            }));
         }
     }
 }

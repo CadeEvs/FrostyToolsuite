@@ -986,7 +986,7 @@ namespace Frosty.Core
                 return false;
 
             string gameProfile = project.GetValue<string>("gameProfile", ProfilesLibrary.ProfileName);
-            if (gameProfile != ProfilesLibrary.ProfileName)
+            if (gameProfile.ToLower() != ProfilesLibrary.ProfileName.ToLower())
                 return false;
 
             creationDate = new DateTime(project.GetValue<long>("creationDate"));

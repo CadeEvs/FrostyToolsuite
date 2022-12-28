@@ -1317,6 +1317,7 @@ namespace Frosty.ModSupport
                                         int index = 0;
                                         foreach (DbObject chunk in sbBundle.GetValue<DbObject>("chunks"))
                                         {
+                                            index++;
                                             Guid id = chunk.GetValue<Guid>("id");
                                             if (modBundle.Remove.Chunks.Contains(id))
                                             {

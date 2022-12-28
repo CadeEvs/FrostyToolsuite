@@ -949,6 +949,17 @@ namespace Frosty.ModSupport
                         // issues result from this.
                         entry.FirstMip = 0;
                     }
+                    else if (ver == 3 && entry.FirstMip != -1)
+                    {
+                        // if mod is converted from daimod it needs to be added to the toc if its a texture chunk
+                        if (!modifiedBundles.ContainsKey(chunksBundleHash))
+                        {
+                            modifiedBundles.TryAdd(chunksBundleHash, new ModBundleInfo() { Name = chunksBundleHash });
+                        }
+
+                        ModBundleInfo chunksBundle = modifiedBundles[chunksBundleHash];
+                        chunksBundle.Add.Chunks.Add(entry.Id);
+                    }
 
                     if (entry.FirstMip == -1 && entry.RangeEnd != 0)
                         entry.FirstMip = 0;
