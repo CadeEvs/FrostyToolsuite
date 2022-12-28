@@ -84,10 +84,12 @@
                          VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
                          Padding="4"
                          Margin="1,1,4,1"
-                         BorderThickness="1"/>
+                         BorderThickness="1"
+                         Background="{StaticResource ControlBackground}"
+                         />
 
             <RichTextBox Grid.Row="4" x:Name="Part_EditedTextBox"
-                         IsReadOnly="True"
+                         IsReadOnly="False"
                          AcceptsReturn="True"
                          VerticalAlignment="Stretch" HorizontalAlignment="Left"
                          VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Disabled"
@@ -117,19 +119,19 @@
 
             <Button
                 Grid.Row="2"
+                x:Name="Part_FindPreviousButton" Content="Find Previous Text"
+                HorizontalAlignment="Stretch" VerticalAlignment="Top"
+                Width="Auto" Height="27"
+                Margin="2,3,2,3"
+                ClickMode="Press" Click="FindPrevious"/>
+
+            <Button
+                Grid.Row="3"
                 x:Name="Part_ReplaceButton" Content="Replace Text"
                 HorizontalAlignment="Stretch" VerticalAlignment="Top"
                 Width="Auto" Height="27"
                 Margin="2,3,2,3"
                 ClickMode="Press" Click="Replace"/>
-
-            <Button
-                Grid.Row="3"
-                x:Name="Part_EditButton" Content="Edit Text"
-                HorizontalAlignment="Stretch" VerticalAlignment="Top"
-                Width="Auto" Height="27"
-                Margin="2,3,2,3"
-                ClickMode="Press" Click="Edit"/>
 
             <Button
                 Grid.Row="4"

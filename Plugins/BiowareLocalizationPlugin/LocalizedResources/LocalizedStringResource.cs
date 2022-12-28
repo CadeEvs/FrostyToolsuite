@@ -1324,18 +1324,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 throw new InvalidOperationException("Modified resource not bound to any resource!");
             }
 
-            writer.Write(m_MOD_PERSISTENCE_VERSION);
-
-            writer.Write(m_resRid);
-            writer.Write(AlteredTexts.Count);
-
-            // use a binary writer from here to write all the texts in utf-8
-            writer.Write(ResourceUtils.ConvertTextEntriesToBytes(AlteredTexts));
-
-            writer.Write(AlteredDeclinatedCraftingAdjectives.Count);
-
-            // kind of stupid to do the whole writer creation again here, but its only for one resource or so..
-            writer.Write(ResourceUtils.ConvertAdjectivesToBytes(AlteredDeclinatedCraftingAdjectives));
+            // because users probably don't update...
+            if (AlteredDeclinatedCraftingAdjectives.Count == 0)
+            {
+                SaveVersion1Texts(writer);
+            }
+            else
+            {
+                SaveVersion2TextsWithAdjectives(writer);
+            }
         }
 
         public ulong GetResRid()
@@ -1373,6 +1370,35 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
                 SetDeclinatedCraftingAdjective(adjectiveId, adjectives);
             }
+        }
+
+        private void SaveVersion1Texts(NativeWriter writer)
+        {
+            // version field
+            writer.Write(1u);
+
+            WriteResRidAndTexts(writer);
+        }
+
+        private void SaveVersion2TextsWithAdjectives(NativeWriter writer)
+        {
+            writer.Write(m_MOD_PERSISTENCE_VERSION);
+
+            WriteResRidAndTexts(writer);
+
+            writer.Write(AlteredDeclinatedCraftingAdjectives.Count);
+
+            // kind of stupid to do the whole writer creation again here, but its only for one resource or so..
+            writer.Write(ResourceUtils.ConvertAdjectivesToBytes(AlteredDeclinatedCraftingAdjectives));
+        }
+
+        private void WriteResRidAndTexts(NativeWriter writer)
+        {
+            writer.Write(m_resRid);
+            writer.Write(AlteredTexts.Count);
+
+            // use a binary writer from here to write all the texts in utf-8
+            writer.Write(ResourceUtils.ConvertTextEntriesToBytes(AlteredTexts));
         }
     }
 }

@@ -7,6 +7,7 @@ using FrostySdk;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using FrostySdk.Resources;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -163,6 +164,12 @@ namespace BiowareLocalizationPlugin
             ResAssetEntry originalResAsset = am.GetResEntry(origEntry.Name);
             ModifiedLocalizationResource modified = data as ModifiedLocalizationResource;
             LocalizedStringResource resource = am.GetResAs<LocalizedStringResource>(originalResAsset, modified);
+
+            // read about some weird null reference exception in here, so _maybe_ it was the resource?
+            if(resource == null)
+            {
+                throw new ArgumentNullException("resource", string.Format("Resource in BwLocalizationHandler Modify(...) is null after GetResAs call for <{0}>!", origEntry.Name));
+            }
 
             byte[] uncompressedData = resource.SaveBytes();
             outData = Utils.CompressFile(uncompressedData);

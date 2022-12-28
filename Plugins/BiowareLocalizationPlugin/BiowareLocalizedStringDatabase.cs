@@ -334,9 +334,25 @@ namespace BiowareLocalizationPlugin
 
         // This method came with 1.06.beta1, and i still believe bulk operations to be more a risk of breaking texts than working properly
         // - or at least my implementation of that function would be ;D
+        // But now sequencial replacements should work somewhat decently
         public void BulkReplaceWindow()
         {
-            App.Logger.LogWarning("Bulk replacement is not supported for bioware games");
+            List<string> textsWithId = new List<string>();
+
+            List<uint> textIds = GetAllTextIds(DefaultLanguage).ToList();
+            textIds.Sort();
+
+            foreach (uint textId in textIds)
+            {
+                string text = GetText(DefaultLanguage, textId);
+                textsWithId.Add(textId.ToString("X8") + " - " + text);
+            }
+
+            ReplaceWindow replaceWindow = new ReplaceWindow(this, DefaultLanguage, textsWithId)
+            {
+                Owner = Application.Current.MainWindow
+            };
+            replaceWindow.ShowDialog();
         }
 
         /// <summary>
