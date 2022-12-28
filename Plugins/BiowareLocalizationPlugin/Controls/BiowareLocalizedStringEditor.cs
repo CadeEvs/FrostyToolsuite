@@ -867,7 +867,13 @@ namespace BiowareLocalizationPlugin.Controls
         private void ShowReplaceWindow(object sender, RoutedEventArgs e)
         {
 
-            ReplaceWindow replaceWindow = new ReplaceWindow(m_textDB, m_selectedLanguageFormat, m_stringIdListBox)
+            List<string> stringsWithId = new List<string>();
+            foreach (string entry in m_stringIdListBox.Items)
+            {
+                stringsWithId.Add(entry);
+            }
+
+            ReplaceWindow replaceWindow = new ReplaceWindow(m_textDB, m_selectedLanguageFormat, stringsWithId, m_stringIdListBox.SelectedIndex)
             {
                 Owner = Application.Current.MainWindow
             };
@@ -876,11 +882,11 @@ namespace BiowareLocalizationPlugin.Controls
             if (save.HasValue && save.Value)
             {
                 // the replace window currently updates the selection of this view.
-                uint lastSelected = GetCurrentStringId();
+                uint lastReplacedId = m_textIdsList[replaceWindow.LastEditedIndex];
 
                 ReLoadStrings(sender, e);
 
-                SearchTextId(lastSelected);
+                SearchTextId(lastReplacedId);
             }
         }
 

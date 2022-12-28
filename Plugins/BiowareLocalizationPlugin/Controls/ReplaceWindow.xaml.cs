@@ -18,11 +18,16 @@ namespace BiowareLocalizationPlugin.Controls
     /// </summary>
     public partial class ReplaceWindow : FrostyDockableWindow
     {
+        /// <summary>
+        /// The index of the last edited entry.
+        /// </summary>
+        public int LastEditedIndex { get; private set; }
 
         /// <summary>
-        /// The list box from the main edit window - we search and select directly on there!
+        /// This dialogs list of strings, prepended by their id value.
+        /// I could have use a sorted dictionary like civilized man, but that would require refactoring the old main ui, which i don't currently want to.
         /// </summary>
-        private readonly ListBox m_mainWindowTextSelectionBox;
+        private readonly List<string> m_textsWithIdList;
 
         /// <summary>
         /// The language selected in the main view.
@@ -39,14 +44,20 @@ namespace BiowareLocalizationPlugin.Controls
         /// </summary>
         private bool m_wasAnythingReplaced = false;
 
-        public ReplaceWindow(BiowareLocalizedStringDatabase inStringDb, string inSelectedLanguage, ListBox inTextListBox)
+        /// <summary>
+        /// The currently selected index.
+        /// </summary>
+        private int m_selectedIndex;
+
+        public ReplaceWindow(BiowareLocalizedStringDatabase inStringDb, string inSelectedLanguage, List<string> inTextWithIds, int inSelectedIndex = -1)
         {
-            // TODO need better input than the list box from the main window
             InitializeComponent();
 
             m_stringDb = inStringDb;
             m_selectedLanguageFormat = inSelectedLanguage;
-            m_mainWindowTextSelectionBox = inTextListBox;
+            m_textsWithIdList = inTextWithIds;
+            m_selectedIndex = inSelectedIndex;
+            LastEditedIndex = 0;
         }
 
         // https://stackoverflow.com/questions/53319918/highlighting-coloring-charactars-in-a-wpf-richtextbox
@@ -78,7 +89,7 @@ namespace BiowareLocalizationPlugin.Controls
             // the highlighting method works with texpointers which include non character symbols, like start and end tags for the hightlighting...
             foreach (int[] segment in partsToHighlight)
             {
-                HighlightText(textBox, segment[0]+ charOffset, segment[1]+ charOffset, color);
+                HighlightText(textBox, segment[0] + charOffset, segment[1] + charOffset, color);
                 charOffset += 4;
             }
         }
@@ -90,7 +101,21 @@ namespace BiowareLocalizationPlugin.Controls
         /// <param name="e"></param>
         private void FindNext(object sender, RoutedEventArgs e)
         {
+            Find(i => i + 1);
+        }
 
+        /// <summary>
+        /// Finds the previous text in the textSelectionBox which contains the searched for string.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void FindPrevious(object sender, RoutedEventArgs e)
+        {
+            Find(i => i - 1);
+        }
+
+        private void Find(Func<int, int> indexUpdateFunction)
+        {
             ClearSelection();
 
             string searchedFor = Part_ToFindTextField.Text;
@@ -99,10 +124,16 @@ namespace BiowareLocalizationPlugin.Controls
                 return;
             }
 
-            int searchIndex = m_mainWindowTextSelectionBox.SelectedIndex + 1;
-            int maxTextEntries = m_mainWindowTextSelectionBox.Items.Count;
-            if (searchIndex >= maxTextEntries)
+            m_selectedIndex = indexUpdateFunction(m_selectedIndex);
+            int maxTextEntries = m_textsWithIdList.Count;
+            if (m_selectedIndex < 0 )
             {
+                m_selectedIndex = -1;
+                return;
+            }
+            else if(m_selectedIndex >= maxTextEntries)
+            {
+                m_selectedIndex = maxTextEntries;
                 return;
             }
 
@@ -110,20 +141,19 @@ namespace BiowareLocalizationPlugin.Controls
             bool searchCaseSensitive = nullableSearchCaseSensitive.HasValue && nullableSearchCaseSensitive.Value;
             StringComparison comparisonType = searchCaseSensitive ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
 
-            while (searchIndex >= 0 && searchIndex < maxTextEntries)
+            while (m_selectedIndex >= 0 && m_selectedIndex < maxTextEntries)
             {
-                string queriedText = (string)m_mainWindowTextSelectionBox.Items[searchIndex];
+                string queriedText = m_textsWithIdList[m_selectedIndex];
 
                 // first 8 chars are the text Id, followed by 3 chars delimiter -> text starts at index 11
                 int searchTextPosition = queriedText.IndexOf(searchedFor, 11, comparisonType);
                 if (searchTextPosition > 0)
                 {
-                    m_mainWindowTextSelectionBox.SelectedIndex = searchIndex;
                     HandleFoundTextToReplace(queriedText, searchedFor, searchCaseSensitive);
                     return;
                 }
 
-                searchIndex++;
+                m_selectedIndex = indexUpdateFunction(m_selectedIndex);
             }
         }
 
@@ -138,8 +168,6 @@ namespace BiowareLocalizationPlugin.Controls
 
             Part_OriginalTextBox.Document.Blocks.Clear();
             Part_EditedTextBox.Document.Blocks.Clear();
-
-            Part_EditedTextBox.IsReadOnly = true;
         }
 
         /// <summary>
@@ -267,6 +295,12 @@ namespace BiowareLocalizationPlugin.Controls
             App.Logger.Log("Replaced text <{0}>", stringIdAsText);
 
             m_wasAnythingReplaced = true;
+
+            // also replace the text in memory of this dialog
+            string replacedListText = stringIdAsText + " - " + editedText;
+            m_textsWithIdList[m_selectedIndex] = replacedListText;
+
+            LastEditedIndex = m_selectedIndex;
         }
 
         // https://learn.microsoft.com/en-us/dotnet/desktop/wpf/controls/how-to-extract-the-text-content-from-a-richtextbox
@@ -280,24 +314,6 @@ namespace BiowareLocalizationPlugin.Controls
 
             string text = textRange.Text.TrimEnd("\r\n".ToCharArray());
             return text;
-        }
-
-        /// <summary>
-        /// Allows editing the edit textboxes content. Primarily removes all highlights.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Edit(object sender, RoutedEventArgs e)
-        {
-
-            TextRange range = new TextRange(Part_EditedTextBox.Document.ContentStart, Part_EditedTextBox.Document.ContentEnd);
-
-            SolidColorBrush defaultBackground = FindResource("WindowBackground") as SolidColorBrush;
-            range.ApplyPropertyValue(TextElement.BackgroundProperty, defaultBackground);
-
-            Part_EditedTextBox.IsReadOnly = false;
-            Part_EditedTextBox.Focus();
-            Part_EditedTextBox.CaretPosition = Part_EditedTextBox.Document.ContentStart;
         }
 
         private void ReplaceAndFindNext(object sender, RoutedEventArgs e)
