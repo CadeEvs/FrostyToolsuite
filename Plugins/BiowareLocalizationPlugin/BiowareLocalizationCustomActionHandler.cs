@@ -105,7 +105,7 @@ namespace BiowareLocalizationPlugin
         public IEnumerable<string> GetResourceActions(string name, byte[] data)
         {
 
-            if( !Config.Get(BiowareLocalizationPluginModManagerOptions.SHOW_INDIVIDUAL_TEXTIDS_OPTION_NAME, false, ConfigScope.Global))
+            if( !Config.Get(BiowareLocalizationPluginOptions.SHOW_INDIVIDUAL_TEXTIDS_OPTION_NAME, false, ConfigScope.Global))
             {
                 return new List<string>();
             }

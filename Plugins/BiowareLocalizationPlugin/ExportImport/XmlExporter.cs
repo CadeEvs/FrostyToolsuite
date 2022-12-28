@@ -1,5 +1,6 @@
 ﻿
 using BiowareLocalizationPlugin.LocalizedResources;
+using Frosty.Controls;
 using Frosty.Core;
 using Frosty.Core.Controls;
 using Frosty.Core.Windows;
@@ -7,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -17,8 +19,12 @@ namespace BiowareLocalizationPlugin.ExportImport
         public static void Export(BiowareLocalizedStringDatabase textDB, string languageFormat)
         {
 
-            // TODO make this a setting!
             bool exportAll = false;
+            if (Config.Get(BiowareLocalizationPluginOptions.ASK_XML_EXPORT_OPTIONS, false, ConfigScope.Global))
+            {
+                var result = FrostyMessageBox.Show("Export All Texts?\r\nSelecting 'no' will export modified texts only.", "Export Options", MessageBoxButton.YesNo);
+                exportAll = MessageBoxResult.Yes == result;
+            }
 
             FrostySaveFileDialog saveDialog = new FrostySaveFileDialog("Save Custom Texts", "*.xml (XML File)|*.xml", "LocalizedTexts_", languageFormat+"_texts");
             if (saveDialog.ShowDialog())

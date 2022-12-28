@@ -36,4 +36,4 @@ using System.Windows;
 
 [assembly: RegisterCustomHandler(CustomHandlerType.Res, typeof(BiowareLocalizationCustomActionHandler), resType: ResourceType.LocalizedStringResource, ebxType: "")]
 
-[assembly: RegisterOptionsExtension(typeof(BiowareLocalizationPluginModManagerOptions), Frosty.Core.PluginManagerType.ModManager)]
+[assembly: RegisterOptionsExtension(typeof(BiowareLocalizationPluginOptions), Frosty.Core.PluginManagerType.Both)]

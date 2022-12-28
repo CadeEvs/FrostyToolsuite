@@ -29,44 +29,9 @@ namespace BiowareLocalizationPlugin
         private readonly Dictionary<string, LanguageTextsDB> m_loadedLocalizedTextDBs = new Dictionary<string, LanguageTextsDB>();
 
         /// <summary>
-        /// Fills the language dictionary with all available languages and their bundles.
+        /// marker whether or not this was already initialized.
         /// </summary>
-        /// <returns>Sorted Dictionary of LangugeFormat names and their text super bundles paths.</returns>
-        private static SortedDictionary<string, HashSet<string>> GetLanguageDictionary()
-        {
-
-            var languagesRepository = new SortedDictionary<string, HashSet<string>>();
-
-            // There is no need to also search for 'LocalizedStringPatchTranslationsConfiguration', these are also found via their base type
-            foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("LocalizedStringTranslationsConfiguration"))
-            {
-                // read localization config
-                dynamic localizationAsset = App.AssetManager.GetEbx(entry).RootObject;
-
-                // iterate through language to bundle lists
-                foreach (dynamic languageBundleListEntry in localizationAsset.LanguagesToBundlesList)
-                {
-                    string languageName = languageBundleListEntry.Language.ToString();
-                    HashSet<string> bundleNames;
-                    if (languagesRepository.ContainsKey(languageName))
-                    {
-                        bundleNames = languagesRepository[languageName];
-                    }
-                    else
-                    {
-                        bundleNames = new HashSet<string>();
-                        languagesRepository[languageName] = bundleNames;
-                    }
-
-                    foreach (string bundlepath in languageBundleListEntry.BundlePaths)
-                    {
-                        bundleNames.Add(bundlepath);
-                    }
-                }
-            }
-
-            return languagesRepository;
-        }
+        private bool m_initialized = false;
 
         /// <summary>
         /// Initializes the db.
@@ -76,12 +41,19 @@ namespace BiowareLocalizationPlugin
 
             DefaultLanguage = "LanguageFormat_" + Config.Get<string>("Language", "English", scope: ConfigScope.Game);
 
+            if (m_initialized)
+            {
+                return;
+            }
+
             m_languageLocalizationBundles = GetLanguageDictionary();
 
             LanguageTextsDB defaultLocalizedTexts = new LanguageTextsDB();
             defaultLocalizedTexts.Init(DefaultLanguage, m_languageLocalizationBundles[DefaultLanguage]);
 
             m_loadedLocalizedTextDBs.Add(DefaultLanguage, defaultLocalizedTexts);
+
+            m_initialized = true;
         }
 
         /// <summary>
@@ -417,6 +389,46 @@ namespace BiowareLocalizationPlugin
         {
             LanguageTextsDB textDb = GetLocalizedTextDB(languageFormat);
             return textDb.GetAllModifiedTextIdsFromResource(resourceName);
+        }
+
+        /// <summary>
+        /// Fills the language dictionary with all available languages and their bundles.
+        /// </summary>
+        /// <returns>Sorted Dictionary of LangugeFormat names and their text super bundles paths.</returns>
+        private static SortedDictionary<string, HashSet<string>> GetLanguageDictionary()
+        {
+
+            var languagesRepository = new SortedDictionary<string, HashSet<string>>();
+
+            // There is no need to also search for 'LocalizedStringPatchTranslationsConfiguration', these are also found via their base type
+            foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("LocalizedStringTranslationsConfiguration"))
+            {
+                // read localization config
+                dynamic localizationAsset = App.AssetManager.GetEbx(entry).RootObject;
+
+                // iterate through language to bundle lists
+                foreach (dynamic languageBundleListEntry in localizationAsset.LanguagesToBundlesList)
+                {
+                    string languageName = languageBundleListEntry.Language.ToString();
+                    HashSet<string> bundleNames;
+                    if (languagesRepository.ContainsKey(languageName))
+                    {
+                        bundleNames = languagesRepository[languageName];
+                    }
+                    else
+                    {
+                        bundleNames = new HashSet<string>();
+                        languagesRepository[languageName] = bundleNames;
+                    }
+
+                    foreach (string bundlepath in languageBundleListEntry.BundlePaths)
+                    {
+                        bundleNames.Add(bundlepath);
+                    }
+                }
+            }
+
+            return languagesRepository;
         }
     }
 }
