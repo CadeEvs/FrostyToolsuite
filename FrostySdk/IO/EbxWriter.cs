@@ -56,7 +56,7 @@ namespace FrostySdk.IO
         {
         }
 
-        protected byte[] WriteBoxedValueRef(BoxedValueRef value)
+        protected virtual byte[] WriteBoxedValueRef(BoxedValueRef value)
         {
             // @todo: Does not at all handle boxed value arrays
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))

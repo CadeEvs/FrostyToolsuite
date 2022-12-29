@@ -36,10 +36,28 @@ namespace FrostySdk.Ebx
     {
         public object Value => value;
         public EbxFieldType Type => type;
+        public EbxFieldType ArrayType => subType;
+        public EbxFieldCategory Category => category;
+        public string TypeString
+        {
+            get
+            {
+                switch (type)
+                {
+                    case EbxFieldType.Array: return EbxTypeToString(subType, value.GetType().GenericTypeArguments[0]);
+                    case EbxFieldType.Enum:
+                    case EbxFieldType.Struct:
+                        return value.GetType().Name;
+                    case EbxFieldType.CString: return "CString";
+                    default: return type.ToString();
+                }
+            }
+        }
 
         private object value;
         private EbxFieldType type;
         private EbxFieldType subType;
+        private EbxFieldCategory category;
 
         public BoxedValueRef()
         {
@@ -56,6 +74,14 @@ namespace FrostySdk.Ebx
             value = inval;
             type = intype;
             subType = insubtype;
+        }
+
+        public BoxedValueRef(object inval, EbxFieldType intype, EbxFieldType insubtype, EbxFieldCategory incategory)
+        {
+            value = inval;
+            type = intype;
+            subType = insubtype;
+            category = incategory;
         }
 
         public void SetValue(object invalue)
