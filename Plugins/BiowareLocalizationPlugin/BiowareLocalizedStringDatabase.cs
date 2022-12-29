@@ -1,7 +1,7 @@
 ﻿using BiowareLocalizationPlugin.Controls;
 using BiowareLocalizationPlugin.LocalizedResources;
 using Frosty.Core;
-using FrostySdk.Managers;
+using FrostySdk.Managers.Entries;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

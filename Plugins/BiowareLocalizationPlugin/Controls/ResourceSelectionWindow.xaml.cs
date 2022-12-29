@@ -8,7 +8,7 @@ namespace BiowareLocalizationPlugin.Controls
     /// <summary>
     /// Interaktionslogik für ResourceSelectionWindow.xaml
     /// </summary>
-    [TemplatePart(Name = "resourcesListBox", Type =typeof(ListBox))]
+    [TemplatePart(Name = "resourcesListBox", Type = typeof(ListBox))]
     public partial class ResourceSelectionWindow : FrostyDockableWindow
     {
 
@@ -36,7 +36,7 @@ namespace BiowareLocalizationPlugin.Controls
         {
 
             SelectedResources = new List<string>();
-            foreach(string selected in resourcesListBox.SelectedItems)
+            foreach (string selected in resourcesListBox.SelectedItems)
             {
                 SelectedResources.Add(selected);
             }
