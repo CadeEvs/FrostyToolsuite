@@ -669,7 +669,7 @@ namespace Frosty.ModSupport
                             }
 
                             // TODO: added chunks
-                            if (SuperBundleInfo.Name.EndsWith("globals"))
+                            if (SuperBundleInfo.Name.Equals("win32/globals", StringComparison.OrdinalIgnoreCase))
                             {
                                 foreach (Guid chunkId in parent.m_modifiedBundles[s_chunksBundleHash].Add.Chunks)
                                 {
