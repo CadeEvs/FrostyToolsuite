@@ -29,7 +29,7 @@ namespace Frosty.Core.IO
             dataCount = ReadInt();
 
             string profileName = ReadSizedString(ReadByte());
-            if (profileName.ToLower() != ProfilesLibrary.ProfileName.ToLower())
+            if (profileName.ToLowerInvariant() != ProfilesLibrary.ProfileName.ToLowerInvariant())
                 return;
 
             GameVersion = ReadInt();
