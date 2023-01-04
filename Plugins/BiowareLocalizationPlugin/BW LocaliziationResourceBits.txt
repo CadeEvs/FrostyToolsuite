@@ -1,0 +1,68 @@
+Part:	Type and what					Byte position after this
+
+MetaData (16 bytes, located in Frosty at Resource.resMeta, not part of the byte count )
+	{
+		uint dataOffset
+		3x  byte value 0x0
+	}
+Header
+	{
+		uint magic = 0xd78b40eb			(pos 4)
+		uint ???						(pos 8)			// doesn't seem to affect anything
+		uint dataOffset					(pos 12)		// not actually used, instead the one from the metadata is the base for the game
+		3x uint ???						(pos 24)		// doens't seem to affect anything
+
+		uint nodeCount					(pos 28)
+		// nodeCount is an even integer! The rootNode as would-be last node in the node list is *not* actually part of the list!
+		
+		uint nodeOffset					(pos 32)
+		
+		uint stringsCount				(pos 36)
+		uint stringsOffset				(pos 40)
+
+			// Until the nodeOffset is reached
+			// If there are three or more entries in here,
+			// then the corresponding 8ByteBlockData after the second one contain ids and bit offsets for the declinated adjectives for text parts used for crafted items in DA:I (Note that these ids are not the same accross languages!)
+		N times Unknown8ByteBlockCountAndOffset
+		{
+			uint unknownCounts
+			uint unknownOffset
+		}
+	}
+	
+	// Position = nodeOffset -> pos most likely either 56 or 64
+HuffmanCoding
+	{
+		nodeCount x uint value == bitFlip char
+	}
+							(size = 4 per node)
+	
+	// Position = stringsOffset
+StringData
+	{
+		stringsCount x
+		{
+			uint stringId
+			int stringIndex / positionOffset
+		}
+							(size = 8 per string)
+	}
+	
+	// Position = Unknown8ByteBlockCountAndOffset[0].unknownOffset
+	// The next data blocks appears the same N times as their Unknown8ByteBlockCountAndOffset counterpart in the header
+	// Everything past the second of these blocks contains the bit offsets of the text pieces used for crafted item names in DA:I
+N times 8ByteBlockData
+	{
+		// Position = Unknown8ByteBlockCountAndOffset[index].unknownOffset
+		byte[].Length = Unknown8ByteBlockCountAndOffset[index].unknownCounts * 8
+	}
+	
+	// Position = dataOffset
+Strings
+	{
+		stringsCount * HuffmanEncodedChars
+	}
+	// stringIndex / positionOffset = bit offset from dataOffset == textBefore bitOffset + textBefore bitlentgh
+	// last symbol (only symbol of empty string) is huffman node with letter 0x00! I.e., _value_ = 0xFF
+	
+Remaining positions to full byte filled with 0s

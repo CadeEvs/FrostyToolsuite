@@ -17,6 +17,7 @@ namespace Frosty.Core.Sdk.Bf2042
         private bool m_hasNames = !ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.Battlefield2042);
 
         private uint m_nameHash;
+        private uint m_signature;
         public override void Read(MemoryReader reader)
         {
             if (m_hasNames)
@@ -37,7 +38,7 @@ namespace Frosty.Core.Sdk.Bf2042
 
             Alignment = reader.ReadUShort();
             FieldCount = reader.ReadUShort();
-            Padding3 = reader.ReadUInt(); // signature
+            m_signature = reader.ReadUInt();
 
             long[] offsets = new long[7];
             for (int i = 0; i < 7; i++)
@@ -72,6 +73,14 @@ namespace Frosty.Core.Sdk.Bf2042
                     {
                         Name = "Enum_" + m_nameHash.ToString("x8");
                     }
+                    else if (Type == 0x1c)
+                    {
+                        Name = "Delegate_" + m_nameHash.ToString("x8");
+                    }
+                    else if (Type == 0x18)
+                    {
+                        Name = "Function_" + m_nameHash.ToString("x8");
+                    }
                     else
                     {
                         Name = "Unknown_" + m_nameHash.ToString("x8");
@@ -97,6 +106,17 @@ namespace Frosty.Core.Sdk.Bf2042
                 reader.Position = offsets[0];
                 bReadFields = true;
             }
+            else if (Type == 0x1c /* Delegate */)
+            {
+                ParentClass = 0;
+                reader.Position = offsets[0];
+                for (int i = 0; i < FieldCount; i++)
+                {
+                    ParameterInfo pi = new ParameterInfo();
+                    pi.Read(reader);
+                    Parameters.Add(pi);
+                }
+            }
 
             if (bReadFields)
             {
@@ -120,6 +140,8 @@ namespace Frosty.Core.Sdk.Bf2042
             {
                 classObj.SetValue("arrayNameHash", arrayType.TypeInfo.As<TypeInfo>().m_nameHash);
             }
+
+            classObj.SetValue("signature", m_signature);
         }
     }
 
@@ -136,7 +158,7 @@ namespace Frosty.Core.Sdk.Bf2042
             ClassesSdkCreator.NextOffset = reader.ReadLong();
 
             Id = reader.ReadUShort();
-            ushort flags = reader.ReadUShort();
+            IsDataContainer = reader.ReadUShort();
             Padding = new byte[] { reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte() };
             ParentClass = reader.ReadLong();
 
@@ -196,6 +218,29 @@ namespace Frosty.Core.Sdk.Bf2042
         public override void Modify(DbObject fieldObj)
         {
             fieldObj.SetValue("nameHash", m_nameHash);
+        }
+    }
+
+    public class ParameterInfo : ClassesSdkCreator.ParameterInfo
+    {
+        public override void Read(MemoryReader reader)
+        {
+            Name = reader.ReadNullTerminatedString();
+            TypeOffset = reader.ReadLong();
+            Type = reader.ReadLong();
+            long defaultValueOffset = reader.ReadLong();
+            if (defaultValueOffset == 0)
+            {
+                DefaultValue = null;
+            }
+            else
+            {
+
+            }
+        }
+
+        public override void Modify(DbObject fieldObj)
+        {
         }
     }
 }

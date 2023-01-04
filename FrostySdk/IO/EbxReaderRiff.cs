@@ -93,13 +93,6 @@ namespace FrostySdk.IO
                 classGuids[i] = typeInfoGuid;
             }
 
-            uint toRemove = classGuidCount - signatureCount;
-
-            for (int i = 0; i < toRemove; i++)
-            {
-                classGuids.RemoveAt(classGuids.Count - 1);
-            }
-
             exportedCount = ReadUInt();
             uint dataOffsetCount = ReadUInt();
 
@@ -483,12 +476,32 @@ namespace FrostySdk.IO
         {
             uint type = ReadUInt();
             Position += 4;
-            if ((type & 0x80000000) == 0)
+            if (type == 0)
             {
-                return new TypeRef("0");
+                return new TypeRef();
             }
-            EbxFieldType valuetype = (EbxFieldType)((type >> 5) & 0x1F);
-            return new TypeRef(valuetype.ToString());
+
+            // (always?) primitive type
+            if ((type & 0x80000000) != 0)
+            {
+                type &= ~0x80000000;
+                EbxFieldType valuetype = (EbxFieldType)((type >> 5) & 0x1F);
+                return new TypeRef(valuetype.ToString());
+            }
+            else
+            {
+                int classRef = (int)(type >> 2);
+                int unkVal = (int)(type & 3);
+                Guid? classGuid = classGuids[classRef];
+                if (classGuid.HasValue)
+                {
+                    return new TypeRef(classGuid.Value);
+                }
+                else
+                {
+                    return new TypeRef();
+                }
+            }
         }
 
         internal override PointerRef ReadPointerRef(bool dontRefCount)
@@ -525,25 +538,32 @@ namespace FrostySdk.IO
             long curPos = Position;
             try
             {
-                if ((type & 0x80000000) == 0)
+                if (type == 0)
                 {
                     return new BoxedValueRef();
+                }
+
+                if ((type & 0x80000000) != 0)
+                {
+                    type &= ~0x80000000;
                 }
 
                 long offsetToLookup = Position - 8 + valueOffset - dataStartOffset;
 
                 int boxedValueIndex = boxedValues.FindIndex(boxVal => boxVal.Offset == offsetToLookup);
+                if (boxedValueIndex == -1)
+                {
+                    return new BoxedValueRef();
+                }
 
                 EbxBoxedValue boxedValue = boxedValues[boxedValueIndex];
                 EbxFieldType subType = EbxFieldType.Inherited;
                 EbxFieldType boxedValuetype = (EbxFieldType)((boxedValue.Type >> 5) & 0x1F);
-
-                if ((type & ~0x80000000) != boxedValue.Type)
-                {
-                    throw new InvalidDataException("boxedValueRef");
-                }
-
                 EbxFieldCategory boxedValuecategory = (EbxFieldCategory)((boxedValue.Type >> 1) & 0xF);
+
+                // used when there isn't a type mask (0x80000000)
+                int classRef = (int)(type >> 2);
+                int unkVal = (int)(type & 3);
 
                 Position = offsetToLookup + dataStartOffset;
                 object value = null;
@@ -575,20 +595,27 @@ namespace FrostySdk.IO
                             object subValue = ReadField(arrayType, arrayField.DebugType, arrayField.ClassRef, false);
                             value.GetType().GetMethod("Add").Invoke(value, new object[] { subValue });
                         }
+                        subType = arrayField.DebugType;
+                    }
+                    else
+                    {
+                        subType = boxedValuetype;
                     }
                 }
                 else
                 {
                     value = ReadField(null, boxedValuetype, boxedValue.ClassRef);
-                    if ((EbxFieldType)boxedValue.Type == EbxFieldType.Enum)
+                    Type objType = value.GetType();
+                    EbxClassMetaAttribute cta = objType.GetCustomAttribute<EbxClassMetaAttribute>();
+                    if (boxedValuetype == EbxFieldType.Enum)
                     {
                         object tmpValue = value;
                         EbxClass enumClass = GetClass(null, boxedValue.ClassRef);
                         value = Enum.Parse(GetType(enumClass), tmpValue.ToString());
                     }
                 }
-
-                return new BoxedValueRef(value, boxedValuetype, subType);
+                
+                return new BoxedValueRef(value, boxedValuetype, subType, boxedValuecategory);
             }
             finally
             {

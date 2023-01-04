@@ -1,0 +1,72 @@
+﻿<ctrl:FrostyDockableWindow
+    x:Class="BiowareLocalizationPlugin.Controls.TextInfoWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    mc:Ignorable="d"
+    Title="TextInfo" Height="450" Width="800"
+    ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="26"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="{StaticResource ListBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" x:Name="resourcesLabel" Content="Resources:" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="1,1,4,1" BorderBrush="{StaticResource ControlBackground}" BorderThickness="2"/>
+            <Label Grid.Column="1" x:Name="stringLabel" Content="All String Ids at that position:" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="1,1,4,1" BorderBrush="{StaticResource ControlBackground}" BorderThickness="2"/>
+            <Label Grid.Column="2" x:Name="charactersLabel" Content="Supported Characters:" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="1,1,4,1" BorderBrush="{StaticResource ControlBackground}" BorderThickness="2"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+
+            <ListBox Grid.Column="0" x:Name="resourceList" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2,2,2,2"  SelectionMode="Extended"
+                        BorderBrush="{StaticResource ControlBackground}" BorderThickness="2">
+                <ListBox.CommandBindings>
+                    <CommandBinding Command="ApplicationCommands.Copy" Executed="CopySelection"/>
+                </ListBox.CommandBindings>
+            </ListBox>
+            
+            <ListBox Grid.Column="1" x:Name="stringIdList" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2,2,2,2" SelectionMode="Extended"
+                        BorderBrush="{StaticResource ControlBackground}" BorderThickness="2">
+                <ListBox.CommandBindings>
+                    <CommandBinding Command="ApplicationCommands.Copy" Executed="CopySelection"/>
+                </ListBox.CommandBindings>
+            </ListBox>
+
+            <ListBox Grid.Column="2" x:Name="charactersList" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2,2,2,2" SelectionMode="Extended"
+                         BorderBrush="{StaticResource ControlBackground}" BorderThickness="2">
+                <ListBox.CommandBindings>
+                    <CommandBinding Command="ApplicationCommands.Copy" Executed="CopySelection"/>
+                </ListBox.CommandBindings>
+            </ListBox>
+        </Grid>
+
+        <Grid Grid.Row="2" Background="{StaticResource WindowBackground}">
+            <Button x:Name="PART_OkButton" Content="OK" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,2,2,2" Width="120"
+                ClickMode="Press" Click="OkButtonClicked" IsCancel="True"/>
+        </Grid>
+    </Grid>
+</ctrl:FrostyDockableWindow>

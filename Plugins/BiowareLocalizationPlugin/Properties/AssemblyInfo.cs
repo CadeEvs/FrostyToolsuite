@@ -1,7 +1,7 @@
 ﻿using BiowareLocalizationPlugin;
 using Frosty.Core.Attributes;
 using FrostySdk;
-using System.Reflection;
+using FrostySdk.Managers.Entries;
 using System.Runtime.InteropServices;
 using System.Windows;
 
@@ -22,12 +22,18 @@ using System.Windows;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("4b612468-9b6a-4304-88a5-055c3575eb3d")]
 
-[assembly: PluginDisplayName("Bioware Localized String Loader")]
-[assembly: PluginAuthor("GalaxyMan2015")]
-[assembly: PluginVersion("1.0.0.0")]
+[assembly: PluginDisplayName("Bioware Localization Plugin")]
+[assembly: PluginAuthor("GalaxyMan2015 and KrrKs")]
+[assembly: PluginVersion("1.1.1.0")]
 [assembly: PluginValidForProfile((int)ProfileVersion.DragonAgeInquisition)]
 [assembly: PluginValidForProfile((int)ProfileVersion.MassEffectAndromeda)]
 [assembly: PluginValidForProfile((int)ProfileVersion.Anthem)]
 
+
 [assembly: RegisterLocalizedStringDatabase(typeof(BiowareLocalizedStringDatabase))]
 
+[assembly: RegisterMenuExtension(typeof(BioWareLocalizedStringEditorMenuExtension))]
+
+[assembly: RegisterCustomHandler(CustomHandlerType.Res, typeof(BiowareLocalizationCustomActionHandler), resType: ResourceType.LocalizedStringResource, ebxType: "")]
+
+[assembly: RegisterOptionsExtension(typeof(BiowareLocalizationPluginOptions), Frosty.Core.PluginManagerType.Both)]

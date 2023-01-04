@@ -1,0 +1,30 @@
+﻿<ctrl:FrostyDockableWindow
+    x:Class="BiowareLocalizationPlugin.Controls.ResourceSelectionWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    Title="Select Resources" Height="450" Width="800" WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ListBox Grid.Row="0" x:Name="resourcesListBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" SelectionMode="Extended" />
+        <Button Grid.Row="1" x:Name="cancelButton" Content="Cancel" Width="60" Margin="2,2,2,2" HorizontalAlignment="Left" ClickMode="Press" Click="Cancel" IsCancel="True"/>
+        <Button Grid.Row="1" x:Name="acceptButton" Content="Select" Width="60" Margin="2,2,2,2" HorizontalAlignment="Right" ClickMode="Press" Click="Save" IsDefault="True"/>
+
+    </Grid>
+</ctrl:FrostyDockableWindow>

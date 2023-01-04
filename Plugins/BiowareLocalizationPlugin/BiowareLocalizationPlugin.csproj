@@ -53,5 +53,9 @@
     <ProjectReference Include="..\..\FrostySdk\FrostySdk.csproj">
       <Private>false</Private>
     </ProjectReference>
+	<ProjectReference Include="..\..\FrostyModSupport\FrostyModSupport.csproj">
+      <Private>false</Private>
+    </ProjectReference>
+	<Reference Include="Microsoft.CSharp" />
   </ItemGroup>
 </Project>

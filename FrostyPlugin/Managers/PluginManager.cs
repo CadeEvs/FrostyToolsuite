@@ -636,14 +636,23 @@ namespace Frosty.Core
                             {
                                 foreach (var subType in TypeLibrary.GetDerivedTypes(assetType))
                                 {
-                                    m_customHandlers.Add((uint)Fnv1.HashString(subType.Name.ToLower()), attr.HandlerClassType);
+                                    if (!m_customHandlers.ContainsKey((uint)Fnv1.HashString(subType.Name.ToLower())))
+                                    {
+                                        m_customHandlers.Add((uint)Fnv1.HashString(subType.Name.ToLower()), attr.HandlerClassType);
+                                    }
                                 }
-                                m_customHandlers.Add((uint)Fnv1.HashString(assetType.Name.ToLower()), attr.HandlerClassType);
+                                if (!m_customHandlers.ContainsKey((uint)Fnv1.HashString(assetType.Name.ToLower())))
+                                {
+                                    m_customHandlers.Add((uint)Fnv1.HashString(assetType.Name.ToLower()), attr.HandlerClassType);
+                                }
                             }
                         }
                         else if (attr.HandlerType == CustomHandlerType.Res)
                         {
-                            m_resCustomHandlers.Add(attr.ResType, attr.HandlerClassType);
+                            if (!m_resCustomHandlers.ContainsKey(attr.ResType))
+                            {
+                                m_resCustomHandlers.Add(attr.ResType, attr.HandlerClassType);
+                            }
                         }
                         else if (attr.HandlerType == CustomHandlerType.CustomAsset)
                         {
