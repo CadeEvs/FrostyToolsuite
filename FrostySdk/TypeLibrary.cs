@@ -85,6 +85,16 @@ namespace FrostySdk.Attributes
     }
 
     /// <summary>
+    /// Specifies the signature of the type
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum | AttributeTargets.Delegate, AllowMultiple = true, Inherited = false)]
+    public class TypeInfoSignatureAttribute : Attribute
+    {
+        public uint Signature { get; set; }
+        public TypeInfoSignatureAttribute(int inSignature) { Signature = (uint)inSignature; }
+    }
+
+    /// <summary>
     /// Specifies that the class requires a converter to convert to/from some custom type
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
@@ -571,7 +581,6 @@ namespace FrostySdk
                             string typeName = ((dynamic)asset.RootObject).TypeName;
                             typeInfos.Add(asset.RootInstanceGuid, typeName);
                         }
-                            
                     }
                     foreach (Type type in GetConcreteTypes())
                     {
