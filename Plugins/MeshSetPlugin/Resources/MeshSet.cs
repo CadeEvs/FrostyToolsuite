@@ -581,7 +581,8 @@ namespace MeshSetPlugin.Resources
 
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
                 {
-                    reader.ReadLong();
+                    long unk = reader.ReadLong(); // probably some runtime ptr
+                    Debug.Assert(unk == 0);
                 }
 
                 // texcoord ratios
@@ -813,7 +814,7 @@ namespace MeshSetPlugin.Resources
             reader.Position = boneListOffset;
             for (int k = 0; k < boneCount; k++)
             {
-                BoneList.Add(reader.ReadUShort());
+                m_boneList.Add(reader.ReadUShort());
             }
 
             // strings
@@ -892,13 +893,14 @@ namespace MeshSetPlugin.Resources
                 }
                 else
                 {
-                    writer.Write((ulong)0);
+                    writer.Write(0L);
                 }
+                writer.Write((ushort)m_boneList.Count);
 
                 writer.Write(m_bonesPerVertex);
                 writer.Write((byte)m_unk1);
 
-                writer.Write(m_materialId);
+                writer.Write((ushort)m_materialId);
 
                 writer.Write(m_vertexStride);
                 writer.Write((byte)m_primitiveType);
