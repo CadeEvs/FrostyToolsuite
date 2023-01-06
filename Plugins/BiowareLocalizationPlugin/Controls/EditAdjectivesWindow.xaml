@@ -1,0 +1,77 @@
+﻿<ctrl:FrostyDockableWindow
+    x:Class="BiowareLocalizationPlugin.Controls.EditAdjectivesWindow"
+    xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="Add / Edit" Height="450" Width="900">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="36"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="26"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Background="{StaticResource ListBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="100"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" x:Name="adjectiveIdLabel" Content="AdjectiveId:" FontFamily="Global User Interface" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="1,1,0,0" Height="27" Width="Auto"/>
+            <TextBox Grid.Column="1" Name="adjectiveIdField" Padding="4" FontFamily="Global User Interface" BorderThickness="1" Text="" HorizontalAlignment="Stretch" Margin="1,1,4,1" />
+            <Button Grid.Column="2" x:Name="gotoButton" Content="Go To" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,2,2,2" Width="90" ClickMode="Press" Click="Update"/>
+        </Grid>
+
+        <Grid Grid.Row="1" Background="{StaticResource ListBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Grid.Column="0" FontFamily="Global User Interface" HorizontalAlignment="Left" VerticalAlignment="Top">Resource:</Label>
+            <Button Grid.Column="2" x:Name="addResource" Content="Add" Width="60" Margin="2,2,2,2" HorizontalAlignment="Right" ClickMode="Press" Click="AddResources"/>
+            <Button Grid.Column="3" x:Name="removeResource" Content="Remove" Width="60" Margin="2,2,2,2" HorizontalAlignment="Right" ClickMode="Press" Click="RemoveResources"/>
+        </Grid>
+
+        <ListBox Grid.Row="2" x:Name="resourcesListBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="2,2,2,2"
+                         SelectionMode="Extended">
+            <ListBox.CommandBindings>
+                <CommandBinding Command="ApplicationCommands.Copy" Executed="CopySelectionToClipboard"/>
+            </ListBox.CommandBindings>
+        </ListBox>
+
+        <ListBox Grid.Row="3" x:Name="localizedAdjectiveListBox"
+                 HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                 Padding="4" Margin="2,2,2,2"
+                 SelectionMode="Extended">
+            <ListBox.CommandBindings>
+                <CommandBinding Command="ApplicationCommands.Copy" Executed="CopySelectionToClipboard"/>
+            </ListBox.CommandBindings>
+        </ListBox>
+
+        <Grid Grid.Row="4" Background="{StaticResource WindowBackground}">
+            <Button x:Name="cancelButton" Content="Cancel" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="2,2,2,2" Width="90"
+                ClickMode="Press" Click="Close" IsCancel="True"/>
+            <Button x:Name="saveButton" Content="Save" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="2,2,2,2" Width="90"
+                ClickMode="Press" Click="Save"/>
+        </Grid>
+    </Grid>
+
+</ctrl:FrostyDockableWindow>
