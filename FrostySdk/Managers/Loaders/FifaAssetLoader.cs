@@ -259,8 +259,7 @@ namespace FrostySdk.Managers
                                                 CasPath = parent.m_fileSystem.GetFilePath(fileIndex),
                                                 DataOffset = dataOffset
                                             };
-
-                                            parent.m_chunkList[guid].IsTocChunk = true;
+                                            chunk.SuperBundles.Add(sbIndex);
                                             reader.Position = pos;
                                         }
                                     }

@@ -428,33 +428,33 @@ namespace Frosty.ModSupport
                             }
                         }
 
-                        if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
-                        {
-                            foreach (var chunk in toc.Chunks)
-                            {
-                                ModBundleInfo modBundle = parent.m_modifiedBundles[s_chunksBundleHash];
-                                int idx = modBundle.Modify.Chunks.FindIndex((Guid a) => a == chunk.Guid);
+                        //if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                        //{
+                        //    foreach (var chunk in toc.Chunks)
+                        //    {
+                        //        ModBundleInfo modBundle = parent.m_modifiedBundles[s_chunksBundleHash];
+                        //        int idx = modBundle.Modify.Chunks.FindIndex((Guid a) => a == chunk.Guid);
 
-                                if (idx != -1)
-                                {
-                                    TocModified = true;
-                                    ChunkAssetEntry entry = parent.m_modifiedChunks[modBundle.Modify.Chunks[idx]];
+                        //        if (idx != -1)
+                        //        {
+                        //            TocModified = true;
+                        //            ChunkAssetEntry entry = parent.m_modifiedChunks[modBundle.Modify.Chunks[idx]];
 
-                                    // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                    if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
-                                    {
-                                        casWriter?.Close();
-                                        casWriter = GetNextCas(out casFileIndex);
-                                    }
+                        //            // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
+                        //            if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
+                        //            {
+                        //                casWriter?.Close();
+                        //                casWriter = GetNextCas(out casFileIndex);
+                        //            }
 
-                                    chunk.Offset = (uint)casWriter.Position;
-                                    chunk.Size = (uint)entry.Size;
-                                    chunk.CasIndex = (byte)casFileIndex;
+                        //            chunk.Offset = (uint)casWriter.Position;
+                        //            chunk.Size = (uint)entry.Size;
+                        //            chunk.CasIndex = (byte)casFileIndex;
 
-                                    casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
-                                }
-                            }
-                        }
+                        //            casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
+                        //        }
+                        //    }
+                        //}
                     }
 
                     casWriter?.Close();

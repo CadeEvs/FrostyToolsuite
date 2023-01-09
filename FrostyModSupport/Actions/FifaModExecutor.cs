@@ -467,6 +467,14 @@ namespace Frosty.ModSupport
                                         int numChunks = 0;
                                         //int oldNumChunks = 0;
 
+
+                                        ModBundleInfo bundleInfo = null;
+                                        int sbIndex = parent.m_am.GetSuperBundleId(sbName);
+                                        if (parent.m_modifiedSuperBundles.ContainsKey(sbIndex))
+                                        {
+                                            bundleInfo = parent.m_modifiedSuperBundles[sbIndex];
+                                        }
+
                                         if (chunksOffset != 0xFFFFFFFF)
                                         {
                                             long startChunksPosNew = tocWriter.Position;
@@ -559,9 +567,8 @@ namespace Frosty.ModSupport
                                                 reader.Position = oldPos;
                                                 chunkOffsets.Add((uint)(tocWriter.Position - dataPos));
 
-                                                if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                                                if (bundleInfo != null)
                                                 {
-                                                    ModBundleInfo bundleInfo = parent.m_modifiedBundles[s_chunksBundleHash];
                                                     int idx = bundleInfo.Modify.Chunks.FindIndex((Guid g) => g == guid);
                                                     if (idx != -1)
                                                     {
@@ -601,9 +608,9 @@ namespace Frosty.ModSupport
                                                 chunkGuids.Add(guid);
                                             }
                                         }
-                                        if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash) && tocPath.ToLower().Contains("globals.toc"))
+                                        if (bundleInfo != null)
                                         {
-                                            foreach (Guid guid in parent.m_modifiedBundles[s_chunksBundleHash].Add.Chunks)
+                                            foreach (Guid guid in bundleInfo.Add.Chunks)
                                             {
                                                 ChunkAssetEntry entry = parent.m_modifiedChunks[guid];
 

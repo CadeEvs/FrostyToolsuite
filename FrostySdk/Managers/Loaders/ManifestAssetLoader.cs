@@ -31,7 +31,13 @@ namespace FrostySdk.Managers
                 foreach (ChunkAssetEntry entry in parent.m_fileSystem.ProcessManifestChunks())
                 {
                     if (!parent.m_chunkList.ContainsKey(entry.Id))
+                    {
                         parent.m_chunkList.Add(entry.Id, entry);
+                    }
+                    else
+                    {
+                        parent.m_chunkList[entry.Id].SuperBundles.AddRange(entry.SuperBundles);
+                    }
                 }
             }
         }

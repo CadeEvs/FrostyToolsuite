@@ -95,13 +95,15 @@ namespace FsLocalizationPlugin
 
             ChunkAssetEntry chunkEntry = am.GetChunkEntry(localizedText.BinaryChunk);
             ChunkAssetEntry HistogramEntry = am.GetChunkEntry(localizedText.HistogramChunk);
-            ChunkAssetEntry newChunkEntry = new ChunkAssetEntry();
 
             byte[] buf2 = NativeReader.ReadInStream(am.GetChunk(HistogramEntry));
             List<char> values = ModifyHistogram(buf2, modFs);
 
             byte[] buf = NativeReader.ReadInStream(am.GetChunk(chunkEntry));
             buf = ModifyChunk(buf, modFs, values);
+
+            // create new chunk entry so we can create a new runtime resource, this chunk is not actually added
+            ChunkAssetEntry newChunkEntry = new ChunkAssetEntry();
 
             localizedText.BinaryChunkSize = (uint)buf.Length;
             newChunkEntry.LogicalSize = (uint)buf.Length;
@@ -112,7 +114,6 @@ namespace FsLocalizationPlugin
             newChunkEntry.Size = buf.Length;
             newChunkEntry.H32 = Fnv1.HashString(origEntry.Name.ToLower());
             newChunkEntry.FirstMip = -1;
-            newChunkEntry.IsTocChunk = true;
 
             runtimeResources.AddResource(new RuntimeChunkResource(newChunkEntry), buf);
 

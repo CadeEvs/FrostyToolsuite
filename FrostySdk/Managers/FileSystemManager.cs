@@ -700,6 +700,7 @@ namespace FrostySdk
                 string path = (fi.file.IsInPatch ? "native_patch/" : "native_data/") + catalogs[fi.file.CatalogIndex].Name + "/cas_" + fi.file.CasIndex.ToString("D2") + ".cas";
                 entry.Location = AssetDataLocation.CasNonIndexed;
                 entry.Size = fi.size;
+                entry.SuperBundles = new List<int>() { 0 };
 
                 entry.ExtraData = new AssetExtraData
                 {

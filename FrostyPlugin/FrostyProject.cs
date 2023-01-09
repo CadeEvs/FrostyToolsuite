@@ -35,12 +35,13 @@ namespace Frosty.Core
             12 - Legacy files now use determinstic guids and added user data (retroactively fix old legacy files)
             13 - Merging of defined ebx files
             14 - Can duplicate blueprint bundles
+            15 - Adds superbundle ids for toc chunks
         */
 
 #if FROSTY_DEVELOPER_ADDTOBUNDLE
         private const uint FormatVersion = 14;
 #else
-        private const uint FormatVersion = 13;
+        private const uint FormatVersion = 15;
 #endif
         private const ulong Magic = 0x00005954534F5246;
 
@@ -382,6 +383,11 @@ namespace Frosty.Core
                     writer.Write(entry.AddedBundles.Count);
                     foreach (int bid in entry.AddedBundles)
                         writer.WriteNullTerminatedString(App.AssetManager.GetBundleEntry(bid).Name);
+
+                    // superbundles the asset has been added to
+                    writer.Write(entry.AddedSuperBundles.Count);
+                    foreach (int sbid in entry.AddedSuperBundles)
+                        writer.WriteNullTerminatedString(App.AssetManager.GetSuperBundle(sbid).Name);
 
                     // if the asset has been modified
                     writer.Write(entry.HasModifiedData);
@@ -894,6 +900,7 @@ namespace Frosty.Core
                 {
                     Guid id = reader.ReadGuid();
                     List<int> bundles = new List<int>();
+                    List<int> superBundles = new List<int>();
 
                     if (version >= 13)
                     {
@@ -904,6 +911,20 @@ namespace Frosty.Core
                             int bid = App.AssetManager.GetBundleId(bundleName);
                             if (bid != -1)
                                 bundles.Add(bid);
+                        }
+                    }
+
+                    if (version > 13)
+                    {
+                        int length = reader.ReadInt();
+                        for (int j = 0; j < length; j++)
+                        {
+                            string superBundleName = reader.ReadNullTerminatedString();
+                            int sbid = App.AssetManager.GetSuperBundleId(superBundleName);
+                            if (sbid != -1)
+                            {
+                                superBundles.Add(sbid);
+                            }
                         }
                     }
 
@@ -978,6 +999,7 @@ namespace Frosty.Core
                     if (entry != null)
                     {
                         entry.AddedBundles.AddRange(bundles);
+                        entry.AddedSuperBundles.AddRange(superBundles);
                         if (isModified)
                         {
                             entry.ModifiedEntry = new ModifiedAssetEntry

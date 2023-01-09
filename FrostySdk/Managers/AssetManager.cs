@@ -160,7 +160,7 @@ namespace FrostySdk.Managers
         #endregion
 
         private const ulong CacheMagic = 0x02005954534F5246;
-        private const uint CacheVersion = 2;
+        private const uint CacheVersion = 3;
 
         private FileSystemManager m_fileSystem;
         private ResourceManager m_resourceManager;
@@ -1419,22 +1419,9 @@ namespace FrostySdk.Managers
             if (sb.GetValue<DbObject>("chunks") == null)
                 return;
 
-            List<Guid> sorted = new List<Guid>();
-            foreach (DbObject chunk in sb.GetValue<DbObject>("chunks"))
-            {
-                sorted.Add(chunk.GetValue<Guid>("id"));
-            }
-
-            sorted = sorted.OrderBy(guid => guid.ToHex()).ToList();
             foreach (DbObject chunk in sb.GetValue<DbObject>("chunks"))
             {
                 ChunkAssetEntry entry = AddChunk(chunk/*, chunkMeta*/);
-                if (entry.H32 == 0)
-                {
-                    DbObject chunkMeta = sb.GetValue<DbObject>("chunkMeta")[sorted.IndexOf(entry.Id)] as DbObject;
-                    entry.H32 = chunkMeta.GetValue<int>("h32");
-                    entry.FirstMip = chunkMeta.GetValue<DbObject>("meta").GetValue<int>("firstMip", -1);
-                }
 
                 if (chunk.GetValue<bool>("cache") && entry.Location != AssetDataLocation.Cache)
                     helper.RemoveChunkData(entry.Id.ToString());
@@ -1497,6 +1484,7 @@ namespace FrostySdk.Managers
                     entry.Id = chunk.GetValue<Guid>("id");
                     entry.Sha1 = chunk.GetValue<Sha1>("sha1");
                     entry.FirstMip = -1;
+                    entry.SuperBundles.Add(m_superBundles.Count - 1);
 
                     if (chunk.GetValue<long>("size") != 0)
                     {
@@ -1664,14 +1652,7 @@ namespace FrostySdk.Managers
 
             if (m_chunkList.ContainsKey(chunkId))
             {
-                ChunkAssetEntry existingChunk = m_chunkList[chunkId];
-                existingChunk.Sha1 = chunk.GetValue<Sha1>("sha1");
-                existingChunk.LogicalOffset = chunk.GetValue<uint>("logicalOffset");
-                existingChunk.LogicalSize = chunk.GetValue<uint>("logicalSize");
-                existingChunk.RangeStart = chunk.GetValue<uint>("rangeStart");
-                existingChunk.RangeEnd = chunk.GetValue<uint>("rangeEnd");
-                existingChunk.BundledSize = chunk.GetValue<uint>("bundledSize");
-                return existingChunk;
+                return m_chunkList[chunkId];
             }
 
             ChunkAssetEntry entry = new ChunkAssetEntry
@@ -1942,9 +1923,15 @@ namespace FrostySdk.Managers
                     entry.H32 = reader.ReadInt();
                     entry.FirstMip = reader.ReadInt();
 
-                    //entry.H32 = 0;
-                    //entry.FirstMip = -1;
+                    entry.H32 = 0;
+                    entry.FirstMip = -1;
 
+                    int sbCount = reader.ReadInt();
+                    for (int j = 0; j < sbCount; j++)
+                    {
+                        entry.SuperBundles.Add(reader.ReadInt());
+                    }
+                    
                     bool hasExtraData = reader.ReadBoolean();
                     if (hasExtraData)
                     {
@@ -2082,6 +2069,11 @@ namespace FrostySdk.Managers
                     writer.Write(entry.LogicalSize);
                     writer.Write(entry.H32);
                     writer.Write(entry.FirstMip);
+                    writer.Write(entry.SuperBundles.Count);
+                    foreach (int sbId in entry.SuperBundles)
+                    {
+                        writer.Write(sbId);
+                    }
 
                     writer.Write(entry.ExtraData != null);
                     if (entry.ExtraData != null)

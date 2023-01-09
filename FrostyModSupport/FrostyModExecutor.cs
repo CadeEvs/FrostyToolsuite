@@ -199,6 +199,7 @@ namespace Frosty.ModSupport
 
         private List<string> m_addedSuperBundles = new List<string>();
 
+        private ConcurrentDictionary<int, ModBundleInfo> m_modifiedSuperBundles = new ConcurrentDictionary<int, ModBundleInfo>();
         private ConcurrentDictionary<int, ModBundleInfo> m_modifiedBundles = new ConcurrentDictionary<int, ModBundleInfo>();
         private ConcurrentDictionary<int, List<string>> m_addedBundles = new ConcurrentDictionary<int, List<string>>();
 
@@ -212,13 +213,123 @@ namespace Frosty.ModSupport
         private int m_numTasks;
 
         private CasDataInfo m_casData = new CasDataInfo();
-        private static int s_chunksBundleHash = Fnv1.HashString("chunks");
+        private static int s_chunksBundleHash = Fnv1.HashString("chunks"); // should not be used, only here to ignore old mods adding assets to it
         private Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>> m_resources = new Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>>();
         private string m_modDirName = "ModData";
         private string m_patchPath = "Patch";
         private bool m_hasPatchFolder = true;
 
         public ILogger Logger { get => m_logger; set => m_logger = value; }
+
+        private void PrintLog()
+        {
+            using (NativeWriter writer = new NativeWriter(new FileStream("log.txt", FileMode.Create, FileAccess.Write)))
+            {
+                if (m_addedSuperBundles.Count > 0)
+                {
+                    writer.WriteLine("Added SuperBundles:");
+                    foreach (string sb in m_addedSuperBundles)
+                    {
+                        writer.WriteLine($"  - {sb}");
+                    }
+                    writer.WriteLine(string.Empty);
+                }
+
+                if (m_modifiedSuperBundles.Count > 0)
+                {
+                    writer.WriteLine("Modified SuperBundles:");
+                    foreach (var kv in m_modifiedSuperBundles)
+                    {
+                        writer.WriteLine($"  {m_am.GetSuperBundle(kv.Key).Name}:");
+                        
+                        if (kv.Value.Modify.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Chunks:");
+                            foreach (Guid chunkId in kv.Value.Modify.Chunks)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                        if (kv.Value.Add.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Chunks:");
+                            foreach (Guid chunkId in kv.Value.Add.Chunks)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                    }
+                    writer.WriteLine(string.Empty);
+                }
+
+                if (m_modifiedBundles.Count > 0)
+                {
+                    Dictionary<int, string> bundleHashMap = new Dictionary<int, string>();
+                    foreach (BundleEntry be in m_am.EnumerateBundles())
+                    {
+                        if (!bundleHashMap.ContainsKey(HashBundle(be)))
+                            bundleHashMap.Add(HashBundle(be), be.Name);
+                    }
+                    writer.WriteLine("Modified Bundles:");
+                    foreach (var kv in m_modifiedBundles)
+                    {
+                        writer.WriteLine($"  {bundleHashMap[kv.Key]}:");
+
+                        if (kv.Value.Modify.Ebx.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Ebx:");
+                            foreach (string name in kv.Value.Modify.Ebx)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+                        if (kv.Value.Add.Ebx.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Ebx:");
+                            foreach (string name in kv.Value.Add.Ebx)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+
+                        if (kv.Value.Modify.Res.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Res:");
+                            foreach (string name in kv.Value.Modify.Res)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+                        if (kv.Value.Add.Res.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Res:");
+                            foreach (string name in kv.Value.Add.Res)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+
+                        if (kv.Value.Modify.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Chunks:");
+                            foreach (Guid chunkId in kv.Value.Modify.Chunks)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                        if (kv.Value.Add.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Chunks:");
+                            foreach (Guid chunkId in kv.Value.Add.Chunks)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                    }
+                    writer.WriteLine(string.Empty);
+                }
+            }
+        }
 
         private void ReportProgress(int current, int total) => Logger.Log("progress:" + current / (float)total * 100d);
 
@@ -256,16 +367,16 @@ namespace Frosty.ModSupport
         }
         private void ProcessModResources(IResourceContainer fmod)
         {
-            // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
-            if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(s_chunksBundleHash))
-            {
-                App.WhitelistedBundles.Add(s_chunksBundleHash);
-            }
-
             Parallel.ForEach(fmod.Resources, resource =>
             {
                 // pull existing bundles from asset manager
                 List<int> bundles = new List<int>();
+
+                // get superbundles which have modified chunks
+                List<int> superBundles = new List<int>();
+
+                // get superbundles which have added chunks
+                List<int> addedSuperBundles = new List<int>();
 
                 if (resource.Type == ModResourceType.Bundle)
                 {
@@ -491,7 +602,6 @@ namespace Frosty.ModSupport
                                 extraData = new HandlerExtraData();
 
                                 entry.Id = guid;
-                                entry.IsTocChunk = resource.IsTocChunk;
                                 // the rest of the chunk will be populated via the handler
 
                                 if ((uint)resource.Handler == 0xBD9BFB65)
@@ -508,11 +618,13 @@ namespace Frosty.ModSupport
 
                                 // add in existing bundles
                                 var chunkEntry = m_am.GetChunkEntry(guid);
-                                bundles.Add(s_chunksBundleHash);
                                 foreach (int bid in chunkEntry.Bundles)
                                 {
                                     bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
+
+                                // add in existing superbundles
+                                superBundles.AddRange(chunkEntry.SuperBundles);
 
                                 entry.ExtraData = extraData;
                                 m_modifiedChunks.TryAdd(guid, entry);
@@ -572,16 +684,33 @@ namespace Frosty.ModSupport
                                 }
                             }
 
+                            // add in added superbundles
+                            addedSuperBundles.AddRange(entry.AddedSuperBundles);
+
                             if (chunkEntry != null)
                             {
                                 // add in existing bundles
-                                bundles.Add(s_chunksBundleHash);
                                 foreach (int bid in chunkEntry.Bundles)
                                 {
                                     bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
-                            }
 
+                                // add in existing superbundles
+                                superBundles.AddRange(chunkEntry.SuperBundles);
+                            }
+                            else if (!resource.IsAdded)
+                            {
+                                // old mods had their IsAdded flag overridden so we have to manually set the flag and add it to chunks superbundles
+                                resource.IsAdded = true;
+                                foreach (var superBundle in m_am.EnumerateSuperBundles())
+                                {
+                                    // StandardModExecutor.cs had hack with "chunks" and FifaModExecutor.cs had hack with globals.toc 
+                                    if (superBundle.Name.Contains("chunks") || superBundle.Name.Equals("Win32/globals", StringComparison.OrdinalIgnoreCase) || superBundle.Name.Equals("<none>"))
+                                    {
+                                        addedSuperBundles.Add(m_am.GetSuperBundleId(superBundle));
+                                    }
+                                }
+                            }
                             entry.Size = data.Length;
 
                             m_modifiedChunks.TryAdd(guid, entry);
@@ -648,7 +777,7 @@ namespace Frosty.ModSupport
                 foreach (int bundleHash in resource.AddedBundles)
                 {
                     // Skips bundle if the whitelist has more than one element and doesn't contain the bundle hash
-                    if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(bundleHash))
+                    if ((App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(bundleHash)) || bundleHash == s_chunksBundleHash)
                     {
                         continue;
                     }
@@ -662,6 +791,26 @@ namespace Frosty.ModSupport
                         case ModResourceType.Res: modBundle.Add.AddRes(resource.Name); break;
                         case ModResourceType.Chunk: modBundle.Add.AddChunk(new Guid(resource.Name)); break;
                     }
+                }
+
+                // modified superbundle actions (these are pulled from the asset manager during applying)
+                foreach (int superBundleId in superBundles)
+                {
+                    m_modifiedSuperBundles.TryAdd(superBundleId, new ModBundleInfo() { Name = superBundleId });
+
+                    ModBundleInfo modBundle = m_modifiedSuperBundles[superBundleId];
+
+                    modBundle.Modify.AddChunk(new Guid(resource.Name));
+                }
+
+                // add superbundle actions (these are stored in the mod)
+                foreach (int superBundleId in addedSuperBundles)
+                {
+                    m_modifiedSuperBundles.TryAdd(superBundleId, new ModBundleInfo() { Name = superBundleId });
+
+                    ModBundleInfo modBundle = m_modifiedSuperBundles[superBundleId];
+
+                    modBundle.Add.AddChunk(new Guid(resource.Name));
                 }
             });
         }
@@ -682,6 +831,11 @@ namespace Frosty.ModSupport
                 int bundle = Fnv1.HashString(action.GetValue<string>("bundle").ToLower());
                 string actionType = action.GetValue<string>("type");
                 int resourceId = action.GetValue<int>("resourceId");
+
+                if (bundle == s_chunksBundleHash)
+                {
+                    continue;
+                }
 
                 if (!m_modifiedBundles.ContainsKey(bundle))
                     m_modifiedBundles.TryAdd(bundle, new ModBundleInfo() { Name = bundle });
@@ -874,8 +1028,7 @@ namespace Frosty.ModSupport
                         RangeStart = resource.GetValue<uint>("rangeStart"),
                         RangeEnd = resource.GetValue<uint>("rangeEnd"),
                         FirstMip = resource.GetValue<int>("firstMip", -1),
-                        H32 = resource.GetValue<int>("h32", 0),
-                        IsTocChunk = resource.GetValue<bool>("tocChunk")
+                        H32 = resource.GetValue<int>("h32", 0)
                     };
 
                     byte[] buffer = null;
@@ -937,30 +1090,41 @@ namespace Frosty.ModSupport
                         m_archiveData[entry.Sha1].RefCount++;
                     m_numArchiveEntries++;
 
+                    ChunkAssetEntry originalEntry = m_am.GetChunkEntry(entry.Id);
+                    if (originalEntry != null)
+                    {
+                        // pull superbundles from am
+                        foreach (int sbId in originalEntry.SuperBundles)
+                        {
+                            m_modifiedSuperBundles.TryAdd(sbId, new ModBundleInfo() { Name = sbId });
+
+                            ModBundleInfo chunksBundle = m_modifiedSuperBundles[sbId];
+                            chunksBundle.Modify.Chunks.Add(entry.Id);
+                        }
+                    }
+                    else
+                    {
+                        // need to add it to some superbundle
+                        foreach (var superBundle in m_am.EnumerateSuperBundles())
+                        {
+                            // StandardModExecutor.cs had hack with "chunks" and FifaModExecutor.cs had hack with globals.toc 
+                            if (superBundle.Name.Contains("chunks") || superBundle.Name.Equals("Win32/globals", StringComparison.OrdinalIgnoreCase) || superBundle.Name.Equals("<none>"))
+                            {
+                                int sbId = m_am.GetSuperBundleId(superBundle);
+                                m_modifiedSuperBundles.TryAdd(sbId, new ModBundleInfo() { Name = sbId });
+
+                                ModBundleInfo chunksBundle = m_modifiedSuperBundles[sbId];
+                                chunksBundle.Add.Chunks.Add(entry.Id);
+                            }
+                        }
+                    }
+
                     if (ver < 2)
                     {
-                        // previous mod format versions had no action listed for toc chunk changes
-                        // so now have to manually add an action for it.
-                        if (!m_modifiedBundles.ContainsKey(s_chunksBundleHash))
-                            m_modifiedBundles.TryAdd(s_chunksBundleHash, new ModBundleInfo() { Name = s_chunksBundleHash });
-                        ModBundleInfo chunksBundle = m_modifiedBundles[s_chunksBundleHash];
-                        chunksBundle.Modify.Chunks.Add(entry.Id);
-
                         // new code requires first mip to be set to modify range values, however
                         // old mods didnt modify this. So lets force it, hopefully not too many
                         // issues result from this.
                         entry.FirstMip = 0;
-                    }
-                    else if (ver == 3 && entry.FirstMip != -1)
-                    {
-                        // converted dai mod need to add chunks to toc
-                        if (!m_modifiedBundles.ContainsKey(s_chunksBundleHash))
-                        {
-                            m_modifiedBundles.TryAdd(s_chunksBundleHash, new ModBundleInfo() { Name = s_chunksBundleHash });
-                        }
-
-                        ModBundleInfo chunksBundle = m_modifiedBundles[s_chunksBundleHash];
-                        chunksBundle.Add.Chunks.Add(entry.Id);
                     }
 
                     if (entry.FirstMip == -1 && entry.RangeEnd != 0)
@@ -1141,6 +1305,9 @@ namespace Frosty.ModSupport
 
                 // process any new resources added during custom handler modification
                 ProcessModResources(runtimeResources);
+#if FROSTY_DEVELOPER
+                PrintLog();
+#endif
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Cleaning Up ModData");
@@ -1491,9 +1658,6 @@ namespace Frosty.ModSupport
                     Dictionary<string, List<ModBundleInfo>> tasks = new Dictionary<string, List<ModBundleInfo>>();
                     foreach (ModBundleInfo bundle in m_modifiedBundles.Values)
                     {
-                        if (bundle.Name.Equals(s_chunksBundleHash))
-                            continue;
-
                         ManifestBundleInfo manifestBundle = m_fs.GetManifestBundle(bundle.Name);
                         string catalog = m_fs.GetCatalog(manifestBundle.files[0].file);
 
@@ -1546,9 +1710,9 @@ namespace Frosty.ModSupport
                     }
 
                     // now process manifest chunk changes
-                    if (m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                    if (m_modifiedSuperBundles.ContainsKey(0))
                     {
-                        foreach (Guid id in m_modifiedBundles[s_chunksBundleHash].Modify.Chunks)
+                        foreach (Guid id in m_modifiedSuperBundles[0].Modify.Chunks)
                         {
                             ChunkAssetEntry entry = m_modifiedChunks[id];
                             ManifestChunkInfo ci = m_fs.GetManifestChunk(entry.Id);
@@ -1564,7 +1728,7 @@ namespace Frosty.ModSupport
                                 m_casData.Add(m_fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
                             }
                         }
-                        foreach (Guid id in m_modifiedBundles[s_chunksBundleHash].Add.Chunks)
+                        foreach (Guid id in m_modifiedSuperBundles[0].Add.Chunks)
                         {
                             ChunkAssetEntry entry = m_modifiedChunks[id];
 

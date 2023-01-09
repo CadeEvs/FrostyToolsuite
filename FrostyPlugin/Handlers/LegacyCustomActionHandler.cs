@@ -37,7 +37,6 @@ namespace Frosty.Core.Handlers
                 sha1 = Utils.GenerateSha1(data);
                 resourceIndex = manifest.Add(data);
                 size = data.Length;
-                flags = 2;
                 handlerHash = (int)Hash;
                 userData = "legacy;Collector (" + ebxName + ")";
             }
@@ -185,7 +184,7 @@ namespace Frosty.Core.Handlers
                     ChunkAssetEntry newEntry = App.AssetManager.GetChunkEntry(chunkId);
                     newEntry.IsDirty = false;
                     newEntry.ModifiedEntry.UserData = "legacy;" + entry.Name;
-                    newEntry.ModifiedEntry.AddToChunkBundle = true;
+                    newEntry.AddedSuperBundles.AddRange(oldEntry.SuperBundles);
 
                     linkedEntries.Clear();
                     entry.LinkAsset(newEntry);
@@ -272,7 +271,6 @@ namespace Frosty.Core.Handlers
 
                     chunkEntry.Sha1 = Utils.GenerateSha1(outData);
                     chunkEntry.Size = outData.Length;
-                    chunkEntry.IsTocChunk = true;
                 }
             }
         }

@@ -129,11 +129,11 @@ namespace Frosty.ModSupport
 #if FROSTY_DEVELOPER
                         Debug.Assert(toc.HasValue("bundles") ? toc.GetValue<DbObject>("bundles").Count == 0 : true);
 #endif
-
-                        if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                        int sbId = parent.m_am.GetSuperBundleId(superBundle);
+                        if (parent.m_modifiedSuperBundles.ContainsKey(sbId))
                         {
                             FileInfo sbFi = new FileInfo(parent.m_fs.BasePath + modPath + "/" + superBundle + ".sb");
-                            ModBundleInfo chunkBundle = parent.m_modifiedBundles[s_chunksBundleHash];
+                            ModBundleInfo chunkBundle = parent.m_modifiedSuperBundles[sbId];
 
                             if (isBinary)
                             {
@@ -233,24 +233,20 @@ namespace Frosty.ModSupport
                                             }
                                         }
 
-                                        // @hack: to ensure new chunks are only added to the chunks bundles
-                                        if (superBundle.Contains("chunks"))
+                                        foreach (Guid id in chunkBundle.Add.Chunks)
                                         {
-                                            foreach (Guid id in chunkBundle.Add.Chunks)
-                                            {
-                                                isModified = true;
-                                                ChunkAssetEntry entry = parent.m_modifiedChunks[id];
+                                            isModified = true;
+                                            ChunkAssetEntry entry = parent.m_modifiedChunks[id];
 
-                                                DbObject chunk = new DbObject();
-                                                chunk.SetValue("id", entry.Id);
-                                                chunk.SetValue("sha1", entry.Sha1);
-                                                chunk.SetValue("size", entry.Size);
-                                                chunk.SetValue("offset", offset);
-                                                toc.GetValue<DbObject>("chunks").Add(chunk);
+                                            DbObject chunk = new DbObject();
+                                            chunk.SetValue("id", entry.Id);
+                                            chunk.SetValue("sha1", entry.Sha1);
+                                            chunk.SetValue("size", entry.Size);
+                                            chunk.SetValue("offset", offset);
+                                            toc.GetValue<DbObject>("chunks").Add(chunk);
 
-                                                offset += entry.Size;
-                                                writer.Write(parent.m_archiveData[entry.Sha1].Data);
-                                            }
+                                            offset += entry.Size;
+                                            writer.Write(parent.m_archiveData[entry.Sha1].Data);
                                         }
 
                                         using (DbWriter tocWriter = new DbWriter(new FileStream(sbFi.FullName.Replace(".sb", ".toc"), FileMode.Create), true))
@@ -309,43 +305,33 @@ namespace Frosty.ModSupport
                                             chunkToEdit.SetValue("sha1", entry.Sha1);
                                             chunkToEdit.SetValue("delta", true);
 
-                                            if (entry.IsTocChunk)
+                                            if (!casRefs.Contains(entry.Sha1))
                                             {
-                                                if (!casRefs.Contains(entry.Sha1))
-                                                {
-                                                    casRefs.Add(entry.Sha1);
-                                                    chunkEntries.Add(entry);
-                                                }
+                                                casRefs.Add(entry.Sha1);
+                                                chunkEntries.Add(entry);
                                             }
                                         }
 
                                         tocChanged = true;
                                     }
 
-                                    // @hack: to ensure new chunks are only added to the chunks bundles
-                                    if (superBundle.Contains("chunks"))
+                                    // add any required chunks
+                                    foreach (Guid id in chunkBundle.Add.Chunks)
                                     {
-                                        // add any required chunks
-                                        foreach (Guid id in chunkBundle.Add.Chunks)
+                                        ChunkAssetEntry entry = parent.m_modifiedChunks[id];
+
+                                        DbObject chunk = new DbObject();
+                                        chunk.SetValue("id", entry.Id);
+                                        chunk.SetValue("sha1", entry.Sha1);
+                                        chunkList.Add(chunk);
+
+                                        if (!casRefs.Contains(entry.Sha1))
                                         {
-                                            ChunkAssetEntry entry = parent.m_modifiedChunks[id];
-
-                                            DbObject chunk = new DbObject();
-                                            chunk.SetValue("id", entry.Id);
-                                            chunk.SetValue("sha1", entry.Sha1);
-                                            chunkList.Add(chunk);
-
-                                            if (entry.IsTocChunk)
-                                            {
-                                                if (!casRefs.Contains(entry.Sha1))
-                                                {
-                                                    casRefs.Add(entry.Sha1);
-                                                    chunkEntries.Add(entry);
-                                                }
-                                            }
-
-                                            tocChanged = true;
+                                            casRefs.Add(entry.Sha1);
+                                            chunkEntries.Add(entry);
                                         }
+
+                                        tocChanged = true;
                                     }
                                 }
                                 else
@@ -372,43 +358,33 @@ namespace Frosty.ModSupport
 
                                             chunk.SetValue("sha1", entry.Sha1);
 
-                                            if (entry.IsTocChunk)
+                                            if (!casRefs.Contains(entry.Sha1))
                                             {
-                                                if (!casRefs.Contains(entry.Sha1))
-                                                {
-                                                    casRefs.Add(entry.Sha1);
-                                                    chunkEntries.Add(entry);
-                                                }
+                                                casRefs.Add(entry.Sha1);
+                                                chunkEntries.Add(entry);
                                             }
 
                                             tocChanged = true;
                                         }
                                     }
 
-                                    // @hack: to ensure new chunks are only added to the chunks bundles
-                                    if (superBundle.Contains("chunks"))
+                                    // add any required chunks
+                                    foreach (Guid id in chunkBundle.Add.Chunks)
                                     {
-                                        // add any required chunks
-                                        foreach (Guid id in chunkBundle.Add.Chunks)
+                                        ChunkAssetEntry entry = parent.m_modifiedChunks[id];
+
+                                        DbObject chunk = new DbObject();
+                                        chunk.SetValue("id", entry.Id);
+                                        chunk.SetValue("sha1", entry.Sha1);
+                                        toc.GetValue<DbObject>("chunks").Add(chunk);
+
+                                        if (!casRefs.Contains(entry.Sha1))
                                         {
-                                            ChunkAssetEntry entry = parent.m_modifiedChunks[id];
-
-                                            DbObject chunk = new DbObject();
-                                            chunk.SetValue("id", entry.Id);
-                                            chunk.SetValue("sha1", entry.Sha1);
-                                            toc.GetValue<DbObject>("chunks").Add(chunk);
-
-                                            if (entry.IsTocChunk)
-                                            {
-                                                if (!casRefs.Contains(entry.Sha1))
-                                                {
-                                                    casRefs.Add(entry.Sha1);
-                                                    chunkEntries.Add(entry);
-                                                }
-                                            }
-
-                                            tocChanged = true;
+                                            casRefs.Add(entry.Sha1);
+                                            chunkEntries.Add(entry);
                                         }
+
+                                        tocChanged = true;
                                     }
                                 }
                             }

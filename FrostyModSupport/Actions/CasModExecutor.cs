@@ -627,10 +627,12 @@ namespace Frosty.ModSupport
                             }
                         }
 
-                        // check for modified toc chunks
-                        if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                        int sbId = parent.m_am.GetSuperBundleId(SuperBundleInfo.Name);
+                        if (parent.m_modifiedSuperBundles.ContainsKey(sbId))
                         {
-                            foreach (Guid chunkId in parent.m_modifiedBundles[s_chunksBundleHash].Modify.Chunks)
+                            ModBundleInfo bundleInfo = parent.m_modifiedSuperBundles[sbId];
+
+                            foreach (Guid chunkId in bundleInfo.Modify.Chunks)
                             {
                                 if (chunks.ContainsKey(chunkId))
                                 {
@@ -666,52 +668,52 @@ namespace Frosty.ModSupport
 
                                     casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
                                 }
-                            }
-
-                            // TODO: added chunks
-                            if (SuperBundleInfo.Name.Equals("win32/globals", StringComparison.OrdinalIgnoreCase))
-                            {
-                                foreach (Guid chunkId in parent.m_modifiedBundles[s_chunksBundleHash].Add.Chunks)
+                                else
                                 {
-                                    ChunkInfo chunkInfo = new ChunkInfo()
-                                    {
-                                        Guid = chunkId,
-                                        SplitIndex = -1,
-                                        SbName = SuperBundleInfo.Name
-                                    };
-
-                                    chunks.Add(chunkId, chunkInfo);
-
-                                    ChunkAssetEntry entry = parent.m_modifiedChunks[chunkId];
-
-                                    string catalog;
-                                    if (chunkInfo.SplitIndex != -1)
-                                    {
-                                        isSplitTocModified[chunkInfo.SplitIndex] = true;
-                                        catalog = SuperBundleInfo.SplitSuperBundles[chunkInfo.SplitIndex];
-                                    }
-                                    else
-                                    {
-                                        isDefaultTocModified = true;
-                                        catalog = m_catalog;
-                                    }
-
-                                    // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                    if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
-                                    {
-                                        casWriter?.Close();
-                                        casWriter = GetNextCas(catalog, out casFileIndex);
-                                    }
-
-                                    chunkInfo.IsPatch = true;
-                                    chunkInfo.CasFileInfo.IsPatch = parent.m_hasPatchFolder;
-                                    chunkInfo.CasFileInfo.CatalogIndex = (byte)parent.m_fs.GetCatalogIndex(catalog);
-                                    chunkInfo.CasFileInfo.CasIndex = (byte)casFileIndex;
-                                    chunkInfo.CasFileInfo.Offset = (uint)casWriter.Position;
-                                    chunkInfo.CasFileInfo.Size = (uint)parent.m_archiveData[entry.Sha1].Data.Length;
-
-                                    casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
+                                    //bundleInfo.Add.AddChunk(chunkId);
+                                    throw new Exception($"tried to modify chunk {chunkId} in {SuperBundleInfo.Name}, but chunk is not in there");
                                 }
+                            }
+                            foreach (Guid chunkId in bundleInfo.Add.Chunks)
+                            {
+                                ChunkInfo chunkInfo = new ChunkInfo()
+                                {
+                                    Guid = chunkId,
+                                    SplitIndex = -1,
+                                    SbName = SuperBundleInfo.Name
+                                };
+
+                                chunks.Add(chunkId, chunkInfo);
+
+                                ChunkAssetEntry entry = parent.m_modifiedChunks[chunkId];
+
+                                string catalog;
+                                if (chunkInfo.SplitIndex != -1)
+                                {
+                                    isSplitTocModified[chunkInfo.SplitIndex] = true;
+                                    catalog = SuperBundleInfo.SplitSuperBundles[chunkInfo.SplitIndex];
+                                }
+                                else
+                                {
+                                    isDefaultTocModified = true;
+                                    catalog = m_catalog;
+                                }
+
+                                // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
+                                if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
+                                {
+                                    casWriter?.Close();
+                                    casWriter = GetNextCas(catalog, out casFileIndex);
+                                }
+
+                                chunkInfo.IsPatch = true;
+                                chunkInfo.CasFileInfo.IsPatch = parent.m_hasPatchFolder;
+                                chunkInfo.CasFileInfo.CatalogIndex = (byte)parent.m_fs.GetCatalogIndex(catalog);
+                                chunkInfo.CasFileInfo.CasIndex = (byte)casFileIndex;
+                                chunkInfo.CasFileInfo.Offset = (uint)casWriter.Position;
+                                chunkInfo.CasFileInfo.Size = (uint)parent.m_archiveData[entry.Sha1].Data.Length;
+
+                                casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
                             }
                         }
 
@@ -793,6 +795,9 @@ namespace Frosty.ModSupport
                                 }
                             }
                         }
+
+                        baseReader?.Dispose();
+                        patchReader?.Dispose();
                     }
 
                     // TODO: huffman encode strings, for now just store them uncompressed
