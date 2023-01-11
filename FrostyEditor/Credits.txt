@@ -33,14 +33,22 @@ Licence (Creative Commons): https://creativecommons.org/licenses/by-nd/3.0/
 Website: https://icons8.com
 
 [Contributors]
-Mophead
-Wannkunstbeikor
-Brawltendo
+CadeEvs
+wannkunstbeikor
 Dyvinia
-Zhpete
-NoOneOfSignificance
-AllyJaxx
+CosmicDreamsOfCode
+Brawltendo
 MrJTGaming
+KrrKsThunder
+AllyJaxx
+Petrifyingz
+Mophead01
+NoOneOfSignificance
+zhpete
+mlg556
+jonakopmann
+NatalieWhatever
+Clonedelta
 
 [Acknowledgements]
 Special thanks to GalaxyMan2015: without his years of work and dedication, Frosty would not exist and Frostbite modding would very well still be in the dark ages. Thanks GMan!

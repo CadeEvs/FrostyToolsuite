@@ -1,4 +1,26 @@
-﻿v1.0.6.1
+﻿v1.0.6.2 (Alpha 1)
+--------
+- Improved applying speed in Mod Manager (#159)
+- Improved Loadinged Plugins List in Editor (#192)
+- Added filter to PointerRef Editor (#161)
+- Added Recent Projects to Editor (#174)
+- Added CompositeMeshAsset part exporting (#178)
+- Added option to change ordering of Mod Manager's Applied Mods list (#159)
+- Fixed cache being written twice (#167)
+- Fixed issues with DAI texture edits (#198)
+
+Plugin Changes
+- Added LaunchPlatformPlugin option for keeping platform open after game exit (#179)
+- Updated BWLocalizationPlugin (#211)
+- Fixed LaunchPlatformPlugin failing to launch Steam platform (#179)
+- Fixed MeshSetEditor inverted tangets (#155)
+- Fixed issue with importing over rigid meshes (#205)
+
+Technical Changes
+- Added additional information to update panel during cache writing (#167)
+- Fixed issues with CStringControl and FsLocalizationStringDatabase (#172)
+
+v1.0.6.1
 --------
 - Fixed NFS: Heat profile being read only
 - Temporarily disabled Update Checker
