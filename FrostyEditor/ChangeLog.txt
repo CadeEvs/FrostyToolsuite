@@ -19,6 +19,7 @@ Plugin Changes
 Technical Changes
 - Added additional information to update panel during cache writing (#167)
 - Fixed issues with CStringControl and FsLocalizationStringDatabase (#172)
+- Fixed issues with ealayer3 sounds (#214)
 
 v1.0.6.1
 --------
