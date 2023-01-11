@@ -169,7 +169,12 @@ namespace SoundEditorPlugin
                         }
 
                         reader.Position = segment.SamplesOffset;
-                        byte[] soundBuf = reader.ReadToEnd();
+                        long size = reader.Length - reader.Position;
+                        if ((runtimeVariation.FirstSegmentIndex + i + 1 < soundWave.Segments.Count) && ((soundWave.Segments[runtimeVariation.FirstSegmentIndex + i + 1].SamplesOffset > segment.SamplesOffset)))
+                        {
+                            size = soundWave.Segments[runtimeVariation.FirstSegmentIndex + i + 1].SamplesOffset - reader.Position;
+                        }
+                        byte[] soundBuf = reader.ReadBytes((int)size);
                         double duration = 0.0;
 
                         if (codec == 0x12)
