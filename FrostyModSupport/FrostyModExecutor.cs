@@ -241,19 +241,26 @@ namespace Frosty.ModSupport
                     foreach (var kv in m_modifiedSuperBundles)
                     {
                         writer.WriteLine($"  {m_am.GetSuperBundle(kv.Key).Name}:");
-                        
+
+                        List<Guid> sortedChunks = new List<Guid>(kv.Value.Modify.Chunks);
+                        sortedChunks.Sort();
+
                         if (kv.Value.Modify.Chunks.Count > 0)
                         {
                             writer.WriteLine($"    Modified Chunks:");
-                            foreach (Guid chunkId in kv.Value.Modify.Chunks)
+                            foreach (Guid chunkId in sortedChunks)
                             {
                                 writer.WriteLine($"    - {chunkId}");
                             }
                         }
+
+                        sortedChunks = new List<Guid>(kv.Value.Add.Chunks);
+                        sortedChunks.Sort();
+
                         if (kv.Value.Add.Chunks.Count > 0)
                         {
                             writer.WriteLine($"    Added Chunks:");
-                            foreach (Guid chunkId in kv.Value.Add.Chunks)
+                            foreach (Guid chunkId in sortedChunks)
                             {
                                 writer.WriteLine($"    - {chunkId}");
                             }
@@ -271,56 +278,73 @@ namespace Frosty.ModSupport
                             bundleHashMap.Add(HashBundle(be), be.Name);
                     }
                     writer.WriteLine("Modified Bundles:");
-                    foreach (var kv in m_modifiedBundles)
-                    {
-                        writer.WriteLine($"  {bundleHashMap[kv.Key]}:");
+                    
+                    List<int> bundles = m_modifiedBundles.Keys.ToList();
+                    bundles.Sort();
 
-                        if (kv.Value.Modify.Ebx.Count > 0)
+                    foreach (int hash in bundles)
+                    {
+                        var kv = m_modifiedBundles[hash];
+                        writer.WriteLine($"  {bundleHashMap[hash]}:");
+
+                        if (kv.Modify.Ebx.Count > 0)
                         {
                             writer.WriteLine($"    Modified Ebx:");
-                            foreach (string name in kv.Value.Modify.Ebx)
+                            List<string> sorted = new List<string>(kv.Modify.Ebx);
+                            sorted.Sort();
+                            foreach (string name in sorted)
                             {
                                 writer.WriteLine($"    - {name}");
                             }
                         }
-                        if (kv.Value.Add.Ebx.Count > 0)
+                        if (kv.Add.Ebx.Count > 0)
                         {
                             writer.WriteLine($"    Added Ebx:");
-                            foreach (string name in kv.Value.Add.Ebx)
+                            List<string> sorted = new List<string>(kv.Add.Ebx);
+                            sorted.Sort();
+                            foreach (string name in sorted)
                             {
                                 writer.WriteLine($"    - {name}");
                             }
                         }
 
-                        if (kv.Value.Modify.Res.Count > 0)
+                        if (kv.Modify.Res.Count > 0)
                         {
                             writer.WriteLine($"    Modified Res:");
-                            foreach (string name in kv.Value.Modify.Res)
+                            List<string> sorted = new List<string>(kv.Modify.Res);
+                            sorted.Sort();
+                            foreach (string name in sorted)
                             {
                                 writer.WriteLine($"    - {name}");
                             }
                         }
-                        if (kv.Value.Add.Res.Count > 0)
+                        if (kv.Add.Res.Count > 0)
                         {
                             writer.WriteLine($"    Added Res:");
-                            foreach (string name in kv.Value.Add.Res)
+                            List<string> sorted = new List<string>(kv.Add.Res);
+                            sorted.Sort();
+                            foreach (string name in sorted)
                             {
                                 writer.WriteLine($"    - {name}");
                             }
                         }
 
-                        if (kv.Value.Modify.Chunks.Count > 0)
+                        if (kv.Modify.Chunks.Count > 0)
                         {
                             writer.WriteLine($"    Modified Chunks:");
-                            foreach (Guid chunkId in kv.Value.Modify.Chunks)
+                            List<Guid> sorted = new List<Guid>(kv.Modify.Chunks);
+                            sorted.Sort();
+                            foreach (Guid chunkId in sorted)
                             {
                                 writer.WriteLine($"    - {chunkId}");
                             }
                         }
-                        if (kv.Value.Add.Chunks.Count > 0)
+                        if (kv.Add.Chunks.Count > 0)
                         {
                             writer.WriteLine($"    Added Chunks:");
-                            foreach (Guid chunkId in kv.Value.Add.Chunks)
+                            List<Guid> sorted = new List<Guid>(kv.Add.Chunks);
+                            sorted.Sort();
+                            foreach (Guid chunkId in sorted)
                             {
                                 writer.WriteLine($"    - {chunkId}");
                             }
@@ -461,8 +485,7 @@ namespace Frosty.ModSupport
                                 entry.Sha1 = ebxEntry.Sha1;
                                 entry.OriginalSize = ebxEntry.OriginalSize;
                             }
-
-                            if (ebxEntry != null)
+                            else if (ebxEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in ebxEntry.Bundles)
@@ -559,8 +582,7 @@ namespace Frosty.ModSupport
                                 entry.ResRid = resEntry.ResRid;
                                 entry.ResType = resEntry.ResType;
                             }
-
-                            if (resEntry != null)
+                            else if (resEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in resEntry.Bundles)
@@ -683,11 +705,7 @@ namespace Frosty.ModSupport
                                     }
                                 }
                             }
-
-                            // add in added superbundles
-                            addedSuperBundles.AddRange(entry.AddedSuperBundles);
-
-                            if (chunkEntry != null)
+                            else if (chunkEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in chunkEntry.Bundles)
@@ -711,6 +729,10 @@ namespace Frosty.ModSupport
                                     }
                                 }
                             }
+
+                            // add in added superbundles
+                            addedSuperBundles.AddRange(entry.AddedSuperBundles);
+
                             entry.Size = data.Length;
 
                             m_modifiedChunks.TryAdd(guid, entry);
