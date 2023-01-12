@@ -1932,13 +1932,15 @@ namespace Frosty.Core.Sdk
                 Namespace = "Frosty.Core.Sdk.Anthem.";
             }
             // Bf2042
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 Namespace = "Frosty.Core.Sdk.Bf2042.";
             }
             // All others
             else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden20, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
-                ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21, ProfileVersion.Fifa22))
+                ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat))
             {
                 Namespace = "Frosty.Core.Sdk.Madden20.";
             }

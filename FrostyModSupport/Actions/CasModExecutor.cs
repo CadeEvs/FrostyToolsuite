@@ -145,6 +145,10 @@ namespace Frosty.ModSupport
 
                     // TODO: newer games use little endian
                     Endian endian = Endian.Big;
+                    if (ProfilesLibrary.DataVersion >= (int)ProfileVersion.Fifa21)
+                    {
+                        endian = Endian.Little;
+                    }
 
                     BinarySbWriter modWriter = null;
                     BinarySbWriter modDefaultWriter = new BinarySbWriter(new MemoryStream(), inEndian: endian);
@@ -240,7 +244,7 @@ namespace Frosty.ModSupport
                                 using (BinarySbReader bundleReader = new BinarySbReader(stream, parent.m_fs.CreateDeobfuscator()))
                                 {
                                     bundleObj = ReadBundle(bundleReader, ref tocFlags);
-                                }
+                                    }
 
                                 stream.Dispose();
 
@@ -482,6 +486,12 @@ namespace Frosty.ModSupport
                                 bundleInfo.Offset = modWriter.Position;
                                 bundleInfo.IsModified = true;
                                 bundleInfo.IsPatch = true;
+
+                                // fifa 21 uses different layouts in data and patch
+                                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21))
+                                {
+                                    tocFlags |= InternalFlags.HasInlineBundle;
+                                }
 
                                 // write bundle
                                 uint bundleOffset = 0;
@@ -800,6 +810,14 @@ namespace Frosty.ModSupport
                         patchReader?.Dispose();
                     }
 
+                    // fifa 21 uses different layouts in data and patch
+                    if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21))
+                    {
+                        tocFlags |= InternalFlags.HasInlineBundle;
+                        tocFlags &= ~InternalFlags.HasInlineSb;
+                        HasSb = true;
+                    }
+
                     // TODO: huffman encode strings, for now just store them uncompressed
                     tocFlags &= ~InternalFlags.HasCompressedStrings;
 
@@ -814,8 +832,6 @@ namespace Frosty.ModSupport
                         {
                             string modSbPath = string.Format("{0}\\{1}.sb", modPath, SuperBundleInfo.Name);
                             sbWriter = new NativeWriter(new FileStream(modSbPath, FileMode.Create, FileAccess.Write));
-                            sbWriter.Write((byte)0);
-                            sbWriter.Position = 0;
                         }
                         using (DbWriter writer = new DbWriter(new FileStream(fi.FullName, FileMode.Create, FileAccess.Write)))
                         {
@@ -904,12 +920,7 @@ namespace Frosty.ModSupport
 
                             int[] bundleHashMap = CalculateHashMap(bundleDic, out BundleInfo[] bi);
 
-                            for (int i = 0; i < bi.Length; i++)
-                            {
-                                Debug.Assert(i == GetIndex(Encoding.ASCII.GetBytes(bi[i].Name.ToLower()), bundleHashMap));
-                            }
-
-                            byte[] stringData, huffmanTree;
+                            byte[] stringData;
                             using (NativeWriter stringWriter = new NativeWriter(new MemoryStream()))
                             {
                                 for (int i = 0; i < bundlesCount; i++)
@@ -931,6 +942,9 @@ namespace Frosty.ModSupport
                             bundleHashMapOffset = (uint)(writer.Position - startPos);
                             for (int i = 0; i < bundlesCount; i++)
                             {
+#if FROSTY_DEVELOPER
+                                Debug.Assert(i == GetIndex(Encoding.ASCII.GetBytes(bi[i].Name.ToLower()), bundleHashMap));
+#endif
                                 writer.Write(bundleHashMap[i], Endian.Big);
                             }
 
@@ -957,14 +971,12 @@ namespace Frosty.ModSupport
 
                             int[] chunkHashMap = CalculateHashMap(chunkDic, out ChunkInfo[] ci);
 
-                            for (int i = 0; i < ci.Length; i++)
-                            {
-                                Debug.Assert(i == GetIndex(ci[i].Guid.ToByteArray(), chunkHashMap));
-                            }
-
                             chunkHashMapOffset = (uint)(writer.Position - startPos);
                             for (int i = 0; i < chunksCount; i++)
                             {
+#if FROSTY_DEVELOPER
+                                Debug.Assert(i == GetIndex(ci[i].Guid.ToByteArray(), chunkHashMap));
+#endif
                                 writer.Write(chunkHashMap[i], Endian.Big);
                             }
 
@@ -1010,7 +1022,6 @@ namespace Frosty.ModSupport
                             if (flags.HasFlag(Flags.HasCompressedNames))
                             {
                                 tableOffset = (uint)(writer.Position - startPos);
-                                //writer.Write(huffmanTree);
                             }
 
                             if (tocFlags.HasFlag(InternalFlags.HasInlineSb))
@@ -1161,7 +1172,6 @@ namespace Frosty.ModSupport
                                 }
                                 bundlesCount = bundleDic.Count;
 
-                                // test if guid to byte[] is correct, else reverse it
                                 Dictionary<byte[], ChunkInfo> chunkDic = new Dictionary<byte[], ChunkInfo>();
                                 foreach (ChunkInfo chunk in chunks.Values)
                                 {
@@ -1409,7 +1419,8 @@ namespace Frosty.ModSupport
                     string tocPath = parent.m_fs.ResolvePath(string.Format("native_data/{0}.toc", splitIndex != -1 ? SuperBundleInfo.Name.Replace("win32", SuperBundleInfo.SplitSuperBundles[splitIndex]) : SuperBundleInfo.Name));
                     using (NativeReader baseReader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.m_fs.CreateDeobfuscator()))
                     {
-                        ReadToc(baseReader, ref bundles, ref chunks, ref tocFlags, false, splitIndex);
+                        InternalFlags discard = 0;
+                        ReadToc(baseReader, ref bundles, ref chunks, ref discard, false, splitIndex);
                     }
                 }
 
