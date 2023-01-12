@@ -17,6 +17,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using FrostySdk.Managers.Entries;
+using FrostySdk;
+using System.Collections;
+using System.Globalization;
 
 namespace LocalizedStringPlugin
 {
@@ -545,55 +548,71 @@ namespace LocalizedStringPlugin
 
         private void PART_ExportLogButton_Click(object sender, RoutedEventArgs e)
         {
+
             FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Localized Strings Usage List", "*.txt (Text File)|*.txt", "LocalizedStringsUsage");
             if (sfd.ShowDialog())
             {
                 FrostyTaskWindow.Show("Exporting Localized Strings Usage", "", (task) =>
                 {
-                    uint totalCount = (uint)App.AssetManager.EnumerateEbx().ToList().Count;
+                    List<EbxAssetEntry> ebxAssets = App.AssetManager.EnumerateEbx().ToList();
+                    uint totalCount = (uint)ebxAssets.Count;
                     uint idx = 0;
-                    Dictionary<string, string> StringInfo = new Dictionary<string, string>();
+                    Dictionary<string, StringBuilder> StringInfo = new Dictionary<string, StringBuilder>();
                     foreach (uint stringId in stringIds)
                     {
-                        StringInfo.Add(stringId.ToString("X").ToLower(), stringId.ToString("X8") + ", \"" + db.GetString(stringId).Replace("\r", "").Replace("\n", " ") + "\"");
+                        string hexStringId = stringId.ToString("X");
+                        StringBuilder sb = new StringBuilder(hexStringId);
+                        sb.Append(", \"")
+                            .Append(db.GetString(stringId)
+                                .Replace("\r", "")
+                                .Replace("\n", " "))
+                            .Append("\"");
+
+                        StringInfo.Add(hexStringId.ToLower(), sb);
                     }
-                    foreach (EbxAssetEntry refEntry in App.AssetManager.EnumerateEbx())
+
+                    foreach (EbxAssetEntry refEntry in ebxAssets)
                     {
                         task.Update("Checking: " + refEntry.Name, (idx++ / (double)totalCount) * 100.0d);
                         EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
-                        List<string> AlreadyDone = new List<string>();
+                        ISet<string> alreadyDone = new HashSet<string>();
                         foreach (dynamic obj in refAsset.Objects)
                         {
                             if (HasProperty(obj, "StringHash"))
                             {
-                                string TempString = obj.StringHash.ToString("X").ToLower();
-                                if (StringInfo.ContainsKey(TempString) & !AlreadyDone.Contains(TempString))
-                                {
-                                    AlreadyDone.Add(TempString);
-                                    StringInfo[TempString] = StringInfo[TempString] + "\n           -" + refEntry.Name;
-                                }
+                                string tempString = obj.StringHash.ToString("X").ToLower();
+                                RecordStringUsage(StringInfo, tempString, alreadyDone, refEntry.Name);
                             }
+
+                            if (HasProperty(obj, "StringId"))
+                            {
+                                string tempString = obj.StringId.ToString("X").ToLower();
+                                RecordStringUsage(StringInfo, tempString, alreadyDone, refEntry.Name);
+                            }
+
                             foreach (PropertyInfo pi in obj.GetType().GetProperties())
                             {
                                 if (pi.PropertyType == typeof(CString))
                                 {
-                                    string TempString = HashStringId(pi.GetValue(obj)).ToString("X").ToLower();
-                                    if (StringInfo.ContainsKey(TempString) & !AlreadyDone.Contains(TempString))
-                                    {
-                                        AlreadyDone.Add(TempString);
-                                        StringInfo[TempString] = StringInfo[TempString] + "\n          -" + refEntry.Name;
-                                    }
+                                    RecordDefaultCString(StringInfo, alreadyDone, refEntry.Name, pi.GetValue(obj));
                                 }
                                 else if (pi.PropertyType == typeof(List<CString>))
                                 {
-                                    foreach (CString cst in pi.GetValue(obj))
+                                    RecordStringList(StringInfo, alreadyDone, refEntry.Name, pi.GetValue(obj));
+                                }
+                                else if ("LocalizedStringReference".Equals(pi.PropertyType.Name))
+                                {
+                                    // used in DA:I and ME:A
+                                    dynamic stringReference = pi.GetValue(obj);
+                                    RecordLocalizedStringReference(StringInfo, alreadyDone, refEntry.Name, stringReference.StringId);
+                                }
+                                else if (typeof(IList).IsAssignableFrom(pi.PropertyType))
+                                {
+                                    // still does not find ui menu entries
+                                    Type[] genericArguments = pi.PropertyType.GetGenericArguments();
+                                    if (genericArguments.Length > 0 && "LocalizedStringReference".Equals(genericArguments[0].Name))
                                     {
-                                        string TempString = HashStringId(cst).ToString("X").ToLower();
-                                        if (StringInfo.ContainsKey(TempString) & !AlreadyDone.Contains(TempString))
-                                        {
-                                            AlreadyDone.Add(TempString);
-                                            StringInfo[TempString] = StringInfo[TempString] + "\n          -" + refEntry.Name;
-                                        }
+                                        RecordLocalizedStringReferenceList(StringInfo, alreadyDone, refEntry.Name, pi.GetValue(obj));
                                     }
                                 }
                             }
@@ -602,14 +621,87 @@ namespace LocalizedStringPlugin
 
                     using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create), false, true))
                     {
-                        foreach (string StringData in StringInfo.Values)
+                        foreach (StringBuilder stringData in StringInfo.Values)
                         {
-                            writer.WriteLine(StringData);
+                            writer.WriteLine(stringData.ToString());
                         }
                     }
                 });
 
                 App.Logger.Log("Localized strings usage saved to {0}", sfd.FileName);
+            }
+        }
+
+        private void RecordStringList(Dictionary<string, StringBuilder> stringInfo, ISet<string> alreadyDone, string assetEntryName, List<CString> stringListToRecord)
+        {
+            if (stringListToRecord == null || stringListToRecord.Count == 0)
+            {
+                return;
+            }
+
+            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition
+                && ProfilesLibrary.DataVersion != (int)ProfileVersion.MassEffectAndromeda)
+            {
+
+                foreach (CString cst in stringListToRecord)
+                {
+                    RecordDefaultCString(stringInfo, alreadyDone, assetEntryName, cst);
+                }
+            }
+            else
+            {
+                foreach (CString cst in stringListToRecord)
+                {
+
+                    // SoundWaveAssets contains text id as part of a 3 figure 'SubtitleStringId'
+                    // This seems to be set up as: <decmial string id>_<0 for male or 1 for female protagonist>_<0 - no idea what this is>
+                    string[] stringParts = cst.ToString().Split('_');
+                    if (stringParts.Length != 3)
+                    {
+                        // go default, i guess
+                        RecordDefaultCString(stringInfo, alreadyDone, assetEntryName, cst);
+                    }
+                    else
+                    {
+                        bool canRead = int.TryParse(stringParts[0], NumberStyles.Number, null, out int textId);
+                        if (canRead)
+                        {
+                            string tempString = textId.ToString("X").ToLower();
+                            RecordStringUsage(stringInfo, tempString, alreadyDone, assetEntryName);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void RecordDefaultCString(Dictionary<string, StringBuilder> stringInfo, ISet<string> alreadyDone, string assetEntryName, CString stringToRecord)
+        {
+            string tempString = HashStringId(stringToRecord).ToString("X").ToLower();
+            RecordStringUsage(stringInfo, tempString, alreadyDone, assetEntryName);
+        }
+
+        private void RecordLocalizedStringReferenceList(Dictionary<string, StringBuilder> stringInfo, ISet<string> alreadyDone, string assetEntryName, IList localizedStringReferenceList)
+        {
+            foreach (dynamic stringReference in localizedStringReferenceList)
+            {
+                RecordLocalizedStringReference(stringInfo, alreadyDone, assetEntryName, stringReference.StringId);
+            }
+        }
+
+        private void RecordLocalizedStringReference(Dictionary<string, StringBuilder> stringInfo, ISet<string> alreadyDone, string assetEntryName, int stringId)
+        {
+            string tempString = stringId.ToString("X").ToLower();
+            RecordStringUsage(stringInfo, tempString, alreadyDone, assetEntryName);
+        }
+
+        private void RecordStringUsage(Dictionary<string, StringBuilder> stringInfo, string stringHexId, ISet<string> alreadyDone, string assetEntryName)
+        {
+            if (stringInfo.ContainsKey(stringHexId) & !alreadyDone.Contains(stringHexId))
+            {
+                alreadyDone.Add(stringHexId);
+
+                stringInfo[stringHexId].Append("\n          -")
+                    .Append(assetEntryName);
             }
         }
     }

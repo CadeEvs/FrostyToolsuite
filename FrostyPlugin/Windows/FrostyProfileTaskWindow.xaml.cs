@@ -123,9 +123,15 @@ namespace Frosty.Core.Windows
             if (TypeLibrary.GetSdkVersion() != App.FileSystemManager.Head)
             {
                 // requires updating
-                SdkUpdateWindow sdkWin = new SdkUpdateWindow(this);
-                sdkWin.ShowDialog();
-                Close();
+                if (UpdateSdk())
+                {
+                    Close();
+                }
+                if (ProfilesLibrary.EbxVersion > 4)
+                {
+                    // initialze assetmanager anyways
+                    await FinishLoadingData(result);
+                }
             }
 
             if (App.IsEditor)
@@ -155,7 +161,7 @@ namespace Frosty.Core.Windows
                 {
                     File.Delete(file);
                 }
-                    
+
             }
 
             DialogResult = true;
@@ -168,6 +174,25 @@ namespace Frosty.Core.Windows
                 PatchSummaryWindow summaryWin = new PatchSummaryWindow(result);
                 summaryWin.ShowDialog();
             }
+        }
+
+        private bool UpdateSdk()
+        {
+            SdkUpdateWindow sdkWin = new SdkUpdateWindow(this);
+            if (sdkWin.ShowDialog() == true)
+            {
+                return true;
+            }
+            else if (TypeLibrary.GetSdkVersion() == 0)
+            {
+                MessageBoxResult result = FrostyMessageBox.Show("Missing SDK.\nPlease generate a SDK for this game.", "Frosty", MessageBoxButton.OK);
+                if (result == MessageBoxResult.OK)
+                {
+                    return UpdateSdk();
+                }
+                return true;
+            }
+            return false;
         }
 
         private BitmapImage LoadBanner(byte[] banner)
@@ -208,7 +233,7 @@ namespace Frosty.Core.Windows
                 App.AssetManager = new AssetManager(App.FileSystemManager, App.ResourceManager);
 
                 TypeLibrary.Initialize();
-                
+
                 // initialize plugin extensions
                 App.PluginManager.Initialize();
 
@@ -223,7 +248,8 @@ namespace Frosty.Core.Windows
                 {
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManager));
                 }
-                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22, ProfileVersion.Fifa22, ProfileVersion.Madden23))
+                else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22, ProfileVersion.Fifa22,
+                    ProfileVersion.Madden23, ProfileVersion.Fifa23))
                 {
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManagerV2));
                 }
@@ -244,6 +270,17 @@ namespace Frosty.Core.Windows
                     }
                 }
 
+                App.AssetManager.SetLogger(TaskLogger);
+                App.AssetManager.Initialize(App.IsEditor, result);
+            });
+
+            return 0;
+        }
+
+        private async Task<int> FinishLoadingData(AssetManagerImportResult result)
+        {
+            await Task.Run(() =>
+            {
                 App.AssetManager.SetLogger(TaskLogger);
                 App.AssetManager.Initialize(App.IsEditor, result);
             });

@@ -16,8 +16,9 @@ namespace FrostySdk.Managers
                     if (toc == null)
                         continue;
 
-                    parent.WriteToLog("Loading data ({0})", superBundleName);
                     parent.m_superBundles.Add(new SuperBundleEntry() { Name = superBundleName });
+                    parent.WriteToLog("Loading data ({0})", superBundleName);
+                    parent.ReportProgress(parent.m_superBundles.Count, parent.m_fileSystem.SuperBundleCount);
 
                     using (NativeReader sbReader = new NativeReader(new FileStream(parent.m_fileSystem.ResolvePath(string.Format("{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read)))
                     {

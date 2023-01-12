@@ -537,6 +537,10 @@ namespace DuplicationPlugin
             }
 
             ChunkAssetEntry newEntry = App.AssetManager.GetChunkEntry(newGuid);
+            foreach (int sbId in entry.SuperBundles)
+            {
+                newEntry.AddToSuperBundle(sbId);
+            }
 
             App.Logger.Log(string.Format("Duped chunk {0} to {1}", entry.Name, newGuid));
             return newEntry;

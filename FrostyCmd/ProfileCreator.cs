@@ -103,7 +103,7 @@ namespace FrostyCmd
         #endregion
 
         #region -- Profiles --
-        
+
         private void CreateBF4Profile()
         {
             string key = "bf4";
@@ -780,7 +780,7 @@ namespace FrostyCmd
                 writer.Write(0); // ignored res types
 
                 // Flags (MustAddChunks, EbxVersion, RequiresKey)
-                ProfileFlags pf = new ProfileFlags(0, 5, 1, 1);
+                ProfileFlags pf = new ProfileFlags(0, 5, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -891,12 +891,8 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly?)
-#if FROSTY_DEVELOPER || FROSTY_ALPHA
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
                 ProfileFlags pf = new ProfileFlags(0, 4, 1);
-#else
-                ProfileFlags pf = new ProfileFlags(0, 4, 1, 1);
-#endif
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -1016,8 +1012,8 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
-                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -1044,8 +1040,8 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
-                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -1100,8 +1096,8 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
-                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -1114,7 +1110,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("FIFA 23");
-                writer.Write((int)(int)ProfileVersion.Fifa22);
+                writer.Write((int)(int)ProfileVersion.Fifa23);
                 writer.WriteObfuscatedString("fifa23");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
@@ -1128,8 +1124,8 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
-                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly, EAAC)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -1156,14 +1152,14 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
-                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
             }
         }
-        #endregion
+#endregion
 
         public ProfileCreator()
         {
@@ -1200,10 +1196,11 @@ namespace FrostyCmd
 
             CreateNFSEdgeProfile();
             CreateFifa21Profile();
+            CreateMadden22Profile();
             CreateFifa22Profile();
             CreateBF2042Profile();
-            CreateMadden22Profile();
             CreateMadden23Profile();
+            CreateFifa23Profile();
             CreateNFSUnboundProfile();
 
 #endif

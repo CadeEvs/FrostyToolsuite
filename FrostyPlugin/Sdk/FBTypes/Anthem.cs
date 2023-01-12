@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Frosty.Core.IO;
 using FrostySdk;
 
@@ -12,14 +13,13 @@ namespace Frosty.Core.Sdk.Anthem
 
             long typeInfoOffset = reader.ReadLong();
             ClassesSdkCreator.NextOffset = reader.ReadLong();
+            Guid guid = reader.ReadGuid();
             Id = reader.ReadUShort();
             IsDataContainer = reader.ReadUShort();
             Padding = new byte[] { reader.ReadByte(), reader.ReadByte(), reader.ReadByte(), reader.ReadByte() };
             ParentClass = reader.ReadLong();
 
             reader.Position = typeInfoOffset;
-            //if (typeInfoOffset == 0x145029EB0)
-            //    Console.WriteLine();
 
             TypeInfo = new TypeInfo();
             TypeInfo.Read(reader);
@@ -47,7 +47,7 @@ namespace Frosty.Core.Sdk.Anthem
             Guid = reader.ReadGuid();
 
             long nameSpaceOffset = reader.ReadLong();
-            long arrayTypeOffset = arrayTypeOffset = reader.ReadLong();
+            ArrayTypeOffset = reader.ReadLong();
 
             Alignment = reader.ReadUShort();
             FieldCount = reader.ReadUShort();

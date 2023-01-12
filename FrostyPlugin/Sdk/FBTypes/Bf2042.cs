@@ -14,7 +14,7 @@ namespace Frosty.Core.Sdk.Bf2042
 
     public class TypeInfo : ClassesSdkCreator.TypeInfo
     {
-        private bool m_hasNames = !ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.Battlefield2042);
+        private bool m_hasNames = !ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042);
 
         private uint m_nameHash;
         private uint m_signature;
@@ -34,7 +34,7 @@ namespace Frosty.Core.Sdk.Bf2042
             Guid = reader.ReadGuid();
 
             long nameSpaceOffset = reader.ReadLong();
-            long arrayTypeOffset = reader.ReadLong();
+            ArrayTypeOffset = reader.ReadLong();
 
             Alignment = reader.ReadUShort();
             FieldCount = reader.ReadUShort();
@@ -110,6 +110,17 @@ namespace Frosty.Core.Sdk.Bf2042
             {
                 ParentClass = 0;
                 reader.Position = offsets[0];
+                for (int i = 0; i < FieldCount; i++)
+                {
+                    ParameterInfo pi = new ParameterInfo();
+                    pi.Read(reader);
+                    Parameters.Add(pi);
+                }
+            }
+            else if (Type == 0x18 /* Function */)
+            {
+                ParentClass = 0;
+                reader.Position = offsets[5];
                 for (int i = 0; i < FieldCount; i++)
                 {
                     ParameterInfo pi = new ParameterInfo();

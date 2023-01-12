@@ -180,53 +180,34 @@ namespace Frosty.Core.Windows
 
             string[] patterns = new string[]
             {
-                "488B05???????? 48894108 ?? 488D05???????? 483905???????????? 488B05???????? 488905????????",
                 "488b05???????? 48894108 48890d???????? 48???? C3",
                 "488b05???????? 48894108 48890d???????? C3",
                 "488b05???????? 48894108 48890d????????",
                 "488b05???????? 488905???????? 488d05???????? 488905???????? E9",
-                "488b05???????? 4885C074 ???????? 488b40", // not really a pattern but seems to work for bf2042?
-                "48391D???????? ????488b4310"
+                "48391D???????? ???? 488b4310"
             };
 
-            // TODO: manually adding offsets for new games, need to find the pattern
-            switch (ProfilesLibrary.DataVersion)
+            IList<long> offsets = null;
+            foreach (var pattern in patterns)
             {
-                case (int)ProfileVersion.Madden22:
-                    updateState.TypeInfoOffset = 0x146987A18;
+                reader.Position = startAddress;
+                offsets = reader.scan(pattern);
+                if (offsets.Count != 0)
                     break;
-                //case (int)ProfileVersion.Battlefield2042:
-                //    updateState.TypeInfoOffset = 0x14677EA30;
-                //    break;
-                case (int)ProfileVersion.Madden23:
-                    updateState.TypeInfoOffset = 0x146BA7088;
-                    break;
-                default:
-                    {
-                        IList<long> offsets = null;
-                        foreach (var pattern in patterns)
-                        {
-                            reader.Position = startAddress;
-                            offsets = reader.scan(pattern);
-                            if (offsets.Count != 0)
-                                break;
-                        }
-
-                        if (offsets.Count == 0)
-                        {
-                            task.State = SdkUpdateTaskState.CompletedFail;
-                            task.FailMessage = "Unable to find the first type info offset";
-                            return false;
-                        }
-
-                        reader.Position = offsets[0] + 3;
-                        int newValue = reader.ReadInt();
-                        reader.Position = offsets[0] + 3 + newValue + 4;
-                        updateState.TypeInfoOffset = reader.ReadLong();
-                        break;
-                    }
             }
-            
+
+            if (offsets.Count == 0)
+            {
+                task.State = SdkUpdateTaskState.CompletedFail;
+                task.FailMessage = "Unable to find the first type info offset";
+                return false;
+            }
+
+            reader.Position = offsets[0] + 3;
+            int newValue = reader.ReadInt();
+            reader.Position = offsets[0] + 3 + newValue + 4;
+            updateState.TypeInfoOffset = reader.ReadLong();
+
             task.State = SdkUpdateTaskState.CompletedSuccessful;
             task.StatusMessage = string.Format("0x{0}", updateState.TypeInfoOffset.ToString("X8"));
             return true;

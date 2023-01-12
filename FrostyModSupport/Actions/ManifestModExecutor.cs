@@ -42,7 +42,7 @@ namespace Frosty.ModSupport
             {
                 try
                 {
-                    FileSystemManager fs = parent.fs;
+                    FileSystemManager fs = parent.m_fs;
 
                     foreach (ModBundleInfo bundle in bundles)
                     {
@@ -80,7 +80,7 @@ namespace Frosty.ModSupport
                                 string catFile = fs.ResolvePath(((fi.file.IsInPatch) ? "native_patch/" : "native_data/") + fs.GetCatalog(fi.file) + "/cas.cat");
                                 int catFileHash = Fnv1.HashString(catFile.ToLower());
 
-                                Dictionary<uint, CatResourceEntry> casList = parent.resources[catFileHash][fi.file.CasIndex];
+                                Dictionary<uint, CatResourceEntry> casList = parent.m_resources[catFileHash][fi.file.CasIndex];
                                 List<uint> offsets = casList.Keys.ToList();
 
                                 uint totalSize = 0;
@@ -160,7 +160,7 @@ namespace Frosty.ModSupport
                             if (bundle.Modify.Ebx.Contains(name))
                             {
                                 ManifestFileInfo fi = manifestBundle.files[idx];
-                                EbxAssetEntry entry = parent.modifiedEbx[name];
+                                EbxAssetEntry entry = parent.m_modifiedEbx[name];
 
                                 ebx.SetValue("sha1", entry.Sha1);
                                 ebx.SetValue("originalSize", entry.OriginalSize);
@@ -172,7 +172,7 @@ namespace Frosty.ModSupport
                         }
                         foreach (string name in bundle.Add.Ebx)
                         {
-                            EbxAssetEntry entry = parent.modifiedEbx[name];
+                            EbxAssetEntry entry = parent.m_modifiedEbx[name];
 
                             DbObject ebx = new DbObject();
                             ebx.SetValue("name", entry.Name);
@@ -192,7 +192,7 @@ namespace Frosty.ModSupport
                             if (bundle.Modify.Res.Contains(name))
                             {
                                 ManifestFileInfo fi = manifestBundle.files[idx];
-                                ResAssetEntry entry = parent.modifiedRes[name];
+                                ResAssetEntry entry = parent.m_modifiedRes[name];
 
                                 //if (entry.ExtraData != null)
                                 //{
@@ -229,7 +229,7 @@ namespace Frosty.ModSupport
                         }
                         foreach (string name in bundle.Add.Res)
                         {
-                            ResAssetEntry entry = parent.modifiedRes[name];
+                            ResAssetEntry entry = parent.m_modifiedRes[name];
 
                             DbObject res = new DbObject();
                             res.SetValue("name", entry.Name);
@@ -260,7 +260,7 @@ namespace Frosty.ModSupport
                             }
                             else if (bundle.Modify.Chunks.Contains(name))
                             {
-                                ChunkAssetEntry entry = parent.modifiedChunks[name];
+                                ChunkAssetEntry entry = parent.m_modifiedChunks[name];
                                 DbObject meta = chunkMeta.Find<DbObject>((object a) => { return (a as DbObject).GetValue<int>("h32") == entry.H32; });
 
                                 chunk.SetValue("sha1", entry.Sha1);
@@ -294,7 +294,7 @@ namespace Frosty.ModSupport
                         }
                         foreach (Guid name in bundle.Add.Chunks)
                         {
-                            ChunkAssetEntry entry = parent.modifiedChunks[name];
+                            ChunkAssetEntry entry = parent.m_modifiedChunks[name];
 
                             DbObject chunk = new DbObject();
                             chunk.SetValue("id", name);
@@ -351,7 +351,7 @@ namespace Frosty.ModSupport
                 Run();
 
                 // are all threads done?
-                if (Interlocked.Decrement(ref parent.numTasks) == 0)
+                if (Interlocked.Decrement(ref parent.m_numTasks) == 0)
                     doneEvent.Set();
             }
         }

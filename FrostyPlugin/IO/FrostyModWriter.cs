@@ -183,11 +183,13 @@ namespace Frosty.Core.IO
             private uint logicalSize;
             private int h32;
             private int firstMip;
+            private List<int> superBundlesToAdd = new List<int>();
 
             public ChunkResource(ChunkAssetEntry entry, Manifest manifest)
                 : base(entry)
             {
                 name = entry.Id.ToString();
+                superBundlesToAdd.AddRange(entry.AddedSuperBundles);
                 if (entry.HasModifiedData)
                 {
                     sha1 = entry.ModifiedEntry.Sha1;
@@ -203,19 +205,6 @@ namespace Frosty.Core.IO
                     userData = entry.ModifiedEntry.UserData;
 
                     flags |= (byte)((entry.IsInline) ? 1 : 0);
-                    flags |= (byte)((entry.ModifiedEntry.AddToChunkBundle) ? 1 << 1 : 0);
-
-                    // add special chunks bundle
-                    if (entry.ModifiedEntry.AddToChunkBundle)
-                    {
-                        // MustAddChunks should add chunks, so seems redundant to check for it here,
-                        // as the chunk should already be an added chunk
-
-                        if (ProfilesLibrary.MustAddChunks || entry.IsAdded)
-                        {
-                            AddBundle("chunks");
-                        }
-                    }
                 }
                 else
                 {
@@ -290,6 +279,11 @@ namespace Frosty.Core.IO
                 writer.Write(logicalSize);
                 writer.Write(h32);
                 writer.Write(firstMip);
+                writer.Write(superBundlesToAdd.Count);
+                foreach (int sbId in superBundlesToAdd)
+                {
+                    writer.Write(sbId);
+                }
             }
         }
 

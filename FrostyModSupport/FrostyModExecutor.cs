@@ -192,31 +192,168 @@ namespace Frosty.ModSupport
         [DllImport("kernel32.dll")]
         static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags);
 
-        private FileSystemManager fs;
-        private ResourceManager rm;
-        private AssetManager am;
-        private ILogger logger;
+        private FileSystemManager m_fs;
+        private ResourceManager m_rm;
+        private AssetManager m_am;
+        private ILogger m_logger;
 
-        private List<string> addedSuperBundles = new List<string>();
+        private List<string> m_addedSuperBundles = new List<string>();
 
-        private ConcurrentDictionary<int, ModBundleInfo> modifiedBundles = new ConcurrentDictionary<int, ModBundleInfo>();
-        private ConcurrentDictionary<int, List<string>> addedBundles = new ConcurrentDictionary<int, List<string>>();
+        private ConcurrentDictionary<int, ModBundleInfo> m_modifiedSuperBundles = new ConcurrentDictionary<int, ModBundleInfo>();
+        private ConcurrentDictionary<int, ModBundleInfo> m_modifiedBundles = new ConcurrentDictionary<int, ModBundleInfo>();
+        private ConcurrentDictionary<int, List<string>> m_addedBundles = new ConcurrentDictionary<int, List<string>>();
 
-        private ConcurrentDictionary<string, EbxAssetEntry> modifiedEbx = new ConcurrentDictionary<string, EbxAssetEntry>();
-        private ConcurrentDictionary<string, ResAssetEntry> modifiedRes = new ConcurrentDictionary<string, ResAssetEntry>();
-        private ConcurrentDictionary<Guid, ChunkAssetEntry> modifiedChunks = new ConcurrentDictionary<Guid, ChunkAssetEntry>();
-        private ConcurrentDictionary<string, DbObject> modifiedFs = new ConcurrentDictionary<string, DbObject>();
+        private ConcurrentDictionary<string, EbxAssetEntry> m_modifiedEbx = new ConcurrentDictionary<string, EbxAssetEntry>();
+        private ConcurrentDictionary<string, ResAssetEntry> m_modifiedRes = new ConcurrentDictionary<string, ResAssetEntry>();
+        private ConcurrentDictionary<Guid, ChunkAssetEntry> m_modifiedChunks = new ConcurrentDictionary<Guid, ChunkAssetEntry>();
+        private ConcurrentDictionary<string, DbObject> m_modifiedFs = new ConcurrentDictionary<string, DbObject>();
 
-        private ConcurrentDictionary<Sha1, ArchiveInfo> archiveData = new ConcurrentDictionary<Sha1, ArchiveInfo>();
-        private int numArchiveEntries = 0;
-        private int numTasks;
+        private ConcurrentDictionary<Sha1, ArchiveInfo> m_archiveData = new ConcurrentDictionary<Sha1, ArchiveInfo>();
+        private int m_numArchiveEntries = 0;
+        private int m_numTasks;
 
-        private CasDataInfo casData = new CasDataInfo();
-        private static int chunksBundleHash = Fnv1.HashString("chunks");
-        private Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>> resources = new Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>>();
-        private string modDirName = "ModData";
+        private CasDataInfo m_casData = new CasDataInfo();
+        private static int s_chunksBundleHash = Fnv1.HashString("chunks"); // should not be used, only here to ignore old mods adding assets to it
+        private Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>> m_resources = new Dictionary<int, Dictionary<int, Dictionary<uint, CatResourceEntry>>>();
+        private string m_modDirName = "ModData";
+        private string m_patchPath = "Patch";
+        private bool m_hasPatchFolder = true;
 
-        public ILogger Logger { get => logger; set => logger = value; }
+        public ILogger Logger { get => m_logger; set => m_logger = value; }
+
+        private void PrintLog()
+        {
+            using (NativeWriter writer = new NativeWriter(new FileStream("log.txt", FileMode.Create, FileAccess.Write)))
+            {
+                if (m_addedSuperBundles.Count > 0)
+                {
+                    writer.WriteLine("Added SuperBundles:");
+                    foreach (string sb in m_addedSuperBundles)
+                    {
+                        writer.WriteLine($"  - {sb}");
+                    }
+                    writer.WriteLine(string.Empty);
+                }
+
+                if (m_modifiedSuperBundles.Count > 0)
+                {
+                    writer.WriteLine("Modified SuperBundles:");
+                    foreach (var kv in m_modifiedSuperBundles)
+                    {
+                        writer.WriteLine($"  {m_am.GetSuperBundle(kv.Key).Name}:");
+
+                        List<Guid> sortedChunks = new List<Guid>(kv.Value.Modify.Chunks);
+                        sortedChunks.Sort();
+
+                        if (kv.Value.Modify.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Chunks:");
+                            foreach (Guid chunkId in sortedChunks)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+
+                        sortedChunks = new List<Guid>(kv.Value.Add.Chunks);
+                        sortedChunks.Sort();
+
+                        if (kv.Value.Add.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Chunks:");
+                            foreach (Guid chunkId in sortedChunks)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                    }
+                    writer.WriteLine(string.Empty);
+                }
+
+                if (m_modifiedBundles.Count > 0)
+                {
+                    Dictionary<int, string> bundleHashMap = new Dictionary<int, string>();
+                    foreach (BundleEntry be in m_am.EnumerateBundles())
+                    {
+                        if (!bundleHashMap.ContainsKey(HashBundle(be)))
+                            bundleHashMap.Add(HashBundle(be), be.Name);
+                    }
+                    writer.WriteLine("Modified Bundles:");
+                    
+                    List<int> bundles = m_modifiedBundles.Keys.ToList();
+                    bundles.Sort();
+
+                    foreach (int hash in bundles)
+                    {
+                        var kv = m_modifiedBundles[hash];
+                        writer.WriteLine($"  {bundleHashMap[hash]}:");
+
+                        if (kv.Modify.Ebx.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Ebx:");
+                            List<string> sorted = new List<string>(kv.Modify.Ebx);
+                            sorted.Sort();
+                            foreach (string name in sorted)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+                        if (kv.Add.Ebx.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Ebx:");
+                            List<string> sorted = new List<string>(kv.Add.Ebx);
+                            sorted.Sort();
+                            foreach (string name in sorted)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+
+                        if (kv.Modify.Res.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Res:");
+                            List<string> sorted = new List<string>(kv.Modify.Res);
+                            sorted.Sort();
+                            foreach (string name in sorted)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+                        if (kv.Add.Res.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Res:");
+                            List<string> sorted = new List<string>(kv.Add.Res);
+                            sorted.Sort();
+                            foreach (string name in sorted)
+                            {
+                                writer.WriteLine($"    - {name}");
+                            }
+                        }
+
+                        if (kv.Modify.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Modified Chunks:");
+                            List<Guid> sorted = new List<Guid>(kv.Modify.Chunks);
+                            sorted.Sort();
+                            foreach (Guid chunkId in sorted)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                        if (kv.Add.Chunks.Count > 0)
+                        {
+                            writer.WriteLine($"    Added Chunks:");
+                            List<Guid> sorted = new List<Guid>(kv.Add.Chunks);
+                            sorted.Sort();
+                            foreach (Guid chunkId in sorted)
+                            {
+                                writer.WriteLine($"    - {chunkId}");
+                            }
+                        }
+                    }
+                    writer.WriteLine(string.Empty);
+                }
+            }
+        }
 
         private void ReportProgress(int current, int total) => Logger.Log("progress:" + current / (float)total * 100d);
 
@@ -254,29 +391,29 @@ namespace Frosty.ModSupport
         }
         private void ProcessModResources(IResourceContainer fmod)
         {
-            // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
-            if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(chunksBundleHash))
-            {
-                App.WhitelistedBundles.Add(chunksBundleHash);
-            }
-
             Parallel.ForEach(fmod.Resources, resource =>
             {
                 // pull existing bundles from asset manager
                 List<int> bundles = new List<int>();
+
+                // get superbundles which have modified chunks
+                List<int> superBundles = new List<int>();
+
+                // get superbundles which have added chunks
+                List<int> addedSuperBundles = new List<int>();
 
                 if (resource.Type == ModResourceType.Bundle)
                 {
                     BundleEntry bEntry = new BundleEntry();
                     resource.FillAssetEntry(bEntry);
 
-                    addedBundles.TryAdd(bEntry.SuperBundleId, new List<string>());
-                    addedBundles[bEntry.SuperBundleId].Add(bEntry.Name);
+                    m_addedBundles.TryAdd(bEntry.SuperBundleId, new List<string>());
+                    m_addedBundles[bEntry.SuperBundleId].Add(bEntry.Name);
 
                 }
                 else if (resource.Type == ModResourceType.Ebx)
                 {
-                    if (resource.IsModified || !modifiedEbx.ContainsKey(resource.Name))
+                    if (resource.IsModified || !m_modifiedEbx.ContainsKey(resource.Name))
                     {
                         if (resource.HasHandler)
                         {
@@ -284,9 +421,9 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData = null;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedEbx.ContainsKey(resource.Name))
+                            if (m_modifiedEbx.ContainsKey(resource.Name))
                             {
-                                entry = modifiedEbx[resource.Name];
+                                entry = m_modifiedEbx[resource.Name];
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
                             else
@@ -302,14 +439,14 @@ namespace Frosty.ModSupport
                                     extraData.Handler = handler;
 
                                 // add in existing bundles
-                                var ebxEntry = am.GetEbxEntry(resource.Name);
+                                var ebxEntry = m_am.GetEbxEntry(resource.Name);
                                 foreach (int bid in ebxEntry.Bundles)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
 
                                 entry.ExtraData = extraData;
-                                modifiedEbx.TryAdd(resource.Name, entry);
+                                m_modifiedEbx.TryAdd(resource.Name, entry);
                             }
 
                             // merge new and old data together
@@ -318,60 +455,59 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (modifiedEbx.ContainsKey(resource.Name))
+                            if (m_modifiedEbx.ContainsKey(resource.Name))
                             {
-                                EbxAssetEntry existingEntry = modifiedEbx[resource.Name];
+                                EbxAssetEntry existingEntry = m_modifiedEbx[resource.Name];
 
                                 if (existingEntry.ExtraData != null)
                                     return;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     return;
 
-                                archiveData[existingEntry.Sha1].RefCount--;
-                                if (archiveData[existingEntry.Sha1].RefCount == 0)
-                                    archiveData.TryRemove(existingEntry.Sha1, out _);
+                                m_archiveData[existingEntry.Sha1].RefCount--;
+                                if (m_archiveData[existingEntry.Sha1].RefCount == 0)
+                                    m_archiveData.TryRemove(existingEntry.Sha1, out _);
 
-                                modifiedEbx.TryRemove(resource.Name, out _);
-                                numArchiveEntries--;
+                                m_modifiedEbx.TryRemove(resource.Name, out _);
+                                m_numArchiveEntries--;
                             }
 
                             EbxAssetEntry entry = new EbxAssetEntry();
                             resource.FillAssetEntry(entry);
 
                             byte[] data = fmod.GetResourceData(resource);
-                            var ebxEntry = am.GetEbxEntry(resource.Name);
+                            var ebxEntry = m_am.GetEbxEntry(resource.Name);
 
                             if (data == null)
                             {
-                                data = NativeReader.ReadInStream(am.GetRawStream(ebxEntry));
+                                data = NativeReader.ReadInStream(m_am.GetRawStream(ebxEntry));
 
                                 entry.Sha1 = ebxEntry.Sha1;
                                 entry.OriginalSize = ebxEntry.OriginalSize;
                             }
-
-                            if (ebxEntry != null)
+                            else if (ebxEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in ebxEntry.Bundles)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
                             }
 
                             entry.Size = data.Length;
 
-                            modifiedEbx.TryAdd(entry.Name, entry);
-                            if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
+                            m_modifiedEbx.TryAdd(entry.Name, entry);
+                            if (!m_archiveData.ContainsKey(entry.Sha1))
+                                m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
                             else
-                                archiveData[entry.Sha1].RefCount++;
-                            numArchiveEntries++;
+                                m_archiveData[entry.Sha1].RefCount++;
+                            m_numArchiveEntries++;
                         }
                     }
                 }
                 else if (resource.Type == ModResourceType.Res)
                 {
-                    if (resource.IsModified || !modifiedRes.ContainsKey(resource.Name))
+                    if (resource.IsModified || !m_modifiedRes.ContainsKey(resource.Name))
                     {
                         if (resource.HasHandler)
                         {
@@ -379,9 +515,9 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData = null;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedRes.ContainsKey(resource.Name))
+                            if (m_modifiedRes.ContainsKey(resource.Name))
                             {
-                                entry = modifiedRes[resource.Name];
+                                entry = m_modifiedRes[resource.Name];
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
                             else
@@ -397,14 +533,14 @@ namespace Frosty.ModSupport
                                     extraData.Handler = handler;
 
                                 // add in existing bundles
-                                var resEntry = am.GetResEntry(resource.Name);
+                                var resEntry = m_am.GetResEntry(resource.Name);
                                 foreach (int bid in resEntry.Bundles)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
 
                                 entry.ExtraData = extraData;
-                                modifiedRes.TryAdd(resource.Name, entry);
+                                m_modifiedRes.TryAdd(resource.Name, entry);
                             }
 
                             // merge new and old data together
@@ -413,32 +549,32 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (modifiedRes.ContainsKey(resource.Name))
+                            if (m_modifiedRes.ContainsKey(resource.Name))
                             {
-                                ResAssetEntry existingEntry = modifiedRes[resource.Name];
+                                ResAssetEntry existingEntry = m_modifiedRes[resource.Name];
 
                                 if (existingEntry.ExtraData != null)
                                     return;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     return;
 
-                                archiveData[existingEntry.Sha1].RefCount--;
-                                if (archiveData[existingEntry.Sha1].RefCount == 0)
-                                    archiveData.TryRemove(existingEntry.Sha1, out _);
+                                m_archiveData[existingEntry.Sha1].RefCount--;
+                                if (m_archiveData[existingEntry.Sha1].RefCount == 0)
+                                    m_archiveData.TryRemove(existingEntry.Sha1, out _);
 
-                                modifiedRes.TryRemove(resource.Name, out _);
-                                numArchiveEntries--;
+                                m_modifiedRes.TryRemove(resource.Name, out _);
+                                m_numArchiveEntries--;
                             }
 
                             ResAssetEntry entry = new ResAssetEntry();
                             resource.FillAssetEntry(entry);
 
                             byte[] data = fmod.GetResourceData(resource);
-                            var resEntry = am.GetResEntry(resource.Name);
+                            var resEntry = m_am.GetResEntry(resource.Name);
 
                             if (data == null)
                             {
-                                data = NativeReader.ReadInStream(am.GetRawStream(resEntry));
+                                data = NativeReader.ReadInStream(m_am.GetRawStream(resEntry));
 
                                 entry.Sha1 = resEntry.Sha1;
                                 entry.OriginalSize = resEntry.OriginalSize;
@@ -446,31 +582,30 @@ namespace Frosty.ModSupport
                                 entry.ResRid = resEntry.ResRid;
                                 entry.ResType = resEntry.ResType;
                             }
-
-                            if (resEntry != null)
+                            else if (resEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in resEntry.Bundles)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
                             }
 
                             entry.Size = data.Length;
 
-                            modifiedRes.TryAdd(entry.Name, entry);
-                            if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
+                            m_modifiedRes.TryAdd(entry.Name, entry);
+                            if (!m_archiveData.ContainsKey(entry.Sha1))
+                                m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
                             else
-                                archiveData[entry.Sha1].RefCount++;
-                            numArchiveEntries++;
+                                m_archiveData[entry.Sha1].RefCount++;
+                            m_numArchiveEntries++;
                         }
                     }
                 }
                 else if (resource.Type == ModResourceType.Chunk)
                 {
                     Guid guid = new Guid(resource.Name);
-                    if (resource.IsModified || !modifiedChunks.ContainsKey(guid))
+                    if (resource.IsModified || !m_modifiedChunks.ContainsKey(guid))
                     {
                         if (resource.HasHandler)
                         {
@@ -478,9 +613,9 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData = null;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedChunks.ContainsKey(guid))
+                            if (m_modifiedChunks.ContainsKey(guid))
                             {
-                                entry = modifiedChunks[guid];
+                                entry = m_modifiedChunks[guid];
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
                             else
@@ -489,7 +624,6 @@ namespace Frosty.ModSupport
                                 extraData = new HandlerExtraData();
 
                                 entry.Id = guid;
-                                entry.IsTocChunk = resource.IsTocChunk;
                                 // the rest of the chunk will be populated via the handler
 
                                 if ((uint)resource.Handler == 0xBD9BFB65)
@@ -505,15 +639,17 @@ namespace Frosty.ModSupport
                                 }
 
                                 // add in existing bundles
-                                var chunkEntry = am.GetChunkEntry(guid);
-                                bundles.Add(chunksBundleHash);
+                                var chunkEntry = m_am.GetChunkEntry(guid);
                                 foreach (int bid in chunkEntry.Bundles)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
                                 }
 
+                                // add in existing superbundles
+                                superBundles.AddRange(chunkEntry.SuperBundles);
+
                                 entry.ExtraData = extraData;
-                                modifiedChunks.TryAdd(guid, entry);
+                                m_modifiedChunks.TryAdd(guid, entry);
                             }
 
                             // merge new and old data together
@@ -521,29 +657,29 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (modifiedChunks.ContainsKey(guid))
+                            if (m_modifiedChunks.ContainsKey(guid))
                             {
-                                ChunkAssetEntry existingEntry = modifiedChunks[guid];
+                                ChunkAssetEntry existingEntry = m_modifiedChunks[guid];
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     return;
 
-                                archiveData[existingEntry.Sha1].RefCount--;
-                                if (archiveData[existingEntry.Sha1].RefCount == 0)
-                                    archiveData.TryRemove(existingEntry.Sha1, out _);
+                                m_archiveData[existingEntry.Sha1].RefCount--;
+                                if (m_archiveData[existingEntry.Sha1].RefCount == 0)
+                                    m_archiveData.TryRemove(existingEntry.Sha1, out _);
 
-                                modifiedChunks.TryRemove(guid, out _);
-                                numArchiveEntries--;
+                                m_modifiedChunks.TryRemove(guid, out _);
+                                m_numArchiveEntries--;
                             }
 
                             ChunkAssetEntry entry = new ChunkAssetEntry();
                             resource.FillAssetEntry(entry);
 
                             byte[] data = fmod.GetResourceData(resource);
-                            var chunkEntry = am.GetChunkEntry(guid);
+                            var chunkEntry = m_am.GetChunkEntry(guid);
 
                             if (data == null)
                             {
-                                data = NativeReader.ReadInStream(am.GetRawStream(chunkEntry));
+                                data = NativeReader.ReadInStream(m_am.GetRawStream(chunkEntry));
 
                                 entry.Sha1 = (chunkEntry.Sha1 == Sha1.Zero) ? Utils.GenerateSha1(data) : chunkEntry.Sha1;
                                 entry.OriginalSize = chunkEntry.OriginalSize;
@@ -559,7 +695,7 @@ namespace Frosty.ModSupport
 
                                 if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5))
                                 {
-                                    if (fs.GetManifestChunk(chunkEntry.Id) != null)
+                                    if (m_fs.GetManifestChunk(chunkEntry.Id) != null)
                                     {
                                         entry.TocChunkSpecialHack = true;
                                         if (chunkEntry.Bundles.Count == 0)
@@ -569,35 +705,52 @@ namespace Frosty.ModSupport
                                     }
                                 }
                             }
-
-                            if (chunkEntry != null)
+                            else if (chunkEntry != null)
                             {
                                 // add in existing bundles
-                                bundles.Add(chunksBundleHash);
                                 foreach (int bid in chunkEntry.Bundles)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    bundles.Add(HashBundle(m_am.GetBundleEntry(bid)));
+                                }
+
+                                // add in existing superbundles
+                                superBundles.AddRange(chunkEntry.SuperBundles);
+                            }
+                            else if (!resource.IsAdded)
+                            {
+                                // old mods had their IsAdded flag overridden so we have to manually set the flag and add it to chunks superbundles
+                                resource.IsAdded = true;
+                                foreach (var superBundle in m_am.EnumerateSuperBundles())
+                                {
+                                    // StandardModExecutor.cs had hack with "chunks" and FifaModExecutor.cs had hack with globals.toc 
+                                    if (superBundle.Name.Contains("chunks") || superBundle.Name.Equals("Win32/globals", StringComparison.OrdinalIgnoreCase) || superBundle.Name.Equals("<none>"))
+                                    {
+                                        addedSuperBundles.Add(m_am.GetSuperBundleId(superBundle));
+                                    }
                                 }
                             }
 
+                            // add in added superbundles
+                            addedSuperBundles.AddRange(entry.AddedSuperBundles);
+
                             entry.Size = data.Length;
 
-                            modifiedChunks.TryAdd(guid, entry);
-                            if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
+                            m_modifiedChunks.TryAdd(guid, entry);
+                            if (!m_archiveData.ContainsKey(entry.Sha1))
+                                m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
                             else
-                                archiveData[entry.Sha1].RefCount++;
-                            numArchiveEntries++;
+                                m_archiveData[entry.Sha1].RefCount++;
+                            m_numArchiveEntries++;
                         }
                     }
                     else
                     {
                         if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5))
                         {
-                            var chunkEntry = am.GetChunkEntry(guid);
-                            var entry = modifiedChunks[guid];
+                            var chunkEntry = m_am.GetChunkEntry(guid);
+                            var entry = m_modifiedChunks[guid];
 
-                            if (fs.GetManifestChunk(chunkEntry.Id) != null)
+                            if (m_fs.GetManifestChunk(chunkEntry.Id) != null)
                             {
                                 entry.TocChunkSpecialHack = true;
                                 if (chunkEntry.Bundles.Count == 0)
@@ -614,12 +767,12 @@ namespace Frosty.ModSupport
                         fileStub = reader.ReadDbObject();
                     }
 
-                    if (!modifiedFs.ContainsKey(resource.Name))
+                    if (!m_modifiedFs.ContainsKey(resource.Name))
                     {
-                        modifiedFs.TryAdd(resource.Name, null);
+                        m_modifiedFs.TryAdd(resource.Name, null);
                     }
 
-                    modifiedFs[resource.Name] = fileStub;
+                    m_modifiedFs[resource.Name] = fileStub;
                 }
 
                 // modified bundle actions (these are pulled from the asset manager during applying)
@@ -631,9 +784,9 @@ namespace Frosty.ModSupport
                         continue;
                     }
 
-                    modifiedBundles.TryAdd(bundleHash, new ModBundleInfo() { Name = bundleHash });
+                    m_modifiedBundles.TryAdd(bundleHash, new ModBundleInfo() { Name = bundleHash });
 
-                    ModBundleInfo modBundle = modifiedBundles[bundleHash];
+                    ModBundleInfo modBundle = m_modifiedBundles[bundleHash];
                     switch (resource.Type)
                     {
                         case ModResourceType.Ebx: modBundle.Modify.AddEbx(resource.Name); break;
@@ -646,20 +799,40 @@ namespace Frosty.ModSupport
                 foreach (int bundleHash in resource.AddedBundles)
                 {
                     // Skips bundle if the whitelist has more than one element and doesn't contain the bundle hash
-                    if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(bundleHash))
+                    if ((App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(bundleHash)) || bundleHash == s_chunksBundleHash)
                     {
                         continue;
                     }
 
-                    modifiedBundles.TryAdd(bundleHash, new ModBundleInfo() { Name = bundleHash });
+                    m_modifiedBundles.TryAdd(bundleHash, new ModBundleInfo() { Name = bundleHash });
 
-                    ModBundleInfo modBundle = modifiedBundles[bundleHash];
+                    ModBundleInfo modBundle = m_modifiedBundles[bundleHash];
                     switch (resource.Type)
                     {
                         case ModResourceType.Ebx: modBundle.Add.AddEbx(resource.Name); break;
                         case ModResourceType.Res: modBundle.Add.AddRes(resource.Name); break;
                         case ModResourceType.Chunk: modBundle.Add.AddChunk(new Guid(resource.Name)); break;
                     }
+                }
+
+                // modified superbundle actions (these are pulled from the asset manager during applying)
+                foreach (int superBundleId in superBundles)
+                {
+                    m_modifiedSuperBundles.TryAdd(superBundleId, new ModBundleInfo() { Name = superBundleId });
+
+                    ModBundleInfo modBundle = m_modifiedSuperBundles[superBundleId];
+
+                    modBundle.Modify.AddChunk(new Guid(resource.Name));
+                }
+
+                // add superbundle actions (these are stored in the mod)
+                foreach (int superBundleId in addedSuperBundles)
+                {
+                    m_modifiedSuperBundles.TryAdd(superBundleId, new ModBundleInfo() { Name = superBundleId });
+
+                    ModBundleInfo modBundle = m_modifiedSuperBundles[superBundleId];
+
+                    modBundle.Add.AddChunk(new Guid(resource.Name));
                 }
             });
         }
@@ -681,10 +854,15 @@ namespace Frosty.ModSupport
                 string actionType = action.GetValue<string>("type");
                 int resourceId = action.GetValue<int>("resourceId");
 
-                if (!modifiedBundles.ContainsKey(bundle))
-                    modifiedBundles.TryAdd(bundle, new ModBundleInfo() { Name = bundle });
+                if (bundle == s_chunksBundleHash)
+                {
+                    continue;
+                }
 
-                ModBundleInfo modBundle = modifiedBundles[bundle];
+                if (!m_modifiedBundles.ContainsKey(bundle))
+                    m_modifiedBundles.TryAdd(bundle, new ModBundleInfo() { Name = bundle });
+
+                ModBundleInfo modBundle = m_modifiedBundles[bundle];
                 DbObject resource = resourceList[resourceId] as DbObject;
 
                 string resName = resource.GetValue<string>("name");
@@ -726,7 +904,7 @@ namespace Frosty.ModSupport
                 if (resourceType == "superbundle")
                 {
                     string name = resource.GetValue<string>("name");
-                    addedSuperBundles.Add(name);
+                    m_addedSuperBundles.Add(name);
                 }
                 else if (resourceType == "bundle")
                 {
@@ -734,27 +912,27 @@ namespace Frosty.ModSupport
                     string superBundle = resource.GetValue<string>("sb");
 
                     int hash = Fnv1a.HashString(superBundle.ToLower());
-                    if (!addedBundles.ContainsKey(hash))
-                        addedBundles.TryAdd(hash, new List<string>());
+                    if (!m_addedBundles.ContainsKey(hash))
+                        m_addedBundles.TryAdd(hash, new List<string>());
 
-                    addedBundles[hash].Add(name);
+                    m_addedBundles[hash].Add(name);
                 }
                 else if (resourceType == "ebx")
                 {
                     string name = resource.GetValue<string>("name");
 
-                    if (modifiedEbx.ContainsKey(name))
+                    if (m_modifiedEbx.ContainsKey(name))
                     {
-                        EbxAssetEntry existingEntry = modifiedEbx[name];
+                        EbxAssetEntry existingEntry = m_modifiedEbx[name];
                         if (existingEntry.Sha1 == resource.GetValue<Sha1>("sha1"))
                             continue;
 
-                        archiveData[existingEntry.Sha1].RefCount--;
-                        if (archiveData[existingEntry.Sha1].RefCount == 0)
-                            archiveData.TryRemove(existingEntry.Sha1, out _);
+                        m_archiveData[existingEntry.Sha1].RefCount--;
+                        if (m_archiveData[existingEntry.Sha1].RefCount == 0)
+                            m_archiveData.TryRemove(existingEntry.Sha1, out _);
 
-                        modifiedEbx.TryRemove(name, out _);
-                        numArchiveEntries--;
+                        m_modifiedEbx.TryRemove(name, out _);
+                        m_numArchiveEntries--;
                     }
 
                     EbxAssetEntry entry = new EbxAssetEntry
@@ -775,7 +953,7 @@ namespace Frosty.ModSupport
                         ManifestFileRef fileRef = resource.GetValue<int>("file");
                         long offset = resource.GetValue<int>("offset");
 
-                        using (NativeReader reader = new NativeReader(new FileStream(fs.ResolvePath(fileRef), FileMode.Open, FileAccess.Read)))
+                        using (NativeReader reader = new NativeReader(new FileStream(m_fs.ResolvePath(fileRef), FileMode.Open, FileAccess.Read)))
                         {
                             reader.Position = offset;
                             buffer = reader.ReadBytes((int)entry.Size);
@@ -784,29 +962,29 @@ namespace Frosty.ModSupport
 
                     entry.Sha1 = Utils.GenerateSha1(buffer);
 
-                    modifiedEbx.TryAdd(entry.Name, entry);
-                    if (!archiveData.ContainsKey(entry.Sha1))
-                        archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = buffer, RefCount = 1 });
+                    m_modifiedEbx.TryAdd(entry.Name, entry);
+                    if (!m_archiveData.ContainsKey(entry.Sha1))
+                        m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = buffer, RefCount = 1 });
                     else
-                        archiveData[entry.Sha1].RefCount++;
-                    numArchiveEntries++;
+                        m_archiveData[entry.Sha1].RefCount++;
+                    m_numArchiveEntries++;
                 }
                 else if (resourceType == "res")
                 {
                     string name = resource.GetValue<string>("name");
 
-                    if (modifiedRes.ContainsKey(name))
+                    if (m_modifiedRes.ContainsKey(name))
                     {
-                        ResAssetEntry existingEntry = modifiedRes[name];
+                        ResAssetEntry existingEntry = m_modifiedRes[name];
                         if (existingEntry.Sha1 == resource.GetValue<Sha1>("sha1"))
                             continue;
 
-                        archiveData[existingEntry.Sha1].RefCount--;
-                        if (archiveData[existingEntry.Sha1].RefCount == 0)
-                            archiveData.TryRemove(existingEntry.Sha1, out _);
+                        m_archiveData[existingEntry.Sha1].RefCount--;
+                        if (m_archiveData[existingEntry.Sha1].RefCount == 0)
+                            m_archiveData.TryRemove(existingEntry.Sha1, out _);
 
-                        modifiedRes.TryRemove(name, out _);
-                        numArchiveEntries--;
+                        m_modifiedRes.TryRemove(name, out _);
+                        m_numArchiveEntries--;
                     }
 
                     ResAssetEntry entry = new ResAssetEntry
@@ -830,7 +1008,7 @@ namespace Frosty.ModSupport
                         ManifestFileRef fileRef = resource.GetValue<int>("file");
                         long offset = resource.GetValue<int>("offset");
 
-                        using (NativeReader reader = new NativeReader(new FileStream(fs.ResolvePath(fileRef), FileMode.Open, FileAccess.Read)))
+                        using (NativeReader reader = new NativeReader(new FileStream(m_fs.ResolvePath(fileRef), FileMode.Open, FileAccess.Read)))
                         {
                             reader.Position = offset;
                             buffer = reader.ReadBytes((int)entry.Size);
@@ -839,28 +1017,28 @@ namespace Frosty.ModSupport
 
                     entry.Sha1 = Utils.GenerateSha1(buffer);
 
-                    modifiedRes.TryAdd(entry.Name, entry);
-                    if (!archiveData.ContainsKey(entry.Sha1))
-                        archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = buffer, RefCount = 1 });
+                    m_modifiedRes.TryAdd(entry.Name, entry);
+                    if (!m_archiveData.ContainsKey(entry.Sha1))
+                        m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = buffer, RefCount = 1 });
                     else
-                        archiveData[entry.Sha1].RefCount++;
-                    numArchiveEntries++;
+                        m_archiveData[entry.Sha1].RefCount++;
+                    m_numArchiveEntries++;
                 }
                 else if (resourceType == "chunk")
                 {
                     Guid chunkId = new Guid(resource.GetValue<string>("name"));
-                    if (modifiedChunks.ContainsKey(chunkId))
+                    if (m_modifiedChunks.ContainsKey(chunkId))
                     {
-                        ChunkAssetEntry existingEntry = modifiedChunks[chunkId];
+                        ChunkAssetEntry existingEntry = m_modifiedChunks[chunkId];
                         if (existingEntry.Sha1 == resource.GetValue<Sha1>("sha1"))
                             continue;
 
-                        archiveData[existingEntry.Sha1].RefCount--;
-                        if (archiveData[existingEntry.Sha1].RefCount == 0)
-                            archiveData.TryRemove(existingEntry.Sha1, out _);
+                        m_archiveData[existingEntry.Sha1].RefCount--;
+                        if (m_archiveData[existingEntry.Sha1].RefCount == 0)
+                            m_archiveData.TryRemove(existingEntry.Sha1, out _);
 
-                        modifiedChunks.TryRemove(chunkId, out _);
-                        numArchiveEntries--;
+                        m_modifiedChunks.TryRemove(chunkId, out _);
+                        m_numArchiveEntries--;
                     }
 
                     ChunkAssetEntry entry = new ChunkAssetEntry
@@ -872,8 +1050,7 @@ namespace Frosty.ModSupport
                         RangeStart = resource.GetValue<uint>("rangeStart"),
                         RangeEnd = resource.GetValue<uint>("rangeEnd"),
                         FirstMip = resource.GetValue<int>("firstMip", -1),
-                        H32 = resource.GetValue<int>("h32", 0),
-                        IsTocChunk = resource.GetValue<bool>("tocChunk")
+                        H32 = resource.GetValue<int>("h32", 0)
                     };
 
                     byte[] buffer = null;
@@ -889,7 +1066,7 @@ namespace Frosty.ModSupport
                         long offset = resource.GetValue<int>("offset");
 
                         // obtain data from cas file location
-                        using (NativeReader reader = new NativeReader(new FileStream(fs.ResolvePath(fileRef), FileMode.Open, FileAccess.Read)))
+                        using (NativeReader reader = new NativeReader(new FileStream(m_fs.ResolvePath(fileRef), FileMode.Open, FileAccess.Read)))
                         {
                             reader.Position = offset;
                             buffer = reader.ReadBytes((int)entry.Size);
@@ -928,22 +1105,44 @@ namespace Frosty.ModSupport
 
                     entry.Sha1 = Utils.GenerateSha1(buffer);
 
-                    modifiedChunks.TryAdd(entry.Id, entry);
-                    if (!archiveData.ContainsKey(entry.Sha1))
-                        archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = buffer, RefCount = 1 });
+                    m_modifiedChunks.TryAdd(entry.Id, entry);
+                    if (!m_archiveData.ContainsKey(entry.Sha1))
+                        m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = buffer, RefCount = 1 });
                     else
-                        archiveData[entry.Sha1].RefCount++;
-                    numArchiveEntries++;
+                        m_archiveData[entry.Sha1].RefCount++;
+                    m_numArchiveEntries++;
+
+                    ChunkAssetEntry originalEntry = m_am.GetChunkEntry(entry.Id);
+                    if (originalEntry != null)
+                    {
+                        // pull superbundles from am
+                        foreach (int sbId in originalEntry.SuperBundles)
+                        {
+                            m_modifiedSuperBundles.TryAdd(sbId, new ModBundleInfo() { Name = sbId });
+
+                            ModBundleInfo chunksBundle = m_modifiedSuperBundles[sbId];
+                            chunksBundle.Modify.Chunks.Add(entry.Id);
+                        }
+                    }
+                    else
+                    {
+                        // need to add it to some superbundle
+                        foreach (var superBundle in m_am.EnumerateSuperBundles())
+                        {
+                            // StandardModExecutor.cs had hack with "chunks" and FifaModExecutor.cs had hack with globals.toc 
+                            if (superBundle.Name.Contains("chunks") || superBundle.Name.Equals("Win32/globals", StringComparison.OrdinalIgnoreCase) || superBundle.Name.Equals("<none>"))
+                            {
+                                int sbId = m_am.GetSuperBundleId(superBundle);
+                                m_modifiedSuperBundles.TryAdd(sbId, new ModBundleInfo() { Name = sbId });
+
+                                ModBundleInfo chunksBundle = m_modifiedSuperBundles[sbId];
+                                chunksBundle.Add.Chunks.Add(entry.Id);
+                            }
+                        }
+                    }
 
                     if (ver < 2)
                     {
-                        // previous mod format versions had no action listed for toc chunk changes
-                        // so now have to manually add an action for it.
-                        if (!modifiedBundles.ContainsKey(chunksBundleHash))
-                            modifiedBundles.TryAdd(chunksBundleHash, new ModBundleInfo() { Name = chunksBundleHash });
-                        ModBundleInfo chunksBundle = modifiedBundles[chunksBundleHash];
-                        chunksBundle.Modify.Chunks.Add(entry.Id);
-
                         // new code requires first mip to be set to modify range values, however
                         // old mods didnt modify this. So lets force it, hopefully not too many
                         // issues result from this.
@@ -958,16 +1157,16 @@ namespace Frosty.ModSupport
 
         public int Run(FileSystemManager inFs, CancellationToken cancelToken, ILogger inLogger, string rootPath, string modPackName, string additionalArgs, params string[] modPaths)
         {
-            modDirName = "ModData\\" + modPackName;
+            m_modDirName = "ModData\\" + modPackName;
             cancelToken.ThrowIfCancellationRequested();
 
             App.Logger.Log("Launching");
 
-            fs = inFs;
+            m_fs = inFs;
             Logger = inLogger;
 
-            string modDataPath = fs.BasePath + modDirName + "\\";
-            string patchPath = "Patch";
+            string modDataPath = m_fs.BasePath + m_modDirName + "\\";
+
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17,
                 ProfileVersion.DragonAgeInquisition,
                 ProfileVersion.Battlefield4,
@@ -975,13 +1174,14 @@ namespace Frosty.ModSupport
                 ProfileVersion.PlantsVsZombiesGardenWarfare2,
                 ProfileVersion.NeedForSpeedRivals))
             {
-                patchPath = "Update\\Patch\\Data";
+                // old fb3 games use an update folder
+                m_patchPath = "Update\\Patch\\Data";
             }
-
-            // bfn and bfv dont have a patch directory
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Battlefield5))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.NeedForSpeedUnbound))
             {
-                patchPath = "Data";
+                // bfv doesnt have a patch directory
+                m_patchPath = "Data";
+                m_hasPatchFolder = false;
             }
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden20))
@@ -1016,17 +1216,21 @@ namespace Frosty.ModSupport
             Logger.Log("Loading Mods");
 
             bool needsModding = false;
-            if (!File.Exists(Path.Combine(modDataPath, patchPath, "mods.json")))
+            if (!File.Exists(Path.Combine(modDataPath, m_patchPath, "mods.json")))
+            {
                 needsModding = true;
+            }
             else
             {
-                List<ModInfo> oldModInfoList = JsonConvert.DeserializeObject<List<ModInfo>>(File.ReadAllText(Path.Combine(modDataPath, patchPath, "mods.json")));
+                List<ModInfo> oldModInfoList = JsonConvert.DeserializeObject<List<ModInfo>>(File.ReadAllText(Path.Combine(modDataPath, m_patchPath, "mods.json")));
                 List<ModInfo> currentModInfoList = GenerateModInfoList(modPaths, rootPath);
 
                 // check if the mod data needs recreating
                 // ie. mod change or patch
-                if (!IsSamePatch(modDataPath + patchPath) || !oldModInfoList.SequenceEqual(currentModInfoList))
+                if (!IsSamePatch(modDataPath + m_patchPath) || !oldModInfoList.SequenceEqual(currentModInfoList))
+                {
                     needsModding = true;
+                }
             }
 
             cancelToken.ThrowIfCancellationRequested();
@@ -1037,28 +1241,28 @@ namespace Frosty.ModSupport
 
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                 {
-                    foreach (string catalogName in fs.Catalogs)
+                    foreach (string catalogName in m_fs.Catalogs)
                     {
-                        Dictionary<int, Dictionary<uint, CatResourceEntry>> entries = LoadCatalog(fs, "native_data/" + catalogName + "/cas.cat", out int hash);
+                        Dictionary<int, Dictionary<uint, CatResourceEntry>> entries = LoadCatalog(m_fs, "native_data/" + catalogName + "/cas.cat", out int hash);
                         if (entries != null)
-                            resources.Add(hash, entries);
+                            m_resources.Add(hash, entries);
 
-                        entries = LoadCatalog(fs, "native_patch/" + catalogName + "/cas.cat", out hash);
+                        entries = LoadCatalog(m_fs, "native_patch/" + catalogName + "/cas.cat", out hash);
                         if (entries != null)
-                            resources.Add(hash, entries);
+                            m_resources.Add(hash, entries);
                     }
                 }
 
-                rm = new ResourceManager(fs);
-                rm.SetLogger(logger);
-                rm.Initialize();
+                m_rm = new ResourceManager(m_fs);
+                m_rm.SetLogger(m_logger);
+                m_rm.Initialize();
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Loading " + ProfilesLibrary.CacheName + ".cache");
 
-                am = new AssetManager(fs, rm);
-                am.SetLogger(logger);
-                am.Initialize(additionalStartup: false);
+                m_am = new AssetManager(m_fs, m_rm);
+                m_am.SetLogger(m_logger);
+                m_am.Initialize(additionalStartup: false);
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Loading Mods");
@@ -1084,7 +1288,7 @@ namespace Frosty.ModSupport
                 int currentMod = 0;
                 foreach (FrostyMod mod in modList)
                 {
-                    Logger.Log($"Loading Mods ({mod.ModDetails.Title})");
+                    Logger.Log($"Loading Mods ({mod.ModDetails?.Title ?? mod.Filename.Replace(".fbmod", "")})");
                     if (mod.NewFormat)
                     {
                         ProcessModResources(mod);
@@ -1103,19 +1307,19 @@ namespace Frosty.ModSupport
                 RuntimeResources runtimeResources = new RuntimeResources();
 
                 List<AssetEntry> assetEntries = new List<AssetEntry>();
-                assetEntries.AddRange(modifiedEbx.Values);
-                assetEntries.AddRange(modifiedRes.Values);
-                assetEntries.AddRange(modifiedChunks.Values);
+                assetEntries.AddRange(m_modifiedEbx.Values);
+                assetEntries.AddRange(m_modifiedRes.Values);
+                assetEntries.AddRange(m_modifiedChunks.Values);
 
                 int currentResource = 0;
                 Parallel.ForEach(assetEntries, entry =>
                 {
                     if (entry.ExtraData is HandlerExtraData handlerExtaData)
                     {
-                        handlerExtaData.Handler.Modify(entry, am, runtimeResources, handlerExtaData.Data, out byte[] data);
+                        handlerExtaData.Handler.Modify(entry, m_am, runtimeResources, handlerExtaData.Data, out byte[] data);
 
-                        if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
-                            archiveData[entry.Sha1].RefCount++;
+                        if (!m_archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
+                            m_archiveData[entry.Sha1].RefCount++;
                     }
                     ReportProgress(currentResource++, assetEntries.Count);
                     Logger.Log($"Applying Handlers ({currentResource}/{assetEntries.Count})");
@@ -1123,6 +1327,9 @@ namespace Frosty.ModSupport
 
                 // process any new resources added during custom handler modification
                 ProcessModResources(runtimeResources);
+#if FROSTY_DEVELOPER
+                PrintLog();
+#endif
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Cleaning Up ModData");
@@ -1131,8 +1338,8 @@ namespace Frosty.ModSupport
                 List<SymLinkStruct> cmdArgs = new List<SymLinkStruct>();
                 bool newInstallation = false;
 
-                fs.ResetManifest();
-                if (!DeleteSelectFiles(modDataPath + patchPath))
+                m_fs.ResetManifest();
+                if (!DeleteSelectFiles(modDataPath + m_patchPath))
                 {
                     if (!Directory.Exists(modDataPath))
                     {
@@ -1146,17 +1353,18 @@ namespace Frosty.ModSupport
                         {
                             if (!Directory.Exists(modDataPath + "Data"))
                                 Directory.CreateDirectory(modDataPath + "Data");
-                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Data/Win32", fs.BasePath + "Data/Win32", true));
+                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Data/Win32", m_fs.BasePath + "Data/Win32", true));
                         }
-                        if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5)) //bfv doesnt have a patch directory so we need to rebuild the data folder structure instead
+                        else if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.NeedForSpeedUnbound))
                         {
+                            // bfv and unbound dont have a patch directory so we need to rebuild the data folder structure instead
                             if (!Directory.Exists(modDataPath + "Data"))
                                 Directory.CreateDirectory(modDataPath + "Data");
 
-                            foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
+                            foreach (string casFilename in Directory.EnumerateFiles(m_fs.BasePath + m_patchPath, "*.cas", SearchOption.AllDirectories))
                             {
                                 FileInfo casFi = new FileInfo(casFilename);
-                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + m_patchPath.ToLower(), "\\" + m_modDirName.ToLower() + "\\" + m_patchPath.ToLower());
                                 string tempPath = Path.Combine(destPath, casFi.Name);
 
                                 if (!Directory.Exists(destPath))
@@ -1168,7 +1376,7 @@ namespace Frosty.ModSupport
                         else
                         {
                             // data path
-                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Data", fs.BasePath + "Data", true));
+                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Data", m_fs.BasePath + "Data", true));
                         }
 
                         if (ProfilesLibrary.IsLoaded(ProfileVersion.DragonAgeInquisition,
@@ -1182,7 +1390,7 @@ namespace Frosty.ModSupport
                                 Directory.CreateDirectory(modDataPath + "Update");
 
                             // update paths
-                            foreach (string path in Directory.EnumerateDirectories(fs.BasePath + "Update"))
+                            foreach (string path in Directory.EnumerateDirectories(m_fs.BasePath + "Update"))
                             {
                                 DirectoryInfo di = new DirectoryInfo(path);
 
@@ -1194,21 +1402,19 @@ namespace Frosty.ModSupport
                         else if (!ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17))
                         {
                             // update path
-                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Update", fs.BasePath + "Update", true));
+                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Update", m_fs.BasePath + "Update", true));
                         }
 
-                        if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19,
-                            ProfileVersion.Madden20,
-                            ProfileVersion.Fifa20,
-                            ProfileVersion.Anthem,
-                            ProfileVersion.NeedForSpeedHeat,
-                            ProfileVersion.PlantsVsZombiesBattleforNeighborville,
-                            ProfileVersion.Fifa21))
+                        if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Anthem,
+                            ProfileVersion.Madden20, ProfileVersion.Fifa20,
+                            ProfileVersion.NeedForSpeedHeat, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
+                            ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                            ProfileVersion.Fifa22, ProfileVersion.Madden23))
                         {
-                            foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
+                            foreach (string casFilename in Directory.EnumerateFiles(m_fs.BasePath + m_patchPath, "*.cas", SearchOption.AllDirectories))
                             {
                                 FileInfo casFi = new FileInfo(casFilename);
-                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + m_patchPath.ToLower(), "\\" + m_modDirName.ToLower() + "\\" + m_patchPath.ToLower());
                                 string tempPath = Path.Combine(destPath, casFi.Name);
 
                                 if (!Directory.Exists(destPath))
@@ -1221,18 +1427,18 @@ namespace Frosty.ModSupport
                 }
 
                 // add cas files to link
-                foreach (string catalog in fs.Catalogs)
+                foreach (string catalog in m_fs.Catalogs)
                 {
-                    string path = fs.ResolvePath("native_patch/" + catalog + "/cas.cat");
+                    string path = m_fs.ResolvePath("native_patch/" + catalog + "/cas.cat");
                     if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5)) //again, no patch directory. fun.
                     {
-                        path = fs.ResolvePath("native_data/" + catalog + "/cas.cat");
+                        path = m_fs.ResolvePath("native_data/" + catalog + "/cas.cat");
                     }
                     if (!File.Exists(path))
                         continue;
 
                     FileInfo catInfo = new FileInfo(path);
-                    string destPath = catInfo.Directory.FullName.Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+                    string destPath = catInfo.Directory.FullName.Replace("\\" + m_patchPath.ToLower(), "\\" + m_modDirName.ToLower() + "\\" + m_patchPath.ToLower());
 
                     if (!Directory.Exists(destPath))
                         Directory.CreateDirectory(destPath);
@@ -1277,18 +1483,21 @@ namespace Frosty.ModSupport
                 cmdArgs.Clear();
 
                 // nfs heat and pvzbfn
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.NeedForSpeedHeat, ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa21))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.NeedForSpeedHeat,
+                    ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa21,
+                    ProfileVersion.Madden22, ProfileVersion.Fifa22,
+                    ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
                 {
                     CasBundleAction.CasFiles.Clear();
-                    foreach (string catalog in fs.Catalogs)
+                    foreach (string catalog in m_fs.Catalogs)
                     {
                         int casIndex = 1;
-                        string path = fs.BasePath + "Patch\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
+                        string path = m_fs.BasePath + m_patchPath + "\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
 
                         while (File.Exists(path))
                         {
                             casIndex++;
-                            path = fs.BasePath + "Patch\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
+                            path = m_fs.BasePath + m_patchPath + "\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
                         }
 
                         CasBundleAction.CasFiles.Add(catalog, casIndex);
@@ -1300,23 +1509,23 @@ namespace Frosty.ModSupport
                     // @todo: Added bundles
 
                     int totalTasks = 0;
-                    foreach (SuperBundleInfo superBundle in fs.EnumerateSuperBundleInfos())
+                    foreach (SuperBundleInfo superBundle in m_fs.EnumerateSuperBundleInfos())
                     {
-                        if (fs.ResolvePath(superBundle.Name + ".toc") == "")
+                        if (m_fs.ResolvePath(superBundle.Name + ".toc") == "")
                             continue;
 
                         CasBundleAction action = new CasBundleAction(superBundle, doneEvent, this);
                         ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                         actions.Add(action);
-                        numTasks++;
+                        m_numTasks++;
                         totalTasks++;
                     }
 
-                    while (numTasks != 0)
+                    while (m_numTasks != 0)
                     {
                         // show progress
                         cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
+                        ReportProgress(totalTasks - m_numTasks, totalTasks);
                         Thread.Sleep(1);
                     }
 
@@ -1329,9 +1538,13 @@ namespace Frosty.ModSupport
                             throw completedAction.Exception;
                         }
 
-                        string srcPath = fs.ResolvePath(completedAction.SuperBundleInfo.Name + ".toc");
-                        FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundleInfo.Name + ".toc");
-                        if (!sbFi.Exists)
+                        string srcPath = m_fs.ResolvePath($"native_patch/{completedAction.SuperBundleInfo.Name}.toc");
+                        if (!m_hasPatchFolder)
+                        {
+                            srcPath = m_fs.ResolvePath($"native_data/{completedAction.SuperBundleInfo.Name}.toc");
+                        }
+                        FileInfo sbFi = new FileInfo(modDataPath + m_patchPath + "/" + completedAction.SuperBundleInfo.Name + ".toc");
+                        if (!sbFi.Exists && srcPath != string.Empty)
                         {
                             Directory.CreateDirectory(sbFi.DirectoryName);
                             cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
@@ -1340,9 +1553,13 @@ namespace Frosty.ModSupport
                         foreach (string catalog in completedAction.SuperBundleInfo.SplitSuperBundles)
                         {
                             string name = completedAction.SuperBundleInfo.Name.Replace("win32", catalog);
-                            srcPath = fs.ResolvePath(name + ".toc");
-                            sbFi = new FileInfo(modDataPath + patchPath + "/" + name + ".toc");
-                            if (!sbFi.Exists)
+                            srcPath = m_fs.ResolvePath($"native_patch/{name}.toc");
+                            if (!m_hasPatchFolder)
+                            {
+                                srcPath = m_fs.ResolvePath($"native_data/{name}.toc");
+                            }
+                            sbFi = new FileInfo(modDataPath + m_patchPath + "/" + name + ".toc");
+                            if (!sbFi.Exists && srcPath != string.Empty)
                             {
                                 Directory.CreateDirectory(sbFi.DirectoryName);
                                 cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
@@ -1351,9 +1568,13 @@ namespace Frosty.ModSupport
 
                         if (completedAction.HasSb)
                         {
-                            srcPath = fs.ResolvePath(completedAction.SuperBundleInfo.Name + ".sb");
-                            sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundleInfo.Name + ".sb");
-                            if (!sbFi.Exists)
+                            srcPath = m_fs.ResolvePath($"native_patch/{completedAction.SuperBundleInfo.Name}.sb");
+                            if (!m_hasPatchFolder)
+                            {
+                                srcPath = m_fs.ResolvePath($"native_data/{completedAction.SuperBundleInfo.Name}.sb");
+                            }
+                            sbFi = new FileInfo(modDataPath + m_patchPath + "/" + completedAction.SuperBundleInfo.Name + ".sb");
+                            if (!sbFi.Exists && srcPath != string.Empty)
                             {
                                 Directory.CreateDirectory(sbFi.DirectoryName);
                                 cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
@@ -1362,9 +1583,13 @@ namespace Frosty.ModSupport
                             foreach (string catalog in completedAction.SuperBundleInfo.SplitSuperBundles)
                             {
                                 string name = completedAction.SuperBundleInfo.Name.Replace("win32", catalog);
-                                srcPath = fs.ResolvePath(name + ".sb");
-                                sbFi = new FileInfo(modDataPath + patchPath + "/" + name + ".sb");
-                                if (!sbFi.Exists)
+                                srcPath = m_fs.ResolvePath($"native_patch/{name}.sb");
+                                if (!m_hasPatchFolder)
+                                {
+                                    srcPath = m_fs.ResolvePath($"native_data/{name}.sb");
+                                }
+                                sbFi = new FileInfo(modDataPath + m_patchPath + "/" + name + ".sb");
+                                if (!sbFi.Exists && srcPath != string.Empty)
                                 {
                                     Directory.CreateDirectory(sbFi.DirectoryName);
                                     cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
@@ -1374,36 +1599,34 @@ namespace Frosty.ModSupport
                     }
                 }
 
-
-
                 // fifa19-20 and madden20
                 else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Fifa20, ProfileVersion.Madden20))
                 {
                     DbObject layout = null;
-                    using (DbReader reader = new DbReader(new FileStream(fs.BasePath + patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+                    using (DbReader reader = new DbReader(new FileStream(m_fs.BasePath + m_patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
                         layout = reader.ReadDbObject();
 
-                    FifaBundleAction.CasFileCount = fs.CasFileCount;
+                    FifaBundleAction.CasFileCount = m_fs.CasFileCount;
                     List<FifaBundleAction> actions = new List<FifaBundleAction>();
                     ManualResetEvent doneEvent = new ManualResetEvent(false);
 
                     // @todo: Added bundles
 
                     int totalTasks = 0;
-                    foreach (CatalogInfo ci in fs.EnumerateCatalogInfos())
+                    foreach (CatalogInfo ci in m_fs.EnumerateCatalogInfos())
                     {
                         FifaBundleAction action = new FifaBundleAction(ci, doneEvent, this, cancelToken);
                         ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                         actions.Add(action);
-                        numTasks++;
+                        m_numTasks++;
                         totalTasks++;
                     }
 
-                    while (numTasks != 0)
+                    while (m_numTasks != 0)
                     {
                         // show progress
                         cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
+                        ReportProgress(totalTasks - m_numTasks, totalTasks);
                         Thread.Sleep(1);
                     }
 
@@ -1437,7 +1660,7 @@ namespace Frosty.ModSupport
                     }
 
                     // write out layout.toc with additional cas entries where required
-                    using (DbWriter writer = new DbWriter(new FileStream(modDataPath + patchPath + "/layout.toc", FileMode.Create), true))
+                    using (DbWriter writer = new DbWriter(new FileStream(modDataPath + m_patchPath + "/layout.toc", FileMode.Create), true))
                         writer.Write(layout);
                 }
 
@@ -1447,21 +1670,18 @@ namespace Frosty.ModSupport
                     List<ManifestBundleAction> actions = new List<ManifestBundleAction>();
                     ManualResetEvent doneEvent = new ManualResetEvent(false);
 
-                    if (addedBundles.Count != 0)
+                    if (m_addedBundles.Count != 0)
                     {
                         int hash = Fnv1a.HashString("<none>");
-                        foreach (string bundleName in addedBundles[hash])
-                            fs.AddManifestBundle(new ManifestBundleInfo() { hash = Fnv1.HashString(bundleName) });
+                        foreach (string bundleName in m_addedBundles[hash])
+                            m_fs.AddManifestBundle(new ManifestBundleInfo() { hash = Fnv1.HashString(bundleName) });
                     }
 
                     Dictionary<string, List<ModBundleInfo>> tasks = new Dictionary<string, List<ModBundleInfo>>();
-                    foreach (ModBundleInfo bundle in modifiedBundles.Values)
+                    foreach (ModBundleInfo bundle in m_modifiedBundles.Values)
                     {
-                        if (bundle.Name.Equals(chunksBundleHash))
-                            continue;
-
-                        ManifestBundleInfo manifestBundle = fs.GetManifestBundle(bundle.Name);
-                        string catalog = fs.GetCatalog(manifestBundle.files[0].file);
+                        ManifestBundleInfo manifestBundle = m_fs.GetManifestBundle(bundle.Name);
+                        string catalog = m_fs.GetCatalog(manifestBundle.files[0].file);
 
                         if (!tasks.ContainsKey(catalog))
                             tasks.Add(catalog, new List<ModBundleInfo>());
@@ -1475,15 +1695,15 @@ namespace Frosty.ModSupport
                         ManifestBundleAction action = new ManifestBundleAction(task, doneEvent, this, cancelToken);
                         ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                         actions.Add(action);
-                        numTasks++;
+                        m_numTasks++;
                         totalTasks++;
                     }
 
-                    while (numTasks != 0)
+                    while (m_numTasks != 0)
                     {
                         // show progress
                         cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
+                        ReportProgress(totalTasks - m_numTasks, totalTasks);
                         Thread.Sleep(1);
                     }
 
@@ -1501,23 +1721,23 @@ namespace Frosty.ModSupport
                             // add bundle data to archive
                             for (int i = 0; i < completedAction.BundleRefs.Count; i++)
                             {
-                                if (!archiveData.ContainsKey(completedAction.BundleRefs[i]))
-                                    archiveData.TryAdd(completedAction.BundleRefs[i], new ArchiveInfo() { Data = completedAction.BundleBuffers[i] });
+                                if (!m_archiveData.ContainsKey(completedAction.BundleRefs[i]))
+                                    m_archiveData.TryAdd(completedAction.BundleRefs[i], new ArchiveInfo() { Data = completedAction.BundleBuffers[i] });
                             }
 
                             // add refs to be added to cas (and manifest)
                             for (int i = 0; i < completedAction.DataRefs.Count; i++)
-                                casData.Add(fs.GetCatalog(completedAction.FileInfos[i].FileInfo.file), completedAction.DataRefs[i], completedAction.FileInfos[i].Entry, completedAction.FileInfos[i].FileInfo);
+                                m_casData.Add(m_fs.GetCatalog(completedAction.FileInfos[i].FileInfo.file), completedAction.DataRefs[i], completedAction.FileInfos[i].Entry, completedAction.FileInfos[i].FileInfo);
                         }
                     }
 
                     // now process manifest chunk changes
-                    if (modifiedBundles.ContainsKey(chunksBundleHash))
+                    if (m_modifiedSuperBundles.ContainsKey(0))
                     {
-                        foreach (Guid id in modifiedBundles[chunksBundleHash].Modify.Chunks)
+                        foreach (Guid id in m_modifiedSuperBundles[0].Modify.Chunks)
                         {
-                            ChunkAssetEntry entry = modifiedChunks[id];
-                            ManifestChunkInfo ci = fs.GetManifestChunk(entry.Id);
+                            ChunkAssetEntry entry = m_modifiedChunks[id];
+                            ManifestChunkInfo ci = m_fs.GetManifestChunk(entry.Id);
 
                             if (ci != null)
                             {
@@ -1527,21 +1747,21 @@ namespace Frosty.ModSupport
                                     ci.file.file = new ManifestFileRef(0, false, 0);
                                 }
 
-                                casData.Add(fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
+                                m_casData.Add(m_fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
                             }
                         }
-                        foreach (Guid id in modifiedBundles[chunksBundleHash].Add.Chunks)
+                        foreach (Guid id in m_modifiedSuperBundles[0].Add.Chunks)
                         {
-                            ChunkAssetEntry entry = modifiedChunks[id];
+                            ChunkAssetEntry entry = m_modifiedChunks[id];
 
                             ManifestChunkInfo ci = new ManifestChunkInfo
                             {
                                 guid = entry.Id,
                                 file = new ManifestFileInfo { file = new ManifestFileRef(0, false, 0), isChunk = true }
                             };
-                            fs.AddManifestChunk(ci);
+                            m_fs.AddManifestChunk(ci);
 
-                            casData.Add(fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
+                            m_casData.Add(m_fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
                         }
                     }
                 }
@@ -1553,32 +1773,32 @@ namespace Frosty.ModSupport
                     ManualResetEvent doneEvent = new ManualResetEvent(false);
 
                     int totalTasks = 0;
-                    foreach (string superBundle in fs.SuperBundles)
+                    foreach (string superBundle in m_fs.SuperBundles)
                     {
-                        if (fs.ResolvePath(superBundle + ".toc") == "")
+                        if (m_fs.ResolvePath(superBundle + ".toc") == "")
                             continue;
 
-                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
+                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, m_modDirName + "/" + m_patchPath, cancelToken);
                         ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                         actions.Add(action);
-                        numTasks++;
+                        m_numTasks++;
                         totalTasks++;
                     }
 
-                    foreach (string superBundle in addedSuperBundles)
+                    foreach (string superBundle in m_addedSuperBundles)
                     {
-                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
+                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, m_modDirName + "/" + m_patchPath, cancelToken);
                         ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                         actions.Add(action);
-                        numTasks++;
+                        m_numTasks++;
                         totalTasks++;
                     }
 
-                    while (numTasks != 0)
+                    while (m_numTasks != 0)
                     {
                         // show progress
                         cancelToken.ThrowIfCancellationRequested();
-                        logger.Log("progress:" + ((totalTasks - numTasks) / (double)totalTasks) * 100.0d);
+                        m_logger.Log("progress:" + ((totalTasks - m_numTasks) / (double)totalTasks) * 100.0d);
                         Thread.Sleep(1);
                     }
 
@@ -1593,8 +1813,8 @@ namespace Frosty.ModSupport
 
                         if (!completedAction.TocModified)
                         {
-                            string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".toc");
-                            FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".toc");
+                            string srcPath = m_fs.ResolvePath(completedAction.SuperBundle + ".toc");
+                            FileInfo sbFi = new FileInfo(modDataPath + m_patchPath + "/" + completedAction.SuperBundle + ".toc");
 
                             if (!Directory.Exists(sbFi.DirectoryName))
                                 Directory.CreateDirectory(sbFi.DirectoryName);
@@ -1604,8 +1824,8 @@ namespace Frosty.ModSupport
 
                         if (!completedAction.SbModified)
                         {
-                            string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".sb");
-                            FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".sb");
+                            string srcPath = m_fs.ResolvePath(completedAction.SuperBundle + ".sb");
+                            FileInfo sbFi = new FileInfo(modDataPath + m_patchPath + "/" + completedAction.SuperBundle + ".sb");
 
                             if (!Directory.Exists(sbFi.DirectoryName))
                                 Directory.CreateDirectory(sbFi.DirectoryName);
@@ -1615,9 +1835,9 @@ namespace Frosty.ModSupport
 
                         if (completedAction.CasRefs.Count != 0)
                         {
-                            string catalogPath = fs.GetCatalogFromSuperBundle(completedAction.SuperBundle);
+                            string catalogPath = m_fs.GetCatalogFromSuperBundle(completedAction.SuperBundle);
                             for (int i = 0; i < completedAction.CasRefs.Count; i++)
-                                casData.Add(catalogPath, completedAction.CasRefs[i]);
+                                m_casData.Add(catalogPath, completedAction.CasRefs[i]);
                         }
                     }
                 }
@@ -1634,7 +1854,7 @@ namespace Frosty.ModSupport
                 Logger.Log("Writing Archive Data");
                 App.Logger.Log("Writing Archive Data");
 
-                int totalEntries = casData.CountEntries();
+                int totalEntries = m_casData.CountEntries();
                 int currentEntry = 0;
                 if (totalEntries > 0)
                 {
@@ -1642,24 +1862,24 @@ namespace Frosty.ModSupport
                 }
 
                 // write out cas and modify cats
-                foreach (CasDataEntry entry in casData.EnumerateEntries())
+                foreach (CasDataEntry entry in m_casData.EnumerateEntries())
                 {
                     if (!entry.HasEntries)
                         continue;
 
                     cancelToken.ThrowIfCancellationRequested();
-                    if (!File.Exists(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat"))
+                    if (!File.Exists(modDataPath + m_patchPath + "\\" + entry.Catalog + "\\cas.cat"))
                     {
-                        if (!File.Exists(fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat"))
+                        if (!File.Exists(m_fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat"))
                             continue;
 
-                        using (NativeReader reader = new NativeReader(new FileStream(fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat", FileMode.Open, FileAccess.Read)))
+                        using (NativeReader reader = new NativeReader(new FileStream(m_fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat", FileMode.Open, FileAccess.Read)))
                         {
-                            FileInfo fi = new FileInfo(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat");
+                            FileInfo fi = new FileInfo(modDataPath + m_patchPath + "\\" + entry.Catalog + "\\cas.cat");
                             if (!fi.Directory.Exists)
                                 Directory.CreateDirectory(fi.Directory.FullName);
 
-                            using (NativeWriter writer = new NativeWriter(new FileStream(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat", FileMode.Create)))
+                            using (NativeWriter writer = new NativeWriter(new FileStream(modDataPath + m_patchPath + "\\" + entry.Catalog + "\\cas.cat", FileMode.Create)))
                             {
                                 writer.Write(reader.ReadBytes(0x23C));
                                 writer.Write(0x00);
@@ -1682,7 +1902,7 @@ namespace Frosty.ModSupport
                         }
                     }
 
-                    WriteArchiveData(modDataPath + patchPath + "\\" + entry.Catalog, entry);
+                    WriteArchiveData(modDataPath + m_patchPath + "\\" + entry.Catalog, entry);
 
                     ReportProgress(currentEntry++, totalEntries);
                 }
@@ -1693,13 +1913,13 @@ namespace Frosty.ModSupport
                 App.Logger.Log("Writing Manifest");
 
                 // finally copy in the left over patch data
-                if (modifiedFs.Count > 0)
+                if (m_modifiedFs.Count > 0)
                 {
-                    fs.WriteInitFs(fs.BasePath + patchPath + "/initfs_win32", modDataPath + patchPath + "/initfs_win32", modifiedFs);
+                    m_fs.WriteInitFs(m_fs.BasePath + m_patchPath + "/initfs_win32", modDataPath + m_patchPath + "/initfs_win32", m_modifiedFs);
                 }
                 else
                 {
-                    CopyFileIfRequired(fs.BasePath + patchPath + "/initfs_win32", modDataPath + patchPath + "/initfs_win32");
+                    CopyFileIfRequired(m_fs.BasePath + m_patchPath + "/initfs_win32", modDataPath + m_patchPath + "/initfs_win32");
                 }
 
 
@@ -1711,13 +1931,13 @@ namespace Frosty.ModSupport
                 {
                     // modify layout.toc for any new superbundles added
                     DbObject layout = null;
-                    using (DbReader reader = new DbReader(new FileStream(fs.BasePath + patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+                    using (DbReader reader = new DbReader(new FileStream(m_fs.BasePath + m_patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
                         layout = reader.ReadDbObject();
 
-                    foreach (string path in Directory.EnumerateFiles(modDataPath + patchPath, "*.sb", SearchOption.AllDirectories))
+                    foreach (string path in Directory.EnumerateFiles(modDataPath + m_patchPath, "*.sb", SearchOption.AllDirectories))
                     {
                         // remove path, and extension and replace \ with /
-                        string sbName = path.Replace(modDataPath + patchPath + "\\", "").Replace("\\", "/").Replace(".sb", "");
+                        string sbName = path.Replace(modDataPath + m_patchPath + "\\", "").Replace("\\", "/").Replace(".sb", "");
                         foreach (DbObject entry in layout.GetValue<DbObject>("superBundles"))
                         {
                             if (entry.GetValue<string>("name").Equals(sbName, StringComparison.OrdinalIgnoreCase))
@@ -1728,14 +1948,14 @@ namespace Frosty.ModSupport
                         }
                     }
 
-                    using (DbWriter writer = new DbWriter(new FileStream(modDataPath + patchPath + "/layout.toc", FileMode.Create), true))
+                    using (DbWriter writer = new DbWriter(new FileStream(modDataPath + m_patchPath + "/layout.toc", FileMode.Create), true))
                         writer.Write(layout);
                 }
 
                 else if (!ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19, ProfileVersion.Fifa20, ProfileVersion.Madden20))
                 {
                     DbObject layout = null;
-                    using (DbReader reader = new DbReader(new FileStream(fs.ResolvePath("layout.toc"), FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+                    using (DbReader reader = new DbReader(new FileStream(m_fs.ResolvePath("layout.toc"), FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
                         layout = reader.ReadDbObject();
 
                     // write out new manifest
@@ -1744,18 +1964,18 @@ namespace Frosty.ModSupport
                         DbObject manifest = layout.GetValue<DbObject>("manifest");
                         ManifestFileRef fileRef = (ManifestFileRef)manifest.GetValue<int>("file");
 
-                        byte[] tmpBuf = fs.WriteManifest();
-                        string catalog = fs.GetCatalog(fileRef);
+                        byte[] tmpBuf = m_fs.WriteManifest();
+                        string catalog = m_fs.GetCatalog(fileRef);
 
                         // find the next available cas
                         int casIndex = 1;
-                        while (File.Exists(modDataPath + patchPath + "/" + (string.Format("{0}\\cas_{1}.cas", catalog, casIndex.ToString("D2")))))
+                        while (File.Exists(modDataPath + m_patchPath + "/" + (string.Format("{0}\\cas_{1}.cas", catalog, casIndex.ToString("D2")))))
                             casIndex++;
 
                         Sha1 sha1 = Utils.GenerateSha1(tmpBuf);
 
-                        archiveData.TryAdd(sha1, new ArchiveInfo() { Data = tmpBuf });
-                        WriteArchiveData(modDataPath + patchPath + "/" + catalog, new CasDataEntry("", sha1));
+                        m_archiveData.TryAdd(sha1, new ArchiveInfo() { Data = tmpBuf });
+                        WriteArchiveData(modDataPath + m_patchPath + "/" + catalog, new CasDataEntry("", sha1));
 
                         manifest.SetValue("size", tmpBuf.Length);
                         manifest.SetValue("offset", 0);
@@ -1767,9 +1987,9 @@ namespace Frosty.ModSupport
                     }
 
                     // add any new superbundles
-                    if (addedSuperBundles.Count > 0)
+                    if (m_addedSuperBundles.Count > 0)
                     {
-                        foreach (string superBundle in addedSuperBundles)
+                        foreach (string superBundle in m_addedSuperBundles)
                         {
                             DbObject sbobj = new DbObject();
                             sbobj.SetValue("name", superBundle);
@@ -1780,7 +2000,7 @@ namespace Frosty.ModSupport
                         }
                     }
 
-                    string layoutLocation = modDataPath + patchPath + "/layout.toc";
+                    string layoutLocation = modDataPath + m_patchPath + "/layout.toc";
                     if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                         layoutLocation = modDataPath + "Data/layout.toc";
 
@@ -1797,26 +2017,26 @@ namespace Frosty.ModSupport
                     ProfileVersion.PlantsVsZombiesGardenWarfare2))
                 {
                     // copy additional files
-                    CopyFileIfRequired(fs.BasePath + patchPath + "/../package.mft", modDataPath + patchPath + "/../package.mft");
+                    CopyFileIfRequired(m_fs.BasePath + m_patchPath + "/../package.mft", modDataPath + m_patchPath + "/../package.mft");
                 }
 
                 // swbf2, bfv, sws
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                 {
                     // copy from old data to new data
-                    CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modDataPath + "Data/chunkmanifest");
-                    if (modifiedFs.Count > 0)
+                    CopyFileIfRequired(m_fs.BasePath + "Data/chunkmanifest", modDataPath + "Data/chunkmanifest");
+                    if (m_modifiedFs.Count > 0)
                     {
-                        fs.WriteInitFs(fs.BasePath + "Data/initfs_Win32", modDataPath + "Data/initfs_Win32", modifiedFs);
+                        m_fs.WriteInitFs(m_fs.BasePath + "Data/initfs_Win32", modDataPath + "Data/initfs_Win32", m_modifiedFs);
                     }
                     else
                     {
-                        CopyFileIfRequired(fs.BasePath + "Data/initfs_Win32", modDataPath + "Data/initfs_Win32");
+                        CopyFileIfRequired(m_fs.BasePath + "Data/initfs_Win32", modDataPath + "Data/initfs_Win32");
                     }
                 }
 
                 // create the frosty mod list file
-                File.WriteAllText(Path.Combine(modDataPath, patchPath, "mods.json"), JsonConvert.SerializeObject(GenerateModInfoList(modPaths, rootPath), Formatting.Indented));
+                File.WriteAllText(Path.Combine(modDataPath, m_patchPath, "mods.json"), JsonConvert.SerializeObject(GenerateModInfoList(modPaths, rootPath), Formatting.Indented));
             }
 
             cancelToken.ThrowIfCancellationRequested();
@@ -1828,13 +2048,13 @@ namespace Frosty.ModSupport
                 ProfileVersion.NeedForSpeedRivals))
             {
                 // delete old useless bcrypt
-                if (File.Exists(fs.BasePath + "bcrypt.dll"))
-                    File.Delete(fs.BasePath + "bcrypt.dll");
+                if (File.Exists(m_fs.BasePath + "bcrypt.dll"))
+                    File.Delete(m_fs.BasePath + "bcrypt.dll");
 
                 // copy over new CryptBase
-                CopyFileIfRequired("ThirdParty/CryptBase.dll", fs.BasePath + "CryptBase.dll");
+                CopyFileIfRequired("ThirdParty/CryptBase.dll", m_fs.BasePath + "CryptBase.dll");
             }
-            CopyFileIfRequired(fs.BasePath + "user.cfg", modDataPath + "user.cfg");
+            CopyFileIfRequired(m_fs.BasePath + "user.cfg", modDataPath + "user.cfg");
 
             // FIFA games require a fifaconfig workaround
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17,
@@ -1842,14 +2062,14 @@ namespace Frosty.ModSupport
                 ProfileVersion.Fifa19,
                 ProfileVersion.Fifa20))
             {
-                FileInfo fi = new FileInfo(fs.BasePath + "FIFASetup\\fifaconfig_orig.exe");
+                FileInfo fi = new FileInfo(m_fs.BasePath + "FIFASetup\\fifaconfig_orig.exe");
                 if (!fi.Exists)
                 {
-                    fi = new FileInfo(fs.BasePath + "FIFASetup\\fifaconfig.exe");
+                    fi = new FileInfo(m_fs.BasePath + "FIFASetup\\fifaconfig.exe");
                     fi.MoveTo(fi.FullName.Replace(".exe", "_orig.exe"));
                 }
 
-                CopyFileIfRequired("thirdparty/fifaconfig.exe", fs.BasePath + "FIFASetup\\fifaconfig.exe");
+                CopyFileIfRequired("thirdparty/fifaconfig.exe", m_fs.BasePath + "FIFASetup\\fifaconfig.exe");
             }
 
             // launch the game (redirecting to the modPath directory)
@@ -1857,7 +2077,11 @@ namespace Frosty.ModSupport
 
             try
             {
-                ExecuteProcess($"{fs.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+                //KillEADesktop();
+                //ModifyInstallerData($"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+                ExecuteProcess($"{m_fs.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+                //WaitForGame();
+                //CleanUpInstalledData();
             }
             catch (Exception ex)
             {
@@ -1868,6 +2092,98 @@ namespace Frosty.ModSupport
 
             GC.Collect();
             return 0;
+        }
+
+        private void KillEADesktop()
+        {
+            foreach (Process process in Process.GetProcessesByName("EADesktop"))
+            {
+                try
+                {
+                    string processFilename = process?.MainModule?.ModuleName;
+                    if (string.IsNullOrEmpty(processFilename))
+                    {
+                        continue;
+                    }
+
+                    FileInfo fi = new FileInfo(processFilename);
+                    if (process.ProcessName.IndexOf("EADesktop.exe", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        break;
+                    }
+                }
+                catch
+                {
+                }
+            }
+        }
+
+        private void WaitForGame()
+        {
+            DateTime time = DateTime.UtcNow;
+            TimeSpan maxTime = new TimeSpan(0, 0, 30);
+
+            while (true)
+            {
+                foreach (Process process in Process.GetProcesses())
+                {
+                    try
+                    {
+                        string processFilename = process?.MainModule?.ModuleName;
+                        if (string.IsNullOrEmpty(processFilename))
+                        {
+                            continue;
+                        }
+
+                        FileInfo fi = new FileInfo(processFilename);
+                        if (process.ProcessName.IndexOf(ProfilesLibrary.ProfileName, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            break;
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+                if (DateTime.UtcNow > time + maxTime)
+                {
+                    break;
+                }
+            }
+        }
+
+        private void ModifyInstallerData(string parameters)
+        {
+            // clean up previous modification if it was not cleaned up already
+            if (File.Exists(m_fs.BasePath + "__Installer/installerdata.xml.orig"))
+            {
+                if (File.Exists(m_fs.BasePath + "__Installer/installerdata.xml"))
+                {
+                    File.Delete(m_fs.BasePath + "__Installer/installerdata.xml");
+                }
+                File.Copy(m_fs.BasePath + "__Installer/installerdata.xml.orig", m_fs.BasePath + "__Installer/installerdata.xml");
+            }
+            else
+            {
+                if (File.Exists(m_fs.BasePath + "__Installer/installerdata.xml"))
+                {
+                    File.Copy(m_fs.BasePath + "__Installer/installerdata.xml", m_fs.BasePath + "__Installer/installerdata.xml.orig");
+                }
+            }
+
+            System.Xml.Linq.XDocument doc = System.Xml.Linq.XDocument.Load(m_fs.BasePath + "__Installer/installerdata.xml");
+            System.Xml.Linq.XElement parametersElem = doc.Root.Element("runtime")?.Elements("launcher").ToArray()[1].Element("parameters");
+            parametersElem.SetValue(parameters);
+            doc.Save(m_fs.BasePath + "__Installer/installerdata.xml");
+        }
+
+        private void CleanUpInstalledData()
+        {
+            if (File.Exists(m_fs.BasePath + "__Installer/installerdata.xml.orig") && File.Exists(m_fs.BasePath + "__Installer/installerdata.xml"))
+            {
+                File.Delete(m_fs.BasePath + "__Installer/installerdata.xml");
+                File.Move(m_fs.BasePath + "__Installer/installerdata.xml.orig", m_fs.BasePath + "__Installer/installerdata.xml");
+            }
         }
 
         private List<ModInfo> GenerateModInfoList(string[] modPaths, string rootPath)
@@ -1940,7 +2256,7 @@ namespace Frosty.ModSupport
             Stream currentCasStream = null;
             foreach (Sha1 sha1 in casDataEntry.EnumerateDataRefs())
             {
-                ArchiveInfo info = archiveData[sha1];
+                ArchiveInfo info = m_archiveData[sha1];
 
                 int casMaxBytes = 536870912;
                 switch (Config.Get("MaxCasFileSize", "512MB"))
@@ -2015,7 +2331,7 @@ namespace Frosty.ModSupport
             byte[] header = null;
 
             // read in original cat
-            using (CatReader reader = new CatReader(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+            using (CatReader reader = new CatReader(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
             {
                 for (int i = 0; i < reader.ResourceCount; i++)
                     entries.Add(reader.ReadResourceEntry());
@@ -2080,7 +2396,7 @@ namespace Frosty.ModSupport
                             offset += 0x20;
                         }
 
-                        ArchiveInfo info = archiveData[sha1];
+                        ArchiveInfo info = m_archiveData[sha1];
 
                         tmpWriter.Write(sha1);
                         tmpWriter.Write(offset);
@@ -2172,11 +2488,14 @@ namespace Frosty.ModSupport
             if (di.Exists)
             {
                 RecursiveDeleteFiles(modPath);
-                foreach (string catalog in fs.Catalogs)
+                foreach (string catalog in m_fs.Catalogs)
                 {
-                    string basePatchCatalog = fs.ResolvePath("native_patch/" + catalog);
-                    if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5)) //woo patch folder
-                        basePatchCatalog = fs.ResolvePath("native_data/" + catalog);
+                    string basePatchCatalog = m_fs.ResolvePath("native_patch/" + catalog);
+                    if (!m_hasPatchFolder)
+                    {
+                        basePatchCatalog = m_fs.ResolvePath("native_data/" + catalog);
+                    }
+
                     string modDataCatalog = $"{modPath}/{catalog}";
 
                     if (Directory.Exists(modDataCatalog))
@@ -2201,10 +2520,10 @@ namespace Frosty.ModSupport
 
         private bool IsSamePatch(string modPath)
         {
-            string baseLayoutPath = fs.ResolvePath("native_patch/layout.toc");
+            string baseLayoutPath = m_fs.ResolvePath("native_patch/layout.toc");
             if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
             {
-                baseLayoutPath = fs.ResolvePath("native_data/layout.toc");
+                baseLayoutPath = m_fs.ResolvePath("native_data/layout.toc");
             }
 
             string modLayoutPath = modPath + "/layout.toc";
@@ -2219,11 +2538,11 @@ namespace Frosty.ModSupport
                 return false;
 
             DbObject patchLayout = null;
-            using (DbReader reader = new DbReader(new FileStream(baseLayoutPath, FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+            using (DbReader reader = new DbReader(new FileStream(baseLayoutPath, FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
                 patchLayout = reader.ReadDbObject();
 
             DbObject modLayout = null;
-            using (DbReader reader = new DbReader(new FileStream(modLayoutPath, FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+            using (DbReader reader = new DbReader(new FileStream(modLayoutPath, FileMode.Open, FileAccess.Read), m_fs.CreateDeobfuscator()))
                 modLayout = reader.ReadDbObject();
 
             int patchHead = patchLayout.GetValue<int>("head");
@@ -2298,7 +2617,7 @@ namespace Frosty.ModSupport
             return true;
         }
 
-        public static void ExecuteProcess(string processName, string args, bool waitForExit = false, bool asAdmin = false, Dictionary<string, string> env = null)
+        public static void ExecuteProcess(string processName, string args = "", bool waitForExit = false, bool asAdmin = false, Dictionary<string, string> env = null)
         {
             using (Process process = new Process())
             {

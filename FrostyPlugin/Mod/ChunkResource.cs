@@ -2,6 +2,8 @@
 using FrostySdk.Managers;
 using System;
 using FrostySdk.Managers.Entries;
+using Frosty.Core.IO;
+using System.Collections.Generic;
 
 namespace Frosty.Core.Mod
 {
@@ -15,6 +17,7 @@ namespace Frosty.Core.Mod
         protected uint logicalSize;
         protected int h32;
         protected int firstMip;
+        protected List<int> superBundlesToAdd = new List<int>();
 
         public ChunkResource()
         {
@@ -35,6 +38,14 @@ namespace Frosty.Core.Mod
             logicalSize = reader.ReadUInt();
             h32 = reader.ReadInt();
             firstMip = reader.ReadInt();
+            if ((reader as FrostyModReader).Version > 5)
+            {
+                int sbCount = reader.ReadInt();
+                for (int i = 0; i < sbCount; i++)
+                {
+                    superBundlesToAdd.Add(reader.ReadInt());
+                }
+            }
         }
 
         public override void FillAssetEntry(object entry)
@@ -49,7 +60,7 @@ namespace Frosty.Core.Mod
             chunkEntry.LogicalSize = logicalSize;
             chunkEntry.H32 = h32;
             chunkEntry.FirstMip = firstMip;
-            chunkEntry.IsTocChunk = IsTocChunk;
+            chunkEntry.AddedSuperBundles.AddRange(superBundlesToAdd);
 
             if (chunkEntry.FirstMip == -1 && chunkEntry.RangeStart != 0)
                 chunkEntry.FirstMip = 0;

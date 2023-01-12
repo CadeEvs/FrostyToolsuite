@@ -66,7 +66,9 @@ namespace FrostySdk.Resources
             {
                 m_sliceCount = value;
                 if (Type == TextureType.TT_2dArray || Type == TextureType.TT_3d)
+                {
                     Depth = m_sliceCount;
+                }
             }
         }
         public ushort Depth { get; private set; }
@@ -149,7 +151,7 @@ namespace FrostySdk.Resources
             {
                 m_sliceCount = reader.ReadUShort();
             }
-                
+
 
             if (m_version <= 10)
             {
@@ -210,7 +212,7 @@ namespace FrostySdk.Resources
             }
 
 #if FROSTY_DEVELOPER
-                Debug.Assert(reader.Position == reader.Length);
+            Debug.Assert(reader.Position == reader.Length);
 #endif
 
             Data = am.GetChunk(am.GetChunkEntry(m_chunkId));
@@ -250,7 +252,15 @@ namespace FrostySdk.Resources
                 writer.Write(Width);
                 writer.Write(Height);
                 writer.Write(Depth);
-                writer.Write(m_sliceCount);
+
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+                {
+                    writer.Write((byte)0);
+                }
+                else
+                {
+                    writer.Write(m_sliceCount);
+                }
 
                 if (m_version <= 10)
                 {
@@ -260,6 +270,10 @@ namespace FrostySdk.Resources
                 writer.Write(MipCount);
                 writer.Write(FirstMip);
 
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+                {
+                    writer.Write(MipCount);
+                }
 
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
                 {
@@ -283,14 +297,14 @@ namespace FrostySdk.Resources
                     }
                 }
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18,ProfileVersion.Madden19))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa18, ProfileVersion.Madden19))
                 {
                     writer.Write(Unknown3[0]);
                 }
 
                 writer.Write(AssetNameHash);
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.Madden22))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.Madden22, ProfileVersion.Madden23))
                 {
                     writer.Write(Unknown3[0]);
                 }
@@ -300,6 +314,11 @@ namespace FrostySdk.Resources
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
                 {
                     writer.Write(Unknown3[0]);
+                }
+
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+                {
+                    writer.Write(0);
                 }
 
                 if (m_version >= 11)
