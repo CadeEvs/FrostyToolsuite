@@ -473,8 +473,10 @@ namespace TexturePlugin
                                 if (ProfilesLibrary.MustAddChunks && chunkEntry.Bundles.Count == 0 && !chunkEntry.IsAdded)
                                 {
                                     // DAI requires adding new chunks if in chunks bundle
+                                    List<int> sbIds = chunkEntry.SuperBundles;
                                     m_textureAsset.ChunkId = App.AssetManager.AddChunk(buffer, null, (newTextureAsset.Flags & TextureFlags.OnDemandLoaded) != 0 ? null : newTextureAsset);
                                     chunkEntry = App.AssetManager.GetChunkEntry(m_textureAsset.ChunkId);
+                                    chunkEntry.AddedSuperBundles.AddRange(sbIds);
                                 }
                                 else
                                 {
