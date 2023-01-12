@@ -104,7 +104,7 @@ namespace Frosty.ModSupport
 
                 public TocFile(string tocPath, FrostyModExecutor parent)
                 {
-                    using (NativeReader reader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
+                    using (NativeReader reader = new NativeReader(new FileStream(tocPath, FileMode.Open, FileAccess.Read), parent.m_fs.CreateDeobfuscator()))
                     {
                         int startPos = (int)reader.Position;
                         bundleHashMapOffset = reader.ReadInt(Endian.Big) + startPos;
@@ -290,30 +290,30 @@ namespace Frosty.ModSupport
                 SuperBundle = inSuperBundle;
                 parent = inParent;
                 doneEvent = inDoneEvent;
-                catalog = parent.fs.GetCatalogFromSuperBundle(SuperBundle);
+                catalog = parent.m_fs.GetCatalogFromSuperBundle(SuperBundle);
             }
 
             private void Run()
             {
                 try
                 {
-                    string tocPath = parent.fs.ResolvePath(SuperBundle + ".toc");
-                    string newTocPath = tocPath.Replace("patch\\win32", parent.modDirName.ToLower() + "\\patch\\win32");
+                    string tocPath = parent.m_fs.ResolvePath(SuperBundle + ".toc");
+                    string newTocPath = tocPath.Replace("patch\\win32", parent.m_modDirName.ToLower() + "\\patch\\win32");
 
-                    TocFile toc = new TocFile(parent.fs.ResolvePath(SuperBundle + ".toc"), parent);
+                    TocFile toc = new TocFile(parent.m_fs.ResolvePath(SuperBundle + ".toc"), parent);
                     NativeWriter casWriter = null;
                     int casFileIndex = 0;
 
-                    string sbPath = parent.fs.ResolvePath(SuperBundle + ".sb");
-                    string newSbPath = sbPath.Replace("patch\\win32", parent.modDirName.ToLower() + "\\patch\\win32");
+                    string sbPath = parent.m_fs.ResolvePath(SuperBundle + ".sb");
+                    string newSbPath = sbPath.Replace("patch\\win32", parent.m_modDirName.ToLower() + "\\patch\\win32");
 
                     FileInfo sbFi = new FileInfo(newSbPath);
                     if (!Directory.Exists(sbFi.DirectoryName))
                         Directory.CreateDirectory(sbFi.DirectoryName);
 
-                    using (NativeReader reader = new NativeReader(new FileStream(sbPath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
+                    using (NativeReader reader = new NativeReader(new FileStream(sbPath, FileMode.Open, FileAccess.Read), parent.m_fs.CreateDeobfuscator()))
                     {
-                        if (toc.ContainsModifiedBundles(parent.modifiedBundles.Keys))
+                        if (toc.ContainsModifiedBundles(parent.m_modifiedBundles.Keys))
                         {
                             TocModified = true;
                             SbModified = true;
@@ -322,9 +322,9 @@ namespace Frosty.ModSupport
                             {
                                 foreach (var bundle in toc.Bundles)
                                 {
-                                    if (parent.modifiedBundles.ContainsKey(bundle.NameHash))
+                                    if (parent.m_modifiedBundles.ContainsKey(bundle.NameHash))
                                     {
-                                        ModBundleInfo modBundle = parent.modifiedBundles[bundle.NameHash];
+                                        ModBundleInfo modBundle = parent.m_modifiedBundles[bundle.NameHash];
 
                                         reader.Position = bundle.Offset;
                                         DbObject bundleObj = ReadBundle(reader);
@@ -334,10 +334,10 @@ namespace Frosty.ModSupport
                                             int idx = modBundle.Modify.Ebx.FindIndex((string a) => a.Equals(ebx.GetValue<string>("name")));
                                             if (idx != -1)
                                             {
-                                                EbxAssetEntry entry = parent.modifiedEbx[modBundle.Modify.Ebx[idx]];
+                                                EbxAssetEntry entry = parent.m_modifiedEbx[modBundle.Modify.Ebx[idx]];
 
                                                 // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                                if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
+                                                if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
                                                 {
                                                     casWriter?.Close();
                                                     casWriter = GetNextCas(out casFileIndex);
@@ -350,7 +350,7 @@ namespace Frosty.ModSupport
                                                 ebx.SetValue("offset", (int)casWriter.Position);
                                                 ebx.SetValue("patch", true);
 
-                                                casWriter.Write(parent.archiveData[entry.Sha1].Data);
+                                                casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
                                             }
                                         }
                                         foreach (DbObject res in bundleObj.GetValue<DbObject>("res"))
@@ -358,10 +358,10 @@ namespace Frosty.ModSupport
                                             int idx = modBundle.Modify.Res.FindIndex((string a) => a.Equals(res.GetValue<string>("name")));
                                             if (idx != -1)
                                             {
-                                                ResAssetEntry entry = parent.modifiedRes[modBundle.Modify.Res[idx]];
+                                                ResAssetEntry entry = parent.m_modifiedRes[modBundle.Modify.Res[idx]];
 
                                                 // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                                if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
+                                                if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
                                                 {
                                                     casWriter?.Close();
                                                     casWriter = GetNextCas(out casFileIndex);
@@ -377,7 +377,7 @@ namespace Frosty.ModSupport
                                                 res.SetValue("resType", entry.ResType);
                                                 res.SetValue("patch", true);
 
-                                                casWriter.Write(parent.archiveData[entry.Sha1].Data);
+                                                casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
                                             }
                                         }
                                         foreach (DbObject chunk in bundleObj.GetValue<DbObject>("chunks"))
@@ -385,10 +385,10 @@ namespace Frosty.ModSupport
                                             int idx = modBundle.Modify.Chunks.FindIndex((Guid a) => a == chunk.GetValue<Guid>("id"));
                                             if (idx != -1)
                                             {
-                                                ChunkAssetEntry entry = parent.modifiedChunks[modBundle.Modify.Chunks[idx]];
+                                                ChunkAssetEntry entry = parent.m_modifiedChunks[modBundle.Modify.Chunks[idx]];
 
                                                 // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                                if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
+                                                if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
                                                 {
                                                     casWriter?.Close();
                                                     casWriter = GetNextCas(out casFileIndex);
@@ -403,7 +403,7 @@ namespace Frosty.ModSupport
                                                 chunk.SetValue("logicalSize", entry.LogicalSize);
                                                 chunk.SetValue("patch", true);
 
-                                                casWriter.Write(parent.archiveData[entry.Sha1].Data);
+                                                casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
                                             }
                                         }
 
@@ -428,33 +428,33 @@ namespace Frosty.ModSupport
                             }
                         }
 
-                        if (parent.modifiedBundles.ContainsKey(chunksBundleHash))
-                        {
-                            foreach (var chunk in toc.Chunks)
-                            {
-                                ModBundleInfo modBundle = parent.modifiedBundles[chunksBundleHash];
-                                int idx = modBundle.Modify.Chunks.FindIndex((Guid a) => a == chunk.Guid);
+                        //if (parent.m_modifiedBundles.ContainsKey(s_chunksBundleHash))
+                        //{
+                        //    foreach (var chunk in toc.Chunks)
+                        //    {
+                        //        ModBundleInfo modBundle = parent.m_modifiedBundles[s_chunksBundleHash];
+                        //        int idx = modBundle.Modify.Chunks.FindIndex((Guid a) => a == chunk.Guid);
 
-                                if (idx != -1)
-                                {
-                                    TocModified = true;
-                                    ChunkAssetEntry entry = parent.modifiedChunks[modBundle.Modify.Chunks[idx]];
+                        //        if (idx != -1)
+                        //        {
+                        //            TocModified = true;
+                        //            ChunkAssetEntry entry = parent.m_modifiedChunks[modBundle.Modify.Chunks[idx]];
 
-                                    // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
-                                    if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
-                                    {
-                                        casWriter?.Close();
-                                        casWriter = GetNextCas(out casFileIndex);
-                                    }
+                        //            // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
+                        //            if (casWriter == null || casWriter.Length + parent.m_archiveData[entry.Sha1].Data.Length > 1073741824)
+                        //            {
+                        //                casWriter?.Close();
+                        //                casWriter = GetNextCas(out casFileIndex);
+                        //            }
 
-                                    chunk.Offset = (uint)casWriter.Position;
-                                    chunk.Size = (uint)entry.Size;
-                                    chunk.CasIndex = (byte)casFileIndex;
+                        //            chunk.Offset = (uint)casWriter.Position;
+                        //            chunk.Size = (uint)entry.Size;
+                        //            chunk.CasIndex = (byte)casFileIndex;
 
-                                    casWriter.Write(parent.archiveData[entry.Sha1].Data);
-                                }
-                            }
-                        }
+                        //            casWriter.Write(parent.m_archiveData[entry.Sha1].Data);
+                        //        }
+                        //    }
+                        //}
                     }
 
                     casWriter?.Close();
@@ -473,7 +473,7 @@ namespace Frosty.ModSupport
                 Run();
 
                 // are all threads done?
-                if (Interlocked.Decrement(ref parent.numTasks) == 0)
+                if (Interlocked.Decrement(ref parent.m_numTasks) == 0)
                     doneEvent.Set();
             }
 
@@ -485,7 +485,7 @@ namespace Frosty.ModSupport
                     CasFiles[catalog]++;
                 }
 
-                FileInfo fi = new FileInfo(parent.fs.BasePath + parent.modDirName + "\\Patch\\" + catalog + "\\cas_" + casFileIndex.ToString("D2") + ".cas");
+                FileInfo fi = new FileInfo(parent.m_fs.BasePath + parent.m_modDirName + "\\Patch\\" + catalog + "\\cas_" + casFileIndex.ToString("D2") + ".cas");
                 if (!Directory.Exists(fi.DirectoryName))
                     Directory.CreateDirectory(fi.DirectoryName);
 
@@ -506,7 +506,7 @@ namespace Frosty.ModSupport
                 DbObject bundle = null;
                 uint totalCount = 0;
 
-                using (BinarySbReader reader = new BinarySbReader(new MemoryStream(bundleBuf), parent.fs.CreateDeobfuscator()))
+                using (BinarySbReader reader = new BinarySbReader(new MemoryStream(bundleBuf), parent.m_fs.CreateDeobfuscator()))
                 {
                     bundle = reader.ReadDbObject();
                     totalCount = reader.TotalCount;

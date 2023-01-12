@@ -45,10 +45,10 @@ namespace FrostySdk.Managers
                         {
                             parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
                             sbIndex = parent.m_superBundles.Count - 1;
+                            parent.ReportProgress(parent.m_superBundles.Count, parent.m_fileSystem.SuperBundleCount);
                         }
 
                         parent.WriteToLog("Loading data ({0})", sbName);
-                        parent.m_superBundles.Add(new SuperBundleEntry { Name = sbName });
 
                         string sbPath = sbName;
                         if (catalog.SuperBundles[sbName].Item1)
@@ -259,8 +259,7 @@ namespace FrostySdk.Managers
                                                 CasPath = parent.m_fileSystem.GetFilePath(fileIndex),
                                                 DataOffset = dataOffset
                                             };
-
-                                            parent.m_chunkList[guid].IsTocChunk = true;
+                                            chunk.SuperBundles.Add(sbIndex);
                                             reader.Position = pos;
                                         }
                                     }

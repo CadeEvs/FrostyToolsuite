@@ -144,6 +144,7 @@
     <Compile Include="Sha1.cs" />
     <Compile Include="TypeLibrary.cs" />
     <Compile Include="Utils.cs" />
+    <Compile Include="Utils\HuffmanDecoder.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Profiles.bin" />

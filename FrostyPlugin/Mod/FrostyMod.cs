@@ -20,10 +20,11 @@ namespace Frosty.Core.Mod
             3 - Added user data
             4 - Various structural changes as well as removal of modifiedBundles
             5 - Added link for the modpage
+            6 - Added superbundle ids for toc chunks
         */
 
         public static ulong Magic = 0x01005954534F5246;
-        public static uint Version = 5;
+        public static uint Version = 6;
 
         public FrostyModDetails ModDetails { get; }
         public string Path { get; }

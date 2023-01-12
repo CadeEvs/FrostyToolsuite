@@ -37,7 +37,6 @@ namespace Frosty.Core.Handlers
                 sha1 = Utils.GenerateSha1(data);
                 resourceIndex = manifest.Add(data);
                 size = data.Length;
-                flags = 2;
                 handlerHash = (int)Hash;
                 userData = "legacy;Collector (" + ebxName + ")";
             }
@@ -185,7 +184,7 @@ namespace Frosty.Core.Handlers
                     ChunkAssetEntry newEntry = App.AssetManager.GetChunkEntry(chunkId);
                     newEntry.IsDirty = false;
                     newEntry.ModifiedEntry.UserData = "legacy;" + entry.Name;
-                    newEntry.ModifiedEntry.AddToChunkBundle = true;
+                    newEntry.AddedSuperBundles.AddRange(oldEntry.SuperBundles);
 
                     linkedEntries.Clear();
                     entry.LinkAsset(newEntry);
@@ -252,47 +251,26 @@ namespace Frosty.Core.Handlers
             {
                 using (NativeWriter writer = new NativeWriter(new MemoryStream()))
                 {
-                    int numEntries = reader.ReadInt();
-                    writer.Write(numEntries);
-                    long dataOffset = reader.ReadLong();
-                    writer.Write(dataOffset);
-                    writer.Write(reader.ReadBytes((int)(dataOffset - 12)));
-
-                    for (int i = 0; i < numEntries; i++)
+                    if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa17,
+                        ProfileVersion.Fifa18,
+                        ProfileVersion.Madden19,
+                        ProfileVersion.Fifa19,
+                        ProfileVersion.Madden20,
+                        ProfileVersion.Fifa20,
+                        ProfileVersion.PlantsVsZombiesBattleforNeighborville))
                     {
-                        long strOffset = reader.ReadLong();
-                        long curPos = reader.Position;
-                        reader.Position = strOffset;
-                        string str = reader.ReadNullTerminatedString();
-                        int hash = Fnv1.HashString(str);
-                        reader.Position = curPos;
-
-                        int idx = entries.FindIndex((ModLegacyFileEntry a) => a.Hash == hash);
-                        if (idx != -1)
-                        {
-                            ModLegacyFileEntry inst = entries[idx];
-                            writer.Write(strOffset);
-                            writer.Write(inst.CompressedOffset);
-                            writer.Write(inst.CompressedSize);
-                            writer.Write(inst.Offset);
-                            writer.Write(inst.Size);
-                            writer.Write(inst.ChunkId);
-                            reader.Position += 0x30;
-                        }
-                        else
-                        {
-                            writer.Write(strOffset);
-                            writer.Write(reader.ReadBytes(0x30));
-                        }
+                        WriteV1(writer, reader, entries);
                     }
-
-                    writer.Write(reader.ReadToEnd());
+                    else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22, ProfileVersion.Fifa22,
+                        ProfileVersion.Madden23, ProfileVersion.Fifa23))
+                    {
+                        WriteV2(writer, reader, entries);
+                    }
 
                     outData = Utils.CompressFile(writer.ToByteArray());
 
                     chunkEntry.Sha1 = Utils.GenerateSha1(outData);
                     chunkEntry.Size = outData.Length;
-                    chunkEntry.IsTocChunk = true;
                 }
             }
         }
@@ -300,6 +278,106 @@ namespace Frosty.Core.Handlers
         public IEnumerable<string> GetResourceActions(string name, byte[] data)
         {
             return new List<string>();
+        }
+
+        private void WriteV1(NativeWriter writer, NativeReader reader, List<ModLegacyFileEntry> entries)
+        {
+            int numEntries = reader.ReadInt();
+            writer.Write(numEntries);
+            long dataOffset = reader.ReadLong();
+            writer.Write(dataOffset);
+            writer.Write(reader.ReadBytes((int)(dataOffset - 12)));
+
+            for (int i = 0; i < numEntries; i++)
+            {
+                long strOffset = reader.ReadLong();
+                long curPos = reader.Position;
+                reader.Position = strOffset;
+                string str = reader.ReadNullTerminatedString();
+                int hash = Fnv1.HashString(str);
+                reader.Position = curPos;
+
+                int idx = entries.FindIndex((ModLegacyFileEntry a) => a.Hash == hash);
+                if (idx != -1)
+                {
+                    ModLegacyFileEntry inst = entries[idx];
+                    writer.Write(strOffset);
+                    writer.Write(inst.CompressedOffset);
+                    writer.Write(inst.CompressedSize);
+                    writer.Write(inst.Offset);
+                    writer.Write(inst.Size);
+                    writer.Write(inst.ChunkId);
+                    reader.Position += 0x30;
+                }
+                else
+                {
+                    writer.Write(strOffset);
+                    writer.Write(reader.ReadBytes(0x30));
+                }
+            }
+        }
+
+        private void WriteV2(NativeWriter writer, NativeReader reader, List<ModLegacyFileEntry> entries)
+        {
+            writer.Write(reader.ReadInt());
+            writer.Write(reader.ReadLong());
+
+            int numEntries = reader.ReadInt();
+            writer.Write(numEntries);
+            long dataOffset = reader.ReadLong();
+            writer.Write(dataOffset);
+
+            writer.Write(reader.ReadInt());
+            writer.Write(reader.ReadLong());
+
+            int numChunks = reader.ReadInt();
+            writer.Write(numChunks + entries.Count);
+            long chunkOffset = reader.ReadLong();
+            writer.Write(chunkOffset);
+
+            writer.Write(reader.ReadBytes((int)(dataOffset - reader.Position)));
+
+            for (int i = 0; i < numEntries; i++)
+            {
+                long strOffset = reader.ReadLong();
+                long curPos = reader.Position;
+                reader.Position = strOffset;
+                string str = reader.ReadNullTerminatedString();
+                int hash = Fnv1.HashString(str);
+                reader.Position = curPos;
+
+                int idx = entries.FindIndex((ModLegacyFileEntry a) => a.Hash == hash);
+                if (idx != -1)
+                {
+                    ModLegacyFileEntry inst = entries[idx];
+                    writer.Write(strOffset);
+                    writer.Write(inst.CompressedOffset);
+                    writer.Write(inst.CompressedSize);
+                    writer.Write(inst.Offset);
+                    writer.Write(inst.Size);
+                    writer.Write(inst.ChunkId);
+                    reader.Position += 0x30;
+                }
+                else
+                {
+                    writer.Write(strOffset);
+                    writer.Write(reader.ReadBytes(0x30));
+                }
+            }
+
+            //writer.Write(reader.ReadBytes((int)(chunkOffset - reader.Position)));
+
+            //for (int i = 0; i < numChunks; i++)
+            //{
+            //    writer.Write(reader.ReadLong());
+            //    writer.Write(reader.ReadGuid());
+            //}
+            //foreach (var entry in entries)
+            //{
+            //    writer.Write(entry.Size);
+            //    writer.Write(entry.ChunkId);
+            //}
+            writer.Write(reader.ReadToEnd());
         }
     }
 }

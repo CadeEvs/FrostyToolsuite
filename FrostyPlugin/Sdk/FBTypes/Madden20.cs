@@ -25,7 +25,7 @@ namespace Frosty.Core.Sdk.Madden20
 
             //padding1 = reader.ReadUShort();
             long nameSpaceOffset = reader.ReadLong();
-            long arrayTypeOffset = reader.ReadLong();
+            ArrayTypeOffset = reader.ReadLong();
 
             Alignment = reader.ReadUShort();
             FieldCount = reader.ReadUShort();

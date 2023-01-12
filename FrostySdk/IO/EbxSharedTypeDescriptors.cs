@@ -19,6 +19,7 @@ namespace FrostySdk.IO
 
         public EbxSharedTypeDescriptors(FileSystemManager fs, string name)
         {
+            File.WriteAllBytes(name, fs.GetFileFromMemoryFs(name));
             bool patch = name.Contains("patch");
             using (NativeReader reader = new NativeReader(new MemoryStream(fs.GetFileFromMemoryFs(name))))
             {
@@ -140,6 +141,11 @@ namespace FrostySdk.IO
                     Index = i,
                     SecondSize = (ushort)(patch ? 1 : 0)
                 });
+            }
+
+            for (int i = numClasses; i < classGuidCount; i++)
+            {
+                classes.Add(null);
             }
 
             int numFields = reader.ReadInt();

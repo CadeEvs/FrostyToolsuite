@@ -19,7 +19,7 @@ namespace Frosty.Core.Sdk
 {
     #region -- EXE Header --
     class IMAGE_DOS_HEADER
-    {      // DOS .EXE header
+    {                                              // DOS .EXE header
         public ushort e_magic;                     // Magic number
         public ushort e_cblp;                      // Bytes on last page of file
         public ushort e_cp;                        // Pages in file
@@ -34,11 +34,11 @@ namespace Frosty.Core.Sdk
         public ushort e_cs;                        // Initial (relative) CS value
         public ushort e_lfarlc;                    // File address of relocation table
         public ushort e_ovno;                      // Overlay number
-        public ushort[] e_res = new ushort[4];                    // Reserved words
+        public ushort[] e_res = new ushort[4];     // Reserved words
         public ushort e_oemid;                     // OEM identifier (for e_oeminfo)
         public ushort e_oeminfo;                   // OEM information; e_oemid specific
-        public ushort[] e_res2 = new ushort[10];                  // Reserved words
-        public int e_lfanew;                    // File address of new exe header
+        public ushort[] e_res2 = new ushort[10];   // Reserved words
+        public int e_lfanew;                       // File address of new exe header
 
         public void Read(NativeReader reader)
         {
@@ -300,20 +300,11 @@ namespace Frosty.Core.Sdk
                         sb.Append(WriteClass(classObj));
                         sb.AppendLine("}");
                     }
-                    else if (type == EbxFieldType.Delegate)
+                    else if (type == EbxFieldType.Delegate || type == EbxFieldType.Function)
                     {
                         sb.AppendLine("namespace Reflection\r\n{");
                         sb.Append(WriteDelegate(classObj));
                         sb.AppendLine("}");
-                    }
-                    else if (type == EbxFieldType.Function)
-                    {
-                        sb.AppendLine("namespace Reflection\r\n{");
-                        //sb.AppendLine("[" + typeof(DisplayNameAttribute).Name + "(\"" + classObj.GetValue<string>("name") + "\")]");
-                        sb.AppendLine("[" + typeof(GuidAttribute).Name + "(\"" + classObj.GetValue<Guid>("guid") + "\")]");
-                        sb.AppendLine(string.Format("[{0}({1})]", typeof(HashAttribute).Name, classObj.GetValue<int>("nameHash", 0)));
-                        //sb.AppendLine("public class Delegate_" + classObj.GetValue<Guid>("guid").ToString().Replace('-', '_') + " { }\r\n}");
-                        sb.AppendLine(string.Format("public class {0} {{ }} }}", classObj.GetValue<string>("name")));
                     }
                 }
 
@@ -705,6 +696,10 @@ namespace Frosty.Core.Sdk
                 if (classObj.HasValue("arrayNameHash"))
                 {
                     sb.AppendLine($"[{typeof(ArrayHashAttribute).Name}({classObj.GetValue<int>("arrayNameHash")})]");
+                }
+                if (classObj.HasValue("signature"))
+                {
+                    sb.AppendLine($"[{typeof(TypeInfoSignatureAttribute).Name}({classObj.GetValue<int>("signature")})]");
                 }
 
                 //if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
@@ -1937,13 +1932,15 @@ namespace Frosty.Core.Sdk
                 Namespace = "Frosty.Core.Sdk.Anthem.";
             }
             // Bf2042
-            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
+            else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22,
+                ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
             {
                 Namespace = "Frosty.Core.Sdk.Bf2042.";
             }
             // All others
             else if (ProfilesLibrary.IsLoaded(ProfileVersion.Madden20, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
-                ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat, ProfileVersion.Fifa21, ProfileVersion.Fifa22))
+                ProfileVersion.Fifa20, ProfileVersion.NeedForSpeedHeat))
             {
                 Namespace = "Frosty.Core.Sdk.Madden20.";
             }
@@ -1995,7 +1992,7 @@ namespace Frosty.Core.Sdk
                     }
                     CreateClassObject(classInfo, ref classList);
                 }
-                else if (classInfo.TypeInfo.Type == 0x1c)
+                else if (classInfo.TypeInfo.Type == 0x1c || classInfo.TypeInfo.Type == 0x18)
                 {
                     CreateDelegateObject(classInfo, ref classList);
                 }
