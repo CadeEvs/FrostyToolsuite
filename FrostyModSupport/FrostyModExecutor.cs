@@ -1081,7 +1081,7 @@ namespace Frosty.ModSupport
                 int currentMod = 0;
                 foreach (FrostyMod mod in modList)
                 {
-                    Logger.Log($"Loading Mods ({mod.ModDetails.Title})");
+                    Logger.Log($"Loading Mods ({mod.ModDetails?.Title ?? mod.Filename.Replace(".fbmod", "")})");
                     if (mod.NewFormat)
                     {
                         ProcessModResources(mod);
