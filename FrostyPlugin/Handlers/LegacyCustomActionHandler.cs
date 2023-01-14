@@ -51,6 +51,7 @@ namespace Frosty.Core.Handlers
                 writer.Write(0);
                 writer.Write(0);
                 writer.Write(0);
+                writer.Write(0);
             }
         }
 
