@@ -167,7 +167,10 @@ namespace Frosty.Core.Legacy
                 inst.ModifiedEntry.CompressedSize = assetChunkEntry.ModifiedEntry.Data.Length;
 
                 // @temp
-                assetChunkEntry.AddedSuperBundles.AddRange(orig.SuperBundles);
+                foreach (int sbId in orig.SuperBundles)
+                {
+                    assetChunkEntry.AddToSuperBundle(sbId);
+                }
                 assetChunkEntry.ModifiedEntry.UserData = "legacy;" + lfe.Name;
 
                 // link to main ebx
