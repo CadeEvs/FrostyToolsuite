@@ -984,12 +984,8 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
-                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly?)
-#if FROSTY_DEVELOPER
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
                 ProfileFlags pf = new ProfileFlags(0, 5, 1);
-#else
-                ProfileFlags pf = new ProfileFlags(0, 5, 1, 1);
-#endif
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());

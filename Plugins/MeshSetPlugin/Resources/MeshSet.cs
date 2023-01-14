@@ -1587,9 +1587,6 @@ namespace MeshSetPlugin.Resources
         {
             m_inlineData = inBuffer;
             m_chunkId = Guid.Empty;
-#if FROSTY_DEVELOPER
-            Debug.Assert(m_flags.HasFlag(MeshLayoutFlags.Inline) || m_flags.HasFlag(MeshLayoutFlags.ClothEnabled));
-#endif
         }
 
         private int GetSectionIndex(MeshSetSection inSection)
