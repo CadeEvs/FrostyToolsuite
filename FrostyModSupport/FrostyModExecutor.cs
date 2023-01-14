@@ -354,9 +354,7 @@ namespace Frosty.ModSupport
                             entry.Size = data.Length;
 
                             modifiedEbx.TryAdd(entry.Name, entry);
-                            if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.GetOrAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
-                            else
+                            if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
                                 archiveData[entry.Sha1].RefCount++;
                             numArchiveEntries++;
                         }
@@ -452,9 +450,7 @@ namespace Frosty.ModSupport
                             entry.Size = data.Length;
 
                             modifiedRes.TryAdd(entry.Name, entry);
-                            if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
-                            else
+                            if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
                                 archiveData[entry.Sha1].RefCount++;
                             numArchiveEntries++;
                         }
@@ -610,9 +606,7 @@ namespace Frosty.ModSupport
                             entry.Size = data.Length;
 
                             modifiedChunks.TryAdd(guid, entry);
-                            if (!archiveData.ContainsKey(entry.Sha1))
-                                archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 });
-                            else
+                            if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
                                 archiveData[entry.Sha1].RefCount++;
                             numArchiveEntries++;
                         }
@@ -1081,7 +1075,7 @@ namespace Frosty.ModSupport
                 int currentMod = 0;
                 foreach (FrostyMod mod in modList)
                 {
-                    Logger.Log($"Loading Mods ({mod.ModDetails.Title})");
+                    Logger.Log($"Loading Mods ({mod.ModDetails?.Title ?? mod.Filename.Replace(".fbmod", "")})");
                     if (mod.NewFormat)
                     {
                         ProcessModResources(mod);
@@ -1455,8 +1449,7 @@ namespace Frosty.ModSupport
                             // add bundle data to archive
                             for (int i = 0; i < action.BundleRefs.Count; i++)
                             {
-                                if (!archiveData.ContainsKey(action.BundleRefs[i]))
-                                    archiveData.TryAdd(action.BundleRefs[i], new ArchiveInfo() { Data = action.BundleBuffers[i] });
+                                archiveData.TryAdd(action.BundleRefs[i], new ArchiveInfo() { Data = action.BundleBuffers[i] });
                             }
 
                             // add refs to be added to cas (and manifest)
