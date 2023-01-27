@@ -1,4 +1,11 @@
-﻿v1.0.6.2 (Alpha 1)
+﻿v1.0.6.2 (Alpha 2)
+--------
+- Fixed issue with logging legacy mods (#217)
+
+Plugin Changes
+- Fixed issue copying over to Mod Manager (#219)
+
+v1.0.6.2 (Alpha 1)
 --------
 - Improved applying speed in Mod Manager (#159)
 - Improved Loadinged Plugins List in Editor (#192)
