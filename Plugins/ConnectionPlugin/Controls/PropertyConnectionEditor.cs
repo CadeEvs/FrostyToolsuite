@@ -122,7 +122,8 @@ namespace ConnectionPlugin.Editors
                         }
                         else
                         {
-                            if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat, ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
+                            if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.NeedForSpeedHeat,
+                                ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                             {
                                 string val = field.BoxedValue.ToString();
                                 if (val != "(null)")

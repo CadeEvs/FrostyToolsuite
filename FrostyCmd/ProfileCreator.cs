@@ -1152,6 +1152,34 @@ namespace FrostyCmd
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
+                // Flags (MustAddChunks, EbxVersion, RequiresKey, ReadOnly)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
+        private void CreateDeadSpaceProfile()
+        {
+            string key = "Dead Space";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("Dead Space");
+                writer.Write((int)(int)ProfileVersion.DeadSpace);
+                writer.WriteObfuscatedString("deadspace");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("DeadSpaceSDK");
+                writer.Write(CreateBanner("deadspace"));
+                writer.WriteObfuscatedString("shaders/generictextures/ut_defaultwhite_d");
+                writer.WriteObfuscatedString("shaders/generictextures/UT_Default_N");
+                writer.WriteObfuscatedString("Shaders/GenericTextures/UT_defaultBlack_D");
+                writer.WriteObfuscatedString("shaders/generictextures/ut_defaultwhite_d");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
                 // Flags (MustAddChunks, EbxVersion, RequiresKey)
                 ProfileFlags pf = new ProfileFlags(0, 6, 1);
                 pf.Write(writer);
@@ -1159,7 +1187,7 @@ namespace FrostyCmd
                 blobs.Add(key, writer.ToByteArray());
             }
         }
-#endregion
+        #endregion
 
         public ProfileCreator()
         {
@@ -1202,6 +1230,7 @@ namespace FrostyCmd
             CreateMadden23Profile();
             CreateFifa23Profile();
             CreateNFSUnboundProfile();
+            CreateDeadSpaceProfile();
 
 #endif
 

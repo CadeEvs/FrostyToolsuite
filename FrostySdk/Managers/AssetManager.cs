@@ -317,7 +317,8 @@ namespace FrostySdk.Managers
                         ProfileVersion.Fifa22,
                         ProfileVersion.Battlefield2042,
                         ProfileVersion.Madden23,
-                        ProfileVersion.NeedForSpeedUnbound))
+                        ProfileVersion.NeedForSpeedUnbound,
+                        ProfileVersion.DeadSpace))
                 {
                     // load class infos
                     WriteToLog("Loading type info");
