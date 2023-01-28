@@ -1173,10 +1173,10 @@ namespace FrostyCmd
                 writer.Write(CreateSources("Patch;false", "Data;false"));
                 writer.WriteObfuscatedString("DeadSpaceSDK");
                 writer.Write(CreateBanner("deadspace"));
-                writer.WriteObfuscatedString("shaders/generictextures/ut_defaultwhite_d");
-                writer.WriteObfuscatedString("shaders/generictextures/UT_Default_N");
-                writer.WriteObfuscatedString("Shaders/GenericTextures/UT_defaultBlack_D");
-                writer.WriteObfuscatedString("shaders/generictextures/ut_defaultwhite_d");
+                writer.WriteObfuscatedString("Game/_Shared/Textures/T_Default_Color_White_BC");
+                writer.WriteObfuscatedString("Game/_Shared/Textures/T_Default_N");
+                writer.WriteObfuscatedString("Game/_Shared/Textures/T_Default_Color_Black_BC");
+                writer.WriteObfuscatedString("Game/_Shared/Textures/T_Default_Color_White_BC");
                 writer.Write(0); // shared bundle names
                 writer.Write(0); // ignored res types
 
