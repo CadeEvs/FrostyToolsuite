@@ -579,6 +579,11 @@ namespace MeshSetPlugin.Resources
 
                 m_unk2 = reader.ReadUInt();
 
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
+                {
+                    reader.ReadLong();
+                }
+
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                 {
                     long unk = reader.ReadLong(); // probably some runtime ptr
@@ -767,6 +772,10 @@ namespace MeshSetPlugin.Resources
                 }
 
                 reader.Pad(16);
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
+                {
+                    reader.Pad(16);
+                }
                 m_boundingBox = reader.ReadAxisAlignedBox();
             }
             else
@@ -1313,6 +1322,10 @@ namespace MeshSetPlugin.Resources
             if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
             {
                 reader.ReadLong();
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
+                {
+                    reader.ReadUInt();
+                }
             }
 
             m_chunkId = reader.ReadGuid();
@@ -1965,6 +1978,11 @@ namespace MeshSetPlugin.Resources
                     m_shaderDrawOrderUserSlot = reader.ReadByte();
                 }
                 m_shaderDrawOrderSubOrder = reader.ReadShort();
+
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
+                {
+                    reader.ReadUInt();
+                }
             }
 
             if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedEdge, ProfileVersion.Madden20))
