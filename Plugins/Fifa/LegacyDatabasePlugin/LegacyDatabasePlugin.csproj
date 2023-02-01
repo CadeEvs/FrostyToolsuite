@@ -56,6 +56,6 @@
   </ItemGroup>
   
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="xcopy /Y $(TargetPath) $(SolutionDir)$(OutDir)Plugins\Fifa\" />
+    <Exec Command="xcopy /Y &quot;$(TargetPath)&quot; &quot;$(SolutionDir)$(OutDir)Plugins\Fifa\&quot;" />
   </Target>
 </Project>
