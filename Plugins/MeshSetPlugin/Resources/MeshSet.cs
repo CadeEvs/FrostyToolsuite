@@ -579,13 +579,12 @@ namespace MeshSetPlugin.Resources
 
                 m_unk2 = reader.ReadUInt();
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
-                {
-                    reader.ReadLong();
-                }
-
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                 {
+                    if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
+                    {
+                        reader.ReadLong();
+                    }
                     long unk = reader.ReadLong(); // probably some runtime ptr
                     Debug.Assert(unk == 0);
                 }
@@ -774,7 +773,7 @@ namespace MeshSetPlugin.Resources
                 reader.Pad(16);
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.DeadSpace))
                 {
-                    reader.Pad(16);
+                    reader.ReadBytes(16);
                 }
                 m_boundingBox = reader.ReadAxisAlignedBox();
             }
