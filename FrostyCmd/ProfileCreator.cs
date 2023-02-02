@@ -1181,7 +1181,7 @@ namespace FrostyCmd
                 writer.Write(0); // ignored res types
 
                 // Flags (MustAddChunks, EbxVersion, RequiresKey)
-                ProfileFlags pf = new ProfileFlags(0, 6, 1);
+                ProfileFlags pf = new ProfileFlags(0, 6, 1, 1);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());

@@ -436,7 +436,7 @@ namespace MeshSetPlugin
             {
                 foreach (MeshSetSection section in lod.Sections)
                 {
-                    if (section.Name == "")
+                    if (!lod.IsSectionRenderable(section))
                     {
                         continue;
                     }
