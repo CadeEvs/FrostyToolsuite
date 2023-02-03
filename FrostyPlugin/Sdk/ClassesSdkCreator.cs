@@ -432,11 +432,11 @@ namespace Frosty.Core.Sdk
 
             StringBuilder sb = new StringBuilder();
             {
-                string parent = classObj.GetValue<string>("parent", "").Replace(':', '_');
+                string parent = classObj.GetValue<string>("parent", "").Replace(':', '_').Replace('<', '_').Replace('>', '_');
                 EbxFieldType type = (EbxFieldType)classObj.GetValue<int>("type");
                 DbObject meta = classObj.GetValue<DbObject>("meta");
 
-                string className = classObj.GetValue<string>("name").Replace(':', '_');
+                string className = classObj.GetValue<string>("name").Replace(':', '_').Replace('<', '_').Replace('>', '_');
 
                 sb.Append(WriteClassAttributes(classObj));
                 sb.AppendLine("public class " + className + (parent != "" ? " : " + parent : ""));
@@ -1729,7 +1729,7 @@ namespace Frosty.Core.Sdk
                     fieldObj.AddValue("flags", (int)field.Type);
                     if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                         ProfileVersion.Fifa20, ProfileVersion.Fifa21, ProfileVersion.Madden22,
-                        ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
+                        ProfileVersion.Fifa22, ProfileVersion.Battlefield2042, ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                     {
                         fieldObj.AddValue("offset", (int)field.DataOffset);
                         fieldObj.AddValue("nameHash", field.NameHash);
@@ -1934,7 +1934,7 @@ namespace Frosty.Core.Sdk
             // Bf2042
             else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22,
                 ProfileVersion.Fifa22, ProfileVersion.Battlefield2042,
-                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
+                ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
             {
                 Namespace = "Frosty.Core.Sdk.Bf2042.";
             }

@@ -143,7 +143,7 @@ namespace FrostySdk.Resources
             Width = reader.ReadUShort();
             Height = reader.ReadUShort();
             Depth = reader.ReadUShort();
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
             {
                 m_sliceCount = reader.ReadByte();
             }
@@ -160,12 +160,12 @@ namespace FrostySdk.Resources
 
             MipCount = reader.ReadByte();
             FirstMip = reader.ReadByte();
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
             {
                 reader.ReadByte();
             }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
             {
                 Unknown3[0] = reader.ReadUInt();
             }
@@ -206,7 +206,7 @@ namespace FrostySdk.Resources
                 Unknown3[0] = reader.ReadUInt();
             }
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
             {
                 reader.ReadLong();
             }
@@ -253,7 +253,7 @@ namespace FrostySdk.Resources
                 writer.Write(Height);
                 writer.Write(Depth);
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                 {
                     writer.Write((byte)0);
                 }
@@ -270,12 +270,12 @@ namespace FrostySdk.Resources
                 writer.Write(MipCount);
                 writer.Write(FirstMip);
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                 {
                     writer.Write(MipCount);
                 }
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield2042, ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                 {
                     writer.Write(Unknown3[0]);
                 }
@@ -316,7 +316,7 @@ namespace FrostySdk.Resources
                     writer.Write(Unknown3[0]);
                 }
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound, ProfileVersion.DeadSpace))
                 {
                     writer.Write(0);
                 }

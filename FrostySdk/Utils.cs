@@ -390,6 +390,7 @@ namespace FrostySdk
                     case (int)ProfileVersion.Madden23:
                     case (int)ProfileVersion.Fifa23:
                     case (int)ProfileVersion.NeedForSpeedUnbound:
+                    case (int)ProfileVersion.DeadSpace:
                         return 16;
                     default:
                         return 8;
@@ -952,7 +953,7 @@ namespace FrostySdk
                          ProfileVersion.Fifa19, ProfileVersion.Fifa20,
                          ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons,
                          ProfileVersion.Fifa21, ProfileVersion.Madden22,
-                         ProfileVersion.Fifa22, ProfileVersion.Madden23))
+                         ProfileVersion.Fifa22, ProfileVersion.Madden23, ProfileVersion.DeadSpace))
                 {
                     compressionType = CompressionType.ZStd;
                 }
