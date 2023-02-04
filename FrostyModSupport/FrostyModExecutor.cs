@@ -1961,6 +1961,7 @@ namespace Frosty.ModSupport
                         if (currentCasIndex != casEntries[index])
                         {
                             offset = 0;
+                            currentCasIndex = casEntries[index];
                         }
 
                         if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
