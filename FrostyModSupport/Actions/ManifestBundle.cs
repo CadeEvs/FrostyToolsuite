@@ -17,9 +17,7 @@ namespace Frosty.ModSupport
         {
 
             public List<Sha1> DataRefs { get; } = new List<Sha1>();
-            public List<Sha1> BundleRefs { get; } = new List<Sha1>();
             public List<CasFileEntry> FileInfos { get; } = new List<CasFileEntry>();
-            public List<byte[]> BundleBuffers { get; } = new List<byte[]>();
 
             public Exception Exception { get; private set; }
 
@@ -410,12 +408,12 @@ namespace Frosty.ModSupport
                         }
 
                         byte[] bundleBuffer = ms.ToArray();
+                        ms.Dispose();
                         Sha1 newSha1 = Utils.GenerateSha1(bundleBuffer);
 
-                        BundleRefs.Add(newSha1);
                         DataRefs.Add(newSha1);
                         FileInfos.Add(new CasFileEntry { Entry = null, FileInfo = bundleFile });
-                        BundleBuffers.Add(bundleBuffer);
+                        parent.archiveData.TryAdd(newSha1, new ArchiveInfo() { Data = bundleBuffer });
                     }
                 }
                 catch (Exception e)

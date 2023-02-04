@@ -253,7 +253,7 @@ namespace Frosty.ModSupport
 
         private void ProcessModResources(IResourceContainer fmod)
         {
-            Parallel.ForEach(fmod.Resources, resource =>
+            Parallel.ForEach(fmod.Resources, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, resource =>
             {
                 // pull existing bundles from asset manager
                 List<int> bundles = new List<int>();
@@ -1099,7 +1099,7 @@ namespace Frosty.ModSupport
                 assetEntries.AddRange(modifiedChunks.Values);
 
                 int currentResource = 0;
-                Parallel.ForEach(assetEntries, entry =>
+                Parallel.ForEach(assetEntries, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, entry =>
                 {
                     if (entry.ExtraData is HandlerExtraData handlerExtaData)
                     {
@@ -1429,7 +1429,7 @@ namespace Frosty.ModSupport
                     }
 
                     ReportProgress(0, tasks.Count);
-                    Parallel.ForEach(tasks.Values, task =>
+                    Parallel.ForEach(tasks.Values, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, task =>
                     {
                         actions.Add(new ManifestBundleAction(task, this, cancelToken));
                         ReportProgress(actions.Count, tasks.Count);
@@ -1446,12 +1446,6 @@ namespace Frosty.ModSupport
 
                         if (action.DataRefs.Count > 0)
                         {
-                            // add bundle data to archive
-                            for (int i = 0; i < action.BundleRefs.Count; i++)
-                            {
-                                archiveData.TryAdd(action.BundleRefs[i], new ArchiveInfo() { Data = action.BundleBuffers[i] });
-                            }
-
                             // add refs to be added to cas (and manifest)
                             for (int i = 0; i < action.DataRefs.Count; i++)
                                 casData.Add(fs.GetCatalog(action.FileInfos[i].FileInfo.file), action.DataRefs[i], action.FileInfos[i].Entry, action.FileInfos[i].FileInfo);
@@ -1845,7 +1839,7 @@ namespace Frosty.ModSupport
                 ArchiveInfo info = archiveData[sha1];
 
                 int casMaxBytes = 536870912;
-                switch (Config.Get("MaxCasFileSize", "512MB"))
+                switch (Config.Get("MaxCasFileSize", "1GB"))
                 {
                     case "1GB": casMaxBytes = 1073741824; break;
                     case "512MB": casMaxBytes = 536870912; break;
@@ -1959,12 +1953,16 @@ namespace Frosty.ModSupport
                         numEntries++;
                     }
 
-                    int offset = 0;
-                    int index = 0;
+                    int offset = 0, index = 0, currentCasIndex = casEntries.Count > 0 ? casEntries[0] : 1;
 
                     // new entries
                     foreach (Sha1 sha1 in casDataEntry.EnumerateDataRefs())
                     {
+                        if (currentCasIndex != casEntries[index])
+                        {
+                            offset = 0;
+                        }
+
                         if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                             offset += 0x20;
 
