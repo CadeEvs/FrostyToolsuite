@@ -119,6 +119,13 @@ namespace Frosty.Core.Windows
         public bool UpdateCheckPrerelease { get; set; } = false;
 #endif
 
+        [Category("General")]
+        [DisplayName("CAS Max File Size")]
+        [Description("Change the maximum size of written cas files when applying mods.\r\n\r\nHigher Values decrease system stability but ensure mod compatibility.")]
+        [EbxFieldMeta(EbxFieldType.Struct)]
+        [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
+        public CustomComboData<string, string> MaxCasFileSize { get; set; }
+
         public override void Load()
         {
             List<string> langs = GetLocalizedLanguages();
@@ -139,6 +146,10 @@ namespace Frosty.Core.Windows
 
             UpdateCheck = Config.Get<bool>("UpdateCheck", true);
             UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
+
+            List<string> sizes = new List<string>() { "1GB", "512MB", "256MB" };
+            MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
+            MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
@@ -172,6 +183,8 @@ namespace Frosty.Core.Windows
 
             Config.Add("UpdateCheck", UpdateCheck);
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
+
+            Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
 
             if (RememberChoice)
                 Config.Add("DefaultProfile", ProfilesLibrary.ProfileName);
@@ -281,6 +294,13 @@ namespace Frosty.Core.Windows
         public bool UpdateCheckPrerelease { get; set; } = false;
 #endif
 
+        [Category("General")]
+        [DisplayName("CAS Max File Size")]
+        [Description("Change the maximum size of written cas files when applying mods.\r\n\r\nHigher Values decrease system stability but ensure mod compatibility.")]
+        [EbxFieldMeta(EbxFieldType.Struct)]
+        [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
+        public CustomComboData<string, string> MaxCasFileSize { get; set; }
+
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
         //[Description("Automatically collapse mod categories in the Available Mods list on startup.")]
@@ -305,6 +325,10 @@ namespace Frosty.Core.Windows
 
             UpdateCheckPrerelease = Config.Get<bool>("UpdateCheckPrerelease", false);
 
+            List<string> sizes = new List<string>() { "1GB", "512MB", "256MB" };
+            MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
+            MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
+
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
         }
@@ -322,6 +346,8 @@ namespace Frosty.Core.Windows
 
             Config.Add("UpdateCheck", UpdateCheck);
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
+
+            Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
