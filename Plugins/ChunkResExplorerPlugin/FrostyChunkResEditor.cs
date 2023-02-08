@@ -165,7 +165,7 @@ namespace ChunkResEditorPlugin
             {
                 resBundleBox.Items.Clear();
                 ResAssetEntry SelectedRes = (ResAssetEntry)resExplorer.SelectedAsset;
-                resBundleBox.Items.Add("Selected resource is in Bundles: " + SelectedRes.Name);
+                resBundleBox.Items.Add("Selected resource is in Bundles: ");
                 foreach (int bundle in SelectedRes.Bundles)
                 {
                     resBundleBox.Items.Add(App.AssetManager.GetBundleEntry(bundle).Name);
@@ -192,7 +192,7 @@ namespace ChunkResEditorPlugin
             {
                 chunksBundleBox.Items.Clear();
                 ChunkAssetEntry SelectedChk = (ChunkAssetEntry)chunksListBox.SelectedItem;
-                string FirstLine = "Selected chunk is in Bundles: " + SelectedChk.Name;
+                string FirstLine = "Selected chunk is in Bundles: ";
                 if (SelectedChk.FirstMip != -1)
                     FirstLine += " (FirstMip:" + SelectedChk.FirstMip + ")";
                 if (App.FileSystemManager.GetManifestChunk(SelectedChk.Id) != null)
