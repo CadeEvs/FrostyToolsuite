@@ -165,14 +165,18 @@ namespace ChunkResEditorPlugin
             {
                 resBundleBox.Items.Clear();
                 ResAssetEntry SelectedRes = (ResAssetEntry)resExplorer.SelectedAsset;
-                resBundleBox.Items.Add("Bundles for res: " + SelectedRes.Name);
+                resBundleBox.Items.Add("Selected resource is in Bundles: " + SelectedRes.Name);
                 foreach (int bundle in SelectedRes.Bundles)
                 {
-                    resBundleBox.Items.Add("Default Bundle: " + App.AssetManager.GetBundleEntry(bundle).Name);
+                    resBundleBox.Items.Add(App.AssetManager.GetBundleEntry(bundle).Name);
                 }
-                foreach (int bundle in SelectedRes.AddedBundles)
+                if (SelectedRes.AddedBundles.Count != 0)
                 {
-                    resBundleBox.Items.Add("Added to Bundle: " + App.AssetManager.GetBundleEntry(bundle).Name);
+                    resBundleBox.Items.Add("Added to Bundles:");
+                    foreach (int bundle in SelectedRes.AddedBundles)
+                    {
+                        resBundleBox.Items.Add(App.AssetManager.GetBundleEntry(bundle).Name);
+                    }
                 }
             }
             else
@@ -188,25 +192,32 @@ namespace ChunkResEditorPlugin
             {
                 chunksBundleBox.Items.Clear();
                 ChunkAssetEntry SelectedChk = (ChunkAssetEntry)chunksListBox.SelectedItem;
-                string FirstLine = "Bundles for chunk: " + SelectedChk.Name;
+                string FirstLine = "Selected chunk is in Bundles: " + SelectedChk.Name;
                 if (SelectedChk.FirstMip != -1)
                     FirstLine += " (FirstMip:" + SelectedChk.FirstMip + ")";
-                chunksBundleBox.Items.Add(FirstLine);
                 if (App.FileSystem.GetManifestChunk(SelectedChk.Id) != null)
                 {
                         chunksBundleBox.Items.Add("Selected chunk is a Manifest chunk.");
                 }
                 else if (SelectedChk.Bundles.Count == 0)
                 {
-                    chunksBundleBox.Items.Add("Selected chunk is not in any bundles.");
+                    chunksBundleBox.Items.Add("Selected chunk is only in SuperBundles.");
                 }
-                foreach (int bundle in SelectedChk.Bundles)
+                if (SelectedChk.Bundles.Count != 0)
                 {
-                    chunksBundleBox.Items.Add("Default Bundle: " + App.AssetManager.GetBundleEntry(bundle).Name);
+                    chunksBundleBox.Items.Add(FirstLine);
+                    foreach (int bundle in SelectedChk.Bundles)
+                    {
+                        chunksBundleBox.Items.Add(App.AssetManager.GetBundleEntry(bundle).Name);
+                    }
                 }
-                foreach (int bundle in SelectedChk.AddedBundles)
+                if (SelectedChk.AddedBundles.Count != 0)
                 {
-                    chunksBundleBox.Items.Add("Added to Bundle: " + App.AssetManager.GetBundleEntry(bundle).Name);
+                    chunksBundleBox.Items.Add("Added to Bundles:");
+                    foreach (int bundle in SelectedChk.AddedBundles)
+                    {
+                        chunksBundleBox.Items.Add(App.AssetManager.GetBundleEntry(bundle).Name);
+                    }
                 }
             }
             else
