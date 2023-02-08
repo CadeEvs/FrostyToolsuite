@@ -588,8 +588,14 @@ namespace FrostyEditor
                 newProject = new FrostyProject();
                 if (!newProject.Load(filename))
                 {
-                    // failed to load for whatever reason
-                    App.Logger.LogWarning("Failed to load {0}", filename);
+                    if (ProfilesLibrary.DataVersion != newProject.gameVersion) //user loaded project for different game
+                    {
+                        App.Logger.LogWarning("Project {0} is not for {1}.", filename, ProfilesLibrary.DisplayName);
+                    }
+                    else //corrupt or not a frosty project
+                    {
+                        App.Logger.LogWarning("Failed to load {0}", filename);
+                    }
                     newProject = null;
                 }
             });
