@@ -22,23 +22,26 @@
                         <local:FrostyChunkRevertCommand x:Key="FrostyChunkRevertCommand"/>
                         <local:FrostyChunkRightClickCommand x:Key="FrostyChunkRightClickCommand"/>
                     </ControlTemplate.Resources>
-                    
                     <Grid Background="{StaticResource ControlBackground}">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <ctrl:FrostyDockablePanel TitleBarVisible="False">
+                        <Grid Margin="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
                             <Grid Background="{StaticResource WindowBackground}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="26"/>
+                                    <RowDefinition Height="26"/>
                                     <RowDefinition/>
+                                    <RowDefinition Height="175"/>
                                 </Grid.RowDefinitions>
+                                <DockPanel Grid.Row="0" LastChildFill="True" Background="{StaticResource ControlBackground}">
+                                    <CheckBox x:Name="PART_ChunkModified" Margin="0, 2, 0, 0" BorderThickness="1" VerticalContentAlignment="Center"/>
+                                    <Label Content="Show only modified " Margin="0, 2, 0, 0" FontFamily="Global User Interface"/>
+                                </DockPanel>
+                                <TextBox Grid.Row="1" x:Name="PART_ChunkFilter" BorderThickness="1" Margin="1" VerticalContentAlignment="Center"/>
 
-                                <TextBox Grid.Row="0" x:Name="PART_ChunkFilter" BorderThickness="1" Margin="1" VerticalContentAlignment="Center"/>
-
-                                <ListBox Grid.Row="1" x:Name="PART_ChunksListBox" Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:FrostyChunkResEditor}}}">
+                                <ListBox Grid.Row="2" x:Name="PART_ChunksListBox" Tag="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:FrostyChunkResEditor}}}">
                                     <ListBox.ItemContainerStyle>
                                         <Style TargetType="{x:Type ListBoxItem}">
                                             <Setter Property="HorizontalContentAlignment" Value="{Binding HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
@@ -114,14 +117,20 @@
                                     </ListBox.ItemTemplate>
                                 </ListBox>
 
+                                <ListBox Grid.Row="3" x:Name="PART_ChunksBundlesBox">
+
+                                </ListBox>
+
                             </Grid>
-                        </ctrl:FrostyDockablePanel>
 
-                        <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
+                            <GridSplitter Background="Transparent" VerticalAlignment="Stretch" Width="3" ResizeDirection="Columns"/>
 
-                        <ctrl:FrostyDockablePanel Grid.Column="1" TitleBarVisible="False">
-                            <Grid Background="{StaticResource WindowBackground}">
-                                <core:FrostyDataExplorer x:Name="PART_ResExplorer">
+                            <Grid Grid.Column="1" Background="{StaticResource WindowBackground}">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition/>
+                                    <RowDefinition Height="175"/>
+                                </Grid.RowDefinitions>
+                                <core:FrostyDataExplorer x:Name="PART_ResExplorer" Grid.Row="0">
                                     <core:FrostyDataExplorer.AssetContextMenu>
                                         <ContextMenu>
                                             <MenuItem x:Name="PART_ResExportMenuItem" Header="Export">
@@ -142,12 +151,15 @@
                                         </ContextMenu>
                                     </core:FrostyDataExplorer.AssetContextMenu>
                                 </core:FrostyDataExplorer>
+                                <ListBox Grid.Row="1" x:Name="PART_ResBundlesBox">
+                                </ListBox>
                             </Grid>
-                        </ctrl:FrostyDockablePanel>
+
+                        </Grid>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-    
+
 </ResourceDictionary>
