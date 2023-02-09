@@ -63,7 +63,7 @@ namespace Frosty.Core
         private string filename;
         private DateTime creationDate;
         private DateTime modifiedDate;
-        private uint gameVersion;
+        public uint gameVersion;
 
         // mod export settings
         private ModSettings modSettings;
