@@ -54,7 +54,11 @@ namespace FrostySdk.Ebx
                 Type refType = TypeLibrary.GetType((uint)Fnv1.HashString(typeName));
                 if (refType == null)
                 {
-                    throw new Exception($"Could not find the type {typeName}");
+                    refType = TypeLibrary.GetType(typeGuid);
+                    if (refType == null)
+                    {
+                        throw new Exception($"Could not find the type {typeName}");
+                    }
                 }
                 return refType;
             }
