@@ -429,16 +429,29 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <returns></returns>
         public List<string> GetDefaultDeclinatedAdjective(uint adjectiveId)
         {
-            List<string> adjectiveStrings = new List<string>(DragonAgeDeclinatedCraftingNames.NumberOfDeclinations);
+            int numberOfDeclinations = DragonAgeDeclinatedCraftingNames.NumberOfDeclinations;
+            List<string> adjectiveStrings = new List<string>(numberOfDeclinations);
 
             int i = 0;
             foreach (LocalizedString entry in DragonAgeDeclinatedCraftingNames.GetDeclinatedAdjective(adjectiveId))
             {
-                if (entry != null)
-                {
-                    adjectiveStrings.Insert(i, entry.Value);
-                }
+
+                string value = entry?.Value;
+                adjectiveStrings.Add(value);
                 i++;
+            }
+
+            if(i< numberOfDeclinations)
+            {
+                int missingNo = numberOfDeclinations - i;
+                for(int j = 0; j< missingNo; j++)
+                {
+                    adjectiveStrings.Add(null);
+                }
+            }
+            else if( i > numberOfDeclinations)
+            {
+                App.Logger.LogWarning("The requested resource <{0}> contains more than the stated number of <{1}> declinations for adjectiveId <{2}>!", Name, numberOfDeclinations, adjectiveId);
             }
 
             return adjectiveStrings;
