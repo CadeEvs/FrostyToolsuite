@@ -507,6 +507,17 @@ namespace SoundEditorPlugin
             if (!sfd.ShowDialog())
                 return;
 
+            for (int trackIndex = 0; trackIndex < tracksListBox.SelectedItems.Count; trackIndex++)
+            {
+                SoundDataTrack indexedTrack = (SoundDataTrack) tracksListBox.SelectedItems[trackIndex];
+                String indexedFilename = sfd.FileName.Replace(".wav", " " + trackIndex + ".wav");
+                SoundExportMenuItem_Export(indexedTrack, indexedFilename);
+                logger.Log("Exported {0} to {1}", AssetEntry.Name, indexedFilename);
+            }
+        }
+
+        private void SoundExportMenuItem_Export(SoundDataTrack track, String filename)
+        {
             FrostyTaskWindow.Show("Exporting Sound", "", task =>
             {
                 WAV.WAVFormatChunk fmt = new WAV.WAVFormatChunk(WAV.WAVFormatChunk.DataFormats.WAVE_FORMAT_PCM, (ushort)track.ChannelCount, (uint)track.SampleRate, (uint)(track.ChannelCount * 2 * track.SampleRate), (ushort)(2 * track.ChannelCount), 16);
@@ -526,14 +537,12 @@ namespace SoundEditorPlugin
                 WAV.WAVDataChunk data = new WAV.WAVDataChunk(fmt, frames);
                 WAV.RIFFMainChunk main = new WAV.RIFFMainChunk(new WAV.RIFFChunkHeader(0, new byte[] { 0x52, 0x49, 0x46, 0x46 }, 0), new byte[] { 0x57, 0x41, 0x56, 0x45 });
 
-                using (FileStream stream = new FileStream(sfd.FileName, FileMode.Create))
+                using (FileStream stream = new FileStream(filename, FileMode.Create))
                 using (BinaryWriter writer = new BinaryWriter(stream))
                 {
                     main.Write(writer, new List<WAV.IRIFFChunk>(new WAV.IRIFFChunk[] { fmt, data }));
                 }
             });
-
-            logger.Log("Exported {0} to {1}", AssetEntry.Name, sfd.FileName);
         }
 
         private void SoundImportMenuItem_Click(object sender, RoutedEventArgs e)
