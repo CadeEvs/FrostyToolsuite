@@ -1219,6 +1219,7 @@ namespace FrostyCmd
             CreateNFSHeatProfile();
             CreateBFHProfile();
             CreateSWSProfile();
+            CreateNFSUnboundProfile();
 
 #if FROSTY_DEVELOPER
 
@@ -1229,7 +1230,6 @@ namespace FrostyCmd
             CreateBF2042Profile();
             CreateMadden23Profile();
             CreateFifa23Profile();
-            CreateNFSUnboundProfile();
             CreateDeadSpaceProfile();
 
 #endif
