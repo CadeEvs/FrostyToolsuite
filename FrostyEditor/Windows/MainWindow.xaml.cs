@@ -330,10 +330,8 @@ namespace FrostyEditor.Windows
             else
             {
                 string selectedProfileName = FrostyProfileSelectWindow.Show();
-                if (!string.IsNullOrEmpty(selectedProfileName))
+                if (!string.IsNullOrEmpty(selectedProfileName) && SelectProfile(selectedProfileName))
                 {
-                    SelectProfile(selectedProfileName);
-                    
                     NewProject();
                     
                     UpdateUI(true);
@@ -465,13 +463,15 @@ namespace FrostyEditor.Windows
             NewProject();
         }
 
-        private static void SelectProfile(string profile)
+        private static bool SelectProfile(string profile)
         {
             Frosty.Core.App.ClearProfileData();
-            Frosty.Core.App.LoadProfile(profile);
+            bool result = Frosty.Core.App.LoadProfile(profile);
 
             App.InitDiscordRpc();
             App.UpdateDiscordRpc("Initializing");
+
+            return result;
         }
 
         private void UpdateUI(bool newProject = false)
