@@ -290,6 +290,7 @@ namespace Frosty.ModSupport
                                     }
 
                                     DbObject ebx = new DbObject();
+                                    ebx.SetValue("name", entry.Name);
                                     ebx.SetValue("sha1", entry.Sha1);
                                     ebx.SetValue("originalSize", entry.OriginalSize);
                                     ebx.SetValue("size", entry.Size);
@@ -348,6 +349,7 @@ namespace Frosty.ModSupport
                                     }
 
                                     DbObject res = new DbObject();
+                                    res.SetValue("name", entry.Name);
                                     res.SetValue("sha1", entry.Sha1);
                                     res.SetValue("originalSize", entry.OriginalSize);
                                     res.SetValue("size", entry.Size);
