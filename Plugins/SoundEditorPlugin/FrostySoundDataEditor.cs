@@ -699,7 +699,7 @@ namespace SoundEditorPlugin
 
             // disable seekable data, not supported
             soundWave.Seekable = false;
-            soundWave.Segments[variation.FirstSegmentIndex].SamplesOffset = 0;
+            //soundWave.Segments[variation.FirstSegmentIndex].SamplesOffset = 0;
             soundWave.Segments[variation.FirstSegmentIndex].SeekTableOffset = 4294967295;
 
             variation.SegmentCount = (byte)1;
