@@ -117,8 +117,10 @@
                                     </ListBox.ItemTemplate>
                                 </ListBox>
 
-                                <ListBox Grid.Row="3" x:Name="PART_ChunksBundlesBox">
-
+                                <ListBox Grid.Row="3"
+                                         x:Name="PART_ChunksBundlesBox"
+                                         BorderThickness="2"
+                                         BorderBrush="{StaticResource ControlBackground}">
                                 </ListBox>
 
                             </Grid>
@@ -151,7 +153,10 @@
                                         </ContextMenu>
                                     </core:FrostyDataExplorer.AssetContextMenu>
                                 </core:FrostyDataExplorer>
-                                <ListBox Grid.Row="1" x:Name="PART_ResBundlesBox">
+                                <ListBox Grid.Row="1"
+                                         x:Name="PART_ResBundlesBox"
+                                         BorderThickness="2"
+                                         BorderBrush="{StaticResource ControlBackground}">
                                 </ListBox>
                             </Grid>
 
