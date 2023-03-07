@@ -1,4 +1,17 @@
-﻿v1.0.6.2 (Alpha 2)
+﻿v1.0.6.2 (Beta 1)
+--------
+- Fixed memory issue and writing of cat files (#222)
+- Fixed about menu support link being cut off (#224)
+- Changed error text for loading a wrong project (#225)
+- Fixed issue with ealayer3 library (#235)
+
+Plugin Changes
+- Fixed crash when exporting textures (#223)
+- Added bundle box to Chunk/Res Editor (#226)
+- Fixed crash in BiowareLocalizationPlugin (#232)
+- Fixed issue for importing sounds (#236)
+
+v1.0.6.2 (Alpha 2)
 --------
 - Fixed issue with logging legacy mods (#217)
 
