@@ -93,28 +93,32 @@ namespace FsLocalizationPlugin
             dynamic localizedText = ebxAsset.RootObject;
 
             ChunkAssetEntry chunkEntry = am.GetChunkEntry(localizedText.BinaryChunk);
-            ChunkAssetEntry HistogramEntry = am.GetChunkEntry(localizedText.HistogramChunk);
-            ChunkAssetEntry newChunkEntry = new ChunkAssetEntry();
+            ChunkAssetEntry histogramEntry = am.GetChunkEntry(localizedText.HistogramChunk);
+            
+            if (chunkEntry != null && histogramEntry != null)
+            {
+                ChunkAssetEntry newChunkEntry = new ChunkAssetEntry();
 
-            byte[] buf2 = NativeReader.ReadInStream(am.GetChunk(HistogramEntry));
-            List<char> values = ModifyHistogram(buf2, modFs);
+                byte[] histogramData = NativeReader.ReadInStream(am.GetChunk(histogramEntry));
+                List<char> values = ModifyHistogram(histogramData, modFs);
 
-            byte[] buf = NativeReader.ReadInStream(am.GetChunk(chunkEntry));
-            buf = ModifyChunk(buf, modFs, values);
+                byte[] buf = NativeReader.ReadInStream(am.GetChunk(chunkEntry));
+                buf = ModifyChunk(buf, modFs, values);
 
-            localizedText.BinaryChunkSize = (uint)buf.Length;
-            newChunkEntry.LogicalSize = (uint)buf.Length;
-            buf = Utils.CompressFile(buf);
+                localizedText.BinaryChunkSize = (uint)buf.Length;
+                newChunkEntry.LogicalSize = (uint)buf.Length;
+                buf = Utils.CompressFile(buf);
 
-            newChunkEntry.Id = chunkEntry.Id;
-            newChunkEntry.Sha1 = Utils.GenerateSha1(buf);
-            newChunkEntry.Size = buf.Length;
-            newChunkEntry.H32 = Fnv1.HashString(origEntry.Name.ToLower());
-            newChunkEntry.FirstMip = -1;
-            newChunkEntry.IsTocChunk = true;
+                newChunkEntry.Id = chunkEntry.Id;
+                newChunkEntry.Sha1 = Utils.GenerateSha1(buf);
+                newChunkEntry.Size = buf.Length;
+                newChunkEntry.H32 = Fnv1.HashString(origEntry.Name.ToLower());
+                newChunkEntry.FirstMip = -1;
+                newChunkEntry.IsTocChunk = true;
 
-            runtimeResources.AddResource(new RuntimeChunkResource(newChunkEntry), buf);
-
+                runtimeResources.AddResource(new RuntimeChunkResource(newChunkEntry), buf);
+            }
+            
             using (EbxBaseWriter writer = EbxBaseWriter.CreateWriter(new MemoryStream()))
             {
                 writer.WriteAsset(ebxAsset);
