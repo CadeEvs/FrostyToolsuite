@@ -187,6 +187,17 @@ namespace FrostySdk.Managers
 
             return (buffer != null) ? new MemoryStream(buffer) : null;
         }
+        public Stream GetRawResourceData(long offset, long size)
+        {
+            byte[] buffer = null;
+            using (NativeReader bufferReader = new NativeReader(new FileStream(fs.CacheName + "_sbdata.cas", FileMode.Open, FileAccess.Read)))
+            {
+                using (NativeReader reader = new NativeReader(bufferReader.CreateViewStream(offset, size)))
+                    buffer = reader.ReadToEnd();
+            }
+
+            return (buffer != null) ? new MemoryStream(buffer) : null;
+        }
 
         // data from buffer (ie. modified or inline data)
         public Stream GetResourceData(byte[] buffer)
