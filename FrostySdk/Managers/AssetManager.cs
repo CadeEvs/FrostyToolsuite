@@ -1575,11 +1575,11 @@ namespace FrostySdk.Managers
                         ? null
                         : rm.GetRawResourceData(entry.Sha1);
 
-                //case AssetDataLocation.SuperBundle:
-                //    return rm.GetResourceData(((entry.ExtraData.IsPatch) ? "native_patch/" : "native_data/") + superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
+                case AssetDataLocation.SuperBundle:
+                    return rm.GetRawResourceData(((entry.ExtraData.IsPatch) ? "native_patch/" : "native_data/") + superBundles[entry.ExtraData.SuperBundleId].Name + ".sb", entry.ExtraData.DataOffset, entry.Size);
 
-                //case AssetDataLocation.Cache:
-                //    return rm.GetResourceData(entry.ExtraData.DataOffset, entry.Size);
+                case AssetDataLocation.Cache:
+                    return rm.GetRawResourceData(entry.ExtraData.DataOffset, entry.Size);
 
                 case AssetDataLocation.CasNonIndexed:
                     return rm.GetRawResourceData(entry.ExtraData.CasPath, entry.ExtraData.DataOffset, entry.Size);
