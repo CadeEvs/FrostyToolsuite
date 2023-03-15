@@ -2174,7 +2174,10 @@ namespace Frosty.ModSupport
             ExecuteProcess("cmd.exe", "/C \"" + AppDomain.CurrentDomain.BaseDirectory + "\\run.bat\"", true, true);
 
             // delete batch
-            File.Delete("run.bat");
+            if (File.Exists("run.bat"))
+            {
+                File.Delete("run.bat");
+            }
 
             // validate
             foreach (SymLinkStruct arg in cmdArgs)
