@@ -1276,7 +1276,8 @@ namespace Frosty.ModSupport
                     if (!RunSymbolicLinkProcess(cmdArgs))
                     {
                         Directory.Delete(modDataPath, true);
-                        throw new FrostySymLinkException();
+                        FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
+                        return -1;
                     }
                 }
 
