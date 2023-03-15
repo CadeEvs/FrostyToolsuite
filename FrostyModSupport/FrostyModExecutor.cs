@@ -320,6 +320,11 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     return;
 
+                                if (!archiveData.ContainsKey(existingEntry.Sha1))
+                                {
+                                    return;
+                                }
+
                                 archiveData[existingEntry.Sha1].RefCount--;
                                 if (archiveData[existingEntry.Sha1].RefCount == 0)
                                     archiveData.TryRemove(existingEntry.Sha1, out _);
@@ -412,6 +417,11 @@ namespace Frosty.ModSupport
                                     return;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     return;
+
+                                if (!archiveData.ContainsKey(existingEntry.Sha1))
+                                {
+                                    return;
+                                }
 
                                 archiveData[existingEntry.Sha1].RefCount--;
                                 if (archiveData[existingEntry.Sha1].RefCount == 0)
@@ -515,6 +525,11 @@ namespace Frosty.ModSupport
                                 ChunkAssetEntry existingEntry = modifiedChunks[guid];
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     return;
+
+                                if (!archiveData.ContainsKey(existingEntry.Sha1))
+                                {
+                                    return;
+                                }
 
                                 archiveData[existingEntry.Sha1].RefCount--;
                                 if (archiveData[existingEntry.Sha1].RefCount == 0)
@@ -743,6 +758,11 @@ namespace Frosty.ModSupport
                         if (existingEntry.Sha1 == resource.GetValue<Sha1>("sha1"))
                             continue;
 
+                        if (!archiveData.ContainsKey(existingEntry.Sha1))
+                        {
+                            continue;
+                        }
+
                         archiveData[existingEntry.Sha1].RefCount--;
                         if (archiveData[existingEntry.Sha1].RefCount == 0)
                             archiveData.TryRemove(existingEntry.Sha1, out _);
@@ -794,6 +814,11 @@ namespace Frosty.ModSupport
                         ResAssetEntry existingEntry = modifiedRes[name];
                         if (existingEntry.Sha1 == resource.GetValue<Sha1>("sha1"))
                             continue;
+
+                        if (!archiveData.ContainsKey(existingEntry.Sha1))
+                        {
+                            continue;
+                        }
 
                         archiveData[existingEntry.Sha1].RefCount--;
                         if (archiveData[existingEntry.Sha1].RefCount == 0)
@@ -848,6 +873,11 @@ namespace Frosty.ModSupport
                         ChunkAssetEntry existingEntry = modifiedChunks[chunkId];
                         if (existingEntry.Sha1 == resource.GetValue<Sha1>("sha1"))
                             continue;
+
+                        if (!archiveData.ContainsKey(existingEntry.Sha1))
+                        {
+                            continue;
+                        }
 
                         archiveData[existingEntry.Sha1].RefCount--;
                         if (archiveData[existingEntry.Sha1].RefCount == 0)
