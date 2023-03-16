@@ -1275,9 +1275,13 @@ namespace Frosty.ModSupport
                     FrostyMessageBox.Show(reason + "\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
                     if (!RunSymbolicLinkProcess(cmdArgs))
                     {
-                        Directory.Delete(modDataPath, true);
-                        FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
-                        return -1;
+                        FrostyMessageBox.Show("Frosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Editor");
+                        if (!RunSymbolicLinkProcess(cmdArgs))
+                        {
+                            Directory.Delete(modDataPath, true);
+                            FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
+                            return -1;
+                        }
                     }
                 }
 
@@ -2215,10 +2219,16 @@ namespace Frosty.ModSupport
                     process.StartInfo.Verb = "runas";
                 }
 
-                process.Start();
+                try
+                {
+                    process.Start();
 
-                if (waitForExit)
-                    process.WaitForExit();
+                    if (waitForExit)
+                        process.WaitForExit();
+                }
+                catch
+                {
+                }
             }
         }
 
