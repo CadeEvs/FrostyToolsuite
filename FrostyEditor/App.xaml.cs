@@ -184,7 +184,17 @@ namespace FrostyEditor
             {
                 string prof = Config.Get<string>("DefaultProfile", null);
                 if (!string.IsNullOrEmpty(prof))
-                    defaultConfig = new FrostyConfiguration(prof);
+                {
+                    try
+                    {
+                        defaultConfig = new FrostyConfiguration(prof);
+                    }
+                    catch (System.IO.FileNotFoundException)
+                    {
+                        Config.RemoveGame(prof); // couldn't find the exe, so remove it from the profile list
+                        Config.Save();
+                    }
+                }
                 else
                 {
                     Config.Add("UseDefaultProfile", false);
