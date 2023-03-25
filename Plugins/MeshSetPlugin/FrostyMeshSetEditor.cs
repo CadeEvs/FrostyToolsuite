@@ -934,7 +934,6 @@ namespace MeshSetPlugin
             IntPtr buffer = fmesh.GetControlPoints();
             int uvChannelIndex = 0;
             int colorChannelIndex = 0;
-            int totalStride = 0;
 
             bool packedBinormal = false;
             bool tangentSpaceUnpack = false;
@@ -946,10 +945,13 @@ namespace MeshSetPlugin
             List<float> binormalSigns = new List<float>();
             List<object> tangentSpace = new List<object>();
 
-            foreach (GeometryDeclarationDesc.Stream stream in section.GeometryDeclDesc[0].Streams)
+            for (int j = 0; j < section.GeometryDeclDesc[0].Streams.Length; j++)
             {
+                GeometryDeclarationDesc.Stream stream = section.GeometryDeclDesc[0].Streams[j];
                 if (stream.VertexStride == 0)
+                {
                     continue;
+                }
 
                 for (int i = 0; i < section.VertexCount; i++)
                 {
@@ -959,7 +961,7 @@ namespace MeshSetPlugin
                         if (elem.Usage == VertexElementUsage.Unknown)
                             continue;
 
-                        if (currentStride >= totalStride && currentStride < (totalStride + stream.VertexStride))
+                        if (elem.StreamIndex == j && currentStride < stream.VertexStride)
                         {
                             if (elem.Usage == VertexElementUsage.Pos)
                             {
@@ -1293,13 +1295,17 @@ namespace MeshSetPlugin
                                 else
                                     reader.Position += elem.Size;
                             }
-                        }
 
-                        currentStride += elem.Size;
+                            currentStride += elem.Size;
+                        }
+                    }
+
+                    // rivals pads the vertex stride
+                    if (currentStride != stream.VertexStride)
+                    {
+                        reader.Position += stream.VertexStride - currentStride;
                     }
                 }
-
-                totalStride += stream.VertexStride;
             }
 
             if (packedBinormal)
@@ -2518,12 +2524,14 @@ namespace MeshSetPlugin
                 using (NativeWriter chunkWriter = new NativeWriter(verticesBuffer, true))
                 {
                     chunkWriter.Position = chunkWriter.Length;
-                    int totalStride = 0;
 
-                    foreach (GeometryDeclarationDesc.Stream stream in meshSection.GeometryDeclDesc[0].Streams)
+                    for (int i = 0; i < meshSection.GeometryDeclDesc[0].Streams.Length; i++)
                     {
+                        GeometryDeclarationDesc.Stream stream = meshSection.GeometryDeclDesc[0].Streams[i];
                         if (stream.VertexStride == 0)
+                        {
                             continue;
+                        }
 
                         foreach (DbObject vertex in vertices)
                         {
@@ -2557,7 +2565,7 @@ namespace MeshSetPlugin
                                 if (elem.Usage == VertexElementUsage.Unknown)
                                     continue;
 
-                                if (currentStride >= totalStride && currentStride < (totalStride + stream.VertexStride))
+                                if (elem.StreamIndex == i && currentStride < stream.VertexStride)
                                 {
                                     switch (elem.Usage)
                                     {
@@ -2864,13 +2872,17 @@ namespace MeshSetPlugin
                                             }
                                             break;
                                     }
-                                }
 
-                                currentStride += elem.Size;
+                                    currentStride += elem.Size;
+                                }
+                            }
+
+                            // rivals pads the vertex stride
+                            if (currentStride != stream.VertexStride)
+                            {
+                                chunkWriter.Position += stream.VertexStride - currentStride;
                             }
                         }
-
-                        totalStride += stream.VertexStride;
                     }
 
                     meshSection.VertexCount += (uint)vertices.Count;
