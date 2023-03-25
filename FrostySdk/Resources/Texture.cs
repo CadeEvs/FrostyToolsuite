@@ -190,26 +190,41 @@ namespace FrostySdk.Resources
         {
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
-                writer.Write(mipOffsets[0]);
-                writer.Write(mipOffsets[1]);
-                writer.Write((uint)Type);
-                writer.Write(pixelFormat);
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII ||
-                    ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 ||
-                    ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 ||
-                    ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons
-#if FROSTY_ALPHA || FROSTY_DEVELOPER
-                || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
-#endif
-                    )
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                 {
-                    writer.Write(unknown1);
+                    writer.Write(Unknown3[0]);
+                    writer.Write((uint)Type);
+                    writer.Write(pixelFormat);
+                    writer.Write(Unknown3[1]);
                 }
-                writer.Write((ushort)Flags);
+                else
+                {
+                    writer.Write(mipOffsets[0]);
+                    writer.Write(mipOffsets[1]);
+                    writer.Write((uint)Type);
+                    writer.Write(pixelFormat);
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII ||
+                        ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 ||
+                        ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 ||
+                        ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons
+#if FROSTY_ALPHA || FROSTY_DEVELOPER
+                    || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
+#endif
+                        )
+                    {
+                        writer.Write(unknown1);
+                    }
+                    writer.Write((ushort)Flags);
+                }
                 writer.Write(Width);
                 writer.Write(Height);
                 writer.Write(Depth);
                 writer.Write(sliceCount);
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
+                {
+                    writer.Write((ushort)Flags);
+                }
+
                 writer.Write(MipCount);
                 writer.Write(FirstMip);
                 writer.Write(chunkId);
