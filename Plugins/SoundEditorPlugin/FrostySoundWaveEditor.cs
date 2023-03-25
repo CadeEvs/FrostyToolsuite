@@ -142,157 +142,164 @@ namespace SoundEditorPlugin
                 dynamic soundDataChunk = soundWave.Chunks[runtimeVariation.ChunkIndex];
                 ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(soundDataChunk.ChunkId);
 
-                using (NativeReader reader = new NativeReader(App.AssetManager.GetChunk(chunkEntry)))
+                if (chunkEntry == null)
                 {
-                    List<short> decodedSoundBuf = new List<short>();
-                    double startLoopingTime = 0.0;
-                    double loopingDuration = 0.0;
-
-                    for (int i = 0; i < runtimeVariation.SegmentCount; i++)
+                    App.Logger.LogWarning($"SoundChunk {soundDataChunk.ChunkId} doesn't exist. This could be because its a LocalizedChunk that is not loaded by your game.");
+                }
+                else
+                {
+                    using (NativeReader reader = new NativeReader(App.AssetManager.GetChunk(chunkEntry)))
                     {
-                        var segment = soundWave.Segments[runtimeVariation.FirstSegmentIndex + i];
-                        reader.Position = segment.SamplesOffset;
+                        List<short> decodedSoundBuf = new List<short>();
+                        double startLoopingTime = 0.0;
+                        double loopingDuration = 0.0;
 
-                        uint headerSize = reader.ReadUInt(Endian.Big) & 0x00ffffff;
-                        byte codec = reader.ReadByte();
-                        int channels = (reader.ReadByte() >> 2) + 1;
-                        ushort sampleRate = reader.ReadUShort(Endian.Big);
-                        uint sampleCount = reader.ReadUInt(Endian.Big) & 0x00ffffff;
+                        for (int i = 0; i < runtimeVariation.SegmentCount; i++)
+                        {
+                            var segment = soundWave.Segments[runtimeVariation.FirstSegmentIndex + i];
+                            reader.Position = segment.SamplesOffset;
 
-                        switch (codec)
-                        {
-                            case 0x12: track.Codec = "Pcm16Big"; break;
-                            case 0x14: track.Codec = "Xas1"; break;
-                            case 0x15: track.Codec = "EaLayer31"; break;
-                            case 0x16: track.Codec = "EaLayer32Pcm"; break;
-                            default: track.Codec = "Unknown (" + codec.ToString("x2") + ")"; break;
-                        }
+                            uint headerSize = reader.ReadUInt(Endian.Big) & 0x00ffffff;
+                            byte codec = reader.ReadByte();
+                            int channels = (reader.ReadByte() >> 2) + 1;
+                            ushort sampleRate = reader.ReadUShort(Endian.Big);
+                            uint sampleCount = reader.ReadUInt(Endian.Big) & 0x00ffffff;
 
-                        reader.Position = segment.SamplesOffset;
-                        long size = reader.Length - reader.Position;
-                        if ((runtimeVariation.FirstSegmentIndex + i + 1 < soundWave.Segments.Count) && ((soundWave.Segments[runtimeVariation.FirstSegmentIndex + i + 1].SamplesOffset > segment.SamplesOffset)))
-                        {
-                            size = soundWave.Segments[runtimeVariation.FirstSegmentIndex + i + 1].SamplesOffset - reader.Position;
-                        }
-                        byte[] soundBuf = reader.ReadBytes((int)size);
-                        double duration = 0.0;
-
-                        if (codec == 0x12)
-                        {
-                            short[] data = Pcm16b.Decode(soundBuf);
-                            decodedSoundBuf.AddRange(data);
-                            duration += (data.Length / channels) / (double)sampleRate;
-                            sampleCount = (uint)data.Length;
-                        }
-                        else if (codec == 0x14)
-                        {
-                            short[] data = XAS.Decode(soundBuf);
-                            decodedSoundBuf.AddRange(data);
-                            duration += (data.Length / channels) / (double)sampleRate;
-                            sampleCount = (uint)data.Length;
-                        }
-                        else if (codec == 0x15 || codec == 0x16)
-                        {
-                            sampleCount = 0;
-                            EALayer3.Decode(soundBuf, soundBuf.Length, (short[] data, int count, EALayer3.StreamInfo info) =>
+                            switch (codec)
                             {
-                                if (info.streamIndex == -1)
-                                    return;
-                                sampleCount += (uint)data.Length;
+                                case 0x12: track.Codec = "Pcm16Big"; break;
+                                case 0x14: track.Codec = "Xas1"; break;
+                                case 0x15: track.Codec = "EaLayer31"; break;
+                                case 0x16: track.Codec = "EaLayer32Pcm"; break;
+                                default: track.Codec = "Unknown (" + codec.ToString("x2") + ")"; break;
+                            }
+
+                            reader.Position = segment.SamplesOffset;
+                            long size = reader.Length - reader.Position;
+                            if ((runtimeVariation.FirstSegmentIndex + i + 1 < soundWave.Segments.Count) && ((soundWave.Segments[runtimeVariation.FirstSegmentIndex + i + 1].SamplesOffset > segment.SamplesOffset)))
+                            {
+                                size = soundWave.Segments[runtimeVariation.FirstSegmentIndex + i + 1].SamplesOffset - reader.Position;
+                            }
+                            byte[] soundBuf = reader.ReadBytes((int)size);
+                            double duration = 0.0;
+
+                            if (codec == 0x12)
+                            {
+                                short[] data = Pcm16b.Decode(soundBuf);
                                 decodedSoundBuf.AddRange(data);
-                            });
-                            duration += (sampleCount / channels) / (double)sampleRate;
-                        }
-
-                        if (runtimeVariation.SegmentCount > 1)
-                        {
-                            if (i < runtimeVariation.FirstLoopSegmentIndex)
-                            {
-                                startLoopingTime += duration;
-                                track.LoopStart += sampleCount;
+                                duration += (data.Length / channels) / (double)sampleRate;
+                                sampleCount = (uint)data.Length;
                             }
-                            if (i >= runtimeVariation.FirstLoopSegmentIndex && i <= runtimeVariation.LastLoopSegmentIndex)
+                            else if (codec == 0x14)
                             {
-                                loopingDuration += duration;
-                                track.LoopEnd += sampleCount;
+                                short[] data = XAS.Decode(soundBuf);
+                                decodedSoundBuf.AddRange(data);
+                                duration += (data.Length / channels) / (double)sampleRate;
+                                sampleCount = (uint)data.Length;
                             }
-                        }
-
-                        track.SampleRate = sampleRate;
-                        track.ChannelCount = channels;
-                        track.Duration += duration;
-                    }
-
-                    track.LoopEnd += track.LoopStart;
-                    track.Samples = decodedSoundBuf.ToArray();
-
-                    var maxPeakProvider = new MaxPeakProvider();
-                    var rmsPeakProvider = new RmsPeakProvider(200); // e.g. 200
-                    var samplingPeakProvider = new SamplingPeakProvider(200); // e.g. 200
-                    var averagePeakProvider = new AveragePeakProvider(4); // e.g. 4
-
-                    var topSpacerColor = System.Drawing.Color.FromArgb(64, 83, 22, 3);
-                    var soundCloudOrangeTransparentBlocks = new SoundCloudBlockWaveFormSettings(System.Drawing.Color.FromArgb(196, 197, 53, 0), topSpacerColor, System.Drawing.Color.FromArgb(196, 79, 26, 0),
-                                                                                                System.Drawing.Color.FromArgb(64, 79, 79, 79))
-                    {
-                        Name = "SoundCloud Orange Transparent Blocks",
-                        PixelsPerPeak = 2,
-                        SpacerPixels = 1,
-                        TopSpacerGradientStartColor = topSpacerColor,
-                        BackgroundColor = System.Drawing.Color.Transparent,
-                        Width = 800,
-                        TopHeight = 50,
-                        BottomHeight = 30,
-                    };
-
-                    try
-                    {
-                        var renderer = new WaveFormRenderer();
-                        var image = renderer.Render(track.Samples, maxPeakProvider, soundCloudOrangeTransparentBlocks);
-
-                        using (var ms = new MemoryStream())
-                        {
-                            image.Save(ms, ImageFormat.Png);
-                            ms.Seek(0, SeekOrigin.Begin);
-
-                            var bitmapImage = new BitmapImage();
-                            bitmapImage.BeginInit();
-                            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmapImage.StreamSource = ms;
-                            bitmapImage.EndInit();
-
-                            var target = new RenderTargetBitmap(bitmapImage.PixelWidth, bitmapImage.PixelHeight, bitmapImage.DpiX, bitmapImage.DpiY, PixelFormats.Pbgra32);
-                            var visual = new DrawingVisual();
-
-                            using (var r = visual.RenderOpen())
+                            else if (codec == 0x15 || codec == 0x16)
                             {
-                                visual.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-                                r.DrawImage(bitmapImage, new Rect(0, 0, bitmapImage.Width, bitmapImage.Height));
-
-                                if (loopingDuration > 0)
+                                sampleCount = 0;
+                                EALayer3.Decode(soundBuf, soundBuf.Length, (short[] data, int count, EALayer3.StreamInfo info) =>
                                 {
-                                    r.DrawLine(new Pen(Brushes.White, 1.0),
-                                        new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), soundCloudOrangeTransparentBlocks.TopHeight),
-                                        new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
-                                    r.DrawLine(new Pen(Brushes.White, 1.0),
-                                        new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), soundCloudOrangeTransparentBlocks.TopHeight),
-                                        new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
-                                    r.DrawLine(new Pen(Brushes.White, 1.0),
-                                        new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height),
-                                        new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                                    if (info.streamIndex == -1)
+                                        return;
+                                    sampleCount += (uint)data.Length;
+                                    decodedSoundBuf.AddRange(data);
+                                });
+                                duration += (sampleCount / channels) / (double)sampleRate;
+                            }
+
+                            if (runtimeVariation.SegmentCount > 1)
+                            {
+                                if (i < runtimeVariation.FirstLoopSegmentIndex)
+                                {
+                                    startLoopingTime += duration;
+                                    track.LoopStart += sampleCount;
+                                }
+                                if (i >= runtimeVariation.FirstLoopSegmentIndex && i <= runtimeVariation.LastLoopSegmentIndex)
+                                {
+                                    loopingDuration += duration;
+                                    track.LoopEnd += sampleCount;
                                 }
                             }
 
-                            target.Render(visual);
-                            target.Freeze();
-                            track.WaveForm = target;
+                            track.SampleRate = sampleRate;
+                            track.ChannelCount = channels;
+                            track.Duration += duration;
                         }
-                    }
-                    catch (Exception e)
-                    {
-                    }
 
-                    track.SegmentCount = runtimeVariation.SegmentCount;
+                        track.LoopEnd += track.LoopStart;
+                        track.Samples = decodedSoundBuf.ToArray();
+
+                        var maxPeakProvider = new MaxPeakProvider();
+                        var rmsPeakProvider = new RmsPeakProvider(200); // e.g. 200
+                        var samplingPeakProvider = new SamplingPeakProvider(200); // e.g. 200
+                        var averagePeakProvider = new AveragePeakProvider(4); // e.g. 4
+
+                        var topSpacerColor = System.Drawing.Color.FromArgb(64, 83, 22, 3);
+                        var soundCloudOrangeTransparentBlocks = new SoundCloudBlockWaveFormSettings(System.Drawing.Color.FromArgb(196, 197, 53, 0), topSpacerColor, System.Drawing.Color.FromArgb(196, 79, 26, 0),
+                                                                                                    System.Drawing.Color.FromArgb(64, 79, 79, 79))
+                        {
+                            Name = "SoundCloud Orange Transparent Blocks",
+                            PixelsPerPeak = 2,
+                            SpacerPixels = 1,
+                            TopSpacerGradientStartColor = topSpacerColor,
+                            BackgroundColor = System.Drawing.Color.Transparent,
+                            Width = 800,
+                            TopHeight = 50,
+                            BottomHeight = 30,
+                        };
+
+                        try
+                        {
+                            var renderer = new WaveFormRenderer();
+                            var image = renderer.Render(track.Samples, maxPeakProvider, soundCloudOrangeTransparentBlocks);
+
+                            using (var ms = new MemoryStream())
+                            {
+                                image.Save(ms, ImageFormat.Png);
+                                ms.Seek(0, SeekOrigin.Begin);
+
+                                var bitmapImage = new BitmapImage();
+                                bitmapImage.BeginInit();
+                                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmapImage.StreamSource = ms;
+                                bitmapImage.EndInit();
+
+                                var target = new RenderTargetBitmap(bitmapImage.PixelWidth, bitmapImage.PixelHeight, bitmapImage.DpiX, bitmapImage.DpiY, PixelFormats.Pbgra32);
+                                var visual = new DrawingVisual();
+
+                                using (var r = visual.RenderOpen())
+                                {
+                                    visual.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
+                                    r.DrawImage(bitmapImage, new Rect(0, 0, bitmapImage.Width, bitmapImage.Height));
+
+                                    if (loopingDuration > 0)
+                                    {
+                                        r.DrawLine(new Pen(Brushes.White, 1.0),
+                                            new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), soundCloudOrangeTransparentBlocks.TopHeight),
+                                            new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                                        r.DrawLine(new Pen(Brushes.White, 1.0),
+                                            new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), soundCloudOrangeTransparentBlocks.TopHeight),
+                                            new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                                        r.DrawLine(new Pen(Brushes.White, 1.0),
+                                            new Point((int)((startLoopingTime / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height),
+                                            new Point((int)(((startLoopingTime + loopingDuration) / track.Duration) * soundCloudOrangeTransparentBlocks.Width), (int)bitmapImage.Height));
+                                    }
+                                }
+
+                                target.Render(visual);
+                                target.Freeze();
+                                track.WaveForm = target;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                        }
+
+                        track.SegmentCount = runtimeVariation.SegmentCount;
+                    }
                 }
 
                 retVal.Add(track);
@@ -339,114 +346,122 @@ namespace SoundEditorPlugin
                 SoundDataTrack track = new SoundDataTrack {Name = "Track #" + ((index++) + 1)};
 
                 ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(soundDataChunk.ChunkId);
-                using (NativeReader reader = new NativeReader(App.AssetManager.GetChunk(chunkEntry)))
+
+                if (chunkEntry == null)
                 {
-                    List<short> decodedSoundBuf = new List<short>();
-                    reader.Position = 0;
-
-                    uint headerSize = reader.ReadUInt(Endian.Big) & 0x00ffffff;
-                    byte codec = reader.ReadByte();
-                    int channels = (reader.ReadByte() >> 2) + 1;
-                    ushort sampleRate = reader.ReadUShort(Endian.Big);
-                    uint sampleCount = reader.ReadUInt(Endian.Big) & 0x00ffffff;
-
-                    switch (codec)
+                    App.Logger.LogWarning($"SoundChunk {soundDataChunk.ChunkId} doesn't exist. This could be because its a LocalizedChunk that is not loaded by your game.");
+                }
+                else
+                {
+                    using (NativeReader reader = new NativeReader(App.AssetManager.GetChunk(chunkEntry)))
                     {
-                        case 0x12: track.Codec = "Pcm16Big"; break;
-                        case 0x14: track.Codec = "Xas1"; break;
-                        case 0x15: track.Codec = "EaLayer31"; break;
-                        case 0x16: track.Codec = "EaLayer32Pcm"; break;
-                        case 0x1c: track.Codec = "EaOpus"; break;
-                        default: track.Codec = "Unknown (" + codec.ToString("x2") + ")"; break;
-                    }
+                        List<short> decodedSoundBuf = new List<short>();
+                        reader.Position = 0;
 
-                    reader.Position = 0;
-                    byte[] soundBuf = reader.ReadToEnd();
-                    double duration = 0.0;
+                        uint headerSize = reader.ReadUInt(Endian.Big) & 0x00ffffff;
+                        byte codec = reader.ReadByte();
+                        int channels = (reader.ReadByte() >> 2) + 1;
+                        ushort sampleRate = reader.ReadUShort(Endian.Big);
+                        uint sampleCount = reader.ReadUInt(Endian.Big) & 0x00ffffff;
 
-                    if (codec == 0x12)
-                    {
-                        short[] data = Pcm16b.Decode(soundBuf);
-                        decodedSoundBuf.AddRange(data);
-                        duration += (data.Length / channels) / (double)sampleRate;
-                    }
-                    else if (codec == 0x14)
-                    {
-                        short[] data = XAS.Decode(soundBuf);
-                        decodedSoundBuf.AddRange(data);
-                        duration += (data.Length / channels) / (double)sampleRate;
-                    }
-                    else if (codec == 0x15 || codec == 0x16 || codec == 0x1c)
-                    {
-                        sampleCount = 0;
-                        EALayer3.Decode(soundBuf, soundBuf.Length, (short[] data, int count, EALayer3.StreamInfo info) =>
+                        switch (codec)
                         {
-                            if (info.streamIndex == -1)
-                                return;
-                            sampleCount += (uint)data.Length;
-                            decodedSoundBuf.AddRange(data);
-                        });
-                        duration += (sampleCount / channels) / (double)sampleRate;
-                    }
-
-                    track.SampleRate = sampleRate;
-                    track.ChannelCount = channels;
-                    track.Duration += duration;
-                    track.Samples = decodedSoundBuf.ToArray();
-
-                    var maxPeakProvider = new MaxPeakProvider();
-                    var rmsPeakProvider = new RmsPeakProvider(200); // e.g. 200
-                    var samplingPeakProvider = new SamplingPeakProvider(200); // e.g. 200
-                    var averagePeakProvider = new AveragePeakProvider(4); // e.g. 4
-
-                    var topSpacerColor = System.Drawing.Color.FromArgb(64, 83, 22, 3);
-                    var soundCloudOrangeTransparentBlocks = new SoundCloudBlockWaveFormSettings(System.Drawing.Color.FromArgb(196, 197, 53, 0), topSpacerColor, System.Drawing.Color.FromArgb(196, 79, 26, 0),
-                                                                                                System.Drawing.Color.FromArgb(64, 79, 79, 79))
-                    {
-                        Name = "SoundCloud Orange Transparent Blocks",
-                        PixelsPerPeak = 2,
-                        SpacerPixels = 1,
-                        TopSpacerGradientStartColor = topSpacerColor,
-                        BackgroundColor = System.Drawing.Color.Transparent,
-                        Width = 800,
-                        TopHeight = 50,
-                        BottomHeight = 30,
-                    };
-
-                    try
-                    {
-                        var renderer = new WaveFormRenderer();
-                        var image = renderer.Render(decodedSoundBuf.ToArray(), maxPeakProvider, soundCloudOrangeTransparentBlocks);
-
-                        using (var ms = new MemoryStream())
-                        {
-                            image.Save(ms, ImageFormat.Png);
-                            ms.Seek(0, SeekOrigin.Begin);
-
-                            var bitmapImage = new BitmapImage();
-                            bitmapImage.BeginInit();
-                            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                            bitmapImage.StreamSource = ms;
-                            bitmapImage.EndInit();
-
-                            var target = new RenderTargetBitmap(bitmapImage.PixelWidth, bitmapImage.PixelHeight, bitmapImage.DpiX, bitmapImage.DpiY, PixelFormats.Pbgra32);
-                            var visual = new DrawingVisual();
-
-                            using (var r = visual.RenderOpen())
-                            {
-                                r.DrawImage(bitmapImage, new Rect(0, 0, bitmapImage.Width, bitmapImage.Height));
-                            }
-
-                            target.Render(visual);
-                            target.Freeze();
-                            track.WaveForm = target;
+                            case 0x12: track.Codec = "Pcm16Big"; break;
+                            case 0x14: track.Codec = "Xas1"; break;
+                            case 0x15: track.Codec = "EaLayer31"; break;
+                            case 0x16: track.Codec = "EaLayer32Pcm"; break;
+                            case 0x1c: track.Codec = "EaOpus"; break;
+                            default: track.Codec = "Unknown (" + codec.ToString("x2") + ")"; break;
                         }
-                    }
-                    catch (Exception e)
-                    {
-                    }
 
-                    track.SegmentCount = 1;
+                        reader.Position = 0;
+                        byte[] soundBuf = reader.ReadToEnd();
+                        double duration = 0.0;
+
+                        if (codec == 0x12)
+                        {
+                            short[] data = Pcm16b.Decode(soundBuf);
+                            decodedSoundBuf.AddRange(data);
+                            duration += (data.Length / channels) / (double)sampleRate;
+                        }
+                        else if (codec == 0x14)
+                        {
+                            short[] data = XAS.Decode(soundBuf);
+                            decodedSoundBuf.AddRange(data);
+                            duration += (data.Length / channels) / (double)sampleRate;
+                        }
+                        else if (codec == 0x15 || codec == 0x16 || codec == 0x1c)
+                        {
+                            sampleCount = 0;
+                            EALayer3.Decode(soundBuf, soundBuf.Length, (short[] data, int count, EALayer3.StreamInfo info) =>
+                            {
+                                if (info.streamIndex == -1)
+                                    return;
+                                sampleCount += (uint)data.Length;
+                                decodedSoundBuf.AddRange(data);
+                            });
+                            duration += (sampleCount / channels) / (double)sampleRate;
+                        }
+
+                        track.SampleRate = sampleRate;
+                        track.ChannelCount = channels;
+                        track.Duration += duration;
+                        track.Samples = decodedSoundBuf.ToArray();
+
+                        var maxPeakProvider = new MaxPeakProvider();
+                        var rmsPeakProvider = new RmsPeakProvider(200); // e.g. 200
+                        var samplingPeakProvider = new SamplingPeakProvider(200); // e.g. 200
+                        var averagePeakProvider = new AveragePeakProvider(4); // e.g. 4
+
+                        var topSpacerColor = System.Drawing.Color.FromArgb(64, 83, 22, 3);
+                        var soundCloudOrangeTransparentBlocks = new SoundCloudBlockWaveFormSettings(System.Drawing.Color.FromArgb(196, 197, 53, 0), topSpacerColor, System.Drawing.Color.FromArgb(196, 79, 26, 0),
+                                                                                                    System.Drawing.Color.FromArgb(64, 79, 79, 79))
+                        {
+                            Name = "SoundCloud Orange Transparent Blocks",
+                            PixelsPerPeak = 2,
+                            SpacerPixels = 1,
+                            TopSpacerGradientStartColor = topSpacerColor,
+                            BackgroundColor = System.Drawing.Color.Transparent,
+                            Width = 800,
+                            TopHeight = 50,
+                            BottomHeight = 30,
+                        };
+
+                        try
+                        {
+                            var renderer = new WaveFormRenderer();
+                            var image = renderer.Render(decodedSoundBuf.ToArray(), maxPeakProvider, soundCloudOrangeTransparentBlocks);
+
+                            using (var ms = new MemoryStream())
+                            {
+                                image.Save(ms, ImageFormat.Png);
+                                ms.Seek(0, SeekOrigin.Begin);
+
+                                var bitmapImage = new BitmapImage();
+                                bitmapImage.BeginInit();
+                                bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                                bitmapImage.StreamSource = ms;
+                                bitmapImage.EndInit();
+
+                                var target = new RenderTargetBitmap(bitmapImage.PixelWidth, bitmapImage.PixelHeight, bitmapImage.DpiX, bitmapImage.DpiY, PixelFormats.Pbgra32);
+                                var visual = new DrawingVisual();
+
+                                using (var r = visual.RenderOpen())
+                                {
+                                    r.DrawImage(bitmapImage, new Rect(0, 0, bitmapImage.Width, bitmapImage.Height));
+                                }
+
+                                target.Render(visual);
+                                target.Freeze();
+                                track.WaveForm = target;
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                        }
+
+                        track.SegmentCount = 1;
+                    }
                 }
 
                 retVal.Add(track);
