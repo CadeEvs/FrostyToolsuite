@@ -83,7 +83,7 @@ using TestPlugin.TypeOverrides;
 // will be used, as well as specify import/export logic.
 
 //[assembly: RegisterAssetDefinition("SvgImage", typeof(SvgImageAssetDefinition))]
-[assembly: RegisterAssetDefinition("DifficultyWeaponTableData", typeof(DifficultyWeaponTableDataAssetDefinition))]
+//[assembly: RegisterAssetDefinition("DifficultyWeaponTableData", typeof(DifficultyWeaponTableDataAssetDefinition))]
 
 // Custom handlers are a way to override the way data is handled for a specific type.
 // There are different handlers for Res and Ebx types, used in conjunction with ModifiedResource
@@ -91,7 +91,7 @@ using TestPlugin.TypeOverrides;
 // different mods from the mod manager.
 
 //[assembly: RegisterCustomHandler(CustomHandlerType.Ebx, typeof(SvgImageCustomActionHandler), ebxType: "SvgImage")]
-[assembly: RegisterCustomHandler(CustomHandlerType.Ebx, typeof(DifficultyWeaponTableActionHandler), ebxType: "DifficultyWeaponTableData")]
+//[assembly: RegisterCustomHandler(CustomHandlerType.Ebx, typeof(DifficultyWeaponTableActionHandler), ebxType: "DifficultyWeaponTableData")]
 //[assembly: RegisterCustomHandler(CustomHandlerType.Ebx, typeof(NetworkRegistryActionHandler), ebxType: "NetworkRegistryAsset")]
 
 // Editor executions allow you to run custom code prior or after the mod applying process.
