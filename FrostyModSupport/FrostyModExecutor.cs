@@ -346,8 +346,7 @@ namespace Frosty.ModSupport
                                 entry.Sha1 = ebxEntry.Sha1;
                                 entry.OriginalSize = ebxEntry.OriginalSize;
                             }
-
-                            if (ebxEntry != null)
+                            else if (ebxEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in ebxEntry.Bundles)
@@ -447,8 +446,7 @@ namespace Frosty.ModSupport
                                 entry.ResRid = resEntry.ResRid;
                                 entry.ResType = resEntry.ResType;
                             }
-
-                            if (resEntry != null)
+                            else if (resEntry != null)
                             {
                                 // add in existing bundles
                                 foreach (int bid in resEntry.Bundles)
@@ -556,6 +554,49 @@ namespace Frosty.ModSupport
                                 entry.RangeStart = chunkEntry.RangeStart;
                                 entry.RangeEnd = chunkEntry.RangeEnd;
 
+                                if (chunkEntry.LogicalOffset != 0 && chunkEntry.RangeStart == 0)
+                                {
+                                    // need to calculate range start, since manifest bundle layouts don't store it directly
+                                    // however it is used to store chunk portions in bundles
+                                    // @todo: Move to mod export
+
+                                    using (NativeReader reader = new NativeReader(new MemoryStream(data)))
+                                    {
+                                        long uncompressedSize = entry.LogicalOffset + entry.LogicalSize;
+                                        long uncompressedBundledSize = (entry.LogicalOffset & 0xFFFF) | entry.LogicalSize;
+                                        long logicalOffset = uncompressedSize - uncompressedBundledSize;
+                                        uint size = 0;
+
+                                        while (true)
+                                        {
+                                            int decompressedSize = reader.ReadInt(Endian.Big);
+                                            ushort compressionType = reader.ReadUShort();
+                                            int bufferSize = reader.ReadUShort(Endian.Big);
+
+                                            int flags = ((compressionType & 0xFF00) >> 8);
+
+                                            if ((flags & 0x0F) != 0)
+                                                bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
+                                            if ((decompressedSize & 0xFF000000) != 0)
+                                                decompressedSize &= 0x00FFFFFF;
+
+                                            logicalOffset -= decompressedSize;
+                                            if (logicalOffset < 0)
+                                                break;
+
+                                            compressionType = (ushort)(compressionType & 0x7F);
+                                            if (compressionType == 0x00)
+                                                bufferSize = decompressedSize;
+
+                                            size += (uint)(bufferSize + 8);
+                                            reader.Position += bufferSize;
+                                        }
+
+                                        entry.RangeStart = size;
+                                        entry.RangeEnd = (uint)data.Length;
+                                    }
+                                }
+
                                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
                                 {
                                     if (fs.GetManifestChunk(chunkEntry.Id) != null)
@@ -563,52 +604,10 @@ namespace Frosty.ModSupport
                                         entry.TocChunkSpecialHack = true;
                                         if (chunkEntry.Bundles.Count == 0)
                                             resource.ClearAddedBundles();
-
-                                        else if (entry.FirstMip != -1)
-                                        {
-                                            // need to calculate range start, since manifest bundle layouts don't store it directly
-                                            // however it is used to store chunk portions in bundles
-                                            // @todo: Move to mod export
-
-                                            using (NativeReader reader = new NativeReader(new MemoryStream(data)))
-                                            {
-                                                long logicalOffset = entry.LogicalOffset;
-                                                uint size = 0;
-
-                                                while (true)
-                                                {
-                                                    int decompressedSize = reader.ReadInt(Endian.Big);
-                                                    ushort compressionType = reader.ReadUShort();
-                                                    int bufferSize = reader.ReadUShort(Endian.Big);
-
-                                                    int flags = ((compressionType & 0xFF00) >> 8);
-
-                                                    if ((flags & 0x0F) != 0)
-                                                        bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
-                                                    if ((decompressedSize & 0xFF000000) != 0)
-                                                        decompressedSize &= 0x00FFFFFF;
-
-                                                    logicalOffset -= decompressedSize;
-                                                    if (logicalOffset < 0)
-                                                        break;
-
-                                                    compressionType = (ushort)(compressionType & 0x7F);
-                                                    if (compressionType == 0x00)
-                                                        bufferSize = decompressedSize;
-
-                                                    size += (uint)(bufferSize + 8);
-                                                    reader.Position += bufferSize;
-                                                }
-
-                                                entry.RangeStart = size;
-                                                entry.RangeEnd = (uint)data.Length;
-                                            }
-                                        }
                                     }
                                 }
                             }
-
-                            if (chunkEntry != null)
+                            else if (chunkEntry != null)
                             {
                                 // add in existing bundles
                                 bundles.Add(chunksBundleHash);
@@ -1921,14 +1920,6 @@ namespace Frosty.ModSupport
                     {
                         casEntry.FileInfo.offset = (uint)currentCasStream.Position;
                         casEntry.FileInfo.size = info.Data.Length;
-                    }
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
-                    {
-                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, false, casIndex);
-                    }
-                    else
-                    {
-                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
                     }
                 }
 

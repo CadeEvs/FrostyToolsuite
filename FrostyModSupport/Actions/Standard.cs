@@ -876,7 +876,7 @@ namespace Frosty.ModSupport
                                             newObj.SetValue("sha1", info.Asset.GetValue<Sha1>("sha1"));
                                             newObj.SetValue("logicalOffset", entry.LogicalOffset);
                                             newObj.SetValue("logicalSize", entry.LogicalSize);
-                                            newObj.SetValue("originalSize", entry.LogicalSize);
+                                            newObj.SetValue("originalSize", (entry.LogicalOffset & 0xFFFF) | entry.LogicalSize);
                                             newObj.SetValue("data", data);
                                             newObj.SetValue("dataCompressed", true);
 
@@ -902,7 +902,7 @@ namespace Frosty.ModSupport
                                         newObj.SetValue("sha1", entry.Sha1);
                                         newObj.SetValue("logicalOffset", entry.LogicalOffset);
                                         newObj.SetValue("logicalSize", entry.LogicalSize);
-                                        newObj.SetValue("originalSize", entry.LogicalSize);
+                                        newObj.SetValue("originalSize", (entry.LogicalOffset & 0xFFFF) | entry.LogicalSize);
                                         newObj.SetValue("data", data);
                                         newObj.SetValue("dataCompressed", true);
 
@@ -1415,7 +1415,7 @@ namespace Frosty.ModSupport
                                                     //chunkMeta.GetValue<DbObject>("meta").RemoveValue("firstMip");
                                                     //chunkMeta.GetValue<DbObject>("meta").RemoveValue("firstMip");
                                                     if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
-                                                        chunk.SetValue("bundledSize", (int)(chunkEntry.RangeEnd - chunkEntry.RangeStart)); chunk.SetValue("bundledSize", chunkEntry.Size);
+                                                        chunk.SetValue("bundledSize", (int)(chunkEntry.RangeEnd - chunkEntry.RangeStart));
                                                 }
                                                 else
                                                 {
