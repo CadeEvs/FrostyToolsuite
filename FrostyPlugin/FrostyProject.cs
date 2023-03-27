@@ -31,7 +31,6 @@ namespace Frosty.Core
             12 - Legacy files now use determinstic guids and added user data (retroactively fix old legacy files)
             13 - Merging of defined ebx files
             14 - H32 and FirstMip are now stored even if chunk was only added to bundles
-            -- NotUsed -- 14 - Can duplicate blueprint bundles (there is nothing in the code for this, only gman would have a project with this version)
         */
 
         private const uint FormatVersion = 14;
