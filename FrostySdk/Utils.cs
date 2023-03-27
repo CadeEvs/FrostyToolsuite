@@ -788,26 +788,30 @@ namespace FrostySdk
         {
             using (MemoryStream ms = new MemoryStream())
             {
-                uint first = 0;
-                uint second = (uint)inData.Length;
+                uint first = 0, logicalOffset = 0;
+                uint second = (uint)inData.Length, logicalSize = (uint)inData.Length;
 
-                if (texture.MipCount > 1)
+                if (texture.MipCount > 1 && inData.Length > 0x10000)
                 {
-                    if (inData.Length > 0x10000)
+                    int index = 0;
+                    while (index < texture.FirstMip)
                     {
-                        int index = 0;
-                        while (second > 0x10000 && index < texture.FirstMip)
+                        // the range has a minimum size of 0x10000
+                        // the logical offset and size dont have a minimum size
+                        if (second > 0x10000)
                         {
                             first += texture.MipSizes[index];
-                            second -= texture.MipSizes[index++];
+                            second -= texture.MipSizes[index];
                         }
+                        logicalOffset += texture.MipSizes[index];
+                        logicalSize -= texture.MipSizes[index++];
                     }
                 }
 
                 if (texture.LogicalOffset != first)
                 {
-                    texture.LogicalOffset = first;
-                    texture.LogicalSize = second;
+                    texture.LogicalOffset = logicalOffset;
+                    texture.LogicalSize = logicalSize;
                 }
 
                 byte[] tmpData = null;
