@@ -44,6 +44,7 @@ namespace DuplicationPlugin
             ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
             Texture newTexture = App.AssetManager.GetResAs<Texture>(newResEntry);
             newTexture.ChunkId = chunkGuid;
+            newTexture.AssetNameHash = (uint)Utils.HashString(newResEntry.Name, true);
 
             // Add the new chunk/res entries to the original bundles
             newResEntry.AddedBundles.AddRange(resEntry.EnumerateBundles());

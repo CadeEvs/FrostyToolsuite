@@ -1,4 +1,16 @@
-﻿v1.0.6.2 (Beta 1)
+﻿v1.0.6.2 (Beta 2)
+--------
+- Fixes issue with bundle editing in older games (#240, #248)
+- Fixes crashing issues (#242)
+
+Plugin Changes
+- Fixes crash when the localization chunk doesnt exist but gets modified (#239)
+- Fixes issue with texture duplication (#243)
+- Fixes crash when loading sounds where one chunk doesnt exist (#245)
+- Fixes issues with rivals meshes and textures (#246)
+- Moves DifficultyWeaponTableData into its own plugin (#247)
+
+v1.0.6.2 (Beta 1)
 --------
 - Fixed memory issue and writing of cat files (#222)
 - Fixed about menu support link being cut off (#224)
