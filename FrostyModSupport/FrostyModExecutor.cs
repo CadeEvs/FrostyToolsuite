@@ -1921,6 +1921,8 @@ namespace Frosty.ModSupport
                         casEntry.FileInfo.offset = (uint)currentCasStream.Position;
                         casEntry.FileInfo.size = info.Data.Length;
                     }
+
+                    casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
                 }
 
                 currentCasStream.Write(info.Data, 0, info.Data.Length);
