@@ -264,10 +264,19 @@ namespace FrostySdk.Managers
         /// <summary>
         /// Adds the current asset to the specified bundle
         /// </summary>
-        public bool AddToBundle(int bid)
+        public bool AddToBundle(int bid, bool ignoreTocChunks = false)
         {
             if (IsInBundle(bid))
                 return false;
+
+            if(this is ChunkAssetEntry entry)
+            {
+                if(ignoreTocChunks && entry.Bundles.Count == 0 && !entry.IsAdded)
+                {
+                    // toc chunk, ignore it
+                    return false;
+                }
+            }
 
             AddedBundles.Add(bid);
             IsDirty = true;
