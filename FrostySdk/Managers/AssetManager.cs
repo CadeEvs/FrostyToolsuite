@@ -264,19 +264,10 @@ namespace FrostySdk.Managers
         /// <summary>
         /// Adds the current asset to the specified bundle
         /// </summary>
-        public bool AddToBundle(int bid, bool ignoreTocChunks = false)
+        public virtual bool AddToBundle(int bid)
         {
             if (IsInBundle(bid))
                 return false;
-
-            if(this is ChunkAssetEntry entry)
-            {
-                if(ignoreTocChunks && entry.Bundles.Count == 0 && !entry.IsAdded)
-                {
-                    // toc chunk, ignore it
-                    return false;
-                }
-            }
 
             AddedBundles.Add(bid);
             IsDirty = true;
@@ -415,6 +406,15 @@ namespace FrostySdk.Managers
         public int FirstMip;
         public bool IsTocChunk;
         public bool TocChunkSpecialHack;
+
+        public override bool AddToBundle(int bid)
+        {
+            if(Bundles.Count == 0 && !IsAdded)
+            {
+                return false;
+            }
+            return base.AddToBundle(bid);
+        }
     }
 
     public class AssetManagerImportResult
