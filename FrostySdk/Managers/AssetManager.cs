@@ -264,7 +264,7 @@ namespace FrostySdk.Managers
         /// <summary>
         /// Adds the current asset to the specified bundle
         /// </summary>
-        public bool AddToBundle(int bid)
+        public virtual bool AddToBundle(int bid)
         {
             if (IsInBundle(bid))
                 return false;
@@ -406,6 +406,15 @@ namespace FrostySdk.Managers
         public int FirstMip;
         public bool IsTocChunk;
         public bool TocChunkSpecialHack;
+
+        public override bool AddToBundle(int bid)
+        {
+            if(Bundles.Count == 0 && !IsAdded)
+            {
+                return false;
+            }
+            return base.AddToBundle(bid);
+        }
     }
 
     public class AssetManagerImportResult
