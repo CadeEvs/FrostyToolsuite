@@ -1409,7 +1409,8 @@ namespace Frosty.ModSupport
                             ProfileVersion.Madden20, ProfileVersion.Fifa20,
                             ProfileVersion.NeedForSpeedHeat, ProfileVersion.PlantsVsZombiesBattleforNeighborville,
                             ProfileVersion.Fifa21, ProfileVersion.Madden22,
-                            ProfileVersion.Fifa22, ProfileVersion.Madden23))
+                            ProfileVersion.Fifa22, ProfileVersion.Madden23,
+                            ProfileVersion.PGA))
                         {
                             foreach (string casFilename in Directory.EnumerateFiles(m_fs.BasePath + m_patchPath, "*.cas", SearchOption.AllDirectories))
                             {
@@ -1486,7 +1487,8 @@ namespace Frosty.ModSupport
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.NeedForSpeedHeat,
                     ProfileVersion.PlantsVsZombiesBattleforNeighborville, ProfileVersion.Fifa21,
                     ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                    ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound))
+                    ProfileVersion.Madden23, ProfileVersion.NeedForSpeedUnbound,
+                    ProfileVersion.PGA))
                 {
                     CasBundleAction.CasFiles.Clear();
                     foreach (string catalog in m_fs.Catalogs)

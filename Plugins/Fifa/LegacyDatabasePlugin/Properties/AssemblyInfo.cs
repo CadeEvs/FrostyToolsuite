@@ -35,5 +35,6 @@ using System.Windows;
 [assembly: PluginValidForProfile((int)ProfileVersion.Madden22)]
 [assembly: PluginValidForProfile((int)ProfileVersion.Fifa22)]
 [assembly: PluginValidForProfile((int)ProfileVersion.Madden23)]
+[assembly: PluginValidForProfile((int)ProfileVersion.PGA)]
 
 [assembly: RegisterAssetDefinition("DB", typeof(DatabaseAssetDefinition))]

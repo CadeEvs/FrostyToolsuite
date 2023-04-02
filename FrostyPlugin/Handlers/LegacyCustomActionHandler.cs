@@ -263,7 +263,7 @@ namespace Frosty.Core.Handlers
                         WriteV1(writer, reader, entries);
                     }
                     else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                        ProfileVersion.Madden23, ProfileVersion.Fifa23))
+                        ProfileVersion.Madden23, ProfileVersion.Fifa23, ProfileVersion.PGA))
                     {
                         WriteV2(writer, reader, entries);
                     }

@@ -194,7 +194,7 @@ namespace FrostySdk.Resources
 
             AssetNameHash = reader.ReadUInt();
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.Madden22, ProfileVersion.Madden23))
+            if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.Madden22, ProfileVersion.Madden23, ProfileVersion.PGA))
             {
                 Unknown3[0] = reader.ReadUInt();
             }
@@ -304,7 +304,7 @@ namespace FrostySdk.Resources
 
                 writer.Write(AssetNameHash);
 
-                if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.Madden22, ProfileVersion.Madden23))
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.PlantsVsZombiesGardenWarfare2, ProfileVersion.Madden22, ProfileVersion.Madden23, ProfileVersion.PGA))
                 {
                     writer.Write(Unknown3[0]);
                 }

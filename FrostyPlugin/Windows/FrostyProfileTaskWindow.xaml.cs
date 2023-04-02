@@ -249,7 +249,7 @@ namespace Frosty.Core.Windows
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManager));
                 }
                 else if (ProfilesLibrary.IsLoaded(ProfileVersion.Fifa21, ProfileVersion.Madden22, ProfileVersion.Fifa22,
-                    ProfileVersion.Madden23, ProfileVersion.Fifa23))
+                    ProfileVersion.Madden23, ProfileVersion.Fifa23, ProfileVersion.PGA))
                 {
                     App.AssetManager.RegisterCustomAssetManager("legacy", typeof(LegacyFileManagerV2));
                 }

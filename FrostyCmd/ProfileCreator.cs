@@ -1187,6 +1187,35 @@ namespace FrostyCmd
                 blobs.Add(key, writer.ToByteArray());
             }
         }
+
+        private void CreatePGAProfile()
+        {
+            string key = "PGA";
+            using (NativeWriter writer = new NativeWriter(new MemoryStream()))
+            {
+                writer.WriteObfuscatedString("PGA Tour");
+                writer.Write((int)ProfileVersion.PGA);
+                writer.WriteObfuscatedString("pga");
+                writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
+                writer.WriteObfuscatedString(AssetManager.GetLoaderName("CasAssetLoader"));
+                writer.Write(CreateSources("Patch;false", "Data;false"));
+                writer.WriteObfuscatedString("PGASDK");
+                writer.Write(CreateBanner("pga"));
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_color");
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_norm");
+                writer.WriteObfuscatedString("content/Common/textures/debug/debug_texture_coeff");
+                writer.WriteObfuscatedString("content/common/textures/debug/debug_texture_alpha");
+                writer.Write(0); // shared bundle names
+                writer.Write(0); // ignored res types
+
+                // Flags (MustAddChunks, EbxVersion, RequiresKey)
+                ProfileFlags pf = new ProfileFlags(0, 6, 1);
+                pf.Write(writer);
+
+                blobs.Add(key, writer.ToByteArray());
+            }
+        }
+
         #endregion
 
         public ProfileCreator()
@@ -1231,6 +1260,7 @@ namespace FrostyCmd
             CreateMadden23Profile();
             CreateFifa23Profile();
             CreateDeadSpaceProfile();
+            CreatePGAProfile();
 
 #endif
 

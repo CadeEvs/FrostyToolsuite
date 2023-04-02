@@ -210,6 +210,12 @@ namespace MeshSetPlugin
             return (wBiggest) ? wIndex : xyzIndex;
         }
 
+        private int FindGreatestComponent(Vector3 vec)
+        {
+            List<float> list = vec.ToArray().ToList();
+            return list.IndexOf(list.Aggregate((float x, float y) => (!(Math.Abs(x) > Math.Abs(y))) ? y : x));
+        }
+
         private void LoadScene(FbxManager manager, FbxScene scene, string filename)
         {
             FbxManager.GetFileFormatVersion(out int major, out int minor, out int revision);
@@ -1371,7 +1377,60 @@ namespace MeshSetPlugin
                                                 else
                                                 {
                                                     // axis angle normals (packed as either UByte4N or UShort4N)
-                                                    // @todo
+
+                                                    Vector3 z = normal;
+                                                    Vector3 x = Vector3.Normalize(tangent - normal * Vector3.Dot(normal, tangent));
+                                                    Vector3 y = Vector3.Cross(z, x);
+
+                                                    uint binormalSign = Vector3.Dot(y, binormal) < 0.0f ? (1u << 3) : 0;
+
+                                                    int idx = FindGreatestComponent(z);
+                                                    uint cubeMapFaceID = (uint)(idx * 2 + (z[idx] < 0.0f ? 1 : 0));
+
+                                                    Vector3 xRef = Vector3.Normalize(idx == 1 ? new Vector3(-z.Y, z.X, 0) : new Vector3(z.Z, 0, -z.X));
+                                                    Vector3 yRef = Vector3.Cross(z, xRef);
+
+                                                    float cosTheta = Vector3.Dot(xRef, x);
+                                                    float sinTheta = Vector3.Dot(yRef, x);
+                                                    float theta = Convert.ToSingle(Math.Atan2(sinTheta, cosTheta));
+                                                    theta = Convert.ToSingle(theta < 0.0f ? Math.PI + theta : theta);
+
+                                                    Vector4 axisAngle = new Vector4(z.X, z.Y, z.Z, 0.0f);
+                                                    (axisAngle[idx], axisAngle[2]) = (axisAngle[2], axisAngle[idx]);
+                                                    axisAngle.Z = MathUtil.Clamp(theta / MathUtil.Pi, 0.0f, 1.0f);
+
+                                                    axisAngle *= new Vector4((float)Math.Sqrt(2), (float)Math.Sqrt(2), 4.0f, 0.0f);
+                                                    axisAngle += new Vector4(1.0f, 1.0f, 0.0f, 0.0f);
+                                                    uint[] highInts =
+                                                    {
+                                                        Convert.ToUInt32(Math.Min(axisAngle.X, 1.0f)),
+                                                        Convert.ToUInt32(Math.Min(axisAngle.Y, 1.0f)),
+                                                        Convert.ToUInt32(Math.Min(axisAngle.Z, 1.0f))
+                                                    };
+                                                    axisAngle -= new Vector4(Convert.ToSingle(highInts[0]), Convert.ToSingle(highInts[1]), Convert.ToSingle(highInts[2]), 0.0f);
+
+                                                    uint highBits = (highInts[0] << 4) | (highInts[1] << 5) | (highInts[2] << 6);
+                                                    axisAngle.W = Convert.ToSingle(highBits | cubeMapFaceID | binormalSign) / 255.0f;
+
+                                                    axisAngle.X = MathUtil.Clamp(axisAngle.X, 0f, 1f);
+                                                    axisAngle.Y = MathUtil.Clamp(axisAngle.Y, 0f, 1f);
+                                                    axisAngle.Z = MathUtil.Clamp(axisAngle.Z, 0f, 1f);
+                                                    axisAngle.W = MathUtil.Clamp(axisAngle.W, 0f, 1f);
+
+                                                    if (elem.Format == VertexElementFormat.UByte4N)
+                                                    {
+                                                        chunkWriter.Write((byte)((int)(axisAngle.X * 255.0f + 0.5f) & 0xFF));
+                                                        chunkWriter.Write((byte)((int)(axisAngle.Y * 255.0f + 0.5f) & 0xFF));
+                                                        chunkWriter.Write((byte)((int)(axisAngle.Z * 255.0f + 0.5f) & 0xFF));
+                                                        chunkWriter.Write((byte)((int)(axisAngle.W * 255.0f + 0.5f) & 0xFF));
+                                                    }
+                                                    else
+                                                    {
+                                                        chunkWriter.Write((ushort)Math.Round(axisAngle.X * 65535.0f));
+                                                        chunkWriter.Write((ushort)Math.Round(axisAngle.Y * 65535.0f));
+                                                        chunkWriter.Write((ushort)Math.Round(axisAngle.Z * 65535.0f));
+                                                        chunkWriter.Write((ushort)Math.Round(axisAngle.W * 65535.0f));
+                                                    }
                                                 }
                                             }
                                             break;
