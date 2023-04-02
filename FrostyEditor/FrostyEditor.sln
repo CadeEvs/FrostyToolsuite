@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29911.84
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyEditor", "FrostyEditor.csproj", "{355B078B-45A5-472D-9CCD-688D8E30BAED}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -93,7 +93,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LaunchPlatformPlugin", "..\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyCmd", "..\FrostyCmd\FrostyCmd.csproj", "{500ACAB7-D948-4BCA-8208-20812D712DDB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnimationEditorPlugin", "..\Plugins\AnimationEditorPlugin\AnimationEditorPlugin.csproj", "{CE312C84-2677-433C-B4B1-352BD16E7590}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AnimationEditorPlugin", "..\Plugins\AnimationEditorPlugin\AnimationEditorPlugin.csproj", "{CE312C84-2677-433C-B4B1-352BD16E7590}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Swbf2BundleManager", "..\Plugins\Swbf2BundleManager\Swbf2BundleManager.csproj", "{2D663BC0-F26E-4167-BCC1-5F7A02D89811}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -524,6 +526,16 @@ Global
 		{CE312C84-2677-433C-B4B1-352BD16E7590}.Release - Final|x64.Build.0 = Release - Final|x64
 		{CE312C84-2677-433C-B4B1-352BD16E7590}.Release|x64.ActiveCfg = Developer - Debug|x64
 		{CE312C84-2677-433C-B4B1-352BD16E7590}.Release|x64.Build.0 = Developer - Debug|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Developer - Debug|x64.ActiveCfg = Developer - Debug|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Developer - Debug|x64.Build.0 = Developer - Debug|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release - Alpha|x64.ActiveCfg = Release - Alpha|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release - Alpha|x64.Build.0 = Release - Alpha|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release - Beta|x64.ActiveCfg = Release - Beta|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release - Beta|x64.Build.0 = Release - Beta|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release - Final|x64.ActiveCfg = Release - Final|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release - Final|x64.Build.0 = Release - Final|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release|x64.ActiveCfg = Release - Alpha|x64
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811}.Release|x64.Build.0 = Release - Alpha|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -563,6 +575,7 @@ Global
 		{FE2D780C-8FBC-4797-9ACD-05DE2507F1AA} = {492048B6-848D-4675-A9BF-34A4751303F2}
 		{7F280BF3-F794-4715-9D32-770D36454B8C} = {492048B6-848D-4675-A9BF-34A4751303F2}
 		{CE312C84-2677-433C-B4B1-352BD16E7590} = {492048B6-848D-4675-A9BF-34A4751303F2}
+		{2D663BC0-F26E-4167-BCC1-5F7A02D89811} = {492048B6-848D-4675-A9BF-34A4751303F2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C0B22EF1-4C3F-45B9-9F08-9793ED912199}
