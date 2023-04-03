@@ -21,9 +21,12 @@ using System.Windows;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid("4b612468-9b6a-4304-88a5-055c3575eb3d")]
 
-[assembly: PluginDisplayName("EBX to XML Export")]
-[assembly: PluginAuthor("GalaxyMan2015")]
+[assembly: PluginDisplayName("Bulk Export Plugin")]
+[assembly: PluginAuthor("GalaxyMan2015 & Mophead")]
 [assembly: PluginVersion("1.0.0.0")]
 
 [assembly: RegisterMenuExtension(typeof(EbxToXmlMenuExtension))]
+[assembly: RegisterMenuExtension(typeof(EbxToBinMenuExtension))]
+[assembly: RegisterMenuExtension(typeof(ExportResMenuExtension))]
+[assembly: RegisterMenuExtension(typeof(ExportChunksMenuExtension))]
 

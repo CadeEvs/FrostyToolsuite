@@ -11,15 +11,13 @@ using FrostySdk.Managers.Entries;
 
 namespace EbxToXmlPlugin
 {
-    public class EbxToXmlMenuExtension : MenuExtension
+    public class EbxToBinMenuExtension : MenuExtension
     {
-        internal static ImageSource imageSource = new ImageSourceConverter().ConvertFromString("pack://application:,,,/EbxToXmlPlugin;component/Images/EbxToXml.png") as ImageSource;
-
         public override string TopLevelMenuName => "Tools";
         public override string SubLevelMenuName => "Export Bulk";
 
-        public override string MenuItemName => "Export EBX to XML";
-        public override ImageSource Icon => imageSource;
+        public override string MenuItemName => "Export EBX to BIN";
+        public override ImageSource Icon => new ImageSourceConverter().ConvertFromString("pack://application:,,,/FrostyEditor;component/Images/Database.png") as ImageSource;
 
         public override RelayCommand MenuItemClicked => new RelayCommand((o) =>
         {
@@ -38,7 +36,7 @@ namespace EbxToXmlPlugin
 
                         string fullPath = outDir + "/" + entry.Path + "/";
 
-                        string filename = entry.Filename + ".xml";
+                        string filename = entry.Filename + ".bin";
                         filename = string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
 
                         if (File.Exists(fullPath + filename))
@@ -49,10 +47,12 @@ namespace EbxToXmlPlugin
                             DirectoryInfo di = new DirectoryInfo(fullPath);
                             if (!di.Exists)
                                 Directory.CreateDirectory(di.FullName);
+                            using (NativeWriter writer = new NativeWriter(new FileStream(fullPath + filename, FileMode.Create), false, true))
+                            {
+                                using (NativeReader reader = new NativeReader(App.AssetManager.GetEbxStream(entry)))
+                                    writer.Write(reader.ReadToEnd());
+                            }
 
-                            EbxAsset asset = App.AssetManager.GetEbx(entry);
-                            using (EbxXmlWriter writer = new EbxXmlWriter(new FileStream(fullPath + filename, FileMode.Create), App.AssetManager))
-                                writer.WriteObjects(asset.Objects);
                         }
                         catch (Exception)
                         {
