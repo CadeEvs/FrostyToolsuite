@@ -55,7 +55,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalizedStringPlugin", "..
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ChunkResEditorPlugin", "..\Plugins\ChunkResExplorerPlugin\ChunkResEditorPlugin.csproj", "{644B0609-9B25-4D54-BDC9-E3C602487981}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EbxToXmlPlugin", "..\Plugins\EbxToXmlPlugin\EbxToXmlPlugin.csproj", "{4A4CF97E-C380-4A61-AFCA-72ADF7008E2E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BulkExportPlugin", "..\Plugins\EbxToXmlPlugin\BulkExportPlugin.csproj", "{4A4CF97E-C380-4A61-AFCA-72ADF7008E2E}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TexturePlugin", "..\Plugins\TexturePlugin\TexturePlugin.csproj", "{A5C604C2-F88C-47D8-995D-FE15266EDD0E}"
 EndProject
