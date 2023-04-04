@@ -880,6 +880,11 @@ namespace FrostySdk.Managers
                 foreach (AssetEntry entry in mgr.EnumerateAssets(modifiedOnly: true))
                     RevertAsset(entry, suppressOnModify: false);
             }
+
+            foreach(BundleEntry bundle in bundles.Where(b => b.Added))
+            {
+                bundles.Remove(bundle);
+            }
         }
 
         public void RevertAsset(AssetEntry entry, bool dataOnly = false, bool suppressOnModify = true)
