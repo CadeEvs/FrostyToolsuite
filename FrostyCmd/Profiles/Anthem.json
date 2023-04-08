@@ -1,0 +1,36 @@
+﻿{
+  "Name": "Anthem",
+  "DisplayName": "Anthem™",
+  "CacheName": "anthem",
+  "Deobfuscator": "Signature",
+  "AssetLoader": "Cas",
+  "DataVersion": 20190221,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "SdkFileName": "AnthemSDK",
+  "BannerPath": "anthem",
+  "EbxVersion": 5,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 17,
+  "ResCompression": 17,
+  "ChunkCompression": 17,
+  "TextureChunkCompression": 17,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Shaders/Utils/NullTextures/Black_Null",
+  "DefaultNormals": "Shaders/Utils/NullTextures/Normal_Null",
+  "DefaultMask": "Shaders/Utils/NullTextures/Black_Null",
+  "DefaultTint": "Shaders/Utils/NullTextures/Black_Null",
+  "SharedBundles": []
+}

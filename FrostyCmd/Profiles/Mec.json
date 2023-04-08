@@ -1,0 +1,36 @@
+﻿{
+  "Name": "MirrorsEdgeCatalyst",
+  "DisplayName": "Mirror's Edge™ Catalyst",
+  "CacheName": "mirrorsedge",
+  "Deobfuscator": "Signature",
+  "AssetLoader": "Standard",
+  "DataVersion": 20160606,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "SdkFileName": "MirrorsEdgeSDK",
+  "BannerPath": "mec",
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Objects/Props/SharedTexture/Generic/Default_Prop_Metal_D",
+  "DefaultNormals": "Systems/Terrain/MeshScattering/NormalmapDefault_N",
+  "DefaultMask": "Objects/Props/SharedTexture/Generic/Default_Prop_Metal_RSM",
+  "DefaultTint": "Objects/Props/SharedTexture/Generic/Default_Prop_Metal_RSM",
+  "SharedBundles": []
+}

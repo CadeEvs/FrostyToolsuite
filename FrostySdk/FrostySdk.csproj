@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>disable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Frosty.Sdk</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="ImpromptuNinjas.ZStd" Version="1.4.5.5" />
+      <PackageReference Include="K4os.Compression.LZ4" Version="1.3.5" />
+      <PackageReference Include="Zlib.Bindings" Version="1.10.1" />
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyCmd", "FrostyCmd\FrostyCmd.csproj", "{990663D6-619A-46C3-ADFA-68208FF24465}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdk", "FrostySdk\FrostySdk.csproj", "{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdkGenerator", "FrostySdkGenerator\FrostySdkGenerator.csproj", "{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyModSupport", "FrostyModSupport\FrostyModSupport.csproj", "{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{990663D6-619A-46C3-ADFA-68208FF24465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{990663D6-619A-46C3-ADFA-68208FF24465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{990663D6-619A-46C3-ADFA-68208FF24465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{990663D6-619A-46C3-ADFA-68208FF24465}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
