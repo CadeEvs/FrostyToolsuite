@@ -2,5 +2,8 @@
 
 public interface IAssetLoader
 {
+    /// <summary>
+    /// Loads SuperBundles.
+    /// </summary>
     void Load();
 }

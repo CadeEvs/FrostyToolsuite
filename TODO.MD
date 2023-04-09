@@ -6,5 +6,5 @@
 - [ ] Add TypeLibrary with lookups for name and hash
 - [ ] Move game sdk creation into Sdk
 - [ ] Use Microsoft.CodeAnalysis to generate code for classes
-- [ ] Finish setting up AssetLoaders
-- [ ] Add RiffEbxReader and all EbxWriters
+- [ ] Add RiffEbxReader and all EbxWriters and maybe move them into static (De)Serialize methods
+- [ ] Make CasStream into static method that decompresses the incoming stream

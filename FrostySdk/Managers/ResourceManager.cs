@@ -5,6 +5,7 @@ using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.CatResources;
 using Frosty.Sdk.Managers.Infos;
 using Frosty.Sdk.Utils.CompressionTypes;
+using FileInfo = Frosty.Sdk.Managers.Infos.FileInfo;
 
 namespace Frosty.Sdk.Managers;
 
@@ -137,11 +138,11 @@ public static class ResourceManager
         }
     }
 
-    public static Stream GetResourceData(CasResourceInfo casResourceInfo)
+    public static Stream GetResourceData(FileInfo fileInfo)
     {
-        using (DataStream stream = new(new FileStream(FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(casResourceInfo.CasFileInfo)), FileMode.Open, FileAccess.Read)))
+        using (DataStream stream = new(new FileStream(fileInfo.Path, FileMode.Open, FileAccess.Read)))
         {
-            using (CasStream casStream = new(stream.CreateViewStream(casResourceInfo.Offset, casResourceInfo.Size)))
+            using (CasStream casStream = new(stream.CreateViewStream(fileInfo.Offset, fileInfo.Size)))
             {
                 return new MemoryStream(casStream.Read());
             }

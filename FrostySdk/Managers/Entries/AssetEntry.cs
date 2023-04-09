@@ -8,8 +8,6 @@ namespace Frosty.Sdk.Managers.Entries;
 public enum AssetDataLocation
 {
     Cas,
-    SuperBundle,
-    Cache,
     CasNonIndexed
 }
 
@@ -46,15 +44,10 @@ public class AssetEntry
     
     public AssetDataLocation Location;
     
-    // AssetDataLocation.Cas
     public Sha1 BaseSha1;
     public Sha1 DeltaSha1;
 
-    // AssetDataLocation.SuperBundle
-    public SuperBundleResourceInfo SuperBundleResourceInfo;
-    
-    // AssetDataLocation.CasNonIndexed
-    public CasResourceInfo CasResourceInfo;
+    public FileInfo FileInfo;
 
     public readonly List<int> Bundles = new();
     

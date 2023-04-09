@@ -135,7 +135,6 @@ public static class BinaryBundle
             bundle.AddValue("ebx", new DbObject(ReadEbx(dbReader, endian, ebxCount, sha1, 0, stringsOffset)));
             bundle.AddValue("res", new DbObject(ReadRes(dbReader, endian, resCount, sha1, (int)ebxCount, stringsOffset)));
             bundle.AddValue("chunks", new DbObject(ReadChunks(dbReader, endian, chunkCount, sha1, (int)(ebxCount + resCount))));
-            bundle.AddValue("dataOffset", (int)size);
 
             if (chunkCount > 0)
             {

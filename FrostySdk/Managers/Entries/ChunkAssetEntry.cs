@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Frosty.Sdk.Managers.Entries;
 
@@ -27,7 +28,7 @@ public class ChunkAssetEntry : AssetEntry
     /// <summary>
     /// List of SuperBundles the chunk is in.
     /// </summary>
-    public readonly List<int> SuperBundles = new();
+    public readonly HashSet<int> SuperBundles = new();
 
     // these are only used in the mod applying process
     // we only set them when modifying an asset
@@ -55,7 +56,7 @@ public class ChunkAssetEntry : AssetEntry
     /// <summary>
     /// List of SuperBundles the chunk is added to.
     /// </summary>
-    public readonly List<int> AddedSuperBundles = new();
+    public readonly HashSet<int> AddedSuperBundles = new();
 
     public ChunkAssetEntry(Guid inChunkId, Sha1 inSha1, long inSize, uint inLogicalOffset, uint inLogicalSize, params int[] superBundleIds)
         : base(inSha1, inSize, inLogicalOffset + inLogicalSize)
@@ -63,7 +64,7 @@ public class ChunkAssetEntry : AssetEntry
         Id = inChunkId;
         LogicalOffset = inLogicalOffset;
         LogicalSize = inLogicalSize;
-        SuperBundles.AddRange(superBundleIds);
+        SuperBundles.UnionWith(superBundleIds);
     }
 
     public override bool AddToBundle(int bid)
@@ -83,12 +84,10 @@ public class ChunkAssetEntry : AssetEntry
     /// <returns>True if it was successfully added.</returns>
     public bool AddToSuperBundle(int sbId)
     {
-        if (IsInSuperBundle(sbId))
+        if (SuperBundles.Contains(sbId) || !AddedSuperBundles.Add(sbId))
         {
             return false;
         }
-
-        AddedSuperBundles.Add(sbId);
         IsDirty = true;
 
         return true;

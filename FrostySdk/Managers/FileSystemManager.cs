@@ -92,10 +92,15 @@ public static class FileSystemManager
         return "";
     }
 
-    public static string GetFilePath(CasFileInfo casFileInfo)
+    public static string GetFilePath(ICasFileInfo casFileInfo)
     {
-        InstallChunkInfo installChunkInfo = s_installChunks[casFileInfo.InstallChunkIndex];
-        return $"{(casFileInfo.IsPatch ? "native_patch/" : "native_data/")}{installChunkInfo.InstallBundle}/cas_{casFileInfo.CasIndex:D2}.cas";
+        InstallChunkInfo installChunkInfo = s_installChunks[casFileInfo.GetInstallChunkIndex()];
+        return $"{(casFileInfo.GetIsPatch() ? "native_patch/" : "native_data/")}{installChunkInfo.InstallBundle}/cas_{casFileInfo.GetCasIndex():D2}.cas";
+    }
+    
+    public static string GetFilePath(int casIndex)
+    {
+        return s_casFiles[casIndex];
     }
 
     public static IDeobfuscator? CreateDeobfuscator() => s_deobfuscator != null ? (IDeobfuscator?)Activator.CreateInstance(s_deobfuscator) : null;
@@ -275,7 +280,11 @@ public static class FileSystemManager
         }
         else
         {
-            Base = baseLayout["base"].As<uint>();
+            if (baseLayout.ContainsKey("base"))
+            {
+                // TODO: is base only in patch ???
+                Base = baseLayout["base"].As<uint>();
+            }
             Head = baseLayout["head"].As<uint>();
 
             if (!ProcessInstallChunks(baseLayout))

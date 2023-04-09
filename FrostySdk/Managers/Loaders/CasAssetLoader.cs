@@ -8,6 +8,7 @@ using Frosty.Sdk.Managers.Entries;
 using Frosty.Sdk.Managers.Infos;
 using Frosty.Sdk.Managers.Loaders.Helpers;
 using Frosty.Sdk.Utils;
+using FileInfo = Frosty.Sdk.Managers.Infos.FileInfo;
 
 namespace Frosty.Sdk.Managers.Loaders;
 
@@ -246,7 +247,7 @@ public class CasAssetLoader : IAssetLoader
                 ChunkAssetEntry chunk = new(chunkGuids[i], Sha1.Zero, size, 0, 0, superBundleId)
                 {
                     Location = AssetDataLocation.CasNonIndexed,
-                    CasResourceInfo = new CasResourceInfo(casFileInfo, offset, size)
+                    FileInfo = new FileInfo(FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(casFileInfo)), offset, size)
                 };
 
                 AssetManager.AddSuperBundleChunk(chunk);

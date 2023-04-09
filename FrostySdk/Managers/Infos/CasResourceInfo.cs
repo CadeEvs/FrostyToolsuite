@@ -1,4 +1,6 @@
-﻿namespace Frosty.Sdk.Managers.Infos;
+﻿using Frosty.Sdk.Interfaces;
+
+namespace Frosty.Sdk.Managers.Infos;
 
 public struct CasResourceInfo
 {
@@ -13,9 +15,9 @@ public struct CasResourceInfo
         Size = size;
     }
 
-    public CasResourceInfo(bool isPatch, int catIndex, int casIndex, long offset, long size)
+    public CasResourceInfo(bool isPatch, int installChunkIndex, int casIndex, long offset, long size)
     {
-        CasFileInfo = new CasFileInfo(isPatch, catIndex, casIndex);
+        CasFileInfo = new CasFileInfo(isPatch, installChunkIndex, casIndex);
         Offset = offset;
         Size = size;
     }

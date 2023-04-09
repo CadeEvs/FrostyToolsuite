@@ -27,7 +27,7 @@
   "ChunkCompression": 15,
   "TextureChunkCompression": 15,
   "MaxBufferSize": 65536,
-  "ZStdCompressionLevel": 0,
+  "ZStdCompressionLevel": 16,
   "DefaultDiffuse": "Systems/Terrain/DefaultGrid",
   "DefaultNormals": "Textures/Generic/NormalmapDefault_N",
   "DefaultMask": "Placeholder/Lookdev/MEC_Lookdev/textures/Default_Black",

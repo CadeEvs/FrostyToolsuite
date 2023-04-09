@@ -12,15 +12,15 @@ internal static class Program
     private static void Main()
     {
         // init profile
-        if (!ProfilesLibrary.Initialize("GW2.Main_Win64_Retail"))
+        if (!ProfilesLibrary.Initialize("starwarsbattlefrontii"))
         {
             throw new Exception("ProfilesLibrary");
         }
             
         // init filesystem manager, this parses the layout.toc file
-        if (!FileSystemManager.Initialize("E:\\FrostbiteGames\\Plants vs Zombies Garden Warfare 2"))
+        if (!FileSystemManager.Initialize("C:\\Program Files\\EA Games\\STAR WARS Battlefront II"))
         {
-            throw new Exception("FilesystemManager");
+            throw new Exception("FileSystemManager");
         }
 
         // init resource manager, this parses the cas.cat files if they exist for easy asset lookup

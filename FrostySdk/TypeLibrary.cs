@@ -59,4 +59,29 @@ public static class TypeLibrary
     {
         return Activator.CreateInstance(type);
     }
+
+    public static bool IsSubClassOf(object obj, string name)
+    {
+        Type type = obj.GetType();
+            
+        return IsSubClassOf(type, name);
+    }
+
+    public static bool IsSubClassOf(Type type, string name)
+    {
+        Type? checkType = GetType(name);
+        if (checkType == null)
+        {
+            return false;
+        }
+
+        return type.IsSubclassOf(checkType) || (type == checkType);
+    }
+
+    public static bool IsSubClassOf(string type, string name)
+    {
+        Type? sourceType = GetType(type);
+            
+        return sourceType != null && IsSubClassOf(sourceType, name);
+    }
 }

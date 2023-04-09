@@ -7,6 +7,7 @@ using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.Entries;
 using Frosty.Sdk.Managers.Infos;
 using Frosty.Sdk.Managers.Loaders.Helpers;
+using FileInfo = Frosty.Sdk.Managers.Infos.FileInfo;
 
 namespace Frosty.Sdk.Managers.Loaders;
 
@@ -59,6 +60,8 @@ public class StandardAssetLoader : IAssetLoader
         // process toc chunks
         if (toc.ContainsKey("chunks"))
         {
+            string path = FileSystemManager.ResolvePath($"{(isPatched ? "native_patch" : "native_data")}/{sbName}.sb");
+
             foreach (DbObject chunk in toc["chunks"].As<DbObject>())
             {
                 ChunkAssetEntry entry = new(chunk["id"].As<Guid>(),
@@ -67,12 +70,12 @@ public class StandardAssetLoader : IAssetLoader
                 if (chunk.ContainsKey("size"))
                 {
                     entry.Size = chunk["size"].As<long>();
-                    entry.Location = AssetDataLocation.SuperBundle;
-                    entry.SuperBundleResourceInfo = new SuperBundleResourceInfo()
+                    entry.Location = AssetDataLocation.CasNonIndexed;
+                    entry.FileInfo = new FileInfo()
                     {
+                        Path = path,
                         Offset = chunk["offset"].As<long>(),
-                        Size = entry.Size,
-                        SuperBundleId = superBundleId
+                        Size = entry.Size
                     };
                 }
                     
@@ -254,21 +257,25 @@ public class StandardAssetLoader : IAssetLoader
                     stream.Position = bundleInfo.Offset;
                     bundle = BinaryBundle.Deserialize(stream);
                     
+                    string path = FileSystemManager.ResolvePath($"{(bundleInfo.IsPatch ? "native_patch" : "native_data")}/{bundleInfo.Name}.sb");
+
                     // read data
                     foreach (DbObject ebx in bundle["ebx"].As<DbObject>())
                     {
+                        ebx.AddValue("path", path);
                         ebx.AddValue("offset", stream.Position);
                         ebx.AddValue("size", GetSize(stream, ebx["originalSize"].As<long>()));
                     }
                     
                     foreach (DbObject res in bundle["res"].As<DbObject>())
                     {
+                        res.AddValue("path", path);
                         res.AddValue("offset", stream.Position);
-                        res.AddValue("size", GetSize(stream, res["originalSize"].As<long>()));
-                    }
+                        res.AddValue("size", GetSize(stream, res["originalSize"].As<long>()));                    }
                     
                     foreach (DbObject chunk in bundle["chunks"].As<DbObject>())
                     {
+                        chunk.AddValue("path", path);
                         chunk.AddValue("offset", stream.Position);
                         chunk.AddValue("size", GetSize(stream, chunk["originalSize"].As<long>()));
                     }
@@ -327,7 +334,7 @@ public class StandardAssetLoader : IAssetLoader
         }
     }
 
-    private long GetSize(DataStream stream, long originalSize)
+    public static long GetSize(DataStream stream, long originalSize)
     {
         long size = 0;
         while (originalSize > 0)
@@ -336,6 +343,29 @@ public class StandardAssetLoader : IAssetLoader
         }
 
         return size;
+    }
+    
+    private static void ReadBlock(DataStream stream, ref long originalSize, ref long size)
+    {
+        int decompressedSize = stream.ReadInt32(Endian.Big);
+        ushort compressionType = stream.ReadUInt16();
+        int bufferSize = stream.ReadUInt16(Endian.Big);
+
+        int flags = ((compressionType & 0xFF00) >> 8);
+
+        if ((flags & 0x0F) != 0)
+            bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
+        if ((decompressedSize & 0xFF000000) != 0)
+            decompressedSize &= 0x00FFFFFF;
+
+        originalSize -= decompressedSize;
+
+        compressionType = (ushort)(compressionType & 0x7F);
+        if (compressionType == 0x00)
+            bufferSize = decompressedSize;
+
+        size += bufferSize + 8;
+        stream.Position += bufferSize;
     }
     
     private (long, long) GetSize(DataStream? baseStream, DataStream deltaStream, long originalSize)
@@ -428,31 +458,4 @@ public class StandardAssetLoader : IAssetLoader
         return (deltaSize, baseSize);
     }
 
-    private void ReadBlock(DataStream stream, ref long originalSize, ref long size)
-    {
-        int decompressedSize = stream.ReadInt32(Endian.Big);
-        ushort compressionType = stream.ReadUInt16();
-        int bufferSize = stream.ReadUInt16(Endian.Big);
-
-        int flags = ((compressionType & 0xFF00) >> 8);
-
-        if ((flags & 0x0F) != 0)
-            bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
-        if ((decompressedSize & 0xFF000000) != 0)
-            decompressedSize &= 0x00FFFFFF;
-
-        originalSize -= decompressedSize;
-
-        if (originalSize < 0)
-        {
-            
-        }
-
-        compressionType = (ushort)(compressionType & 0x7F);
-        if (compressionType == 0x00)
-            bufferSize = decompressedSize;
-
-        size += bufferSize + 8;
-        stream.Position += bufferSize;
-    }
 }
