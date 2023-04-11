@@ -1,9 +1,15 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Threading;
 using Frosty.Sdk;
+using Frosty.Sdk.IO;
 using Frosty.Sdk.IO.Ebx;
 using Frosty.Sdk.Managers;
 using Frosty.Sdk.Managers.Entries;
+using Frosty.Sdk.Sdk;
 
 namespace FrostyCmd;
 
@@ -22,7 +28,26 @@ internal static class Program
         {
             throw new Exception("FileSystemManager");
         }
+        
+        TypeSdkGenerator typeSdkGenerator = new();
 
+        //Process.Start(FileSystemManager.BasePath + ProfilesLibrary.ProfileName);
+        Process? game = null;
+        while (game == null)
+        {
+            game = Process.GetProcessesByName(ProfilesLibrary.ProfileName).FirstOrDefault();
+        }
+
+        if (!typeSdkGenerator.DumpTypes(game))
+        {
+            throw new Exception("dumping types");
+        }
+
+        if (!typeSdkGenerator.CreateSdk())
+        {
+            throw new Exception("sdk writing");
+        }
+        
         // init resource manager, this parses the cas.cat files if they exist for easy asset lookup
         if (!ResourceManager.Initialize())
         {

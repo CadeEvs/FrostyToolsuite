@@ -154,8 +154,7 @@ public static class ResourceManager
     /// <summary>
     /// Loads all entries from the cas.cat file if it exists.
     /// </summary>
-    /// <param name="fullPath">Path to the catalog.</param>
-    /// <param name="installBundle">Name of the InstallBundle.</param>
+    /// <param name="installBundle">Name of the InstallBundle with data/patch prefix.</param>
     private static void LoadCatalog(string installBundle)
     {
         string fullPath = FileSystemManager.ResolvePath($"{installBundle}/cas.cat");
@@ -166,14 +165,18 @@ public static class ResourceManager
 
         using (CatStream stream = new(new FileStream(fullPath, FileMode.Open, FileAccess.Read)))
         {
+            // make sure the dicts are big enough
+            s_resourceEntries.EnsureCapacity((int)(s_resourceEntries.Count + stream.ResourceCount + stream.EncryptedCount));
+            s_patchEntries.EnsureCapacity((int)(s_patchEntries.Count + stream.PatchCount));
+            
             for (int i = 0; i < stream.ResourceCount; i++)
             {
                 CatResourceEntry entry = stream.ReadResourceEntry();
                 entry.ArchiveIndex = AddCas(installBundle, entry.ArchiveIndex);
         
-                if (entry.LogicalOffset == 0 && !s_resourceEntries.ContainsKey(entry.Sha1))
+                if (entry.LogicalOffset == 0)
                 {
-                    s_resourceEntries.Add(entry.Sha1, entry);
+                    s_resourceEntries.TryAdd(entry.Sha1, entry);
                 }
             }
         
@@ -182,19 +185,16 @@ public static class ResourceManager
                 CatResourceEntry entry = stream.ReadEncryptedEntry();
                 entry.ArchiveIndex = AddCas(installBundle, entry.ArchiveIndex);
         
-                if (entry.LogicalOffset == 0 && !s_resourceEntries.ContainsKey(entry.Sha1))
+                if (entry.LogicalOffset == 0)
                 {
-                    s_resourceEntries.Add(entry.Sha1, entry);
+                    s_resourceEntries.TryAdd(entry.Sha1, entry);
                 }
             }
         
             for (int i = 0; i < stream.PatchCount; i++)
             {
                 CatPatchEntry entry = stream.ReadPatchEntry();
-                if (!s_patchEntries.ContainsKey(entry.Sha1))
-                {
-                    s_patchEntries.Add(entry.Sha1, entry);
-                }
+                s_patchEntries.TryAdd(entry.Sha1, entry);
             }
         }
     }
@@ -202,7 +202,7 @@ public static class ResourceManager
     /// <summary>
     /// Adds a cas file to a hashmap for lookup.
     /// </summary>
-    /// <param name="installBundle">The name of the InstallBundle of the InstallChunk.</param>
+    /// <param name="installBundle">The name of the InstallBundle of the InstallChunk with data/patch prefix.</param>
     /// <param name="archiveIndex">The index of the cas.</param>
     /// <returns></returns>
     private static int AddCas(string installBundle, int archiveIndex)
@@ -210,10 +210,7 @@ public static class ResourceManager
         string casFilename = $"{installBundle}/cas_{archiveIndex:d2}.cas";
         int hash = Utils.Utils.HashString(casFilename, true);
 
-        if (!s_casFiles.ContainsKey(hash))
-        {
-            s_casFiles.Add(hash, FileSystemManager.ResolvePath(casFilename));
-        }
+        s_casFiles.TryAdd(hash, FileSystemManager.ResolvePath(casFilename));
 
         return hash;
     }

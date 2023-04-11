@@ -20,15 +20,15 @@ public partial class DbObject
     internal readonly Dictionary<string, object>? m_hash;
     internal readonly List<object>? m_list;
 
-    public DbObject(bool bObject = true)
+    public DbObject(bool bObject = true, int capacity = 0)
     {
         if (bObject)
         {
-            m_hash = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+            m_hash = new Dictionary<string, object>(capacity, StringComparer.OrdinalIgnoreCase);
         }
         else
         {
-            m_list = new List<object>();
+            m_list = new List<object>(capacity);
         }
     }
 
@@ -45,8 +45,8 @@ public partial class DbObject
         }
     }
 
-    public static DbObject CreateObject() => new(bObject: true);
-    public static DbObject CreateList()   => new(bObject: false);
+    public static DbObject CreateObject(int capacity = 0) => new(bObject: true, capacity);
+    public static DbObject CreateList(int capacity = 0)   => new(bObject: false, capacity);
 
     public DbType GetDbType()
     {
@@ -104,10 +104,7 @@ public partial class DbObject
             throw new InvalidDbTypeException(true);
         }
 
-        if (!m_hash.ContainsKey(name))
-        {
-            m_hash.Add(name, SanitizeData(value));
-        }
+        m_hash.TryAdd(name, SanitizeData(value));
     }
 
     public void RemoveValue(string name)
@@ -117,10 +114,7 @@ public partial class DbObject
             throw new InvalidDbTypeException(true);
         }
 
-        if (m_hash.ContainsKey(name))
-        {
-            m_hash.Remove(name);
-        }
+        m_hash.Remove(name);
     }
     
     public IEnumerable<string> EnumerateKeys()
@@ -135,15 +129,6 @@ public partial class DbObject
             yield return m_hash.Keys.ElementAt(i);
     }
 
-    public object? GetRawValue(string name)
-    {
-        if (m_hash == null)
-        {
-            throw new InvalidDbTypeException(true);
-        }
-        
-        return !m_hash.ContainsKey(name) ? null : m_hash[name];
-    }
     #endregion
 
     #region -- List functions --

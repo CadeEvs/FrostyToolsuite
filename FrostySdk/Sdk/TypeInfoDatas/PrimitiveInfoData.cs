@@ -50,7 +50,7 @@ internal class PrimitiveInfoData : TypeInfoData
                 actualType = "System.Guid";
                 break;
             case TypeFlags.TypeEnum.Sha1:
-                actualType = "FrostySdk.Sha1";
+                actualType = "Frosty.Sdk.Sha1";
                 break;
         }
 

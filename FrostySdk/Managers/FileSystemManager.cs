@@ -184,31 +184,37 @@ public static class FileSystemManager
                 }
                 byte[] key = KeyManager.GetKey("InitFsKey");
                 byte[] buffer = initFs["encrypted"].As<byte[]>();
-                byte[] decrypted = new byte[buffer.Length];
 
-                using Aes aes = Aes.Create();
-                aes.Key = key;
-                aes.IV = key;
-
-                ICryptoTransform transform = aes.CreateDecryptor();
-                using CryptoStream cryptoStream = new(new MemoryStream(buffer), transform, CryptoStreamMode.Read);
-                int bytesRead = cryptoStream.Read(decrypted, 0, buffer.Length);
-
-                using (DataStream subStream = new(new MemoryStream(decrypted)))
+                using (Aes aes = Aes.Create())
                 {
-                    initFs = DbObject.Deserialize(subStream);
+                    aes.Key = key;
+                    aes.IV = key;
+
+                    ICryptoTransform transform = aes.CreateDecryptor();
+
+                    using (DataStream subStream = new(new MemoryStream(buffer.Length)))
+                    {
+                        using (CryptoStream cryptoStream = new(new MemoryStream(buffer), transform, CryptoStreamMode.Read))
+                        {
+                            cryptoStream.CopyTo(subStream);
+                        }
+                        subStream.Position = 0;
+                        initFs = DbObject.Deserialize(subStream);
+
+                        if (initFs == null)
+                        {
+                            return false;
+                        }
+                    }
                 }
             }
 
             foreach (DbObject fileStub in initFs)
             {
-                DbObject file = (fileStub["$file"] as DbObject)!;
-                string fileName = (file["name"] as string)!;
+                DbObject file = fileStub["$file"].As<DbObject>();
+                string fileName = file["name"].As<string>();
 
-                if (!s_memoryFs.ContainsKey(fileName))
-                {
-                    s_memoryFs.Add(fileName, (file["payload"] as byte[])!);
-                }
+                s_memoryFs.TryAdd(fileName, file["payload"].As<byte[]>());
             }
         }
         return true;

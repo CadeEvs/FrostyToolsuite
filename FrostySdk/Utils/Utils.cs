@@ -15,16 +15,11 @@ public static class Utils
     {
         const uint kOffset = 5381;
         const uint kPrime = 33;
-
-        if (toLower)
-        {
-            value = value.ToLower();
-        }
         
         uint hash = kOffset;
         for (int i = 0; i < value.Length; i++)
         {
-            hash = (hash * kPrime) ^ (byte)value[i];
+            hash = (hash * kPrime) ^ (byte)(toLower ? char.ToLower(value[i]) : value[i]);
         }
 
         return (int)hash;

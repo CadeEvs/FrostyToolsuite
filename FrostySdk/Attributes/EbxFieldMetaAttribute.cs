@@ -13,18 +13,19 @@ public class EbxFieldMetaAttribute : Attribute
     public uint Offset { get; set; }
     public Type? BaseType { get; set; }
 
-    public EbxFieldMetaAttribute(TypeFlags flags, uint offset, Type? baseType)
+    public EbxFieldMetaAttribute(ushort flags, uint offset, Type? baseType)
     {
         Flags = flags;
         Offset = offset;
         BaseType = baseType;
     }
 
-    public EbxFieldMetaAttribute(TypeFlags.TypeEnum type, string baseType = "")
+    public EbxFieldMetaAttribute(TypeFlags.TypeEnum type, uint offset = 0, string baseType = "")
     {
         BaseType = typeof(object);
         if (baseType != "")
             BaseType = TypeLibrary.GetType(baseType);
         Flags = new TypeFlags(type);
+        Offset = offset;
     }
 }

@@ -80,39 +80,6 @@ internal class ClassInfoData : TypeInfoData
 
         sb.AppendLine("{");
 
-        // TODO: move to source generator
-        // if (string.IsNullOrEmpty(superClassName))
-        // {
-        //     // add guid field
-        //     sb.AppendLine($"[{nameof(IsTransientAttribute)}]");
-        //     sb.AppendLine($"[{nameof(IsReadOnlyAttribute)}]");
-        //     sb.AppendLine($"[{nameof(DisplayNameAttribute)}(\"Guid\")]");
-        //     sb.AppendLine($"[{nameof(CategoryAttribute)}(\"Annotations\")]");
-        //     sb.AppendLine($"[{nameof(EbxFieldMetaAttribute)}(24918, 1, null, false, 0)]");
-        //     sb.AppendLine($"[{nameof(FieldIndexAttribute)}(-1)]");
-        //     sb.AppendLine("public AssetClassGuid __InstanceGuid { get { return __Guid; } }");
-        //
-        //     sb.AppendLine("protected AssetClassGuid __Guid;");
-        //     sb.AppendLine("public AssetClassGuid GetInstanceGuid() { return __Guid; }");
-        //     sb.AppendLine("public void SetInstanceGuid(AssetClassGuid newGuid) { __Guid = newGuid; }");
-        // }
-
-        // if (superClassName == "DataContainer")
-        // {
-        //     // add Id field to non asset types
-        //     sb.AppendLine("[" + nameof(IsTransientAttribute) + "]");
-        //     if (m_name == "Asset")
-        //     {
-        //         sb.AppendLine("[" + nameof(IsHiddenAttribute) + "]");
-        //     }
-        //     sb.AppendLine("[" + nameof(DisplayNameAttribute) + "(\"Id\")]");
-        //     sb.AppendLine("[" + nameof(CategoryAttribute) + "(\"Annotations\")]");
-        //     sb.AppendLine("[" + nameof(EbxFieldMetaAttribute) + "(8310, 8u, null, false, 0)]");
-        //     sb.AppendLine("[" + nameof(FieldIndexAttribute) + "(-2)]");
-        //     sb.AppendLine("public CString __Id\r\n{\r\nget\r\n{\r\nreturn GetId();\r\n}\r\nset { __id = value; }\r\n}\r\n");
-        //     sb.AppendLine("protected CString __id = new CString();");
-        // }
-
         m_fieldInfos.Sort();
         for (int i = 0; i < m_fieldInfos.Count; i++)
         {

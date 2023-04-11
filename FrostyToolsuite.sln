@@ -4,9 +4,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyCmd", "FrostyCmd\Fros
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdk", "FrostySdk\FrostySdk.csproj", "{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdkGenerator", "FrostySdkGenerator\FrostySdkGenerator.csproj", "{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyModSupport", "FrostyModSupport\FrostyModSupport.csproj", "{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator", "FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj", "{D3E71AB3-3E6A-416B-8EDE-0EB25C071A48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator.Example", "FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.Example\FrostyTypeSdkGenerator.Example.csproj", "{4ADD34F4-906E-48BE-AACE-29A26C6E9D4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,13 +24,17 @@ Global
 		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8A2EBD94-9430-4F02-9FEA-7EC0B182A10F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F3EFB21C-20D8-4A2F-A0AB-C11463FD2465}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3E71AB3-3E6A-416B-8EDE-0EB25C071A48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3E71AB3-3E6A-416B-8EDE-0EB25C071A48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3E71AB3-3E6A-416B-8EDE-0EB25C071A48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3E71AB3-3E6A-416B-8EDE-0EB25C071A48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4ADD34F4-906E-48BE-AACE-29A26C6E9D4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4ADD34F4-906E-48BE-AACE-29A26C6E9D4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4ADD34F4-906E-48BE-AACE-29A26C6E9D4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4ADD34F4-906E-48BE-AACE-29A26C6E9D4E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -90,13 +90,13 @@ internal class TypeInfoData
 
         if (!TypeInfo.HasNames)
         {
-            if (Strings.ClassHashes.ContainsKey(nameHash))
+            if (Strings.ClassHashes.TryGetValue(nameHash, out string? hash))
             {
-                name = Strings.ClassHashes[nameHash];
+                name = hash;
             }
-            else if (Strings.StringHashes.ContainsKey(nameHash))
+            else if (Strings.StringHashes.TryGetValue(nameHash, out hash))
             {
-                name = Strings.StringHashes[nameHash];
+                name = hash;
             }
         }
 
@@ -145,7 +145,7 @@ internal class TypeInfoData
 
     public virtual void CreateType(StringBuilder sb)
     {
-        sb.AppendLine($"[{nameof(EbxTypeMetaAttribute)}({(int)m_flags}, {m_alignment}, {m_size}, \"{m_nameSpace}\")]");
+        sb.AppendLine($"[{nameof(EbxTypeMetaAttribute)}({(ushort)m_flags}, {m_alignment}, {m_size}, \"{m_nameSpace}\")]");
 
         sb.AppendLine($"[{nameof(DisplayNameAttribute)}(\"{m_name}\")]");
         
@@ -155,16 +155,16 @@ internal class TypeInfoData
         }
         if (m_nameHash != 0)
         {
-            sb.AppendLine($"[{typeof(NameHashAttribute).Name}({(int)m_nameHash})]");
+            sb.AppendLine($"[{nameof(NameHashAttribute)}({m_nameHash})]");
         }
         if (m_signature != 0)
         {
-            sb.AppendLine($"[{typeof(SignatureAttribute).Name}({m_signature})]");
+            sb.AppendLine($"[{nameof(SignatureAttribute)}({m_signature})]");
         }
 
-        if (TypeInfo.TypeInfoMapping.ContainsKey(p_arrayInfo))
+        if (TypeInfo.TypeInfoMapping.TryGetValue(p_arrayInfo, out TypeInfo? value))
         {
-            ArrayInfo arrayInfo = (TypeInfo.TypeInfoMapping[p_arrayInfo] as ArrayInfo)!;
+            ArrayInfo arrayInfo = (value as ArrayInfo)!;
             arrayInfo.CreateType(sb);
         }
     }

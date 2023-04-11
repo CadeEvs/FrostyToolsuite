@@ -39,9 +39,9 @@ internal class FieldInfo : IComparable
             {
                 m_name = Strings.FieldHashes[classHash][m_nameHash];
             }
-            else if (Strings.StringHashes.ContainsKey(m_nameHash))
+            else if (Strings.StringHashes.TryGetValue(m_nameHash, out string? hash))
             {
-                m_name = Strings.StringHashes[m_nameHash];
+                m_name = hash;
             }
             else
             {
@@ -73,12 +73,12 @@ internal class FieldInfo : IComparable
                 isClass = true;
             }
             typeName = $"List<{typeName}>";
-            sb.AppendLine($"[{nameof(EbxArrayMetaAttribute)}({type.GetFlags()})]");
+            sb.AppendLine($"[{nameof(EbxArrayMetaAttribute)}({(ushort)type.GetFlags()})]");
         }
-        sb.AppendLine($"[{nameof(EbxFieldMetaAttribute)}({(int)flags}, {m_offset}, {(isClass ? $"typeof({type.GetName()})" : "null")})]");
+        sb.AppendLine($"[{nameof(EbxFieldMetaAttribute)}({(ushort)flags}, {m_offset}, {(isClass ? $"typeof({type.GetName()})" : "null")})]");
         if (m_nameHash != 0)
         {
-            sb.AppendLine($"[{nameof(NameHashAttribute)}({(int)m_nameHash})]");
+            sb.AppendLine($"[{nameof(NameHashAttribute)}({m_nameHash})]");
         }
         
         sb.AppendLine($"private {typeName} _{m_name};");
@@ -88,12 +88,4 @@ internal class FieldInfo : IComparable
     {
         return m_offset.CompareTo((obj as FieldInfo)!.m_offset);
     }
-}
-
-public class Test
-{
-    public int TestProp { get; set; }
-    
-    [EbxFieldMeta(TypeFlags.TypeEnum.Int32)]
-    private int _TestProp;
 }

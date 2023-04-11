@@ -20,7 +20,7 @@ public static class BinaryBundle
     
     /// <summary>
     /// Dependent on the FB version, games have different salts.
-    /// If the game uses a version newer than 2017 it uses "pecn" else it uses "pecm".
+    /// If the game uses a version newer than 2017 it uses "pecn", else it uses "pecm".
     /// <see cref="ProfileVersion.Battlefield5"/> is the only game that uses "arie".
     /// </summary>
     /// <returns>The salt, that the current game uses.</returns>
@@ -31,7 +31,7 @@ public static class BinaryBundle
         if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5))
             salt = "arie";
 
-        else if (ProfilesLibrary.DataVersion >= (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+        else if (ProfilesLibrary.DataVersion >= (int)ProfileVersion.Fifa19 && !ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsSquadrons))
             salt = "pecn";
 
 
@@ -40,7 +40,7 @@ public static class BinaryBundle
     }
 
     /// <summary>
-    /// Only the games using the FifaAssetLoader use a different Magic than <see cref="Magic.Standard"/>.
+    /// Only the games using the <see cref="Frosty.Sdk.Managers.Loaders.FifaAssetLoader"/> use a different Magic than <see cref="Magic.Standard"/>.
     /// </summary>
     /// <returns>The magic the current game uses.</returns>
     public static Magic GetMagic()
@@ -61,25 +61,28 @@ public static class BinaryBundle
     public static bool IsValidMagic(Magic magic) => Enum.IsDefined(typeof(Magic), magic);
     
     /// <summary>
-    /// Deserialize a binary stored bundle as <see cref="DbObject"/>.  
+    /// Deserialize a binary stored bundle as <see cref="DbObject"/>.
     /// </summary>
     /// <param name="stream">The <see cref="DataStream"/> from which the bundle should be Deserialized from.</param>
     /// <returns></returns>
     /// <exception cref="InvalidDataException">Is thrown when there is no valid <see cref="Magic"/>.</exception>
     public static DbObject Deserialize(DataStream stream)
     {
+        DataStream reader = stream;
         Endian endian = Endian.Big;
-        List<Sha1> sha1 = new List<Sha1>();
         
-        uint size = stream.ReadUInt32(Endian.Big);
-        Magic magic = (Magic)(stream.ReadUInt32(endian) ^ GetSalt());
+        uint size = reader.ReadUInt32(Endian.Big);
+
+        long startPos = reader.Position;
+        
+        Magic magic = (Magic)(reader.ReadUInt32(endian) ^ GetSalt());
 
         // check what endian its written in
         if (!IsValidMagic(magic))
         {
             endian = Endian.Little;
-            stream.Position -= 4;
-            magic = (Magic)(stream.ReadUInt32(endian) ^ GetSalt());
+            reader.Position -= 4;
+            magic = (Magic)(reader.ReadUInt32(endian) ^ GetSalt());
 
             if (!IsValidMagic(magic))
             {
@@ -89,21 +92,20 @@ public static class BinaryBundle
 
         bool containsSha1 = !(magic == Magic.Fifa || magic == Magic.Encrypted);
 
-        uint totalCount = stream.ReadUInt32(endian);
-        uint ebxCount = stream.ReadUInt32(endian);
-        uint resCount = stream.ReadUInt32(endian);
-        uint chunkCount = stream.ReadUInt32(endian);
-        uint stringsOffset = stream.ReadUInt32(endian) - 0x20;
-        uint metaOffset = stream.ReadUInt32(endian) - 0x20;
-        uint metaSize = stream.ReadUInt32(endian);
+        uint totalCount = reader.ReadUInt32(endian);
+        int ebxCount = reader.ReadInt32(endian);
+        int resCount = reader.ReadInt32(endian);
+        int chunkCount = reader.ReadInt32(endian);
+        long stringsOffset = reader.ReadUInt32(endian) + (magic == Magic.Encrypted ? 0 : startPos);
+        long metaOffset = reader.ReadUInt32(endian) + (magic == Magic.Encrypted ? 0 : startPos);
+        uint metaSize = reader.ReadUInt32(endian);
 
-        byte[] buffer = stream.ReadBytes((int)(size - 0x20));
-        byte[] decrypted;
+        Sha1[] sha1 = new Sha1[totalCount];
 
         // decrypt the data
         if (magic == Magic.Encrypted)
         {
-            decrypted = new byte[buffer.Length];
+            byte[] buffer = reader.ReadBytes((int)(size - 0x20));
             byte[] key = KeyManager.GetKey("Key2");
 
             using (Aes aes = Aes.Create())
@@ -112,48 +114,56 @@ public static class BinaryBundle
                 aes.IV = key;
                 aes.Padding = PaddingMode.None;
 
-                ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-                using (CryptoStream cryptoStream = new(new MemoryStream(buffer), decryptor, CryptoStreamMode.Read))
+                ICryptoTransform transform = aes.CreateDecryptor(aes.Key, aes.IV);
+
+                reader = new DataStream(new MemoryStream(buffer.Length + 0x20));
+                reader.Position = 0x20;
+                using (CryptoStream cryptoStream = new(new MemoryStream(buffer), transform, CryptoStreamMode.Read))
                 {
-                    cryptoStream.Read(decrypted, 0, buffer.Length);
+                    cryptoStream.CopyTo(reader);
                 }
+                reader.Position = 0x20;
             }
+        }
+
+        DbObject bundle = new(new Dictionary<string, object>(chunkCount > 0 ? 4 : 3));
+        for (int i = 0; i < totalCount; i++)
+        {
+            sha1[i] = (containsSha1 ? reader.ReadSha1() : Sha1.Zero);
+        }
+
+        bundle.AddValue("ebx", new DbObject(ReadEbx(reader, endian, ebxCount, sha1, 0, stringsOffset)));
+        bundle.AddValue("res", new DbObject(ReadRes(reader, endian, resCount, sha1, (int)ebxCount, stringsOffset)));
+        bundle.AddValue("chunks", new DbObject(ReadChunks(reader, endian, chunkCount, sha1, (int)(ebxCount + resCount))));
+
+        if (chunkCount > 0)
+        {
+            reader.Position = metaOffset;
+            bundle.AddValue("chunkMeta", DbObject.Deserialize(reader)!);
+            Debug.Assert(reader.Position == metaOffset + metaSize);
+        }
+
+        if (magic == Magic.Encrypted)
+        {
+            // we need to dispose the reader, since it was created with the decompressed data
+            reader.Dispose();
         }
         else
         {
-            decrypted = buffer;
-        }
-
-        DbObject bundle = new(new Dictionary<string, object>());
-        using (DataStream dbReader = new(new MemoryStream(decrypted)))
-        {
-            for (int i = 0; i < totalCount; i++)
-            {
-                sha1.Add((containsSha1) ? dbReader.ReadSha1() : Sha1.Zero);
-            }
-
-            bundle.AddValue("ebx", new DbObject(ReadEbx(dbReader, endian, ebxCount, sha1, 0, stringsOffset)));
-            bundle.AddValue("res", new DbObject(ReadRes(dbReader, endian, resCount, sha1, (int)ebxCount, stringsOffset)));
-            bundle.AddValue("chunks", new DbObject(ReadChunks(dbReader, endian, chunkCount, sha1, (int)(ebxCount + resCount))));
-
-            if (chunkCount > 0)
-            {
-                dbReader.Position = metaOffset;
-                bundle.AddValue("chunkMeta", DbObject.Deserialize(dbReader)!);
-                Debug.Assert(dbReader.Position == metaOffset + metaSize);
-            }
+            // we need to set the correct position, since the string table comes after the meta
+            reader.Position = startPos + size;
         }
 
         return bundle;
     } 
     
-    private static List<object> ReadEbx(DataStream stream, Endian endian, uint count, List<Sha1> sha1, int offset, long stringsOffset)
+    private static List<object> ReadEbx(DataStream stream, Endian endian, int count, Sha1[] sha1, int offset, long stringsOffset)
     {
-        List<object> ebxList = new List<object>();
+        List<object> ebxList = new List<object>(count);
 
         for (int i = 0; i < count; i++)
         {
-            DbObject entry = new(new Dictionary<string, object>());
+            DbObject entry = DbObject.CreateObject(7);
 
             uint nameOffset = stream.ReadUInt32(endian);
             uint originalSize = stream.ReadUInt32(endian);
@@ -173,13 +183,13 @@ public static class BinaryBundle
         return ebxList;
     }
 
-    private static List<object> ReadRes(DataStream stream, Endian endian, uint count, List<Sha1> sha1, int offset, long stringsOffset)
+    private static List<object> ReadRes(DataStream stream, Endian endian, int count, Sha1[] sha1, int offset, long stringsOffset)
     {
-        List<object> resList = new List<object>();
+        List<object> resList = new List<object>(count);
 
         for (int i = 0; i < count; i++)
         {
-            DbObject entry = new(new Dictionary<string, object>());
+            DbObject entry = DbObject.CreateObject(10);
 
             uint nameOffset = stream.ReadUInt32(endian);
             uint originalSize = stream.ReadUInt32(endian);
@@ -214,13 +224,13 @@ public static class BinaryBundle
         return resList;
     }
 
-    private static List<object> ReadChunks(DataStream stream, Endian endian, uint count, List<Sha1> sha1, int offset)
+    private static List<object> ReadChunks(DataStream stream, Endian endian, int count, Sha1[] sha1, int offset)
     {
-        List<object> chunkList = new List<object>();
+        List<object> chunkList = new List<object>(count);
 
         for (int i = 0; i < count; i++)
         {
-            DbObject entry = new(new Dictionary<string, object>());
+            DbObject entry = DbObject.CreateObject(8);
 
             Guid chunkId = stream.ReadGuid(endian);
             uint logicalOffset = stream.ReadUInt32(endian);

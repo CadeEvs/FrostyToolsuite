@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Security.Cryptography;
 using System.Text;
 using Frosty.Sdk.Deobfuscators;
 using Frosty.Sdk.Interfaces;
@@ -16,8 +17,8 @@ public unsafe class DataStream : IDisposable
         get => m_stream.Position;
         set => m_stream.Position = value;
     }
-    
-    protected readonly Stream m_stream;
+
+    protected Stream m_stream;
     private readonly byte[] m_buffer;
     private readonly StringBuilder m_stringBuilder;
 
@@ -25,7 +26,7 @@ public unsafe class DataStream : IDisposable
     {
         m_stream = inStream;
         m_buffer = new byte[20];
-        m_stringBuilder = new StringBuilder();
+        m_stringBuilder = new StringBuilder(100);
 
         if (deobfuscate)
         {
@@ -43,7 +44,7 @@ public unsafe class DataStream : IDisposable
             }
         }
     }
-
+    
     public long Seek(long offset, SeekOrigin origin) => m_stream.Seek(offset, origin);
 
     public void Pad(int alignment)
@@ -206,10 +207,9 @@ public unsafe class DataStream : IDisposable
     {
         m_stringBuilder.Clear();
 
-        char c;
         while (true)
         {
-            c = ReadChar(wide);
+            char c = ReadChar(wide);
             if (c == 0)
             {
                 break;
@@ -498,6 +498,9 @@ public unsafe class DataStream : IDisposable
         }
         return retVal;
     }
+    
+    public static implicit operator Stream(DataStream value) => value.m_stream;
+    public static implicit operator DataStream(Stream value) => new(value);
     
     public void Dispose()
     {

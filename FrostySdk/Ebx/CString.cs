@@ -2,9 +2,9 @@ using System;
 
 namespace Frosty.Sdk.Ebx;
 
-public struct CString
+public readonly struct CString
 {
-    private string m_strValue = string.Empty;
+    private readonly string m_strValue = string.Empty;
 
     public CString(string value = "") => m_strValue = value;
 
@@ -14,15 +14,12 @@ public struct CString
 
     public static implicit operator CString(string value) => new(value);
 
-    public bool IsNull() => m_strValue == null;
+    public bool IsNullOrEmpty() => string.IsNullOrEmpty(m_strValue);
 
     public override string ToString() => m_strValue;
 
     public override int GetHashCode()
     {
-        if (m_strValue == null)
-            return "".GetHashCode();
-
         return m_strValue.GetHashCode();
     }
     
@@ -40,17 +37,13 @@ public struct CString
         return false;
     }
 
-    public bool Equals(object? obj, StringComparison comparison)
+    public bool Equals(CString cStr, StringComparison comparison)
     {
-        if (obj is CString cStr)
-        {
-            return m_strValue.Equals(cStr.m_strValue, comparison);
-        }
-        
-        if (obj is string str)
-        {
-            return m_strValue.Equals(str, comparison);
-        }
-        return false;
+        return m_strValue.Equals(cStr.m_strValue, comparison);
+    }
+    
+    public bool Equals(string str, StringComparison comparison)
+    {
+        return m_strValue.Equals(str, comparison);
     }
 }

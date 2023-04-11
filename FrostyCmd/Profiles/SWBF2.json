@@ -17,7 +17,7 @@
   ],
   "SdkFileName": "StarWarsIISDK",
   "BannerPath": "SWBF2",
-  "EbxVersion": 2,
+  "EbxVersion": 4,
   "RequiresKey": false,
   "MustAddChunks": false,
   "EnableExecution": true,

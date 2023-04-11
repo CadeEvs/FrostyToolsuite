@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FrostyTypeSdkGenerator": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\FrostyTypeSdkGenerator.Example\\FrostyTypeSdkGenerator.Example.csproj"
+    }
+  }
+}
