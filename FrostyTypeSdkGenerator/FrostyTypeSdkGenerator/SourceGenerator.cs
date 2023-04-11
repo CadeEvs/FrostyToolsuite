@@ -182,13 +182,13 @@ public partial class {classContext.Name}
     [CategoryAttribute(""Annotations"")]
     [EbxFieldMetaAttribute(Frosty.Sdk.Sdk.TypeFlags.TypeEnum.Guid, 1u)]
     [FieldIndexAttribute(-1)]
-    public Frosty.Sdk.Ebx.AssetClassGuid __InstanceGuid  => __Guid;
+    public global::Frosty.Sdk.Ebx.AssetClassGuid __InstanceGuid  => __Guid;
 
-    protected Frosty.Sdk.Ebx.AssetClassGuid __Guid;
+    protected global::Frosty.Sdk.Ebx.AssetClassGuid __Guid;
 
-    public Frosty.Sdk.Ebx.AssetClassGuid GetInstanceGuid() => __Guid;
+    public global::Frosty.Sdk.Ebx.AssetClassGuid GetInstanceGuid() => __Guid;
 
-    public void SetInstanceGuid(Frosty.Sdk.Ebx.AssetClassGuid newGuid) => __Guid = newGuid;
+    public void SetInstanceGuid(global::Frosty.Sdk.Ebx.AssetClassGuid newGuid) => __Guid = newGuid;
 }}";
         string qualifiedName = classContext.Namespace is null
             ? classContext.Name
@@ -211,12 +211,12 @@ public partial class {classContext.Name}
     [CategoryAttribute(""Annotations"")]
     [EbxFieldMetaAttribute(Frosty.Sdk.Sdk.TypeFlags.TypeEnum.CString, 8u)]
     [FieldIndexAttribute(-2)]
-    public Frosty.Sdk.Ebx.CString __Id
+    public global::Frosty.Sdk.Ebx.CString __Id
     {{
         get => GetId();
         set => __id = value;
     }}
-    protected Frosty.Sdk.Ebx.CString __id = new Frosty.Sdk.Ebx.CString();
+    protected global::Frosty.Sdk.Ebx.CString __id = new global::Frosty.Sdk.Ebx.CString();
 }}";
         if (classContext.Name != "Asset")
         {
@@ -225,18 +225,18 @@ public partial class {classContext.Name}
 
         foreach (FieldContext field in classContext.Fields)
         {
-            if (field.Name.Equals("Name", StringComparison.OrdinalIgnoreCase) && field.Type.Equals("global::Frosty.Sdk.Ebx.CString"))
+            if (field.Name.Equals("_Name", StringComparison.OrdinalIgnoreCase) && field.Type.Equals("global::Frosty.Sdk.Ebx.CString"))
             {
                 source = source.Remove(source.Length - 1) + @$"
-    protected virtual CString GetId()
+    protected virtual global::Frosty.Sdk.Ebx.CString GetId()
     {{
         if (!string.IsNullOrEmpty(__id))
         {{
             return __id;
         }}
-        if (!string.IsNullOrEmpty({field.Name})
+        if (!string.IsNullOrEmpty({field.Name}))
         {{
-            return {field.Name}.Sanitize() 
+            return {field.Name}.Sanitize();
         }}
         return GetType().Name;
     }}
@@ -260,6 +260,7 @@ public partial {(typeContext.IsValueType ? "struct" : "class")} {typeContext.Nam
 {{";
         foreach (FieldContext field in typeContext.Fields)
         {
+            // TODO: if type is list create a constructor which creates a new list
             string prop = $@"
     {string.Join("\n", field.Attributes.Select(static attr => $"[{attr}]"))}
     public {field.Type} {field.Name.Remove(0, 1)}

@@ -14,7 +14,7 @@ public class EbxTypeMetaAttribute : Attribute
     public ushort Size { get; set; }
     public string Namespace { get; set; }
 
-    public EbxTypeMetaAttribute(TypeFlags inFlags, byte inAlignment, ushort inSize, string inNameSpace)
+    public EbxTypeMetaAttribute(ushort inFlags, byte inAlignment, ushort inSize, string inNameSpace)
     {
         Flags = inFlags;
         Alignment = inAlignment;
@@ -22,9 +22,9 @@ public class EbxTypeMetaAttribute : Attribute
         Namespace = inNameSpace;
     }
 
-    public EbxTypeMetaAttribute(TypeFlags.TypeEnum type)
+    public EbxTypeMetaAttribute(TypeFlags.TypeEnum type, TypeFlags.CategoryEnum category = TypeFlags.CategoryEnum.None)
     {
-        Flags = new TypeFlags(type);
+        Flags = new TypeFlags(type, category);
         Namespace = "Frosty";
     }
 }

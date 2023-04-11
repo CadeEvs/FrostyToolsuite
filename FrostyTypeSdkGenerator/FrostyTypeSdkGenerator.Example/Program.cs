@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Frosty.Sdk.Attributes;
 using Frosty.Sdk.Sdk;
 
@@ -20,6 +21,9 @@ namespace FrostyTypeSdkGenerator.Example
 
             DataContainer dataContainer = new();
             dataContainer.GetInstanceGuid();
+
+            Asset asset = new();
+            string id = asset.__Id;
         }
     }
 
@@ -32,6 +36,8 @@ namespace FrostyTypeSdkGenerator.Example
         private int _Count;
         private bool _IsEnabled;
 
+        private List<int> _SomeList;
+
         public void SetName(string name) => _Name = name;
         public void SetCount(int count) => _Count = count;
         public void SetIsEnabled(bool isEnabled) => _IsEnabled = isEnabled;
@@ -43,13 +49,11 @@ namespace FrostyTypeSdkGenerator.Example
 
     public partial class Asset : DataContainer
     {
-        private string _Name;
-        private string GetId() => _Name;
+        private Frosty.Sdk.Ebx.CString _Name;
     }
 
     public partial class DataContainerAsset : DataContainer
     {
-        private string _Name;
-        private string GetId() => _Name;
+        private Frosty.Sdk.Ebx.CString _Name;
     }
 }
