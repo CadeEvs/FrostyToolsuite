@@ -423,7 +423,7 @@ public static class VertexUtils
 {
     public static uint CalcFletcher32(GeometryDeclarationDesc geomDecl)
     {
-        byte[] array = null;
+        byte[] array;
         using (DataStream dataStream = new(new MemoryStream()))
         {
             foreach (GeometryDeclarationDesc.Element element in geomDecl.Elements)

@@ -39,36 +39,39 @@ public class BoxedValueRef
     {
     }
 
-    public BoxedValueRef(object? inval, TypeFlags.TypeEnum intype)
+    public BoxedValueRef(object? inValue, TypeFlags.TypeEnum inType)
     {
-        m_value = inval;
-        m_type = intype;
+        m_value = inValue;
+        m_type = inType;
     }
 
-    public BoxedValueRef(object? inval, TypeFlags.TypeEnum intype, TypeFlags.TypeEnum insubtype)
+    public BoxedValueRef(object? inValue, TypeFlags.TypeEnum inType, TypeFlags.TypeEnum inSubType)
     {
-        m_value = inval;
-        m_type = intype;
-        m_subType = insubtype;
+        m_value = inValue;
+        m_type = inType;
+        m_subType = inSubType;
     }
 
-    public BoxedValueRef(object? inval, TypeFlags.TypeEnum intype, TypeFlags.TypeEnum insubtype, EbxFieldCategory incategory)
+    public BoxedValueRef(object? inValue, TypeFlags.TypeEnum inType, TypeFlags.TypeEnum inSubType, EbxFieldCategory inCategory)
     {
-        m_value = inval;
-        m_type = intype;
-        m_subType = insubtype;
-        m_category = incategory;
+        m_value = inValue;
+        m_type = inType;
+        m_subType = inSubType;
+        m_category = inCategory;
     }
 
-    public void SetValue(object invalue)
+    public void SetValue(object inValue)
     {
-        m_value = invalue;
+        m_value = inValue;
     }
 
     public override string ToString()
     {
-        if (Value == null)
+        if (m_value is null)
+        {
             return "BoxedValueRef '(null)'";
+        }
+
         string s = "BoxedValueRef '";
         switch (m_type)
         {

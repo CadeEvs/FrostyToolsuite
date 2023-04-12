@@ -22,10 +22,10 @@
 
     <ItemGroup>
         <None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <Compile Remove="Meta\Asset.cs" />
-        <None Include="Meta\Asset.cs">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Meta\Asset.cs" />
     </ItemGroup>
 
 </Project>

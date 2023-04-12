@@ -5,7 +5,6 @@ using Frosty.Sdk.Managers;
 
 namespace Frosty.Sdk.Utils.CompressionTypes;
 
-
 public static class Oodle
 {
     public enum OodleFormat : uint
@@ -66,18 +65,18 @@ public static class Oodle
         Unthreaded = ThreadPhaseAll
     }
 
-    public delegate int DecompressFunc(IntPtr srcBuffer, long srcSize, IntPtr dstBuffer, long dstSize, OodleFuzzSafe fuzzSafe = OodleFuzzSafe.Yes, OodleCheckCRC checkCRC = OodleCheckCRC.No, OodleVerbosity verbosity = OodleVerbosity.None, IntPtr decBufBase = new(), long decBufSize = 0, IntPtr fpCallback = new(), IntPtr callbackUserData = new(), IntPtr decoderMemory = new(), long decoderMemorySize = 0, OodleThreadPhase threadModule = OodleThreadPhase.Unthreaded);
-    public static DecompressFunc Decompress;
+    public delegate int DecompressFunc(nint srcBuffer, long srcSize, nint dstBuffer, long dstSize, OodleFuzzSafe fuzzSafe = OodleFuzzSafe.Yes, OodleCheckCRC checkCRC = OodleCheckCRC.No, OodleVerbosity verbosity = OodleVerbosity.None, nint decBufBase = new(), long decBufSize = 0, nint fpCallback = new(), nint callbackUserData = new(), nint decoderMemory = new(), long decoderMemorySize = 0, OodleThreadPhase threadModule = OodleThreadPhase.Unthreaded);
+    public static DecompressFunc? Decompress;
 
-    public delegate ulong CompressFunc(OodleFormat cmpCode, IntPtr srcBuffer, long srcSize, IntPtr cmpBuffer, OodleCompressionLevel cmpLevel, IntPtr options = new(), IntPtr dictionaryBase = new(), IntPtr lrm = new(), IntPtr scratch = new(), long scratchSize = 0);
-    public static CompressFunc Compress;
+    public delegate ulong CompressFunc(OodleFormat cmpCode, nint srcBuffer, long srcSize, nint cmpBuffer, OodleCompressionLevel cmpLevel, nint options = new(), nint dictionaryBase = new(), nint lrm = new(), nint scratch = new(), long scratchSize = 0);
+    public static CompressFunc? Compress;
 
-    public delegate IntPtr GetOptionsFunc(OodleFormat cmpCode, OodleCompressionLevel cmpLevel);
-    public static GetOptionsFunc GetOptions;
+    public delegate nint GetOptionsFunc(OodleFormat cmpCode, OodleCompressionLevel cmpLevel);
+    public static GetOptionsFunc? GetOptions;
 
     public delegate long GetCompressedBufferSizeNeededFunc(long size);
 
-    public static GetCompressedBufferSizeNeededFunc GetCompressedBufferSizeNeeded;
+    public static GetCompressedBufferSizeNeededFunc? GetCompressedBufferSizeNeeded;
     
     public static bool TryBind()
     {
@@ -85,32 +84,35 @@ public static class Oodle
 
         foreach (FileInfo fileInfo in di.EnumerateFiles())
         {
-            if (fileInfo.Name.Contains("oodle", StringComparison.OrdinalIgnoreCase))
+            // TODO: should probably check for core as well since there might be multiple oodle dlls
+            if (!fileInfo.Name.Contains("oodle", StringComparison.OrdinalIgnoreCase))
             {
-                IntPtr libraryHandle = NativeLibrary.Load(fileInfo.FullName);
-
-                if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_Compress", out IntPtr compressHandle))
-                {
-                    Compress = Marshal.GetDelegateForFunctionPointer<CompressFunc>(compressHandle);
-                }
-
-                if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_Decompress", out IntPtr decompressHandle))
-                {
-                    Decompress = Marshal.GetDelegateForFunctionPointer<DecompressFunc>(decompressHandle);
-                }
-
-                if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_CompressOptions_GetDefault", out IntPtr optionsHandle))
-                {
-                    GetOptions = Marshal.GetDelegateForFunctionPointer<GetOptionsFunc>(optionsHandle);
-                }
-
-                if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_GetCompressedBufferSizeNeeded", out IntPtr sizeNeededHandle))
-                {
-                    GetCompressedBufferSizeNeeded = Marshal.GetDelegateForFunctionPointer<GetCompressedBufferSizeNeededFunc>(sizeNeededHandle);
-                }
-                
-                return true;
+                continue;
             }
+
+            nint libraryHandle = NativeLibrary.Load(fileInfo.FullName);
+
+            if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_Compress", out nint compressHandle))
+            {
+                Compress = Marshal.GetDelegateForFunctionPointer<CompressFunc>(compressHandle);
+            }
+
+            if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_Decompress", out nint decompressHandle))
+            {
+                Decompress = Marshal.GetDelegateForFunctionPointer<DecompressFunc>(decompressHandle);
+            }
+
+            if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_CompressOptions_GetDefault", out nint optionsHandle))
+            {
+                GetOptions = Marshal.GetDelegateForFunctionPointer<GetOptionsFunc>(optionsHandle);
+            }
+
+            if (NativeLibrary.TryGetExport(libraryHandle, "OodleLZ_GetCompressedBufferSizeNeeded", out nint sizeNeededHandle))
+            {
+                GetCompressedBufferSizeNeeded = Marshal.GetDelegateForFunctionPointer<GetCompressedBufferSizeNeededFunc>(sizeNeededHandle);
+            }
+                
+            return true;
         }
 
         return false;

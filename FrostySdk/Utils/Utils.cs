@@ -72,11 +72,8 @@ public static class Utils
 
     public static Sha1 GenerateSha1(byte[] buffer)
     {
-        using (SHA1Managed sha1 = new SHA1Managed())
-        {
-            Sha1 newSha1 = new Sha1(sha1.ComputeHash(buffer));
-            return newSha1;
-        }
+        Sha1 newSha1 = new Sha1(SHA1.HashData(buffer));
+        return newSha1;
     }
 
     public static ulong GenerateResourceId()

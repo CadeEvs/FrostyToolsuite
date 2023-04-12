@@ -86,7 +86,7 @@ public class CasStream : DataStream
                         int blockCount = (int)(tmpVal & 0x0FFFFFFF);
                         using (MemoryStream baseMs = new(ReadBlock()))
                         {
-                            byte[] tmpBuffer = null;
+                            byte[] tmpBuffer;
 
                             while (blockCount-- > 0)
                             {

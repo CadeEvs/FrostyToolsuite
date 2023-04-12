@@ -4,17 +4,17 @@ namespace Frosty.Sdk.Profiles;
 
 public class Profile
 {
-    public string Name  { get; set; }
-    public string DisplayName { get; set; }
+    public string Name  { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
 
-    public string CacheName { get; set; }
-    public string Deobfuscator { get; set; }
-    public string AssetLoader { get; set; }
+    public string CacheName { get; set; } = string.Empty;
+    public string Deobfuscator { get; set; } = string.Empty;
+    public string AssetLoader { get; set; } = string.Empty;
 
     public int DataVersion { get; set; }
-    public List<FileSystemSource> Sources { get; set; }
-    public string SdkFileName { get; set; }
-    public string BannerPath { get; set; }
+    public List<FileSystemSource> Sources { get; set; } = new();
+    public string SdkFileName { get; set; } = string.Empty;
+    public string BannerPath { get; set; } = string.Empty;
 
     public int EbxVersion { get; set; }
     public bool RequiresKey { get; set; }
@@ -29,10 +29,10 @@ public class Profile
     public int MaxBufferSize { get; set; }
     public int ZStdCompressionLevel { get; set; }
 
-    public string DefaultDiffuse { get; set; }
-    public string DefaultNormals { get; set; }
-    public string DefaultMask { get; set; }
-    public string DefaultTint { get; set; }
+    public string DefaultDiffuse { get; set; } = string.Empty;
+    public string DefaultNormals { get; set; } = string.Empty;
+    public string DefaultMask { get; set; } = string.Empty;
+    public string DefaultTint { get; set; } = string.Empty;
 
-    public List<string> SharedBundles { get; set; }
+    public List<string> SharedBundles { get; set; } = new();
 }

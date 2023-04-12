@@ -15,10 +15,10 @@ internal class HuffmanNode : IComparable<HuffmanNode>
     public char Letter => (char)(~Value);
 
     public uint Value;
-    public HuffmanNode Left { get; private set; }
-    public HuffmanNode Right { get; private set; }
+    public HuffmanNode? Left { get; private set; }
+    public HuffmanNode? Right { get; private set; }
 
-    public HuffmanNode Parent { get; private set; }
+    public HuffmanNode? Parent { get; private set; }
 
     public HuffmanNode()
     {
@@ -38,13 +38,13 @@ internal class HuffmanNode : IComparable<HuffmanNode>
 
     public void SetLeftNode(HuffmanNode leftNode)
     {
-        this.Left = leftNode;
+        Left = leftNode;
         Left.Parent = this;
     }
 
     public void SetRightNode(HuffmanNode rightNode)
     {
-        this.Right = rightNode;
+        Right = rightNode;
         Right.Parent = this;
     }
 
@@ -55,7 +55,7 @@ internal class HuffmanNode : IComparable<HuffmanNode>
         switch (Value)
         {
             case uint.MaxValue:
-                printLetter = "endDelimeter";
+                printLetter = "endDelimiter";
                 break;
             case 4294967285:
                 printLetter = "newLine";
@@ -65,13 +65,13 @@ internal class HuffmanNode : IComparable<HuffmanNode>
                 break;
         }
 
-        return string.Format("[Value = <{0}> | Letter = <{1}>]", Value.ToString(), printLetter);
+        return $"[Value = <{Value.ToString()}> | Letter = <{printLetter}>]";
     }
 
     /// <summary>
     /// Returns the bit representation of this node, to be used in tests.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>The bit representation of this node.</returns>
     public string GetBitRepresentation()
     {
         if (Parent == null)
@@ -120,13 +120,13 @@ public class HuffmanDecoder
         HuffmanNode? leftNode = null;
         HuffmanNode? rightNode = null;
 
-        List<HuffmanNode> nodes = new List<HuffmanNode>();
+        List<HuffmanNode> nodes = new();
         uint nodeValue = 0;
 
         for (int i = 0; i < count; i++)
         {
-            HuffmanNode n = new HuffmanNode(stream, endian);
-            int idx = nodes.FindIndex((HuffmanNode a) => a.Value == n.Value);
+            HuffmanNode n = new(stream, endian);
+            int idx = nodes.FindIndex(a => a.Value == n.Value);
             if (idx != -1)
             {
                 n = nodes[idx];
@@ -164,7 +164,7 @@ public class HuffmanDecoder
     /// </summary>
     /// <param name="stream">The <see cref="NativeReader"/> the encoded data gets read from.</param>
     /// <param name="count">The number of <see cref="int"/>s the data contains.</param>
-    /// <param name="endian">The Endianess in which the encoded data gets read.</param>
+    /// <param name="endian">The <see cref="Endian"/> in which the encoded data gets read.</param>
     public void ReadEncodedData(DataStream stream, uint count, Endian endian = Endian.Little)
     {
         m_data = new int[count];
@@ -180,7 +180,7 @@ public class HuffmanDecoder
     /// </summary>
     /// <param name="bitIndex">The index of the bit at which the encoded string starts.</param>
     /// <returns>The Huffman decoded string.</returns>
-    /// <exception cref="InvalidDataException">When the root node or encoded data were not read in before.</exception>
+    /// <exception cref="InvalidDataException">Is thrown when the root node or encoded data were not read in before.</exception>
     public string ReadHuffmanEncodedString(int bitIndex)
     {
         if (m_rootNode == null || m_data == null)
@@ -188,7 +188,7 @@ public class HuffmanDecoder
             throw new InvalidDataException();
         }
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         while (true)
         {
             HuffmanNode node = m_rootNode;
@@ -211,10 +211,8 @@ public class HuffmanDecoder
             {
                 return sb.ToString();
             }
-            else
-            {
-                sb.Append(node.Letter);
-            }
+
+            sb.Append(node.Letter);
         }
     }
 
