@@ -198,11 +198,11 @@ public class HuffmanDecoder
                 int bit = (m_data[bitIndex / 32] >> (bitIndex % 32)) & 1;
                 if (bit == 0)
                 {
-                    node = node.Left;
+                    node = node.Left!;
                 }
                 else
                 {
-                    node = node.Right;
+                    node = node.Right!;
                 }
                 bitIndex++;
             }

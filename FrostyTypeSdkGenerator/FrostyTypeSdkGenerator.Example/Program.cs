@@ -25,7 +25,7 @@ namespace FrostyTypeSdkGenerator.Example
             AssetData data2 = new();
 
             Asset asset = new();
-            //asset.SetInstanceGuid(new AssetClassGuid());
+            asset.SetInstanceGuid(new AssetClassGuid());
             
             Console.WriteLine(data1.Equals(data2));
         }

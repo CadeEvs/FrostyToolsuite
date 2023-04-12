@@ -6,7 +6,7 @@ namespace Frosty.Sdk.Attributes;
 [AttributeUsage(AttributeTargets.Assembly)]
 public class SdkVersionAttribute : Attribute
 {
-    private uint Head;
+    public uint Head { get; }
 
     public SdkVersionAttribute(uint inHead)
     {

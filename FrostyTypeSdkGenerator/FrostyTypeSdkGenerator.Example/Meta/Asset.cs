@@ -2,8 +2,8 @@
 
 public partial class Asset
 {
-    [global::Frosty.Sdk.Attributes.IsReadOnlyAttribute()]
-    [global::Frosty.Sdk.Attributes.CategoryAttribute("Annotations")]
+    [Frosty.Sdk.Attributes.IsReadOnlyAttribute()]
+    [Frosty.Sdk.Attributes.CategoryAttribute("Annotations")]
     public Frosty.Sdk.Ebx.CString Name
     {
         get => _Name;

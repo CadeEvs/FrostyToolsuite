@@ -257,13 +257,13 @@ public static class CompressionUtils
     
     public static ulong CompressOodle(byte[] buffer, out byte[] compBuffer, Oodle.OodleFormat type)
     {
-        compBuffer = new byte[Oodle.GetCompressedBufferSizeNeeded(buffer.Length)];
+        compBuffer = new byte[Oodle.GetCompressedBufferSizeNeeded!(buffer.Length)];
         
         GCHandle srcBufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
         GCHandle compBufferHandle = GCHandle.Alloc(compBuffer, GCHandleType.Pinned);
 
-        ulong size = Oodle.Compress(type, srcBufferHandle.AddrOfPinnedObject(), buffer.Length, compBufferHandle.AddrOfPinnedObject(),
-            Oodle.OodleCompressionLevel.Optimal3, Oodle.GetOptions(type, Oodle.OodleCompressionLevel.Optimal3));
+        ulong size = Oodle.Compress!(type, srcBufferHandle.AddrOfPinnedObject(), buffer.Length, compBufferHandle.AddrOfPinnedObject(),
+            Oodle.OodleCompressionLevel.Optimal3, Oodle.GetOptions!(type, Oodle.OodleCompressionLevel.Optimal3));
         
         srcBufferHandle.Free();
         compBufferHandle.Free();
@@ -278,7 +278,7 @@ public static class CompressionUtils
         GCHandle compBufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
         GCHandle outBufferHandle = GCHandle.Alloc(outBuffer, GCHandleType.Pinned);
 
-        Oodle.Decompress(compBufferHandle.AddrOfPinnedObject(), buffer.Length, outBufferHandle.AddrOfPinnedObject(),
+        Oodle.Decompress!(compBufferHandle.AddrOfPinnedObject(), buffer.Length, outBufferHandle.AddrOfPinnedObject(),
             decompressedSize);
 
         return outBuffer;
