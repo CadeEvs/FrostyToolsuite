@@ -8,6 +8,25 @@ namespace Frosty.Sdk;
 
 public partial class DbObject
 {
+    /// <summary>
+    /// Serializes a <see cref="DbObject"/> to a file.
+    /// </summary>
+    /// <param name="fileName">The name of the file to serialize to.</param>
+    /// <param name="dbObject">The <see cref="DbObject"/> to serialize.</param>
+    public static void Serialize(string fileName, DbObject dbObject)
+    {
+        using (DataStream stream = new DataStream(new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite)))
+        {
+            Serialize(stream, dbObject);
+            // TODO: obfuscate stream
+        }
+    }
+    
+    /// <summary>
+    /// Serializes a <see cref="DbObject"/> to a <see cref="DataStream"/>.
+    /// </summary>
+    /// <param name="stream">The <see cref="DataStream"/> to serialize to.</param>
+    /// <param name="dbObject">The <see cref="DbObject"/> to serialize.</param>
     public static void Serialize(DataStream stream, DbObject dbObject)
     {
         WriteDbObject(stream, string.Empty, dbObject);

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Frosty.Sdk.IO;
 
 // ReSharper disable once CheckNamespace
@@ -7,6 +8,24 @@ namespace Frosty.Sdk;
 
 public partial class DbObject
 {
+    /// <summary>
+    /// Deserialize <see cref="DbObject"/> from file.
+    /// </summary>
+    /// <param name="fileName">The name of the file to deserialize from.</param>
+    /// <returns>The deserialized <see cref="DbObject"/>.</returns>
+    public static DbObject? Deserialize(string fileName)
+    {
+        using (DataStream stream = new(new FileStream(fileName, FileMode.Open, FileAccess.Read), true))
+        {
+            return Deserialize(stream);
+        }
+    }
+    
+    /// <summary>
+    /// Deserialize <see cref="DbObject"/> from a <see cref="DataStream"/>.
+    /// </summary>
+    /// <param name="stream">The <see cref="DataStream"/> to deserialize from.</param>
+    /// <returns>The deserialized <see cref="DbObject"/>.</returns>
     public static DbObject? Deserialize(DataStream stream)
     {
         return (DbObject?)ReadDbObject(stream, out string _);

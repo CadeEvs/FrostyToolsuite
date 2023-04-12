@@ -28,32 +28,28 @@ public class StandardAssetLoader : IAssetLoader
                     continue;
                 }
             }
+            DbObject? toc = DbObject.Deserialize(tocPath);
+            if (toc is null)
+            {
+                continue;
+            }
 
             List<BundleInfo> bundles = new();
             Dictionary<int, BundleInfo> baseBundleDic = new();
 
             int superBundleId = AssetManager.AddSuperBundle(sbInfo.Name);
-            
-            using (DataStream stream = new(new FileStream(tocPath, FileMode.Open, FileAccess.Read), true))
+
+            if (!LoadToc(sbInfo.Name, superBundleId, toc, ref bundles, ref baseBundleDic, isPatched))
             {
-                if (!LoadToc(sbInfo.Name, superBundleId, stream, ref bundles, ref baseBundleDic, isPatched))
-                {
-                    continue;
-                }
+                continue;
             }
             
             LoadSb(bundles, baseBundleDic, superBundleId);
         }
     }
 
-    private bool LoadToc(string sbName, int superBundleId, DataStream stream, ref List<BundleInfo> bundles, ref Dictionary<int, BundleInfo> baseBundleDic, bool isPatched)
+    private bool LoadToc(string sbName, int superBundleId, DbObject toc, ref List<BundleInfo> bundles, ref Dictionary<int, BundleInfo> baseBundleDic, bool isPatched)
     {
-        DbObject? toc = DbObject.Deserialize(stream);
-        if (toc == null)
-        {
-            return false;
-        }
-
         // flag for if the assets are stored in cas files or in the superbundle directly
         bool isCas = toc.ContainsKey("cas") && toc["cas"].As<bool>();
 
@@ -119,38 +115,35 @@ public class StandardAssetLoader : IAssetLoader
         if (processBaseBundles)
         {
             string tocPath = FileSystemManager.ResolvePath($"native_data/{sbName}.toc");
-            using (DataStream baseStream = new(new FileStream(tocPath, FileMode.Open, FileAccess.Read), true))
+            DbObject? baseToc = DbObject.Deserialize(tocPath);
+            if (baseToc == null)
             {
-                DbObject? baseToc = DbObject.Deserialize(baseStream);
-                if (baseToc == null)
-                {
-                    return false;
-                }
+                return false;
+            }
                 
-                isCas = baseToc.ContainsKey("cas") && toc["cas"].As<bool>();
+            isCas = baseToc.ContainsKey("cas") && toc["cas"].As<bool>();
                 
-                if (!baseToc.ContainsKey("bundles"))
-                {
-                    return false;
-                }
+            if (!baseToc.ContainsKey("bundles"))
+            {
+                return false;
+            }
                 
-                foreach (DbObject bundleInfo in baseToc["bundles"].As<DbObject>())
-                {
-                    string name = bundleInfo["id"].As<string>();
+            foreach (DbObject bundleInfo in baseToc["bundles"].As<DbObject>())
+            {
+                string name = bundleInfo["id"].As<string>();
                     
-                    long offset = bundleInfo["offset"].As<long>();
-                    long size = bundleInfo["size"].As<long>();
+                long offset = bundleInfo["offset"].As<long>();
+                long size = bundleInfo["size"].As<long>();
                 
-                    baseBundleDic.Add(Utils.Utils.HashString(name, true), new BundleInfo()
-                    {
-                        Name = name,
-                        SbName = sbName,
-                        Offset = offset,
-                        Size = size,
-                        IsPatch = false,
-                        IsCas = isCas,
-                    });
-                }
+                baseBundleDic.Add(Utils.Utils.HashString(name, true), new BundleInfo()
+                {
+                    Name = name,
+                    SbName = sbName,
+                    Offset = offset,
+                    Size = size,
+                    IsPatch = false,
+                    IsCas = isCas,
+                });
             }
         }
         

@@ -167,55 +167,52 @@ public static class FileSystemManager
             return false;
         }
         
-        using (DataStream stream = new(new FileStream(path, FileMode.Open, FileAccess.Read), true))
-        {
-            DbObject? initFs = DbObject.Deserialize(stream);
+        DbObject? initFs = DbObject.Deserialize(path);
 
-            if (initFs == null)
+        if (initFs == null)
+        {
+            return false;
+        }
+
+        if (initFs.GetDbType() == DbType.Object && initFs.ContainsKey("encrypted"))
+        {
+            if (!KeyManager.HasKey("InitFsKey"))
             {
                 return false;
             }
+            byte[] key = KeyManager.GetKey("InitFsKey");
+            byte[] buffer = initFs["encrypted"].As<byte[]>();
 
-            if (initFs.GetDbType() == DbType.Object && initFs.ContainsKey("encrypted"))
+            using (Aes aes = Aes.Create())
             {
-                if (!KeyManager.HasKey("InitFsKey"))
+                aes.Key = key;
+                aes.IV = key;
+
+                ICryptoTransform transform = aes.CreateDecryptor();
+
+                using (DataStream stream = new(new MemoryStream(buffer.Length)))
                 {
-                    return false;
-                }
-                byte[] key = KeyManager.GetKey("InitFsKey");
-                byte[] buffer = initFs["encrypted"].As<byte[]>();
-
-                using (Aes aes = Aes.Create())
-                {
-                    aes.Key = key;
-                    aes.IV = key;
-
-                    ICryptoTransform transform = aes.CreateDecryptor();
-
-                    using (DataStream subStream = new(new MemoryStream(buffer.Length)))
+                    using (CryptoStream cryptoStream = new(new MemoryStream(buffer), transform, CryptoStreamMode.Read))
                     {
-                        using (CryptoStream cryptoStream = new(new MemoryStream(buffer), transform, CryptoStreamMode.Read))
-                        {
-                            cryptoStream.CopyTo(subStream);
-                        }
-                        subStream.Position = 0;
-                        initFs = DbObject.Deserialize(subStream);
+                        cryptoStream.CopyTo(stream);
+                    }
+                    stream.Position = 0;
+                    initFs = DbObject.Deserialize(stream);
 
-                        if (initFs == null)
-                        {
-                            return false;
-                        }
+                    if (initFs == null)
+                    {
+                        return false;
                     }
                 }
             }
+        }
 
-            foreach (DbObject fileStub in initFs)
-            {
-                DbObject file = fileStub["$file"].As<DbObject>();
-                string fileName = file["name"].As<string>();
+        foreach (DbObject fileStub in initFs)
+        {
+            DbObject file = fileStub["$file"].As<DbObject>();
+            string fileName = file["name"].As<string>();
 
-                s_memoryFs.TryAdd(fileName, file["payload"].As<byte[]>());
-            }
+            s_memoryFs.TryAdd(fileName, file["payload"].As<byte[]>());
         }
         return true;
     }
@@ -226,11 +223,7 @@ public static class FileSystemManager
         string patchLayoutPath = ResolvePath("native_patch/layout.toc");
         
         // Process base layout.toc
-        DbObject? baseLayout;
-        using (DataStream stream = new(new FileStream(baseLayoutPath, FileMode.Open, FileAccess.Read), true))
-        {
-            baseLayout = DbObject.Deserialize(stream);
-        }
+        DbObject? baseLayout =DbObject.Deserialize(baseLayoutPath);
 
         if (baseLayout == null)
         {
@@ -245,11 +238,7 @@ public static class FileSystemManager
         if (patchLayoutPath != "")
         {
             // Process patch layout.toc
-            DbObject? patchLayout;
-            using (DataStream stream = new(new FileStream(patchLayoutPath, FileMode.Open, FileAccess.Read), true))
-            {
-                patchLayout = DbObject.Deserialize(stream);
-            }
+            DbObject? patchLayout = DbObject.Deserialize(patchLayoutPath);
 
             if (patchLayout == null)
             {
