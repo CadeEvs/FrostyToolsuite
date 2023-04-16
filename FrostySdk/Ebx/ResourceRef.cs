@@ -18,15 +18,20 @@ public readonly struct ResourceRef
     {
         if (obj is ResourceRef a)
         {
-            return m_resourceId == a.m_resourceId;
+            return Equals(a);
         }
             
         if (obj is ulong b)
         {
-            return m_resourceId == b;
+            return Equals(b);
         }
 
         return false;
+    }
+
+    public bool Equals(ResourceRef b)
+    {
+        return m_resourceId == b.m_resourceId;
     }
 
     public static bool operator ==(ResourceRef a, ResourceRef b) => a.Equals(b);

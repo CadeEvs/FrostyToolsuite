@@ -15,7 +15,7 @@ public sealed partial class SourceGenerator
 
     private static bool BaseClassPredicate(SyntaxNode node, CancellationToken cancellationToken)
     {
-        return node is ClassDeclarationSyntax { BaseList: null } classDeclarationSyntax && classDeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword) && !classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword);
+        return node is ClassDeclarationSyntax { BaseList: null } classDeclarationSyntax && classDeclarationSyntax.Modifiers.Any(SyntaxKind.PartialKeyword) && !classDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword) && classDeclarationSyntax.AttributeLists.Count > 0;
     }
 
     private static bool DataContainerPredicate(SyntaxNode node, CancellationToken cancellationToken)

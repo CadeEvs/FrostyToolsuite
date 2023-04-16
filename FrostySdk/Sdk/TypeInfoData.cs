@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using System.Text;
 using Frosty.Sdk.Attributes;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Sdk.TypeInfoDatas;
 using Frosty.Sdk.Sdk.TypeInfos;
-using Microsoft.VisualBasic;
-using DisplayNameAttribute = System.ComponentModel.DisplayNameAttribute;
 
 namespace Frosty.Sdk.Sdk;
 
@@ -176,6 +173,11 @@ internal class TypeInfoData
         if (name == "char")
         {
             return "Char";
+        }
+
+        if (name.Contains("::"))
+        {
+            return name[(name.IndexOf("::", StringComparison.Ordinal) + 2)..];
         }
         return name.Replace(':', '_').Replace("<", "_").Replace(">", "_");
     }

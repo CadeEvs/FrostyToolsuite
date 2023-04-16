@@ -286,11 +286,16 @@ public static class AssetManager
     /// Adds SuperBundle to the AssetManager.
     /// </summary>
     /// <param name="name">The name of the SuperBundle.</param>
-    /// <returns></returns>
+    /// <returns>The Id of the SuperBundle.</returns>
     internal static int AddSuperBundle(string name)
     {
-        int id = s_superBundles.Count;
-        s_superBundlesNameHashHashMap.Add(Utils.Utils.HashString(name, true), id);
+        int hash = Utils.Utils.HashString(name, true);
+        if (s_superBundlesNameHashHashMap.TryGetValue(hash, out int id))
+        {
+            return id;
+        }
+        id = s_superBundles.Count;
+        s_superBundlesNameHashHashMap.Add(hash, id);
         s_superBundles.Add(new SuperBundleEntry() { Name = name });
         return id;
     }
@@ -299,7 +304,7 @@ public static class AssetManager
     /// Processes Assets from Bundle.
     /// </summary>
     /// <param name="bundle">The Bundle to process.</param>
-    /// <param name="superBundleId">The id of the SuperBundle the Bundle is in.</param>
+    /// <param name="superBundleId">The Id of the SuperBundle the Bundle is in.</param>
     /// <param name="bundleName">The name of the Bundle.</param>
     internal static void ProcessBundle(DbObject bundle, int superBundleId, string bundleName)
     {

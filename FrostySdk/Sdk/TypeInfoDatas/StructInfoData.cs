@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Frosty.Sdk.Attributes;
 using Frosty.Sdk.IO;
@@ -46,6 +47,13 @@ internal class StructInfoData : TypeInfoData
 
     public override void CreateType(StringBuilder sb)
     {
+        if (m_name.Contains("::"))
+        {
+            // nested type
+            sb.AppendLine($"public partial struct {m_name[..m_name.IndexOf("::", StringComparison.Ordinal)]}");
+            sb.AppendLine("{");
+        }
+        
         base.CreateType(sb);
 
         sb.AppendLine($"public partial struct {CleanUpName()}");
@@ -58,33 +66,12 @@ internal class StructInfoData : TypeInfoData
             sb.AppendLine($"[{nameof(FieldIndexAttribute)}({i})]");
             m_fieldInfos[i].CreateField(sb);
         }
-
-        // move to source generator
-        // if (m_fieldInfos.Count > 0)
-        // {
-        //     // Equals override
-        //     sb.AppendLine("public override bool Equals(object obj)\r\n{");
-        //     sb.AppendLine("if (obj == null || !(obj is " + CleanUpName() + "))\r\nreturn false;");
-        //     sb.AppendLine(CleanUpName() + " b = (" + CleanUpName() + ")obj;");
-        //     sb.Append("return ");
-        //
-        //     for (int i = 0; i < m_fieldInfos.Count; i++)
-        //     {
-        //         string fieldName = m_fieldInfos[i].GetName();
-        //         sb.AppendLine(((i != 0) ? "&& " : "") + fieldName + ".Equals(b." + fieldName + ")");
-        //     }
-        //     sb.AppendLine(";\r\n}");
-        //
-        //     // GetHashCode override
-        //     sb.AppendLine("public override int GetHashCode()\r\n{\r\nunchecked {\r\nint hash = (int)2166136261;");
-        //     for (int i = 0; i < m_fieldInfos.Count; i++)
-        //     {
-        //         string fieldName = m_fieldInfos[i].GetName();
-        //         sb.AppendLine("hash = (hash * 16777619) ^ " + fieldName + ".GetHashCode();");
-        //     }
-        //     sb.AppendLine("return hash;\r\n}\r\n}");
-        // }
-
+        
         sb.AppendLine("}");
+        
+        if (m_name.Contains("::"))
+        {
+            sb.AppendLine("}");
+        }
     }
 }

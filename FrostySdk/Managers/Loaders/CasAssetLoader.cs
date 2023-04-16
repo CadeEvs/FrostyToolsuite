@@ -26,9 +26,6 @@ public class CasAssetLoader : IAssetLoader
     {
         foreach (SuperBundleInfo sbInfo in FileSystemManager.EnumerateSuperBundles())
         {
-            // TODO: maybe just add super bundles to assetmanager if they have data
-            int superBundleId = AssetManager.AddSuperBundle(sbInfo.Name);
-
             foreach (KeyValuePair<int, InstallChunkType> installChunk in sbInfo.InstallChunks)
             {
                 if (installChunk.Value.HasFlag(InstallChunkType.Default))
@@ -46,6 +43,7 @@ public class CasAssetLoader : IAssetLoader
                     }
                 
                     List<BundleInfo> bundles = new();
+                    int superBundleId = AssetManager.AddSuperBundle(sbInfo.Name);
                 
                     using (DataStream stream = new(new FileStream(tocPath, FileMode.Open, FileAccess.Read), true))
                     {
@@ -77,6 +75,7 @@ public class CasAssetLoader : IAssetLoader
                     }
                 
                     List<BundleInfo> bundles = new();
+                    int superBundleId = AssetManager.AddSuperBundle(sbInfo.Name);
                 
                     using (DataStream stream = new(new FileStream(tocPath, FileMode.Open, FileAccess.Read), true))
                     {
@@ -341,7 +340,7 @@ public class CasAssetLoader : IAssetLoader
             uint unkOffset2 = stream.ReadUInt32(Endian.Big); // not used
             int unkCount = stream.ReadInt32(Endian.Big); // count for unkOffset1 and 2 maybe
 
-            // bundles can be stored in this file or in a seperate cas file, then the first file info is for the bundle. Seems to be related to the flag for in which file the sb is stored
+            // bundles can be stored in this file or in a separate cas file, then the first file info is for the bundle. Seems to be related to the flag for in which file the sb is stored
             bool inlineBundle = !(bundleOffset == 0 && bundleSize == 0);
 #if FROSTY_DEVELOPER
             Debug.Assert(unkOffset2 == unkOffset1 && unkCount == 0);

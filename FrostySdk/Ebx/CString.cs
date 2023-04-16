@@ -46,4 +46,8 @@ public readonly struct CString
     {
         return m_strValue.Equals(str, comparison);
     }
+
+    public static bool operator ==(CString a, object b) => a.Equals(b);
+
+    public static bool operator !=(CString a, object b) => !a.Equals(b);
 }

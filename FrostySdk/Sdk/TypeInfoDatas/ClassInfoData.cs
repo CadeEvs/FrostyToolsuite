@@ -64,17 +64,23 @@ internal class ClassInfoData : TypeInfoData
 
     public override void CreateType(StringBuilder sb)
     {
+        if (m_name.Contains("::"))
+        {
+            // nested type
+            sb.AppendLine($"public partial class {m_name[..m_name.IndexOf("::", StringComparison.Ordinal)]}");
+            sb.AppendLine("{");
+        }
+        
         base.CreateType(sb);
 
         sb.Append($"public partial class {CleanUpName()}");
 
-        string superClassName = string.Empty;
         int superClassFieldCount = 0;
         ClassInfo superClass = GetSuperClassInfo();
-        if (superClass.GetName() != GetName())
+        if (superClass.GetName() != CleanUpName())
         {
             superClassFieldCount = superClass.GetFieldCount();
-            sb.Append($" : {superClassName = superClass.GetName()}");
+            sb.Append($" : {superClass.GetName()}");
         }
         sb.AppendLine();
 
@@ -132,10 +138,15 @@ internal class ClassInfoData : TypeInfoData
         // TODO: what to do with functions
         foreach (MethodInfo method in m_methodInfos)
         {
-            method.GetFunctionInfo()?.CreateType(sb);
+            method.GetFunctionInfo().CreateType(sb);
         }
 
         sb.AppendLine("}");
+        
+        if (m_name.Contains("::"))
+        {
+            sb.AppendLine("}");
+        }
     }
 
     public int GetFieldCount() => m_fieldCount;

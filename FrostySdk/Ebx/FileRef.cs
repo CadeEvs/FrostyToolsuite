@@ -14,4 +14,23 @@ public readonly struct FileRef
     public static implicit operator FileRef(string value) => new(value);
 
     public override string ToString() => $"FileRef '{m_fileName}'";
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not FileRef b)
+        {
+            return false;
+        }
+
+        return Equals(b);
+    }
+
+    public bool Equals(FileRef b)
+    {
+        return m_fileName == b.m_fileName;
+    }
+
+    public static bool operator ==(FileRef a, object b) => a.Equals(b);
+
+    public static bool operator !=(FileRef a, object b) => !a.Equals(b);
 }

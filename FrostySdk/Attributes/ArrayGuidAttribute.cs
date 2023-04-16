@@ -2,13 +2,13 @@
 
 namespace Frosty.Sdk.Attributes;
 
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Enum, Inherited = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Delegate, Inherited = false)]
 public class ArrayGuidAttribute : Attribute
 {
     public Guid Guid { get; }
     
-    public ArrayGuidAttribute(Guid guid)
+    public ArrayGuidAttribute(string guid)
     {
-        Guid = guid;
+        Guid = Guid.Parse(guid);
     }
 }

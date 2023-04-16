@@ -26,7 +26,7 @@ public class ChunkAssetEntry : AssetEntry
     public uint LogicalSize;
 
     /// <summary>
-    /// List of SuperBundles the chunk is in.
+    /// SuperBundles that contain this <see cref="ChunkAssetEntry"/>.
     /// </summary>
     public readonly HashSet<int> SuperBundles = new();
 
@@ -54,7 +54,7 @@ public class ChunkAssetEntry : AssetEntry
     public uint RangeEnd;
     
     /// <summary>
-    /// List of SuperBundles the chunk is added to.
+    /// SuperBundles that this <see cref="ChunkAssetEntry"/> is added to.
     /// </summary>
     public readonly HashSet<int> AddedSuperBundles = new();
 
@@ -67,6 +67,14 @@ public class ChunkAssetEntry : AssetEntry
         SuperBundles.UnionWith(superBundleIds);
     }
 
+    /// <summary>
+    /// <inheritdoc/>
+    /// </summary>
+    /// <param name="bid"><inheritdoc/></param>
+    /// <returns>
+    /// <inheritdoc/>
+    /// Or if this <see cref="ChunkAssetEntry"/> is only contained in SuperBundles.
+    /// </returns>
     public override bool AddToBundle(int bid)
     {
         if (Bundles.Count == 0 && SuperBundles.Count > 0)
@@ -78,10 +86,13 @@ public class ChunkAssetEntry : AssetEntry
     }
 
     /// <summary>
-    /// Adds the current asset to the specified SuperBundle.
+    /// Adds this <see cref="ChunkAssetEntry"/> to the specified SuperBundle and marks it as dirty.
     /// </summary>
-    /// <param name="sbId">The id of the SuperBundle to add to.</param>
-    /// <returns>True if it was successfully added.</returns>
+    /// <param name="sbId">The id of the SuperBundle.</param>
+    /// <returns>
+    /// <para>True if this <see cref="ChunkAssetEntry"/> was successfully added to the SuperBundle.</para>
+    /// <para>False if this <see cref="ChunkAssetEntry"/> is already contained in the SuperBundle.</para>
+    /// </returns>
     public bool AddToSuperBundle(int sbId)
     {
         if (SuperBundles.Contains(sbId) || !AddedSuperBundles.Add(sbId))

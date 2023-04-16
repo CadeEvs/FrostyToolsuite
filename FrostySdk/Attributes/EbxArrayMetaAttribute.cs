@@ -8,7 +8,7 @@ public class EbxArrayMetaAttribute : Attribute
 {
     public TypeFlags Flags { get; set; }
     
-    public EbxArrayMetaAttribute(TypeFlags flags)
+    public EbxArrayMetaAttribute(ushort flags)
     {
         Flags = flags;
     }

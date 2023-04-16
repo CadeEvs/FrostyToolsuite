@@ -129,6 +129,10 @@ public partial struct {structContext.Name}
         return Equals(b);
     }}
 
+    public static bool operator ==({structContext.Name} a, object b) => a.Equals(b);
+
+    public static bool operator !=({structContext.Name} a, object b) => !a.Equals(b);
+
     public override int GetHashCode()
     {{
         unchecked
@@ -256,13 +260,13 @@ public partial {(typeContext.IsValueType ? "struct" : "class")} {typeContext.Nam
             {
                 meta.Remove(field.Name.Remove(0, 1));
                 prop = @$"
-    {string.Join("\n", field.Attributes.Select(static attr => $"[{attr}]"))}
+{string.Join("\n", field.Attributes.Select(static attr => $"    [{attr}]"))}
 {metaProp}";
             }
             else
             {
                 prop = $@"
-    {string.Join("\n", field.Attributes.Select(static attr => $"[{attr}]"))}
+{string.Join("\n", field.Attributes.Select(static attr => $"    [{attr}]"))}
     public {field.Type} {field.Name.Remove(0, 1)}
     {{
         get => {field.Name};
@@ -289,7 +293,7 @@ public partial {(typeContext.IsValueType ? "struct" : "class")} {typeContext.Nam
 
     public {typeContext.Name}()
     {{{constructor}
-    }}";      
+    }}";
         }
         
         source += "\n}";

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using Frosty.Sdk.IO;
@@ -139,19 +140,45 @@ public class TypeSdkGenerator
         CSharpCompilation compilation = CSharpCompilation.Create("EbxTypes", new[] { syntaxTree }, references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, optimizationLevel: OptimizationLevel.Debug));
         
+        List<AdditionalText> meta = new List<AdditionalText>();
+        
+        if (Directory.Exists("Meta"))
+        {
+            foreach (string additionalTextPath in Directory.EnumerateFiles("Meta"))
+            {
+                meta.Add(new CustomAdditionalText(additionalTextPath));
+            }
+        }
+
         GeneratorDriver driver = CSharpGeneratorDriver
             .Create(new SourceGenerator())
-            //.AddAdditionalTexts(ImmutableArray.CreateRange(/*the meta files*/))
-            ;
+            .AddAdditionalTexts(ImmutableArray.CreateRange(meta));
         
         driver.RunGeneratorsAndUpdateCompilation(
             compilation,
             out Compilation outputCompilation,
             out ImmutableArray<Diagnostic> diagnostics);
 
+        foreach (SyntaxTree tree in outputCompilation.SyntaxTrees)
+        {
+            if (string.IsNullOrEmpty(tree.FilePath))
+            {
+                continue;
+            }
+
+            FileInfo fileInfo = new(tree.FilePath);
+            Directory.CreateDirectory(fileInfo.DirectoryName!);
+            File.WriteAllText(tree.FilePath, tree.GetText().ToString());
+        }
+        
         using (FileStream stream = new("sdk.dll", FileMode.Create, FileAccess.Write))
         {
             EmitResult result = outputCompilation.Emit(stream);
+            if (result.Diagnostics.Length > 0)
+            {
+                File.WriteAllLines("Errors.txt", result.Diagnostics.Select(static d => d.ToString()));
+                return false;
+            }
         }
         
         return true;

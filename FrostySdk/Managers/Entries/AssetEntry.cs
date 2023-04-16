@@ -164,8 +164,13 @@ public class AssetEntry
     }
 
     /// <summary>
-    /// Adds the current asset to the specified bundle
+    /// Adds this <see cref="AssetEntry"/> to the specified Bundle and marks it as dirty.
     /// </summary>
+    /// <param name="bid">The Id of the Bundle.</param>
+    /// <returns>
+    /// <para>True if this <see cref="AssetEntry"/> was successfully added to the Bundle.</para>
+    /// <para>False if this <see cref="AssetEntry"/> is already contained in the Bundle.</para>
+    /// </returns>
     public virtual bool AddToBundle(int bid)
     {
         if (IsInBundle(bid))
@@ -179,6 +184,14 @@ public class AssetEntry
         return true;
     }
 
+    /// <summary>
+    /// Removes this <see cref="AssetEntry"/> from the specified Bundle and marks it as dirty.
+    /// </summary>
+    /// <param name="bid">The Id of the Bundle.</param>
+    /// <returns>
+    /// <para>True if this <see cref="AssetEntry"/> was successfully removed from the Bundle.</para>
+    /// <para>False if this <see cref="AssetEntry"/> is not contained in the Bundle.</para>
+    /// </returns>
     public virtual bool RemoveFromBundle(int bid)
     {
         if (!IsInBundle(bid))
@@ -215,8 +228,10 @@ public class AssetEntry
     }
 
     /// <summary>
-    /// Returns true if asset is in the specified bundle
+    /// Checks if this <see cref="AssetEntry"/> is in the specified Bundle.
     /// </summary>
+    /// <param name="bid">The Id of the Bundle.</param>
+    /// <returns></returns>
     public bool IsInBundle(int bid) => Bundles.Contains(bid) || AddedBundles.Contains(bid);
 
     /// <summary>

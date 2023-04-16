@@ -36,12 +36,17 @@ public struct PointerRef
 
     public override bool Equals(object? obj)
     {  
-        if (obj is PointerRef reference)
+        if (obj is not PointerRef b)
         {
-            return Type == reference.Type && Internal == reference.Internal && External == reference.External;
+            return false;
         }
 
-        return false;
+        return Equals(b);
+    }
+
+    public bool Equals(PointerRef b)
+    {
+        return Type == b.Type && Internal == b.Internal && External == b.External;
     }
 
     public override int GetHashCode()

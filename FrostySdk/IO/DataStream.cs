@@ -44,6 +44,12 @@ public unsafe class DataStream : IDisposable
             }
         }
     }
+
+    public void SetStream(Stream stream)
+    {
+        m_stream.Dispose();
+        m_stream = stream;
+    }
     
     public long Seek(long offset, SeekOrigin origin) => m_stream.Seek(offset, origin);
 

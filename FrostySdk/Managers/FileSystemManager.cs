@@ -59,6 +59,14 @@ public static class FileSystemManager
         return true;
     }
 
+    /// <summary>
+    /// Resolves the path of a file inside the games data directories.
+    /// </summary>
+    /// <param name="filename">
+    /// <para>The relative path of the file prefixed with native_data or native_patch.</para>
+    /// If there is no prefix it will look through all data directories starting with the patch ones.
+    /// </param>
+    /// <returns>The full path to the file or an empty string if the file doesnt exist.</returns>
     public static string ResolvePath(string filename)
     {
         if (filename.StartsWith("native_patch/") && s_paths.Count == 1)
@@ -89,7 +97,7 @@ public static class FileSystemManager
                 return $"{BasePath}{s_paths[i]}{filename}".Replace("\\\\", "\\");
             }
         }
-        return "";
+        return string.Empty;
     }
 
     public static string GetFilePath(ICasFileInfo casFileInfo)
