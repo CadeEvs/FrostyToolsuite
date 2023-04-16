@@ -99,7 +99,7 @@ public static class EbxSharedTypeDescriptors
                 }
                 else
                 {
-                    // its an relative offset to the field, so we have to calculate the index
+                    // its a relative offset to the field, so we have to calculate the index
                     typeDescriptor.FieldIndex = (int)((offset - typeDescriptor.FieldIndex - 0x08) / 0x10 + startFields);
                     s_typeKeyMapping.Add(key, s_typeDescriptors.Count);
                 }

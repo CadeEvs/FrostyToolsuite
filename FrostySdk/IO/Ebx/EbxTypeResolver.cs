@@ -4,10 +4,10 @@ namespace Frosty.Sdk.IO.Ebx;
 
 internal class EbxTypeResolver
 {
-    private readonly List<EbxTypeDescriptor> m_typeDescriptors;
-    private readonly List<EbxFieldDescriptor> m_fieldDescriptors;
+    private readonly EbxTypeDescriptor[] m_typeDescriptors;
+    private readonly EbxFieldDescriptor[] m_fieldDescriptors;
 
-    internal EbxTypeResolver(List<EbxTypeDescriptor> inTypeDescriptors, List<EbxFieldDescriptor> inFieldDescriptors)
+    internal EbxTypeResolver(EbxTypeDescriptor[] inTypeDescriptors, EbxFieldDescriptor[] inFieldDescriptors)
     {
         EbxSharedTypeDescriptors.Initialize();
         m_typeDescriptors = inTypeDescriptors;
@@ -37,7 +37,7 @@ internal class EbxTypeResolver
 
     public virtual EbxFieldDescriptor ResolveField(int index)
     {
-        if (m_fieldDescriptors.Count == 0)
+        if (m_fieldDescriptors.Length == 0)
         {
             return EbxSharedTypeDescriptors.GetFieldDescriptor(index);
         }

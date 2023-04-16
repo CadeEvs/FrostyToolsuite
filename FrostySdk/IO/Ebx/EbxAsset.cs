@@ -5,7 +5,7 @@ using Frosty.Sdk.Ebx;
 
 namespace Frosty.Sdk.IO.Ebx;
 
-public class EbxAsset
+public partial class EbxAsset
 {
     public Guid FileGuid => fileGuid;
     public Guid RootInstanceGuid
@@ -21,18 +21,9 @@ public class EbxAsset
     {
         get
         {
-            for (int i = 0; i < dependencies.Count; i++)
-                yield return dependencies[i];
-        }
-    }
-    public IEnumerable<object> RootObjects
-    {
-        get
-        {
-            for (int i = 0; i < objects.Count; i++)
+            foreach (Guid dependency in dependencies)
             {
-                if (refCounts[i] == 0 || i == 0)
-                    yield return objects[i];
+                yield return dependency;
             }
         }
     }
@@ -62,9 +53,8 @@ public class EbxAsset
     public bool TransientEdit { get; set; }
 
     internal Guid fileGuid;
-    internal List<object> objects;
-    internal List<Guid> dependencies;
-    internal List<int> refCounts;
+    internal List<object> objects = new();
+    internal HashSet<Guid> dependencies = new();
 
     public EbxAsset()
     {
@@ -74,15 +64,10 @@ public class EbxAsset
     {
         fileGuid = Guid.NewGuid();
 
-        objects = new List<object>();
-        refCounts = new List<int>();
-        dependencies = new List<Guid>();
-
         foreach (dynamic obj in rootObjects)
         {
             obj.SetInstanceGuid(new AssetClassGuid(Guid.NewGuid(), objects.Count));
             objects.Add(obj);
-            refCounts.Add(0);
         }
     }
 
@@ -96,7 +81,7 @@ public class EbxAsset
     /// <summary>
     /// Saves the resource as a specialized ModifiedResource object
     /// </summary>
-    public virtual ModifiedResource SaveModifiedResource()
+    public virtual ModifiedResource? SaveModifiedResource()
     {
         return null;
     }
@@ -108,7 +93,7 @@ public class EbxAsset
     {
     }
 
-    public dynamic GetObject(Guid guid)
+    public dynamic? GetObject(Guid guid)
     {
         foreach (dynamic obj in ExportedObjects)
         {
@@ -147,34 +132,19 @@ public class EbxAsset
         if (idx == -1)
             return;
 
-        refCounts[idx]--;
-        if(refCounts[idx] <= 0)
-        {
-            refCounts.RemoveAt(idx);
-            objects.RemoveAt(idx);
-        }
+        objects.RemoveAt(idx);
     }
 
     public void Update()
     {
         dependencies.Clear();
-
-        Dictionary<object, int> mapping = new Dictionary<object, int>();
-
-        for (int i = 0; i < objects.Count; i++)
-        {
-            mapping.Add(objects[i], i);
-        }
-
-        List<int> nonRootObjs = new List<int>();
-        List<Tuple<PropertyInfo, object>> refProps = new List<Tuple<PropertyInfo, object>>();
-        List<Tuple<object, Guid>> externalProps = new List<Tuple<object, Guid>>();
-        List<object> objsToProcess = new List<object>();
-        int z = 0;
+        
+        List<Tuple<PropertyInfo, object>> refProps = new();
+        List<Tuple<object, Guid>> externalProps = new();
+        List<object> objsToProcess = new();
 
         // count refs for all pointers
         objsToProcess.AddRange(objects);
-        nonRootObjs.Add(0);
 
         while (objsToProcess.Count > 0)
         {
@@ -186,8 +156,7 @@ public class EbxAsset
         {
             if (objects.Contains(externalProp.Item1))
             {
-                if (!dependencies.Contains(externalProp.Item2))
-                    dependencies.Add(externalProp.Item2);
+                dependencies.Add(externalProp.Item2);
             }
         }
 

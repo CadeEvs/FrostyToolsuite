@@ -539,7 +539,7 @@ public static class AssetManager
                 entry.Guid = reader.FileGuid;
 
                 // now grab the actual asset name
-                reader.Position = reader.stringsOffset;
+                reader.Position = reader.m_stringsOffset;
                 string name = reader.ReadNullTerminatedString();
                 int newNameHash = Utils.Utils.HashString(name, true);
 
@@ -549,7 +549,7 @@ public static class AssetManager
                     entry.Name = name;
                 }
 
-                foreach (EbxImportReference import in reader.imports)
+                foreach (EbxImportReference import in reader.m_imports)
                 {
                     if (!entry.ContainsDependency(import.FileGuid))
                     {

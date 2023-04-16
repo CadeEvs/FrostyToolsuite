@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace FrostyTypeSdkGenerator;
 
-internal sealed partial class SourceGenerator
+public sealed partial class SourceGenerator
 {   
     private readonly record struct TypeContext(string? Namespace, string Name, bool IsValueType, ImmutableArray<FieldContext> Fields);
     

@@ -1,12 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers;
+using FrostyTypeSdkGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Frosty.Sdk.Sdk;
 
@@ -117,23 +122,37 @@ public class TypeSdkGenerator
         
         File.WriteAllText("sdk.cs", source);
 
-        var syntaxTree = CSharpSyntaxTree.ParseText(source);
+        SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 
-        MetadataReference[] references =
+        List<MetadataReference> references = new();
+        
+        Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+
+        foreach (Assembly assembly in assemblies)
         {
-            MetadataReference.CreateFromFile("FrostySdkGenerator.dll", new MetadataReferenceProperties(MetadataImageKind.Assembly)),
-            MetadataReference.CreateFromFile("FrostySdk.dll")
-        };
+            if (!assembly.IsDynamic)
+            {
+                references.Add(MetadataReference.CreateFromFile(assembly.Location));
+            }
+        }
 
-        var compilation = CSharpCompilation.Create("EbxTypes", new[] { syntaxTree }, references,
+        CSharpCompilation compilation = CSharpCompilation.Create("EbxTypes", new[] { syntaxTree }, references,
             new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, optimizationLevel: OptimizationLevel.Debug));
+        
+        GeneratorDriver driver = CSharpGeneratorDriver
+            .Create(new SourceGenerator())
+            //.AddAdditionalTexts(ImmutableArray.CreateRange(/*the meta files*/))
+            ;
+        
+        driver.RunGeneratorsAndUpdateCompilation(
+            compilation,
+            out Compilation outputCompilation,
+            out ImmutableArray<Diagnostic> diagnostics);
 
         using (FileStream stream = new("sdk.dll", FileMode.Create, FileAccess.Write))
         {
-            var result = compilation.Emit(stream);
+            EmitResult result = outputCompilation.Emit(stream);
         }
-        
-        // TODO: link source generator
         
         return true;
     }

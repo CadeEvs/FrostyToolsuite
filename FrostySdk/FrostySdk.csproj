@@ -15,4 +15,8 @@
       <PackageReference Include="Zlib.Bindings" Version="1.10.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj" />
+    </ItemGroup>
+
 </Project>

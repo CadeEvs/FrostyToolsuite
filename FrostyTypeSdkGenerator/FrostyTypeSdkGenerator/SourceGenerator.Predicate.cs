@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace FrostyTypeSdkGenerator;
 
-internal sealed partial class SourceGenerator
+public sealed partial class SourceGenerator
 {
     private static bool StructPredicate(SyntaxNode node, CancellationToken cancellationToken)
     {
