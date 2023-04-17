@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using Frosty.Sdk;
 using Frosty.Sdk.IO.Ebx;
 using Frosty.Sdk.Managers;
@@ -18,30 +20,45 @@ internal static class Program
         {
             throw new Exception("ProfilesLibrary");
         }
+
+        // generate sdk if needed
+        string sdkPath = $"Sdk/{ProfilesLibrary.SdkFilename}.dll";
+        if (!File.Exists(sdkPath))
+        {
+            TypeSdkGenerator typeSdkGenerator = new();
+            
+            Process.Start(FileSystemManager.BasePath + ProfilesLibrary.ProfileName);
+            
+            // sleep 10 seconds to give ea time to launch the game
+            Thread.Sleep(10 * 100);
+            
+            Process? game = null;
+            while (game == null)
+            {
+                game = Process.GetProcessesByName(ProfilesLibrary.ProfileName).FirstOrDefault();
+            }
+            
+            if (!typeSdkGenerator.DumpTypes(game))
+            {
+                throw new Exception("DumpTypes");
+            }
+            
+            if (!typeSdkGenerator.CreateSdk(sdkPath))
+            {
+                throw new Exception("CreateSdk");
+            }
+        }
+
+        // init type library, this loads the EbxTypeSdk used to properly parse ebx assets
+        if (!TypeLibrary.Initialize())
+        {
+            throw new Exception("ProfilesLibrary");
+        }
             
         // init filesystem manager, this parses the layout.toc file
         if (!FileSystemManager.Initialize("C:\\Program Files\\EA Games\\STAR WARS Battlefront II"))
         {
             throw new Exception("FileSystemManager");
-        }
-        
-        TypeSdkGenerator typeSdkGenerator = new();
-
-        //Process.Start(FileSystemManager.BasePath + ProfilesLibrary.ProfileName);
-        Process? game = null;
-        while (game == null)
-        {
-            game = Process.GetProcessesByName(ProfilesLibrary.ProfileName).FirstOrDefault();
-        }
-
-        if (!typeSdkGenerator.DumpTypes(game))
-        {
-            throw new Exception("dumping types");
-        }
-
-        if (!typeSdkGenerator.CreateSdk())
-        {
-            throw new Exception("sdk writing");
         }
         
         // init resource manager, this parses the cas.cat files if they exist for easy asset lookup
@@ -57,6 +74,10 @@ internal static class Program
         }
 
         EbxAssetEntry? ebxEntry = AssetManager.GetEbxAssetEntry("default/settings_win32");
-        EbxAsset asset = AssetManager.GetEbx(ebxEntry!);
+
+        if (ebxEntry is not null)
+        {
+            EbxAsset asset = AssetManager.GetEbx(ebxEntry);
+        }
     }
 }

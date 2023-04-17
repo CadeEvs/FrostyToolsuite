@@ -7,18 +7,18 @@ namespace Frosty.Sdk.Sdk;
 
 public class CustomAdditionalText : AdditionalText
 {
-    private readonly string _text;
+    private readonly string m_text;
 
     public override string Path { get; }
 
     public CustomAdditionalText(string path)
     {
         Path = path;
-        _text = File.ReadAllText(path);
+        m_text = File.ReadAllText(path);
     }
 
     public override SourceText GetText(CancellationToken cancellationToken = new())
     {
-        return SourceText.From(_text);
+        return SourceText.From(m_text);
     }
 }

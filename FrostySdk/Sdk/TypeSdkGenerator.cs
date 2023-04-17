@@ -67,7 +67,7 @@ public class TypeSdkGenerator
         return TypeInfo.TypeInfoMapping.Count != 0;
     }
 
-    public bool CreateSdk()
+    public bool CreateSdk(string filePath)
     {
         StringBuilder sb = new();
         
@@ -171,10 +171,10 @@ public class TypeSdkGenerator
             File.WriteAllText(tree.FilePath, tree.GetText().ToString());
         }
         
-        using (FileStream stream = new("sdk.dll", FileMode.Create, FileAccess.Write))
+        using (FileStream stream = new(filePath, FileMode.Create, FileAccess.Write))
         {
             EmitResult result = outputCompilation.Emit(stream);
-            if (result.Diagnostics.Length > 0)
+            if (!result.Success)
             {
                 File.WriteAllLines("Errors.txt", result.Diagnostics.Select(static d => d.ToString()));
                 return false;

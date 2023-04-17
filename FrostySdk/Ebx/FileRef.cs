@@ -33,4 +33,9 @@ public readonly struct FileRef
     public static bool operator ==(FileRef a, object b) => a.Equals(b);
 
     public static bool operator !=(FileRef a, object b) => !a.Equals(b);
+
+    public override int GetHashCode()
+    {
+        return m_fileName.GetHashCode();
+    }
 }
