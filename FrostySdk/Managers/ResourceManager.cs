@@ -72,11 +72,6 @@ public static class ResourceManager
         return true;
     }
 
-    public static Sha1 GetBaseSha1(Sha1 sha1)
-    {
-        return s_patchEntries.TryGetValue(sha1, out CatPatchEntry value) ? value.BaseSha1 : Sha1.Zero;
-    }
-
     #region -- GetResourceData --
 
     public static Stream GetResourceData(Sha1 sha1)
@@ -149,6 +144,69 @@ public static class ResourceManager
         }
     }
 
+    #endregion
+
+    #region -- GetRawResourceData --
+
+    public static Stream GetRawResourceData(Sha1 sha1)
+    {
+        // newer games store patch entries in the cat and not in the bundle
+        if (s_patchEntries.TryGetValue(sha1, out CatPatchEntry patchEntry))
+        {
+            return GetRawResourceData(patchEntry.BaseSha1, patchEntry.DeltaSha1);
+        }
+
+        if (!s_resourceEntries.TryGetValue(sha1, out CatResourceEntry entry))
+        {
+            throw new Exception();
+        }
+
+        if (entry.IsEncrypted/* && !KeyManager.HasKey(entry.KeyId)*/)
+        {
+            //throw new Exception("Missing Key");
+            throw new NotImplementedException();
+        }
+
+        using (DataStream stream = new(new FileStream(s_casFiles[entry.ArchiveIndex], FileMode.Open, FileAccess.Read)))
+        {
+            stream.Position = entry.Offset;
+            return new MemoryStream(stream.ReadBytes((int)entry.Size));
+        }
+    }
+    
+    public static Stream GetRawResourceData(Sha1 baseSha1, Sha1 deltaSha1)
+    {
+        if (!s_resourceEntries.TryGetValue(baseSha1, out CatResourceEntry baseEntry) || !s_resourceEntries.TryGetValue(deltaSha1, out CatResourceEntry deltaEntry))
+        {
+            throw new Exception();
+        }
+
+        using (DataStream baseReader = new (new FileStream(s_casFiles[baseEntry.ArchiveIndex], FileMode.Open, FileAccess.Read)))
+        {
+            using (DataStream deltaReader = (deltaEntry.ArchiveIndex == baseEntry.ArchiveIndex) ? baseReader : new(new FileStream(s_casFiles[deltaEntry.ArchiveIndex], FileMode.Open, FileAccess.Read)))
+            {
+                byte[]? baseKey = (baseEntry.IsEncrypted && KeyManager.HasKey(baseEntry.KeyId)) ? KeyManager.GetKey(baseEntry.KeyId) : null;
+                byte[]? deltaKey = (deltaEntry.IsEncrypted && KeyManager.HasKey(deltaEntry.KeyId)) ? KeyManager.GetKey(deltaEntry.KeyId) : null;
+
+                if (baseEntry.IsEncrypted && baseKey == null || deltaEntry.IsEncrypted && deltaKey == null)
+                {
+                    throw new Exception("Missing Key");
+                }
+
+                throw new NotImplementedException();
+            }
+        }
+    }
+
+    public static Stream GetRawResourceData(FileInfo fileInfo)
+    {
+        using (DataStream stream = new(new FileStream(fileInfo.Path, FileMode.Open, FileAccess.Read)))
+        {
+            stream.Position = fileInfo.Offset;
+            return new MemoryStream(stream.ReadBytes((int)fileInfo.Size));
+        }
+    }
+    
     #endregion
 
     /// <summary>

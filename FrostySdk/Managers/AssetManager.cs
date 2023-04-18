@@ -14,6 +14,9 @@ using FileInfo = Frosty.Sdk.Managers.Infos.FileInfo;
 
 namespace Frosty.Sdk.Managers;
 
+/// <summary>
+/// Manages everything related to Assets from the game.
+/// </summary>
 public static class AssetManager
 {
     public static bool IsInitialized;
@@ -38,6 +41,11 @@ public static class AssetManager
     private const ulong c_cacheMagic = 0x02005954534F5246; 
     private const uint c_cacheVersion = 4;
 
+    /// <summary>
+    /// Parses the games SuperBundles and creates lookups for all Assets, Bundles and SuperBundles.
+    /// </summary>
+    /// <param name="patchResult">The <see cref="PatchResult"/> that all the changes will get added to, if it is not null and a previous cache exists.</param>
+    /// <returns>False if the initialization failed.</returns>
     public static bool Initialize(PatchResult? patchResult = null)
     {
         if (IsInitialized)
@@ -154,12 +162,22 @@ public static class AssetManager
 
     #region -- SuperBundle --
 
+    /// <summary>
+    /// Gets the <see cref="SuperBundleEntry"/> by name.
+    /// </summary>
+    /// <param name="name">The name of the SuperBundle.</param>
+    /// <returns>The <see cref="SuperBundleEntry"/> or null if it doesn't exist.</returns>
     public static SuperBundleEntry? GetSuperBundleEntry(string name)
     {
         int nameHash = Utils.Utils.HashString(name, true);
         return s_superBundlesNameHashHashMap.TryGetValue(nameHash, out int value) ? s_superBundles[value] : null;
     }
     
+    /// <summary>
+    /// Gets the <see cref="SuperBundleEntry"/> by Id.
+    /// </summary>
+    /// <param name="id">The Id of the SuperBundle.</param>
+    /// <returns>The <see cref="SuperBundleEntry"/> or null if it doesn't exist.</returns>
     public static SuperBundleEntry? GetSuperBundleEntry(int id)
     {
         return s_superBundles.Count > id ? s_superBundles[id] : null;
@@ -169,12 +187,22 @@ public static class AssetManager
 
     #region -- Bundle --
 
+    /// <summary>
+    /// Gets the <see cref="BundleEntry"/> by name.
+    /// </summary>
+    /// <param name="name">The name of the Bundle.</param>
+    /// <returns>The <see cref="BundleEntry"/> or null if it doesn't exist.</returns>
     public static BundleEntry? GetBundleEntry(string name)
     {
         int nameHash = Utils.Utils.HashString(name, true);
         return s_bundlesNameHashHashMap.TryGetValue(nameHash, out int value) ? s_bundles[value] : null;
     }
 
+    /// <summary>
+    /// Gets the <see cref="BundleEntry"/> by name.
+    /// </summary>
+    /// <param name="id">The Id of the Bundle.</param>
+    /// <returns>The <see cref="BundleEntry"/> or null if it doesn't exist.</returns>
     public static BundleEntry? GetBundleEntry(int id)
     {
         return s_bundles.Count > id ? s_bundles[id] : null;
@@ -186,12 +214,22 @@ public static class AssetManager
 
     #region -- Ebx --
 
+    /// <summary>
+    /// Gets the <see cref="EbxAssetEntry"/> by name.
+    /// </summary>
+    /// <param name="name">The name of the Ebx.</param>
+    /// <returns>The <see cref="EbxAssetEntry"/> or null if it doesn't exist.</returns>
     public static EbxAssetEntry? GetEbxAssetEntry(string name)
     {
         int nameHash = Utils.Utils.HashString(name, true);
         return s_ebxNameHashHashMap.TryGetValue(nameHash, out int value) ? s_ebxAssetEntries[value] : null;
     }
     
+    /// <summary>
+    /// Gets the <see cref="EbxAssetEntry"/> by <see cref="Guid"/>.
+    /// </summary>
+    /// <param name="guid">The <see cref="Guid"/> of the Ebx.</param>
+    /// <returns>The <see cref="EbxAssetEntry"/> or null if it doesn't exist.</returns>
     public static EbxAssetEntry? GetEbxAssetEntry(Guid guid)
     {
         return s_ebxGuidHashMap.TryGetValue(guid, out int value) ? s_ebxAssetEntries[value] : null;
@@ -201,12 +239,22 @@ public static class AssetManager
     
     #region -- Res --
 
+    /// <summary>
+    /// Gets the <see cref="ResAssetEntry"/> by name.
+    /// </summary>
+    /// <param name="name">The name of the Res.</param>
+    /// <returns>The <see cref="ResAssetEntry"/> or null if it doesn't exist.</returns>
     public static ResAssetEntry? GetResAssetEntry(string name)
     {
         int nameHash = Utils.Utils.HashString(name, true);
         return s_resNameHashHashMap.TryGetValue(nameHash, out int value) ? s_resAssetEntries[value] : null;
     }
     
+    /// <summary>
+    /// Gets the <see cref="ResAssetEntry"/> by Rid.
+    /// </summary>
+    /// <param name="resRid">The Rid of the Res.</param>
+    /// <returns>The <see cref="ResAssetEntry"/> or null if it doesn't exist.</returns>
     public static ResAssetEntry? GetResAssetEntry(ulong resRid)
     {
         return s_resRidHashMap.TryGetValue(resRid, out int value) ? s_resAssetEntries[value] : null;
@@ -216,6 +264,11 @@ public static class AssetManager
 
     #region -- Chunk --
     
+    /// <summary>
+    /// Gets the <see cref="ChunkAssetEntry"/> by Id.
+    /// </summary>
+    /// <param name="chunkId">The Id of the Res.</param>
+    /// <returns>The <see cref="ChunkAssetEntry"/> or null if it doesn't exist.</returns>
     public static ChunkAssetEntry? GetChunkAssetEntry(Guid chunkId)
     {
         return s_chunkGuidHashMap.TryGetValue(chunkId, out int value) ? s_chunkAssetEntries[value] : null;
@@ -229,46 +282,29 @@ public static class AssetManager
 
     #region -- GetAsset --
     
-    public static EbxAsset GetEbx(EbxAssetEntry entry, bool getUnmodifiedData = false)
+    public static EbxAsset GetEbx(EbxAssetEntry entry)
     {
-        // return modified data as a data object
-        if (!getUnmodifiedData && entry.ModifiedEntry?.DataObject is EbxAsset asset)
-        {
-            return asset;
-        }
-        
         using (EbxReader reader = EbxReader.CreateReader(GetAsset(entry)))
         {
             return reader.ReadAsset<EbxAsset>();
         }
     }
 
-    public static T GetResAs<T>(ResAssetEntry entry, ModifiedResource? modifiedResource = null)
+    public static T GetResAs<T>(ResAssetEntry entry)
         where T : Resource, new()
     {
         using (DataStream stream = new(GetAsset(entry)))
         {
-            if (modifiedResource == null && entry.ModifiedEntry?.DataObject != null)
-            {
-                modifiedResource = entry.ModifiedEntry.DataObject as ModifiedResource;
-            }
-
             T retVal = new T();
             retVal.Set(entry);
             retVal.Deserialize(stream);
-            retVal.ApplyModifications(modifiedResource);
             
             return retVal;
         }
     }
 
-    private static Stream GetAsset(AssetEntry entry)
+    public static Stream GetAsset(AssetEntry entry)
     {
-        if (entry.ModifiedEntry?.Data != null)
-        {
-            // TODO: decompress entry.ModifiedEntry.Data
-        }
-    
         switch (entry.Location)
         {
             case AssetDataLocation.Cas:
@@ -280,8 +316,31 @@ public static class AssetManager
         }
     }
 
+    public static Stream GetRawAsset(AssetEntry entry)
+    {
+        switch (entry.Location)
+        {
+            case AssetDataLocation.Cas:
+                return entry.BaseSha1 != Sha1.Zero ? ResourceManager.GetRawResourceData(entry.BaseSha1, entry.DeltaSha1) : ResourceManager.GetResourceData(entry.Sha1);
+            case AssetDataLocation.CasNonIndexed:
+                return ResourceManager.GetRawResourceData(entry.FileInfo);
+            default:
+                throw new Exception();
+        }
+    }
+
     #endregion
+
+    public static IEnumerable<SuperBundleEntry> EnumerateSuperBundles() => s_superBundles;
     
+    public static IEnumerable<SuperBundleEntry> EnumerateSuperBundlesYield()
+    {
+        for (int i = 0; i < s_superBundles.Count; i++)
+        {
+            yield return s_superBundles[i];
+        }
+    }
+
     /// <summary>
     /// Adds SuperBundle to the AssetManager.
     /// </summary>
@@ -296,7 +355,7 @@ public static class AssetManager
         }
         id = s_superBundles.Count;
         s_superBundlesNameHashHashMap.Add(hash, id);
-        s_superBundles.Add(new SuperBundleEntry() { Name = name });
+        s_superBundles.Add(new SuperBundleEntry(name));
         return id;
     }
 
@@ -336,7 +395,7 @@ public static class AssetManager
             ChunkAssetEntry existing = s_chunkAssetEntries[s_chunkGuidHashMap[entry.Id]];
             
             // add existing Bundles
-            entry.Bundles.AddRange(existing.Bundles);
+            entry.Bundles.UnionWith(existing.Bundles);
 
             // add logicalOffset/Size, since those are only stored in bundles
             entry.LogicalOffset = existing.LogicalOffset;
@@ -365,7 +424,7 @@ public static class AssetManager
             return bundleId;
         }
         s_bundlesNameHashHashMap.Add(hash, s_bundles.Count);
-        s_bundles.Add(new BundleEntry() { Name = name, SuperBundleId = superBundleId});
+        s_bundles.Add(new BundleEntry(name, superBundleId));
         return s_bundles.Count - 1;
     }
 
@@ -554,12 +613,9 @@ public static class AssetManager
                     entry.Name = name;
                 }
 
-                foreach (EbxImportReference import in reader.m_imports)
+                foreach (EbxImportReference import in reader.Imports)
                 {
-                    if (!entry.ContainsDependency(import.FileGuid))
-                    {
-                        entry.DependentAssets.Add(import.FileGuid);
-                    }
+                    entry.DependentAssets.Add(import.FileGuid);
                 }
                 
                 s_ebxGuidHashMap.Add(entry.Guid, i);
@@ -571,14 +627,15 @@ public static class AssetManager
                     if (TypeLibrary.IsSubClassOf(entry.Type, "BlueprintBundle") ||
                         TypeLibrary.IsSubClassOf(entry.Type, "SubWorldData"))
                     {
-                        BundleEntry be = s_bundles[entry.Bundles[0]];
+                        BundleEntry be = s_bundles[entry.Bundles.First()];
 
                         be.Name = entry.Name;
                         if (!be.Name.StartsWith("win32/", StringComparison.OrdinalIgnoreCase))
                         {
-                            be.Name = "win32/" + be.Name;
+                            be.Name = "win32/" + entry.Name;
                         }
                         be.Blueprint = entry;
+                        
                     }
                     else if (TypeLibrary.IsSubClassOf(entry.Type, "UIItemDescriptionAsset") ||
                              TypeLibrary.IsSubClassOf(entry.Type, "UIMetaDataAsset"))

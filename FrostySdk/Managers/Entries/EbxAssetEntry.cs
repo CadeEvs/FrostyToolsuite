@@ -20,37 +20,30 @@ public class EbxAssetEntry : AssetEntry
             return base.Name;
         }
     }
-        
-    public Guid Guid;
-    public readonly List<Guid> DependentAssets = new();
+    
     public override string AssetType => "ebx";
+    
+    /// <summary>
+    /// The <see cref="Guid"/> of this <see cref="EbxAssetEntry"/>.
+    /// </summary>
+    public Guid Guid;
+    
+    /// <summary>
+    /// <see cref="Guid"/>s of the <see cref="EbxAssetEntry"/>s this <see cref="EbxAssetEntry"/> depends on.
+    /// </summary>
+    public readonly HashSet<Guid> DependentAssets = new();
 
     public EbxAssetEntry(string inName, Sha1 inSha1, long inSize, long inOriginalSize)
         : base(inSha1, inSize, inOriginalSize)
     {
         base.Name = inName;
     }
-
-    public bool ContainsDependency(Guid guid)
-    {
-        return HasModifiedData ? ModifiedEntry!.DependentAssets.Contains(guid) : DependentAssets.Contains(guid);
-    }
-
+    
     public IEnumerable<Guid> EnumerateDependencies()
     {
-        if (HasModifiedData)
+        foreach (Guid guid in DependentAssets)
         {
-            foreach (Guid guid in ModifiedEntry!.DependentAssets)
-            {
-                yield return guid;
-            }
-        }
-        else
-        {
-            foreach (Guid guid in DependentAssets)
-            {
-                yield return guid;
-            }
+            yield return guid;
         }
     }
 }

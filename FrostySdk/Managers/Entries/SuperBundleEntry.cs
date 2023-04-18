@@ -2,6 +2,13 @@
 
 public class SuperBundleEntry
 {
-    public string Name = string.Empty;
-    public bool Added;
+    /// <summary>
+    /// The name of this <see cref="SuperBundleEntry"/>.
+    /// </summary>
+    public string Name { get; }
+
+    public SuperBundleEntry(string inName)
+    {
+        Name = inName;
+    }
 }

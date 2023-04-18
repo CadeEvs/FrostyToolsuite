@@ -26,6 +26,7 @@ public class EbxReader : DataStream
     public Guid FileGuid => m_fileGuid;
     public virtual string RootType => GetType(m_typeResolver.ResolveType(m_instances[0].TypeDescriptorRef)).Name;
     public HashSet<Guid> Dependencies => m_dependencies;
+    public EbxImportReference[] Imports => m_imports;
     public bool IsValid => m_isValid;
 
     protected readonly EbxFieldDescriptor[] m_fieldDescriptors;
@@ -33,7 +34,7 @@ public class EbxReader : DataStream
     protected readonly EbxInstance[] m_instances;
     protected readonly EbxArray[] m_arrays;
     protected readonly EbxBoxedValue[] m_boxedValues;
-    internal readonly EbxImportReference[] m_imports;
+    protected readonly EbxImportReference[] m_imports;
     protected HashSet<Guid> m_dependencies = new();
     protected List<object> m_objects = new();
 
@@ -46,11 +47,6 @@ public class EbxReader : DataStream
     protected bool m_isValid;
 
     private readonly EbxTypeResolver m_typeResolver;
-
-    internal EbxReader(Stream inStream, bool passthru)
-        : base(inStream)
-    {
-    }
 
     public EbxReader(Stream inStream)
         : base(inStream)

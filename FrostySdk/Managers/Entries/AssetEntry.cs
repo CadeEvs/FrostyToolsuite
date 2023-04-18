@@ -1,23 +1,29 @@
 using System;
 using System.Collections.Generic;
 using Frosty.Sdk.Managers.Infos;
-using static Frosty.Sdk.Utils.Utils;
 
 namespace Frosty.Sdk.Managers.Entries;
 
-public enum AssetDataLocation
+public abstract class AssetEntry
 {
-    Cas,
-    CasNonIndexed
-}
+    /// <summary>
+    /// The name of this <see cref="AssetEntry"/>.
+    /// </summary>
+    public virtual string Name { get; internal set; } = string.Empty;
+    
+    /// <summary>
+    /// The Type of this <see cref="AssetEntry"/>.
+    /// </summary>
+    public virtual string Type { get; internal set; } = string.Empty;
 
-public class AssetEntry
-{
-    public virtual string Name { get; set; } = string.Empty;
-    public virtual string Type { get; set; } = string.Empty;
-    public virtual string AssetType { get; } = string.Empty;
-
-    public virtual string DisplayName => $"{Filename}{(IsDirty ? "*" : "")}";
+    /// <summary>
+    /// The AssetType of this <see cref="AssetEntry"/>.
+    /// </summary>
+    public virtual string AssetType => string.Empty;
+    
+    /// <summary>
+    /// The Filename of this <see cref="AssetEntry"/>.
+    /// </summary>
     public virtual string Filename
     {
         get
@@ -26,205 +32,64 @@ public class AssetEntry
             return id == -1 ? Name : Name[(id + 1)..];
         }
     }
+    
+    /// <summary>
+    /// The Path of this <see cref="AssetEntry"/>.
+    /// </summary>
     public virtual string Path
     {
         get
         {
             int id = Name.LastIndexOf('/');
-            return id == -1 ? "" : Name[..id];
-        }
-    }
-
-    public Sha1 Sha1;
-    public long Size;
-    public long OriginalSize;
-    
-    // We dont need this, since an asset is always inline if size < 256
-    //public bool IsInline;
-    
-    public AssetDataLocation Location;
-    
-    public Sha1 BaseSha1;
-    public Sha1 DeltaSha1;
-
-    public FileInfo FileInfo;
-
-    public readonly List<int> Bundles = new();
-    
-    public readonly List<int> AddedBundles = new();
-    public readonly List<int> RemovedBundles = new();
-
-    public ModifiedAssetEntry? ModifiedEntry;
-    public readonly List<AssetEntry> LinkedAssets = new();
-
-    private bool m_dirty;
-    
-    /// <summary>
-    /// returns true if this asset was added
-    /// </summary>
-    public bool IsAdded { get; set; }
-
-    /// <summary>
-    /// returns true if this asset or any asset linked to it is modified
-    /// </summary>
-    public virtual bool IsModified => IsDirectlyModified || IsIndirectlyModified;
-
-    /// <summary>
-    /// returns true if this asset (and only this asset) is modified
-    /// </summary>
-    public bool IsDirectlyModified => ModifiedEntry != null || AddedBundles.Count != 0 || RemovedBundles.Count != 0;
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public bool HasModifiedData => ModifiedEntry != null && (ModifiedEntry.Data != null || ModifiedEntry.DataObject != null);
-
-    /// <summary>
-    /// returns true if this asset is considered modified through another linked asset
-    /// ie. An ebx would be considered modified if its linked resource has been modified
-    /// </summary>
-    public bool IsIndirectlyModified
-    {
-        get
-        {
-            foreach (AssetEntry entry in LinkedAssets)
-            {
-                if (entry.IsModified)
-                    return true;
-            }
-            return false;
+            return id == -1 ? string.Empty : Name[..id];
         }
     }
 
     /// <summary>
-    /// returns true if this asset, or any asset linked to it is dirty
+    /// The <see cref="Sha1"/> hash of the compressed data of this <see cref="AssetEntry"/>.
     /// </summary>
-    public virtual bool IsDirty
-    {
-        get
-        {
-            if (m_dirty)
-            {
-                return true;
-            }
+    public Sha1 Sha1 { get; }
+    
+    /// <summary>
+    /// The size of the compressed data of this <see cref="AssetEntry"/>.
+    /// </summary>
+    public long Size { get; }
+    
+    /// <summary>
+    /// The size of the uncompressed data of this <see cref="AssetEntry"/>.
+    /// </summary>
+    public long OriginalSize { get; }
 
-            foreach (AssetEntry entry in LinkedAssets)
-            {
-                if (entry.IsDirty)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-        set
-        {
-            if (m_dirty != value)
-            {
-                m_dirty = value;
-                if (m_dirty)
-                {
-                    OnModified();
-                }
-            }
-        }
-    }
+    /// <summary>
+    /// The Bundles that contain this <see cref="AssetEntry"/>. 
+    /// </summary>
+    public readonly HashSet<int> Bundles = new();
 
-    public AssetEntry(Sha1 inSha1, long inSize, long inOriginalSize)
+    /// <summary>
+    /// The <see cref="AssetDataLocation"/> of where this <see cref="AssetEntry"/> is stored.
+    /// </summary>
+    internal AssetDataLocation Location;
+
+    /// <summary>
+    /// The <see cref="Sha1"/> hash of the BaseData if this <see cref="AssetEntry"/> is stored as Delta.
+    /// </summary>
+    internal Sha1 BaseSha1;
+    
+    /// <summary>
+    /// The <see cref="Sha1"/> hash of the DeltaData if this <see cref="AssetEntry"/> is stored as Delta.
+    /// </summary>
+    internal Sha1 DeltaSha1;
+
+    /// <summary>
+    /// The <see cref="FileInfo"/> of this <see cref="AssetEntry"/> if its not stored as Delta.
+    /// </summary>
+    internal FileInfo FileInfo;
+
+    protected AssetEntry(Sha1 inSha1, long inSize, long inOriginalSize)
     {
         Sha1 = inSha1;
         Size = inSize;
         OriginalSize = inOriginalSize;
-        BaseSha1 = ResourceManager.GetBaseSha1(inSha1);
-    }
-
-    /// <summary>
-    /// Links the current asset to another
-    /// </summary>
-    public void LinkAsset(AssetEntry assetToLink)
-    {
-        if (!LinkedAssets.Contains(assetToLink))
-        {
-            LinkedAssets.Add(assetToLink);
-        }
-
-        if (assetToLink is ChunkAssetEntry entry)
-        {
-            if (entry.HasModifiedData)
-            {
-                // store the res/ebx name in the chunk
-                entry.ModifiedEntry!.H32 = HashString(Name, true);
-            }
-            else
-            {
-                // asset was added to bundle (so no ModifiedEntry)
-                entry.H32 = HashString(Name, true);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Adds this <see cref="AssetEntry"/> to the specified Bundle and marks it as dirty.
-    /// </summary>
-    /// <param name="bid">The Id of the Bundle.</param>
-    /// <returns>
-    /// <para>True if this <see cref="AssetEntry"/> was successfully added to the Bundle.</para>
-    /// <para>False if this <see cref="AssetEntry"/> is already contained in the Bundle.</para>
-    /// </returns>
-    public virtual bool AddToBundle(int bid)
-    {
-        if (IsInBundle(bid))
-        {
-            return false;
-        }
-
-        AddedBundles.Add(bid);
-        IsDirty = true;
-
-        return true;
-    }
-
-    /// <summary>
-    /// Removes this <see cref="AssetEntry"/> from the specified Bundle and marks it as dirty.
-    /// </summary>
-    /// <param name="bid">The Id of the Bundle.</param>
-    /// <returns>
-    /// <para>True if this <see cref="AssetEntry"/> was successfully removed from the Bundle.</para>
-    /// <para>False if this <see cref="AssetEntry"/> is not contained in the Bundle.</para>
-    /// </returns>
-    public virtual bool RemoveFromBundle(int bid)
-    {
-        if (!IsInBundle(bid))
-        {
-            return false;
-        }
-        
-        if (AddedBundles.Contains(bid))
-        {
-            AddedBundles.Remove(bid);
-        }
-        else
-        {
-            RemovedBundles.Add(bid);
-        }
-
-        IsDirty = true;
-        
-        return true;
-    }
-
-    /// <summary>
-    /// Adds the current asset to the specified bundles
-    /// </summary>
-    public bool AddToBundles(IEnumerable<int> bundles)
-    {
-        bool added = false;
-        foreach (int bid in bundles)
-        {
-            added |= AddToBundle(bid);
-        }
-
-        return added;
     }
 
     /// <summary>
@@ -232,32 +97,10 @@ public class AssetEntry
     /// </summary>
     /// <param name="bid">The Id of the Bundle.</param>
     /// <returns></returns>
-    public bool IsInBundle(int bid) => Bundles.Contains(bid) || AddedBundles.Contains(bid);
+    public bool IsInBundle(int bid) => Bundles.Contains(bid);
 
     /// <summary>
     /// Iterates through all bundles that the asset is a part of
     /// </summary>
-    public IEnumerable<int> EnumerateBundles(bool addedOnly = false)
-    {
-        if (!addedOnly)
-        {
-            for (int i = 0; i < Bundles.Count; i++)
-            {
-                if (!RemovedBundles.Contains(Bundles[i]))
-                {
-                    yield return Bundles[i];
-                }
-            }
-        }
-
-        for (int i = 0; i < AddedBundles.Count; i++)
-        {
-            yield return AddedBundles[i];
-        }
-    }
-
-    public virtual void ClearModifications() => ModifiedEntry = null;
-
-    public event EventHandler? AssetModified;
-    public void OnModified() => AssetModified?.Invoke(this, EventArgs.Empty);
+    public IEnumerable<int> EnumerateBundles() => Bundles;
 }

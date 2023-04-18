@@ -50,6 +50,8 @@ public unsafe class DataStream : IDisposable
         m_stream.Dispose();
         m_stream = stream;
     }
+
+    public void CopyTo(Stream stream) => m_stream.CopyTo(stream);
     
     public long Seek(long offset, SeekOrigin origin) => m_stream.Seek(offset, origin);
 
@@ -252,6 +254,11 @@ public unsafe class DataStream : IDisposable
         }
 
         return m_stringBuilder.ToString();
+    }
+    
+    public string ReadSizedString()
+    {
+        return ReadFixedSizedString(Read7BitEncodedInt());
     }
 
     #endregion

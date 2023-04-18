@@ -11,7 +11,6 @@ using Frosty.Sdk.Managers;
 using FrostyTypeSdkGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Frosty.Sdk.Sdk;
@@ -120,8 +119,6 @@ public class TypeSdkGenerator
         }
 
         string source = sb.ToString();
-        
-        File.WriteAllText("sdk.cs", source);
 
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(source);
 
@@ -137,8 +134,13 @@ public class TypeSdkGenerator
             }
         }
 
+        OptimizationLevel level = OptimizationLevel.Release;
+#if EBX_TYPE_SDK_DEBUG
+        level = OptimizationLevel.Debug;
+#endif
+        
         CSharpCompilation compilation = CSharpCompilation.Create("EbxTypes", new[] { syntaxTree }, references,
-            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, optimizationLevel: OptimizationLevel.Debug));
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true, optimizationLevel: level));
         
         List<AdditionalText> meta = new List<AdditionalText>();
         
@@ -157,12 +159,14 @@ public class TypeSdkGenerator
         driver.RunGeneratorsAndUpdateCompilation(
             compilation,
             out Compilation outputCompilation,
-            out ImmutableArray<Diagnostic> diagnostics);
+            out ImmutableArray<Diagnostic> _);
 
+#if EBX_TYPE_SDK_DEBUG
         foreach (SyntaxTree tree in outputCompilation.SyntaxTrees)
         {
             if (string.IsNullOrEmpty(tree.FilePath))
             {
+                File.WriteAllText("DumpedTypes.cs", tree.GetText().ToString());
                 continue;
             }
 
@@ -170,13 +174,16 @@ public class TypeSdkGenerator
             Directory.CreateDirectory(fileInfo.DirectoryName!);
             File.WriteAllText(tree.FilePath, tree.GetText().ToString());
         }
+#endif
         
         using (FileStream stream = new(filePath, FileMode.Create, FileAccess.Write))
         {
             EmitResult result = outputCompilation.Emit(stream);
             if (!result.Success)
             {
+#if EBX_TYPE_SDK_DEBUG
                 File.WriteAllLines("Errors.txt", result.Diagnostics.Select(static d => d.ToString()));
+#endif
                 return false;
             }
         }

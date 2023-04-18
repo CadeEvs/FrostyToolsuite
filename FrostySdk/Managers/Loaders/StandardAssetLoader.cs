@@ -60,12 +60,14 @@ public class StandardAssetLoader : IAssetLoader
 
             foreach (DbObject chunk in toc["chunks"].As<DbObject>())
             {
+                long size = chunk.ContainsKey("size") ? chunk["size"].As<long>() : -1;
+                
+                
                 ChunkAssetEntry entry = new(chunk["id"].As<Guid>(),
-                    chunk.ContainsKey("sha1") ? chunk["sha1"].As<Sha1>() : Sha1.Zero, -1, 0, 0, superBundleId);
+                    chunk.ContainsKey("sha1") ? chunk["sha1"].As<Sha1>() : Sha1.Zero, size, 0, 0, superBundleId);
 
-                if (chunk.ContainsKey("size"))
+                if (size != -1)
                 {
-                    entry.Size = chunk["size"].As<long>();
                     entry.Location = AssetDataLocation.CasNonIndexed;
                     entry.FileInfo = new FileInfo()
                     {
