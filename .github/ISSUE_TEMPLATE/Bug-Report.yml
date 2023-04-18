@@ -1,0 +1,163 @@
+name: Issue Form
+description: Template for issue reports.
+title: '[Project]:'
+body:
+  - type: markdown
+    attributes:
+      value: '# THIS IS FOR BUG REPORTS. DO NOT SUBMIT FEATURE REQUESTS HERE!'
+  - type: textarea
+    attributes:
+      label: 'Please describe your issue'
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Were you using the Editor or the Mod Manager?
+      description: >-
+        Select which program the issue occurred with, if it happens with both,
+        select both.
+      multiple: true
+      options:
+        - Editor
+        - Mod Manager
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Which version of the Editor/Mod Manager are you using ?
+      description: >-
+        Do not say 'latest' and also include the specific alpha/beta number if
+        applicable.
+      placeholder: 2.0.0
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Has Frosty worked for you before? If so, did anything change ?
+      description: If you downloaded a new version, restarted your computer, etc
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Do you have a cracked/pirated version of the game?
+      description: We do not provide support for pirated games.
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: >-
+        Have you extracted all of the zip's contents (files and folders) into an
+        empty folder?
+      description: Frosty must be extracted to an empty folder before use.
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: >-
+        Are you using FrostyFix or DatapathFix to fix launching if you didn't
+        purchase the game on Origin?
+      description: FrostyFix or DatapathFix are required to use mods on other platforms.
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Which game(s) are you trying to mod?
+      description: >-
+        Please specify what game(s) you are trying to mod.
+      multiple: true
+      options:
+        - Anthem
+        - Battlefield 4
+        - Battlefield Hardline
+        - Battlefield 1
+        - Battlefield V
+        - Battlefield 2042
+        - Dragon Age Inquisition
+        - Dead Space
+        - Fifa 17
+        - Fifa 18
+        - Fifa 19
+        - Fifa 20
+        - Fifa 21
+        - Fifa 22
+        - Need For Speed (2015)
+        - Need For Speed Rivals
+        - Need For Speed Online
+        - Need For Speed Heat
+        - Need For Speed Unbound
+        - Madden 19
+        - Madden 20
+        - Madden 21
+        - Madden 22
+        - Mass Effect Andromeda
+        - Mirrors Edge Catalyst
+        - Plants Vs Zombies Garden Warfare
+        - Plants Vs Zombies Garden Warfare 2
+        - Plants Vs Zombies Battle For Neighborville
+        - Star Wars Battlefront (2015)
+        - Star Wars Battlefront II
+        - Star Wars Squadrons
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Which operating system version are you using?
+      description: Please specify what OS version you are using.
+      placeholder: Windows 10, 11, etc
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Please provide a breakdown of the steps performed to produce the issue
+      description: >-
+        Make sure to list any edits done in the editor, or every mod applied in
+        the mod manager.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Please share the FULL error message
+      description: >-
+        Full meaning not just the header (ie. Object Reference... etc), include
+        everything.
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: >-
+        If you're using the Mod Manager, have you tried applying only one mod?
+        Did it work?
+      description: If you aren't using the manager, select N/A.
+      options:
+        - 'Yes'
+        - 'No'
+        - N/A
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: >-
+        If you're using the Mod Manager, please list the mods you're applying
+        with
+      description: >-
+        Please include links to the mods and write the mods in apply order from
+        top to bottom if possible. If you aren't using the manager, write N/A. 
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Did you modify, remove, or add any plugins?
+      options:
+        - 'Yes'
+        - 'No'
+    validations:
+      required: true
