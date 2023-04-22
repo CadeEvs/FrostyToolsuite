@@ -38,8 +38,14 @@ public static class AssetManager
     private static readonly Dictionary<Guid, int> s_chunkGuidHashMap = new();
     private static readonly ObservableCollection<ChunkAssetEntry> s_chunkAssetEntries = new();
 
-    private const ulong c_cacheMagic = 0x02005954534F5246; 
-    private const uint c_cacheVersion = 4;
+    /// <summary>
+    /// Cache Versions:
+    /// <para>1 - Initial Version</para>
+    /// <para>2 - Nothing changed in the format just bumped up that the cache gets regenerated, bc bundled chunks did not always had their logical offset/size stored</para>
+    /// <para>3 - Completely changed what needs to be stored</para>
+    /// </summary>
+    private const uint c_cacheVersion = 3;
+    private const ulong c_cacheMagic = 0x02005954534F5246;
 
     /// <summary>
     /// Parses the games SuperBundles and creates lookups for all Assets, Bundles and SuperBundles.
@@ -330,14 +336,30 @@ public static class AssetManager
     }
 
     #endregion
-
-    public static IEnumerable<SuperBundleEntry> EnumerateSuperBundles() => s_superBundles;
     
-    public static IEnumerable<SuperBundleEntry> EnumerateSuperBundlesYield()
+    public static IEnumerable<SuperBundleEntry> EnumerateSuperBundles()
     {
         for (int i = 0; i < s_superBundles.Count; i++)
         {
             yield return s_superBundles[i];
+        }
+    }
+
+    public static IEnumerable<BundleEntry> EnumerateBundles(BundleType type = BundleType.None, int superBundleId = -1)
+    {
+        foreach (BundleEntry entry in s_bundles)
+        {
+            if (type != BundleType.None && entry.Type != type)
+            {
+                continue;
+            }
+
+            if (superBundleId != -1 && entry.SuperBundleId != superBundleId)
+            {
+                continue;
+            }
+            
+            yield return entry;
         }
     }
 
@@ -486,10 +508,7 @@ public static class AssetManager
             }
 
             // TODO: figure out how exactly to handle split super bundles since they seem to contain the same assets
-            if (!entry.Bundles.Contains(bundleId))
-            {
-                entry.Bundles.Add(bundleId);
-            }
+            entry.Bundles.Add(bundleId);
         }
     }
 
@@ -535,11 +554,8 @@ public static class AssetManager
             {
                 entry = s_resAssetEntries[s_resNameHashHashMap[nameHash]];
             }
-            
-            if (!entry.Bundles.Contains(bundleId))
-            {
-                entry.Bundles.Add(bundleId);
-            }
+
+            entry.Bundles.Add(bundleId);
         }
     }
 
@@ -574,11 +590,8 @@ public static class AssetManager
             {
                 entry = s_chunkAssetEntries[s_chunkGuidHashMap[chunkId]];
             }
-            
-            if (!entry.Bundles.Contains(bundleId))
-            {
-                entry.Bundles.Add(bundleId);
-            }
+
+            entry.Bundles.Add(bundleId);
         }
     }
 

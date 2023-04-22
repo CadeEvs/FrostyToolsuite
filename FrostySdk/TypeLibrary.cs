@@ -11,7 +11,7 @@ public static class TypeLibrary
     private static readonly Dictionary<string, int> s_nameMapping = new();
     private static readonly Dictionary<uint, int> s_nameHashMapping = new();
     private static readonly Dictionary<Guid, int> s_guidMapping = new();
-    private static Type[] s_types;
+    private static Type[] s_types = Array.Empty<Type>();
 
     public static bool Initialize()
     {

@@ -8,7 +8,7 @@ internal class ParameterInfo
     public TypeInfo GetTypeInfo() => TypeInfo.TypeInfoMapping[p_typeInfo];
     public byte GetParameterType() => m_type;
 
-    private string m_name;
+    private string m_name = string.Empty;
     private long p_typeInfo;
     private byte m_type;
     private long p_defaultValue;

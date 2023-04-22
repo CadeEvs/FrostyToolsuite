@@ -1,34 +1,40 @@
 using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Frosty.Sdk.Deobfuscators;
 using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.Managers;
 
 namespace Frosty.Sdk.IO;
 
-public unsafe class DataStream : IDisposable
+public unsafe class DataStream : Stream
 {
-    public long Length => m_stream.Length;
-    
-    public long Position
+    public override bool CanRead => m_stream.CanRead;
+    public override bool CanWrite => m_stream.CanWrite;
+    public override bool CanSeek => m_stream.CanSeek;
+    public override long Length => m_stream.Length;
+    public override long Position
     {
-        get => m_stream.Position;
-        set => m_stream.Position = value;
+        get => m_deobfuscator?.GetPosition(m_stream.Position) ?? m_stream.Position;
+        set => m_stream.Position = m_deobfuscator?.SetPosition(value) ?? value;
     }
+    public override int ReadTimeout { get => m_stream.ReadTimeout; set => m_stream.ReadTimeout = value; }
+    public override int WriteTimeout { get => m_stream.WriteTimeout; set => m_stream.WriteTimeout = value; }
 
     protected Stream m_stream;
     private readonly byte[] m_buffer;
     private readonly StringBuilder m_stringBuilder;
+    private readonly IDeobfuscator? m_deobfuscator;
 
-    public DataStream(Stream inStream, bool deobfuscate = false)
+    public DataStream(Stream inStream, bool inDeobfuscate = false)
     {
         m_stream = inStream;
         m_buffer = new byte[20];
         m_stringBuilder = new StringBuilder(100);
 
-        if (deobfuscate)
+        if (inDeobfuscate)
         {
             Stream? stream;
             if ((stream = Deobfuscator.Initialize(this)) != null)
@@ -37,23 +43,67 @@ public unsafe class DataStream : IDisposable
                 m_stream = stream;
             }
             IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();
-            if ((stream = deobfuscator?.Initialize(this)) != null)
+            if (deobfuscator?.Initialize(this) == true)
             {
-                m_stream.Dispose();
-                m_stream = stream;
+                m_deobfuscator = deobfuscator;
             }
         }
     }
 
-    public void SetStream(Stream stream)
+    public override void CopyTo(Stream destination, int bufferSize) => m_stream.CopyTo(destination, bufferSize);
+    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => m_stream.CopyToAsync(destination, bufferSize, cancellationToken);
+    public override void Close() => m_stream.Close();
+    /// <inheritdoc cref="Stream.Dispose"/>
+    public new void Dispose() => m_stream.Dispose();
+    protected override void Dispose(bool disposing) => m_stream.Dispose();
+    public override ValueTask DisposeAsync() => m_stream.DisposeAsync();
+    public override void Flush() => m_stream.Flush();
+    public override Task FlushAsync(CancellationToken cancellationToken) => m_stream.FlushAsync(cancellationToken);
+    public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state) => m_stream.BeginRead(buffer, offset, count, callback, state);
+    public override int EndRead(IAsyncResult asyncResult) => m_stream.EndRead(asyncResult);
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_stream.ReadAsync(buffer, offset, count, cancellationToken);
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new()) => m_stream.ReadAsync(buffer, cancellationToken);
+    public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state) => m_stream.BeginWrite(buffer, offset, count, callback, state);
+    public override void EndWrite(IAsyncResult asyncResult) => m_stream.EndWrite(asyncResult);
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_stream.WriteAsync(buffer, offset, count, cancellationToken);
+    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new()) => m_stream.WriteAsync(buffer, cancellationToken);
+    public override long Seek(long offset, SeekOrigin origin)
     {
-        m_stream.Dispose();
-        m_stream = stream;
-    }
+        if (m_deobfuscator is not null)
+        {
+            throw new Exception();
+        }
 
-    public void CopyTo(Stream stream) => m_stream.CopyTo(stream);
-    
-    public long Seek(long offset, SeekOrigin origin) => m_stream.Seek(offset, origin);
+        return m_stream.Seek(offset, origin);
+    }
+    public override void SetLength(long value)
+    {
+        if (m_deobfuscator is not null)
+        {
+            throw new Exception();
+        }
+        m_stream.SetLength(value);
+    }
+    public override int Read(byte[] buffer, int offset, int count)
+    {
+        long position = Position;
+        int bytesRead = m_stream.Read(buffer, offset, count);
+        
+        m_deobfuscator?.Deobfuscate(position, buffer, bytesRead);
+
+        return bytesRead;
+    }
+    public override int Read(Span<byte> buffer)
+    {
+        long position = Position;
+        int bytesRead = m_stream.Read(buffer);
+        
+        m_deobfuscator?.Deobfuscate(position, buffer, bytesRead);
+
+        return bytesRead;
+    }
+    public override void Write(byte[] buffer, int offset, int count) => m_stream.Write(buffer, offset, count);
+    public override void Write(ReadOnlySpan<byte> buffer) => m_stream.Write(buffer);
 
     public void Pad(int alignment)
     {
@@ -64,13 +114,21 @@ public unsafe class DataStream : IDisposable
         }
     }
 
-    #region -- Read --
+    public void SetStream(Stream stream)
+    {
+        m_stream = stream;
+    }
 
-    public int Read(byte[] buffer, int offset, int count) => m_stream.Read(buffer, offset, count);
+    public Stream GetStream()
+    {
+        return m_stream;
+    }
+
+    #region -- Read --
     
     #region -- Basic Types --
 
-    public byte ReadByte()
+    public new byte ReadByte()
     {
         if (FillBuffer(sizeof(byte)) != sizeof(byte))
         {
@@ -199,7 +257,7 @@ public unsafe class DataStream : IDisposable
     {
         byte[] retVal = new byte[count];
         
-        if (m_stream.Read(retVal, 0, count) != count)
+        if (Read(retVal, 0, count) != count)
         {
             throw new EndOfStreamException();
         }
@@ -341,12 +399,10 @@ public unsafe class DataStream : IDisposable
     #endregion
     
     #region -- Write --
-
-    public void Write(byte[] buffer, int offset, int count) => m_stream.Write(buffer, offset, count);
     
     #region -- Basic Types --
 
-    public void WriteByte(byte value)
+    public new void WriteByte(byte value)
     {
         m_buffer[0] = value;
         WriteBuffer(sizeof(byte));
@@ -442,15 +498,20 @@ public unsafe class DataStream : IDisposable
         m_stream.Write(tmp, 0, (value.Length + 1) * (wide ? 2 : 1));
     }
 
-    public void WriteSizedString(string value)
+    public void WriteFixedSizedString(string value, int size)
     {
-        Write7BitEncodedInt(value.Length);
-        byte[] tmp = new byte[value.Length];
+        byte[] tmp = new byte[size];
         for (int i = 0; i < value.Length; i++)
         {
             tmp[i] = (byte)value[i];
         }
-        m_stream.Write(tmp, 0, value.Length);
+        Write(tmp, 0, size);
+    }
+    
+    public void WriteSizedString(string value)
+    {
+        Write7BitEncodedInt(value.Length);
+        WriteFixedSizedString(value, value.Length);
     }
 
     #endregion
@@ -504,7 +565,7 @@ public unsafe class DataStream : IDisposable
     {
         byte[] retVal = new byte[m_stream.Length];
         m_stream.Position = 0;
-        int bytesRead = m_stream.Read(retVal, 0, (int)m_stream.Length);
+        int bytesRead = Read(retVal, 0, (int)m_stream.Length);
         if (bytesRead != m_stream.Length)
         {
             throw new Exception();
@@ -512,18 +573,9 @@ public unsafe class DataStream : IDisposable
         return retVal;
     }
     
-    public static implicit operator Stream(DataStream value) => value.m_stream;
-    public static implicit operator DataStream(Stream value) => new(value);
-    
-    public void Dispose()
-    {
-        m_stream.Dispose();
-        GC.SuppressFinalize(this);
-    }
-    
     private int FillBuffer(int count)
     {
-        int read = m_stream.Read(m_buffer, 0, count);
+        int read = Read(m_buffer, 0, count);
         return read;
     }
 

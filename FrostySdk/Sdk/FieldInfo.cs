@@ -12,7 +12,7 @@ internal class FieldInfo : IComparable
     public TypeInfo GetTypeInfo() => TypeInfo.TypeInfoMapping[p_typeInfo];
     public int GetEnumValue() => (int)p_typeInfo;
 
-    private string m_name;
+    private string m_name = string.Empty;
     private uint m_nameHash;
     private TypeFlags m_flags;
     private ushort m_offset;

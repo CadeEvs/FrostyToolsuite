@@ -111,6 +111,11 @@ public static class FileSystemManager
         return s_casFiles[casIndex];
     }
 
+    public static string GetPatchPath()
+    {
+        return s_paths[0];
+    }
+    
     public static IDeobfuscator? CreateDeobfuscator() => s_deobfuscator != null ? (IDeobfuscator?)Activator.CreateInstance(s_deobfuscator) : null;
 
     public static IEnumerable<SuperBundleInfo> EnumerateSuperBundles()
@@ -262,8 +267,11 @@ public static class FileSystemManager
                     s_superBundles.Add(new SuperBundleInfo(superBundleName));
                 }
             }
-
-            Base = patchLayout["base"].As<uint>();
+            
+            if (baseLayout.ContainsKey("base"))
+            {
+                Base = patchLayout["base"].As<uint>();
+            }
             Head = patchLayout["head"].As<uint>();
 
             if (!ProcessInstallChunks(patchLayout))

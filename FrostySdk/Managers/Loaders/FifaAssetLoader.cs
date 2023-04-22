@@ -8,7 +8,6 @@ using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.Entries;
 using Frosty.Sdk.Managers.Infos;
-using Frosty.Sdk.Managers.Loaders.Helpers;
 using FileInfo = Frosty.Sdk.Managers.Infos.FileInfo;
 
 namespace Frosty.Sdk.Managers.Loaders;
@@ -135,10 +134,10 @@ public class FifaAssetLoader : IAssetLoader
                     CasMergedResourceInfo resourceInfo = files[index];
 
                     DataStream dataStream =
-                        new FileStream(
+                        new (new FileStream(
                             FileSystemManager.ResolvePath(
                                 FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                            FileAccess.Read);
+                            FileAccess.Read));
 
                     dataStream.Position = resourceInfo.Offset;
                     DbObject bundle = BinaryBundle.Deserialize(dataStream);
@@ -150,10 +149,10 @@ public class FifaAssetLoader : IAssetLoader
                             dataStream.Dispose();
                             resourceInfo = files[++index];
                             dataStream =
-                                new FileStream(
+                                new DataStream(new FileStream(
                                     FileSystemManager.ResolvePath(
                                         FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                                    FileAccess.Read);
+                                    FileAccess.Read));
                         }
 
                         ebx.AddValue("path",
@@ -168,10 +167,10 @@ public class FifaAssetLoader : IAssetLoader
                             dataStream.Dispose();
                             resourceInfo = files[++index];
                             dataStream =
-                                new FileStream(
+                                new DataStream(new FileStream(
                                     FileSystemManager.ResolvePath(
                                         FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                                    FileAccess.Read);
+                                    FileAccess.Read));
                         }
 
                         res.AddValue("path",
@@ -186,10 +185,10 @@ public class FifaAssetLoader : IAssetLoader
                             dataStream.Dispose();
                             resourceInfo = files[++index];
                             dataStream =
-                                new FileStream(
+                                new DataStream(new FileStream(
                                     FileSystemManager.ResolvePath(
                                         FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                                    FileAccess.Read);
+                                    FileAccess.Read));
                         }
 
                         chunk.AddValue("path",
@@ -233,7 +232,7 @@ public class FifaAssetLoader : IAssetLoader
                         FileInfo = new FileInfo(FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(fileIndex)), dataOffset, dataSize)
                     };
                     
-                    
+                    AssetManager.AddSuperBundleChunk(chunk);
                     
                     stream.Position = pos;
                 }
@@ -257,40 +256,5 @@ public class FifaAssetLoader : IAssetLoader
 
         reader.Position = curPos;
         return sb.ToString().Reverse().ToString()!;
-    }
-    
-    private long ReadCas(DataStream stream, int originalSize)
-    {
-        long size = 0;
-        while (originalSize > 0)
-        {
-            int decompressedSize = stream.ReadInt32(Endian.Big);
-            ushort compressionType = stream.ReadUInt16();
-            int bufferSize = stream.ReadUInt16(Endian.Big);
-
-            int flags = ((compressionType & 0xFF00) >> 8);
-
-            if ((flags & 0x0F) != 0)
-            {
-                bufferSize = ((flags & 0x0F) << 0x10) + bufferSize;
-            }
-
-            if ((decompressedSize & 0xFF000000) != 0)
-            {
-                decompressedSize &= 0x00FFFFFF;
-            }
-
-            originalSize -= decompressedSize;
-
-            compressionType = (ushort)(compressionType & 0x7F);
-            if (compressionType == 0x00)
-            {
-                bufferSize = decompressedSize;
-            }
-
-            size += bufferSize + 8;
-            stream.Position += bufferSize;
-        }
-        return size;
     }
 }

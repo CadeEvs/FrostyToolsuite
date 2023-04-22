@@ -128,7 +128,7 @@ public class TypeSdkGenerator
 
         foreach (Assembly assembly in assemblies)
         {
-            if (!assembly.IsDynamic)
+            if (!assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
             {
                 references.Add(MetadataReference.CreateFromFile(assembly.Location));
             }
@@ -159,7 +159,7 @@ public class TypeSdkGenerator
         driver.RunGeneratorsAndUpdateCompilation(
             compilation,
             out Compilation outputCompilation,
-            out ImmutableArray<Diagnostic> _);
+            out ImmutableArray<Diagnostic> diagnostics);
 
 #if EBX_TYPE_SDK_DEBUG
         foreach (SyntaxTree tree in outputCompilation.SyntaxTrees)
