@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -50,22 +51,13 @@ internal class HuffmanNode : IComparable<HuffmanNode>
 
     public override string ToString()
     {
-        string printLetter;
-
-        switch (Value)
+        string printLetter = Value switch
         {
-            case uint.MaxValue:
-                printLetter = "endDelimiter";
-                break;
-            case 4294967285:
-                printLetter = "newLine";
-                break;
-            default:
-                printLetter = Letter.ToString();
-                break;
-        }
-
-        return $"[Value = <{Value.ToString()}> | Letter = <{printLetter}>]";
+            uint.MaxValue => "endDelimiter",
+            4294967285 => "newLine",
+            _ => Letter.ToString(),
+        };
+        return $"[Value = <{Value}> | Letter = <{printLetter}>]";
     }
 
     /// <summary>
@@ -162,7 +154,7 @@ public class HuffmanDecoder
     /// <summary>
     /// Reads in the encoded data.
     /// </summary>
-    /// <param name="stream">The <see cref="NativeReader"/> the encoded data gets read from.</param>
+    /// <param name="stream">The <see cref="DataStream"/> the encoded data gets read from.</param>
     /// <param name="count">The number of <see cref="int"/>s the data contains.</param>
     /// <param name="endian">The <see cref="Endian"/> in which the encoded data gets read.</param>
     public void ReadEncodedData(DataStream stream, uint count, Endian endian = Endian.Little)
@@ -185,15 +177,19 @@ public class HuffmanDecoder
     {
         if (m_rootNode == null || m_data == null)
         {
-            throw new InvalidDataException();
+            string rootNodeMissingErrorPart = m_rootNode != null ? "" : " The root node was not established by calling 'ReadHuffmanTable'!";
+            string dataMissingErrorPart = m_data != null ? "" : " No huffman encoded data was read with 'ReadEncodedData'!";
+            throw new InvalidDataException(string.Format("HuffmanDecoder state is not initialized!{0}{1}", rootNodeMissingErrorPart, dataMissingErrorPart));
         }
+
+        int dataLengthInBits = m_data.Length*32;
 
         StringBuilder sb = new();
         while (true)
         {
             HuffmanNode node = m_rootNode;
 
-            while (!node.IsLeaf)
+            while (!node.IsLeaf && bitIndex < dataLengthInBits)
             {
                 int bit = (m_data[bitIndex / 32] >> (bitIndex % 32)) & 1;
                 if (bit == 0)
@@ -207,7 +203,9 @@ public class HuffmanDecoder
                 bitIndex++;
             }
 
-            if (node.Letter == 0x00)
+            if (node.Letter == 0x00
+                // should probably throw an exception instead or at least print a warning when the bit index is outside the read data array
+                || bitIndex >= dataLengthInBits)
             {
                 return sb.ToString();
             }
