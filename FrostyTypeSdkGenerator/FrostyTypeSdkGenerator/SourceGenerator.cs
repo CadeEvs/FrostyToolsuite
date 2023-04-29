@@ -163,10 +163,8 @@ public partial struct {structContext.Name}
         }}
     }}
 }}";
-        string qualifiedName = structContext.Namespace is null
-            ? structContext.Name
-            : $"{structContext.Namespace}.{structContext.Name}";
-        context.AddSource($"{qualifiedName}.EqualOverride.g.cs", source);
+        
+        context.AddSource($"{GetQualifiedName(structContext)}.EqualOverride.g.cs", source);
     }
 
     private static void CreateEmptyStructOverrides(SourceProductionContext context, TypeContext structContext)
@@ -204,10 +202,8 @@ public partial struct {structContext.Name}
         }}
     }}
 }}";
-        string qualifiedName = structContext.Namespace is null
-            ? structContext.Name
-            : $"{structContext.Namespace}.{structContext.Name}";
-        context.AddSource($"{qualifiedName}.EqualOverride.g.cs", source);
+        
+        context.AddSource($"{GetQualifiedName(structContext)}.EmptyEqualOverride.g.cs", source);
     }
     
     private static void CreateInstanceGuid(SourceProductionContext context, TypeContext classContext)
@@ -233,10 +229,8 @@ public partial class {classContext.Name}
 
     public void SetInstanceGuid(global::Frosty.Sdk.Ebx.AssetClassGuid newGuid) => __Guid = newGuid;
 }}";
-        string qualifiedName = classContext.Namespace is null
-            ? classContext.Name
-            : $"{classContext.Namespace}.{classContext.Name}";
-        context.AddSource($"{qualifiedName}.InstanceGuid.g.cs", source);
+        
+        context.AddSource($"{GetQualifiedName(classContext)}.InstanceGuid.g.cs", source);
     }
 
     private static void CreateId(SourceProductionContext context, TypeContext classContext)
@@ -325,10 +319,7 @@ public partial class {classContext.Name}
 }}";
         }
         
-        string qualifiedName = classContext.Namespace is null
-            ? classContext.Name
-            : $"{classContext.Namespace}.{classContext.Name}";
-        context.AddSource($"{qualifiedName}.Id.g.cs", source);
+        context.AddSource($"{GetQualifiedName(classContext)}.Id.g.cs", source);
     }
     
     private static void CreateIdOverride(SourceProductionContext context, TypeContext classContext)
@@ -364,10 +355,7 @@ public partial class {classContext.Name}
     }}
 }}";
         
-        string qualifiedName = classContext.Namespace is null
-            ? classContext.Name
-            : $"{classContext.Namespace}.{classContext.Name}";
-        context.AddSource($"{qualifiedName}.OverrideId.g.cs", source);
+        context.AddSource($"{GetQualifiedName(classContext)}.OverrideId.g.cs", source);
     }
 
     private static void CreateProperties(SourceProductionContext context, TypeContext typeContext)
@@ -439,10 +427,8 @@ public partial {(typeContext.IsValueType ? "struct" : "class")} {typeContext.Nam
         }
         
         source += "\n}";
-        string qualifiedName = typeContext.Namespace is null
-            ? typeContext.Name
-            : $"{typeContext.Namespace}.{typeContext.Name}";
-        context.AddSource($"{qualifiedName}.Properties.g.cs", source);
+        
+        context.AddSource($"{GetQualifiedName(typeContext)}.Properties.g.cs", source);
     }
 
     private static void CreateMeta(SourceProductionContext context, string meta)
@@ -450,5 +436,27 @@ public partial {(typeContext.IsValueType ? "struct" : "class")} {typeContext.Nam
         SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(meta);
         CompilationUnitSyntax root = syntaxTree.GetCompilationUnitRoot();
         s_metaCollector.Visit(root);
+    }
+
+    private static string GetQualifiedName(TypeContext context)
+    {
+        string hash = QuickHash(context.Name).ToString("x8");
+        return context.Namespace is null
+            ? $"{context.Name}.{hash}"
+            : $"{context.Namespace}.{context.Name}.{hash}";
+    }
+    
+    private static uint QuickHash(string value)
+    {
+        const uint kOffset = 5381;
+        const uint kPrime = 33;
+        
+        uint hash = kOffset;
+        for (int i = 0; i < value.Length; i++)
+        {
+            hash = (hash * kPrime) ^ value[i];
+        }
+
+        return (uint)hash;
     }
 }
