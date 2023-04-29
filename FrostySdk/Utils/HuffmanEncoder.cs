@@ -1,9 +1,14 @@
+using Frosty.Sdk.IO;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Frosty.Sdk.Utils;
 
+/// <summary>
+/// A <see cref="HuffmanNode"/> with additional integer for how many times this node was encountered in the data to encode. This is used to construct the huffman tree.
+/// </summary>
 internal class HuffManConstructionNode : HuffmanNode, IComparable<HuffManConstructionNode>
 {
     public int Occurences { get; set; }
@@ -59,12 +64,72 @@ internal class HuffManConstructionNode : HuffmanNode, IComparable<HuffManConstru
 public class HuffmanEncoder
 {
 
+    private HuffManConstructionNode? m_rootNode;
+
+    private IDictionary<char, IList<bool>> m_characterEncoding = new Dictionary<char, IList<bool>>();
+
+    /// <summary>
+    /// Uses the given input to construct the huffman encoding table (or tree). The created encoding includes end delimemeter character (char 0x0) with a number of occurences of the number of given strings.
+    /// Also temporarily stores the given texts to use them in other methods if the need arises.
+    /// Returns the uint representation of the huffman encoding.
+    /// </summary>
+    /// <param name="texts">The texts to encode, or a suitable approximation of the characters appearances.</param>
+    /// <returns>The list of huffman node values in the order they should be written.</returns>
+    public IList<uint> BuildHuffmanEncodingTree(IEnumerable<string> texts)
+    {
+        IList<string> strings = texts.ToList();
+        m_rootNode = CalculateHuffmanEncoding(strings);
+
+        IList<HuffmanNode> encodingNodes = GetNodeListToWrite(m_rootNode);
+        m_characterEncoding = GetCharEncoding(encodingNodes);
+
+        return encodingNodes.Select(node=>node.Value).ToList();
+    }
+
+    /// <summary>
+    /// Encodes the given text into a bool values, using the encoding set previously by <see cref="HuffmanEncoder.BuildHuffmanEncodingTree(IEnumerable{string})"/>.
+    /// </summary>
+    /// <param name="text">A single text to encode.</param>
+    /// <param name="includeEndDelimeter">Whether or not the encoding for a 0x0 character should be added to the end of the text.</param>
+    /// <returns>the bool representation of the encoded text.</returns>
+    /// <exception cref="System.Collections.Generic.KeyNotFoundException">If a character or symbol to encode was not found in the dictionary</exception>
+    public IList<bool> EncodeText(string text, bool includeEndDelimeter = true)
+    {
+        return GetEncodedText(text, m_characterEncoding, includeEndDelimeter);
+    }
+
+    public Span<byte> WriteAllEncodedTexts(IEnumerable<Tuple<object, string>> textsPerIdentifier,Endian endian = Endian.Little, bool compressResults = false)
+    {
+
+        List<Tuple<object, int>> positionsOfStrings = new();
+        List<bool> encodedTexts = new();
+
+        foreach (var textWithIdentifier in textsPerIdentifier)
+        {
+            int position = encodedTexts.Count;
+
+            positionsOfStrings.Add( new Tuple<object, int>(textWithIdentifier.Item1, position));
+
+            // TODO enable compression and re use of already existing sub lists
+            encodedTexts.AddRange(EncodeText(textWithIdentifier.Item2));
+        }
+
+
+        // TODO implement me!
+        return null;
+    }
+
+    public void Dispose()
+    {
+        // TODO implement me!
+    }
+
     /// <summary>
     /// Calculates the huffman encoding for the given texts, and returns the root node of the resulting tree.
     /// </summary>
     /// <param name="texts"></param>
     /// <returns>Huffman root node.</returns>
-    public static HuffManConstructionNode CalculateHuffmanEncoding(IEnumerable<string> texts)
+    private static HuffManConstructionNode CalculateHuffmanEncoding(IEnumerable<string> texts)
     {
 
         // get set of chars and their number of occurences...
@@ -123,7 +188,7 @@ public class HuffmanEncoder
     /// </summary>
     /// <param name="encodingNodes">The (limited) list of Huffman code nodes used.</param>
     /// <returns>Dictionary of char - code values</returns>
-    public static IDictionary<char, IList<bool>> GetCharEncoding(IList<HuffmanNode> encodingNodes)
+    private static IDictionary<char, IList<bool>> GetCharEncoding(IList<HuffmanNode> encodingNodes)
     {
 
         Dictionary<char, IList<bool>> charEncodings = new();
@@ -147,13 +212,12 @@ public class HuffmanEncoder
     /// </summary>
     /// <param name="rootNode">the root node of the tree to flatten into a single list.</param>
     /// <returns>list of nodes in the order to write</returns>
-    public static IList<HuffmanNode> GetNodeListToWrite(HuffmanNode rootNode)
+    private static IList<HuffmanNode> GetNodeListToWrite(HuffmanNode rootNode)
     {
         List<HuffmanNode> nodesSansRoot = new();
 
         if (rootNode == null)
         {
-            App.Logger.Log("Given root node was null!");
             return nodesSansRoot;
         }
 
@@ -228,24 +292,45 @@ public class HuffmanEncoder
     /// Returns the bit encoded text as list of bools.
     /// The end of the text is marked with the delimiter character 0x0 / huffman node value = uint.MaxValue.
     /// </summary>
-    /// <param name="text">The text to encode.</param>
+    /// <param name="toEncode">The text to encode, given as char array or similar char enumerable</param>
     /// <param name="charEncoding">The character encoding to use for the text.</param>
+    /// <param name="includeEndDelimeter">Whether or not to include the end delimeter in the returned encoding.</param>
     /// <returns>The encoded text.</returns>
-    public static IList<bool> GetEncodedText(String text, IDictionary<char, IList<bool>> charEncoding)
+    /// <exception cref="System.Collections.Generic.KeyNotFoundException">If a character or symbol to encode was not found in the dictionary</exception>
+    private static IList<bool> GetEncodedText(IEnumerable<char> toEncode, IDictionary<char, IList<bool>> charEncoding, bool includeEndDelimeter)
     {
-
         List<bool> encodedText = new();
 
-        foreach (char c in text.ToCharArray())
+        foreach (char c in toEncode)
         {
-            encodedText.AddRange(charEncoding[c]);
+            encodedText.AddRange(TryGetCharacterEncoding(c, charEncoding));
         }
 
-        // add the text delimeter:
-        char delimiter = (char)0x0;
-        encodedText.AddRange(charEncoding[delimiter]);
+        if(includeEndDelimeter)
+        {
+            char delimiter = (char)0x0;
+            encodedText.AddRange(TryGetCharacterEncoding(delimiter, charEncoding));
+        }
 
         return encodedText;
+    }
+
+    private static IList<bool> TryGetCharacterEncoding(char c, IDictionary<char, IList<bool>> charEncoding)
+    {
+
+        bool found = charEncoding.TryGetValue(c, out IList<bool>? encodedChar);
+        if(found)
+        {
+            return encodedChar!;
+        }
+
+        if(c == 0x0)
+        {
+            throw new KeyNotFoundException("Encoding does not contain mapping for end delimiter!");
+        }
+
+        string errorMessage = string.Format("Encoding does not contain a mapping for symbol of value {0}: '{1}'!", (int)c, c);
+        throw new KeyNotFoundException(errorMessage);
     }
 
 }
