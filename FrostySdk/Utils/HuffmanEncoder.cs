@@ -1,4 +1,3 @@
-using Frosty.Sdk.IO;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -61,12 +60,62 @@ internal class HuffManConstructionNode : HuffmanNode, IComparable<HuffManConstru
     }
 }
 
+#region Return type classes
+
+/// <summary>
+/// Just a tuple of an identifier and a position with clearer naming than a Tuple.
+/// This is used as part of the return value of the encoding method. The identifier is to be the identifier of a string or text, with the coupled position being the bit offset in the encoded byte array.
+/// </summary>
+/// <typeparam name="T">The type of identifier used, might a simple uint or a complex type.</typeparam>
+public class IdentifierPositionTuple<T>
+{
+    /// <summary>
+    /// The identifier of an encoded string.
+    /// </summary>
+    public T Identifier { get; private set; }
+
+    /// <summary>
+    /// The position of the encoded string.
+    /// </summary>
+    public int Position { get; private set; }
+
+    public IdentifierPositionTuple(T inIdentifier, int inPosition)
+    {
+        Identifier = inIdentifier;
+        Position = inPosition;
+    }
+}
+
+/// <summary>
+/// Return value of the encoding function. This contains the encoded texts as byte array, as well as the list of <see cref="IdentifierPositionTuple"/> that detail which text is at what bit offset inside the array.
+/// </summary>
+/// <typeparam name="T">The type of identifier used for the texts.</typeparam>
+public class HuffmanEncodedTextArray<T>
+{
+    /// <summary>
+    /// The list of string identifiers, and the bit position of the text for the identifier inside the <see cref="EncodedTexts"/> byte array.
+    /// </summary>
+    public IList<IdentifierPositionTuple<T>> EncodedTextPositions { get; private set; }
+
+    /// <summary>
+    /// All the encoded texts as single byte array.
+    /// </summary>
+    public byte[] EncodedTexts { get; private set; }
+
+    public HuffmanEncodedTextArray(IList<IdentifierPositionTuple<T>> inEncodedTextPositions, byte[] inEncodedTexts)
+    {
+        EncodedTextPositions = inEncodedTextPositions;
+        EncodedTexts = inEncodedTexts;
+    }
+
+}
+
+#endregion
+
 public class HuffmanEncoder
 {
 
-    private HuffManConstructionNode? m_rootNode;
-
-    private IDictionary<char, IList<bool>> m_characterEncoding = new Dictionary<char, IList<bool>>();
+    private IDictionary<char, IList<bool>>? m_characterEncoding;
 
     /// <summary>
     /// Uses the given input to construct the huffman encoding table (or tree). The created encoding includes end delimemeter character (char 0x0) with a number of occurences of the number of given strings.
@@ -78,12 +127,12 @@ public class HuffmanEncoder
     public IList<uint> BuildHuffmanEncodingTree(IEnumerable<string> texts)
     {
         IList<string> strings = texts.ToList();
-        m_rootNode = CalculateHuffmanEncoding(strings);
+        HuffManConstructionNode m_rootNode = CalculateHuffmanEncoding(strings);
 
         IList<HuffmanNode> encodingNodes = GetNodeListToWrite(m_rootNode);
         m_characterEncoding = GetCharEncoding(encodingNodes);
 
-        return encodingNodes.Select(node=>node.Value).ToList();
+        return encodingNodes.Select(node => node.Value).ToList();
     }
 
     /// <summary>
@@ -93,35 +142,76 @@ public class HuffmanEncoder
     /// <param name="includeEndDelimeter">Whether or not the encoding for a 0x0 character should be added to the end of the text.</param>
     /// <returns>the bool representation of the encoded text.</returns>
     /// <exception cref="System.Collections.Generic.KeyNotFoundException">If a character or symbol to encode was not found in the dictionary</exception>
+    /// <exception cref="System.InvalidOperationException">If no encoding has been created yet.</exception>
     public IList<bool> EncodeText(string text, bool includeEndDelimeter = true)
     {
-        return GetEncodedText(text, m_characterEncoding, includeEndDelimeter);
+        CheckEncodingExists();
+        return GetEncodedText(text, m_characterEncoding!, includeEndDelimeter);
     }
 
-    public Span<byte> WriteAllEncodedTexts(IEnumerable<Tuple<object, string>> textsPerIdentifier,Endian endian = Endian.Little, bool compressResults = false)
+    /// <summary>
+    /// Encodes the given String using the previously created Huffman Encoding from <see cref="HuffmanEncoder.BuildHuffmanEncodingTree(IEnumerable{string})"/> and returns the created byte array together with the list of text identifiers and their bit offsets in the byte array.
+    /// </summary>
+    /// <typeparam name="T">The type of identifier to use for the texts. Might be a uint id/counter/hashvalue or complex type.</typeparam>
+    /// <param name="textsPerIdentifier">The tuples of string identifiers and the strings to encode.</param>
+    /// <param name="compressResults">If true, then this method tries to reuse already compiled string encodings and produced bit segments, so the returned byte array might be shorter. Defaults to false.</param>
+    /// <returns>An instance of <see cref="HuffmanEncodedTextArray"/> with the byte array of the encoded texts, and a list of the given text identifiers and their bit position inside the byte array. The list has the same ordering as the given input to this method. </returns>
+    /// <exception cref="System.Collections.Generic.KeyNotFoundException">If a character or symbol to encode was not found in the dictionary</exception>
+    /// <exception cref="System.InvalidOperationException">If no encoding has been created yet.</exception>
+    public HuffmanEncodedTextArray<T> WriteAllEncodedTexts<T>(IEnumerable<Tuple<T, string>> textsPerIdentifier, bool compressResults = false)
     {
+        CheckEncodingExists();
 
-        List<Tuple<object, int>> positionsOfStrings = new();
-        List<bool> encodedTexts = new();
+        List<IdentifierPositionTuple<T>> positionsOfStrings = new();
+        List<bool> encodedTextBools = new();
+
+        Dictionary<string, int> alreadyEncodedTextPositions = new();
 
         foreach (var textWithIdentifier in textsPerIdentifier)
         {
-            int position = encodedTexts.Count;
 
-            positionsOfStrings.Add( new Tuple<object, int>(textWithIdentifier.Item1, position));
+            T textIdentifier = textWithIdentifier.Item1;
+            string text = textWithIdentifier.Item2;
+            int position = encodedTextBools.Count;
 
-            // TODO enable compression and re use of already existing sub lists
-            encodedTexts.AddRange(EncodeText(textWithIdentifier.Item2));
+            bool encodeText = true;
+            if (compressResults)
+            {
+                bool exists = alreadyEncodedTextPositions.TryGetValue(text, out int existingPos);
+                if (!exists)
+                {
+                    alreadyEncodedTextPositions[text] = position;
+                }
+                else
+                {
+                    position = existingPos;
+                    encodeText = false;
+                }
+            }
+
+            positionsOfStrings.Add(new IdentifierPositionTuple<T>(textIdentifier, position));
+
+            if (encodeText)
+            {
+                encodedTextBools.AddRange(GetEncodedText(text, m_characterEncoding!, true));
+            }
         }
 
+        int byteSize = encodedTextBools.Count / 8 + 1;
+        BitArray ba = new(encodedTextBools.ToArray());
 
-        // TODO implement me!
-        return null;
+        byte[] byteArray = new byte[byteSize];
+        ba.CopyTo(byteArray, 0);
+
+        return new HuffmanEncodedTextArray<T>(positionsOfStrings, byteArray);
     }
 
+    /// <summary>
+    /// Resets instance variables.
+    /// </summary>
     public void Dispose()
     {
-        // TODO implement me!
+        m_characterEncoding = null;
     }
 
     /// <summary>
@@ -306,7 +396,7 @@ public class HuffmanEncoder
             encodedText.AddRange(TryGetCharacterEncoding(c, charEncoding));
         }
 
-        if(includeEndDelimeter)
+        if (includeEndDelimeter)
         {
             char delimiter = (char)0x0;
             encodedText.AddRange(TryGetCharacterEncoding(delimiter, charEncoding));
@@ -319,18 +409,30 @@ public class HuffmanEncoder
     {
 
         bool found = charEncoding.TryGetValue(c, out IList<bool>? encodedChar);
-        if(found)
+        if (found)
         {
             return encodedChar!;
         }
 
-        if(c == 0x0)
+        if (c == 0x0)
         {
             throw new KeyNotFoundException("Encoding does not contain mapping for end delimiter!");
         }
 
         string errorMessage = string.Format("Encoding does not contain a mapping for symbol of value {0}: '{1}'!", (int)c, c);
         throw new KeyNotFoundException(errorMessage);
+    }
+
+    /// <summary>
+    /// Asserts that an encoding has been created.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">If no encoding exists.</exception>
+    private void CheckEncodingExists()
+    {
+        if (m_characterEncoding == null)
+        {
+            throw new InvalidOperationException("Cannot encode texts before the Huffman tree was built! Call 'BuildHuffmanEncodingTree' on the encoder before attempting to encode a string!");
+        }
     }
 
 }
