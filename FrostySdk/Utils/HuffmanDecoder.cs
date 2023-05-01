@@ -1,8 +1,11 @@
 using Frosty.Sdk.IO;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Frosty.Sdk.Utils;
 
@@ -154,16 +157,48 @@ public class HuffmanDecoder
     /// Reads in the encoded data.
     /// </summary>
     /// <param name="stream">The <see cref="DataStream"/> the encoded data gets read from.</param>
-    /// <param name="count">The number of <see cref="int"/>s the data contains.</param>
+    /// <param name="integerCount">The number of <see cref="int"/>s the data contains.</param>
     /// <param name="endian">The <see cref="Endian"/> in which the encoded data gets read.</param>
-    public void ReadEncodedData(DataStream stream, uint count, Endian endian = Endian.Little)
+    public void ReadEncodedData(DataStream stream, uint integerCount, Endian endian = Endian.Little)
     {
-        m_data = new int[count];
+        m_data = new int[integerCount];
 
-        for (int i = 0; i < count; i++)
+        for (int i = 0; i < integerCount; i++)
         {
             m_data[i] = stream.ReadInt32(endian);
         }
+    }
+
+    /// <summary>
+    /// Reads in the encoded data of the given byte length, for cases that the data to read does not match integer sizes.
+    /// </summary>
+    /// <param name="stream">The <see cref="DataStream"/> the encoded data gets read from.</param>
+    /// <param name="byteCount">The number of <see cref="byte"/>s to read.</param>
+    /// <param name="endian">The <see cref="Endian"/> in which the encoded data gets read.</param>
+    public void ReadOddSizedEncodedData(DataStream stream, uint byteCount, Endian endian = Endian.Little)
+    {
+
+
+        uint intLength = byteCount / 4;
+
+        m_data = new int[intLength+1];
+
+        for (int i = 0; i < intLength; i++)
+        {
+            m_data[i] = stream.ReadInt32(endian);
+        }
+
+        // read remaining bytes as full int
+        byte[] remaining = new byte[4];
+        stream.ReadBytes((int) byteCount % 4).CopyTo(remaining, 0);
+
+        bool switchBytes = (endian == Endian.Little && !BitConverter.IsLittleEndian) || (endian== Endian.Big && BitConverter.IsLittleEndian);
+        if(switchBytes)
+        {
+            remaining = remaining.Reverse().ToArray();
+        }
+        // might be better to replace this with the same method used in the DataStream readInt method
+        m_data[intLength] = BitConverter.ToInt32(remaining);
     }
 
     /// <summary>

@@ -158,7 +158,7 @@ public class HuffmanEncoder
     /// <returns>An instance of <see cref="HuffmanEncodedTextArray"/> with the byte array of the encoded texts, and a list of the given text identifiers and their bit position inside the byte array. The list has the same ordering as the given input to this method. </returns>
     /// <exception cref="System.Collections.Generic.KeyNotFoundException">If a character or symbol to encode was not found in the dictionary</exception>
     /// <exception cref="System.InvalidOperationException">If no encoding has been created yet.</exception>
-    public HuffmanEncodedTextArray<T> WriteAllEncodedTexts<T>(IEnumerable<Tuple<T, string>> textsPerIdentifier, bool compressResults = false)
+    public HuffmanEncodedTextArray<T> EncodeTexts<T>(IEnumerable<Tuple<T, string>> textsPerIdentifier, bool compressResults = false)
     {
         CheckEncodingExists();
 
