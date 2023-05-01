@@ -1,11 +1,9 @@
 using Frosty.Sdk.IO;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Xml.Linq;
 
 namespace Frosty.Sdk.Utils;
 
@@ -181,7 +179,7 @@ public class HuffmanDecoder
 
         uint intLength = byteCount / 4;
 
-        m_data = new int[intLength+1];
+        m_data = new int[intLength + 1];
 
         for (int i = 0; i < intLength; i++)
         {
@@ -190,10 +188,10 @@ public class HuffmanDecoder
 
         // read remaining bytes as full int
         byte[] remaining = new byte[4];
-        stream.ReadBytes((int) byteCount % 4).CopyTo(remaining, 0);
+        stream.ReadBytes((int)byteCount % 4).CopyTo(remaining, 0);
 
-        bool switchBytes = (endian == Endian.Little && !BitConverter.IsLittleEndian) || (endian== Endian.Big && BitConverter.IsLittleEndian);
-        if(switchBytes)
+        bool switchBytes = (endian == Endian.Little && !BitConverter.IsLittleEndian) || (endian == Endian.Big && BitConverter.IsLittleEndian);
+        if (switchBytes)
         {
             remaining = remaining.Reverse().ToArray();
         }
@@ -216,7 +214,7 @@ public class HuffmanDecoder
             throw new InvalidDataException(string.Format("HuffmanDecoder state is not initialized!{0}{1}", rootNodeMissingErrorPart, dataMissingErrorPart));
         }
 
-        int dataLengthInBits = m_data.Length*32;
+        int dataLengthInBits = m_data.Length * 32;
 
         StringBuilder sb = new();
         while (true)
