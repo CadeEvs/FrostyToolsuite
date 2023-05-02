@@ -94,7 +94,7 @@ namespace LaunchPlatformPlugin.Actions
                 // kill all platform processes
                 if (Config.Get("PlatformLaunchingKill", true, ConfigScope.Game))
                 {
-                KillPlatformProcesses();
+                    KillPlatformProcesses();
                 }
 
                 // origin doesn't need these modifications to launch with mods
@@ -188,7 +188,7 @@ namespace LaunchPlatformPlugin.Actions
 
         private Process WaitForProcess(string name, CancellationToken cancelToken)
         {
-            Process gameProcess = null;
+            Process awaitedProcess = null;
             while (true)
             {
                 cancelToken.ThrowIfCancellationRequested();
@@ -206,7 +206,7 @@ namespace LaunchPlatformPlugin.Actions
                         FileInfo fi = new FileInfo(processFilename);
                         if (fi.Name.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            gameProcess = process;
+                            awaitedProcess = process;
                             break;
                         }
                     }
@@ -215,12 +215,12 @@ namespace LaunchPlatformPlugin.Actions
                     }
                 }
 
-                if (gameProcess != null)
+                if (awaitedProcess != null)
                 {
-                    while (gameProcess.MainWindowHandle == IntPtr.Zero)
+                    while (awaitedProcess.MainWindowHandle == IntPtr.Zero)
                         System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
 
-                    return gameProcess;
+                    return awaitedProcess;
                 }
             }
         }
