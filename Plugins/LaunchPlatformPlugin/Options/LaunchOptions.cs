@@ -38,18 +38,26 @@ namespace LaunchPlatformPlugin.Options
         [DependsOn("PlatformLaunchingEnabled")]
         public CustomComboData<string, string> Platform { get; set; }
 
+        [Category("General")]
+        [Description("Kill platform processes before launch if enabled.")]
+        [DisplayName("Kill platform processes before launch")]
+        [EbxFieldMeta(FrostySdk.IO.EbxFieldType.Boolean)]
+        public bool PlatformLaunchingKill { get; set; } = true;
+
         public override void Load()
         {
             List<string> platforms = Enum.GetNames(typeof(LaunchPlatform)).ToList();
             Platform = new CustomComboData<string, string>(platforms, platforms) { SelectedIndex = platforms.IndexOf(Config.Get<string>("Platform", "Origin", ConfigScope.Game))};
 
             PlatformLaunchingEnabled = Config.Get("PlatformLaunchingEnabled", false, ConfigScope.Game);
+            PlatformLaunchingKill = Config.Get("PlatformLaunchingKill", true, ConfigScope.Game);
         }
 
         public override void Save()
         {
             Config.Add("Platform", Platform.SelectedName, ConfigScope.Game);
             Config.Add("PlatformLaunchingEnabled", PlatformLaunchingEnabled, ConfigScope.Game);
+            Config.Add("PlatformLaunchingKill", PlatformLaunchingKill, ConfigScope.Game);
         }
     }
 }

@@ -91,8 +91,11 @@ namespace LaunchPlatformPlugin.Actions
                 // get platform path
                 selectedPlatform.Path = FindPlatformPath(selectedPlatform.RegistryKey, selectedPlatform.RegistryValue) + selectedPlatform.AdditionalExecutablePath;
 
-                // kill all the other platform processes
+                // kill all platform processes
+                if (Config.Get("PlatformLaunchingKill", true, ConfigScope.Game))
+                {
                 KillPlatformProcesses();
+                }
 
                 // origin doesn't need these modifications to launch with mods
                 if (platform != LaunchPlatform.Origin)
