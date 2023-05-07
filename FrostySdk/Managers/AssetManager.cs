@@ -881,7 +881,7 @@ namespace FrostySdk.Managers
                     RevertAsset(entry, suppressOnModify: false);
             }
 
-            foreach(BundleEntry bundle in bundles.Where(b => b.Added))
+            foreach(BundleEntry bundle in bundles.Where(b => b.Added).ToList())
             {
                 bundles.Remove(bundle);
             }
