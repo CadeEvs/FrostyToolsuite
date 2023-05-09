@@ -881,10 +881,11 @@ namespace FrostySdk.Managers
                     RevertAsset(entry, suppressOnModify: false);
             }
 
-            foreach(BundleEntry bundle in bundles.Where(b => b.Added))
-            {
-                bundles.Remove(bundle);
-            }
+            //foreach(BundleEntry bundle in bundles.Where(b => b.Added).ToList())
+            //{
+            //    bundles.Remove(bundle);
+            //}
+            bundles.RemoveAll(b => b.Added);
         }
 
         public void RevertAsset(AssetEntry entry, bool dataOnly = false, bool suppressOnModify = true)
