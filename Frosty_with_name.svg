@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg11327"
+   width="2045.737"
+   height="273.06668"
+   viewBox="0 0 2045.737 273.06668"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <g
+     id="frosty-icon-with-name">
+    <rect
+       style="fill:#454545"
+       id="background"
+       width="273.06668"
+       height="273.06668"
+       x="0"
+       y="0"
+       rx="27.059132"
+       ry="27.059132" />
+    <path
+       style="fill:#ffffff;stroke:none;stroke-width:1.81597"
+       d="m 134.92664,23.25839 -24.30639,24.306392 8.25701,32.102314 -25.225021,-13.297048 1.376172,27.055176 -24.76394,-23.38776 -32.559865,8.253462 8.711018,35.315734 31.644773,7.33484 -23.387778,15.59183 22.469148,13.30059 -31.641235,9.17209 -7.338372,32.10231 35.312185,10.54828 21.554066,-22.93024 1.376163,27.97381 22.011606,-11.92088 -6.87729,33.47494 24.76392,21.55406 23.38776,-26.1401 -6.41976,-30.72615 25.22502,11.92444 -0.4611,-23.38779 24.76394,22.4727 31.64478,-8.25701 -8.25347,-34.85466 -33.47848,-9.62961 22.93024,-14.67678 -22.47269,-13.29704 33.93602,-9.17209 8.257,-32.10231 -34.85465,-11.466885 -23.38775,23.391316 -1.37617,-28.434902 -22.93023,11.924427 7.33838,-31.644771 z m -0.0212,38.440489 12.70828,20.709912 -12.85018,45.193639 -11.63003,-45.218468 z M 70.282262,97.00043 94.602835,97.809105 128.65236,132.99361 83.089838,120.02287 Z m 104.741288,2.106811 25.45557,1.457739 -12.48484,20.10696 -45.39935,11.02352 z M 128.32607,139.64035 95.897417,173.20394 H 69.633144 l 12.644428,-21.72428 z m 14.75479,0.81223 45.07658,12.64797 13.61979,21.88747 -24.80647,0.48589 z m -7.94488,3.89087 12.81109,45.2362 -13.13387,21.24193 -12.16206,-21.88746 z"
+       id="icon" />
+    <text
+       xml:space="preserve"
+       id="name"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:16px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;shape-inside:url(#rect18035);fill:#000000;fill-opacity:1;stroke:none"
+       transform="matrix(16.165127,0,0,16.165127,-4126.1764,-20.950358)">
+      <tspan
+         x="273.06641"
+         y="14.15625"
+         style="fill:#ffffff">FrostyToolsuite</tspan></text>
+  </g>
+</svg>
