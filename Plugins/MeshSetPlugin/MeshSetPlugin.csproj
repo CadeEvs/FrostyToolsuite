@@ -49,6 +49,14 @@
   </Target>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\FrostyControls\FrostyControls.csproj" />
+    <ProjectReference Include="..\..\FrostyHash\FrostyHash.vcxproj" />
+    <ProjectReference Include="..\..\FrostyModSupport\FrostyModSupport.csproj" />
+    <ProjectReference Include="..\..\FrostyPlugin\FrostyCore.csproj" />
+    <ProjectReference Include="..\..\FrostySdk\FrostySdk.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <Reference Include="SharpDX">
       <HintPath>..\..\FrostyEditor\ThirdParty\SharpDX.dll</HintPath>
       <Private>False</Private>
@@ -65,24 +73,6 @@
       <HintPath>..\..\FrostyEditor\ThirdParty\SharpDX.Mathematics.dll</HintPath>
       <Private>False</Private>
     </Reference>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\..\FrostyControls\FrostyControls.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\FrostyHash\FrostyHash.vcxproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\FrostyModSupport\FrostyModSupport.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\FrostyPlugin\FrostyCore.csproj">
-      <Private>false</Private>
-    </ProjectReference>
-    <ProjectReference Include="..\..\FrostySdk\FrostySdk.csproj">
-      <Private>false</Private>
-    </ProjectReference>
   </ItemGroup>
   
   <ItemGroup>

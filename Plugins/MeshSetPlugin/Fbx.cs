@@ -1441,6 +1441,9 @@ namespace MeshSetPlugin.Fbx
         [DllImport("thirdparty/libfbxsdk", EntryPoint = "?GetPolygonVertex@FbxMesh@fbxsdk@@QEBAHHH@Z")]
         private static extern int GetPolygonIndexInternal(IntPtr handle, int pPolygonIndex, int pPositionInPolygon);
 
+        [DllImport("thirdparty/libfbxsdk", EntryPoint = "?GetPolygonVertexIndex@FbxMesh@fbxsdk@@QEBAHH@Z")]
+        private static extern int GetPolygonVertexIndexInternal(IntPtr handle, int pPolygonIndex);
+
         [DllImport("thirdparty/libfbxsdk", EntryPoint = "?IsTriangleMesh@FbxMesh@fbxsdk@@QEBA_NXZ")]
         private static extern bool IsTriangleMeshInternal(IntPtr handle);
 
@@ -1509,6 +1512,11 @@ namespace MeshSetPlugin.Fbx
         public int GetPolygonIndex(int index, int position)
         {
             return GetPolygonIndexInternal(pHandle, index, position);
+        }
+
+        public int GetPolygonVertexIndex(int index)
+        {
+            return GetPolygonVertexIndexInternal(pHandle, index);
         }
 
         public bool IsTriangleMesh()
