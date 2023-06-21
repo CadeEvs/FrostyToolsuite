@@ -1494,7 +1494,7 @@ namespace Frosty.ModSupport
                         int casIndex = 1;
                         string path = m_fs.BasePath + m_patchPath + "\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
 
-                        while (File.Exists(path))
+                        while (File.Exists(path) || (ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedUnbound) && casIndex == 173))
                         {
                             casIndex++;
                             path = m_fs.BasePath + m_patchPath + "\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
