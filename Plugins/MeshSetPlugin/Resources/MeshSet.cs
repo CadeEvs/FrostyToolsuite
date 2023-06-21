@@ -7,6 +7,8 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using FrostySdk;
 using FrostySdk.Resources;
+using Frosty.Core;
+using MeshSetPlugin.Fbx;
 
 namespace MeshSetPlugin.Resources
 {
@@ -740,6 +742,18 @@ namespace MeshSetPlugin.Resources
 
         public MeshType Type { get => meshType; set => meshType = value; }
         public List<MeshSetSection> Sections => sections;
+
+        public int SectionCount
+        {
+            get
+            {
+                return sectionCount;
+            }
+            set
+            {
+                sectionCount = value;
+            }
+        }
         public MeshLayoutFlags Flags => flags;
         public int IndexUnitSize
         {
@@ -762,9 +776,10 @@ namespace MeshSetPlugin.Resources
         public int BoneCount => boneIndexArray.Count;
         public List<uint> BoneIndexArray => boneIndexArray;
         public List<uint> BoneShortNameArray => boneShortNameArray;
-        public int PartCount => partBoundingBoxes.Count;
+        public int PartCount => PartTransforms.Count;
         public List<AxisAlignedBox> PartBoundingBoxes => partBoundingBoxes;
         public List<LinearTransform> PartTransforms => partTransforms;
+        public List<int> PartIndices => partIndices;
         public byte[] InlineData => inlineData;
         public List<List<byte>> CategorySubsetIndices => subsetCategories;
 
@@ -844,6 +859,7 @@ namespace MeshSetPlugin.Resources
         private string shortName;
         private uint nameHash;
         private List<MeshSetSection> sections = new List<MeshSetSection>();
+        private int sectionCount;
         private List<List<byte>> subsetCategories = new List<List<byte>>();
 
         //private uint boneCount;
@@ -852,6 +868,8 @@ namespace MeshSetPlugin.Resources
 
         private List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
         private List<LinearTransform> partTransforms = new List<LinearTransform>();
+        private List<int> partIndices = new List<int>();
+        public List<long> rawPartIndices = new List<long>();
 
         private byte[] inlineData;
         private uint inlineDataOffset;
@@ -866,12 +884,8 @@ namespace MeshSetPlugin.Resources
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Anthem)
                 reader.ReadUInt();
 
-            uint sectionCount = reader.ReadUInt();
+            sectionCount = (int)reader.ReadUInt();
             long sectionOffset = reader.ReadLong();
-
-            // sections
-            for (uint i = 0; i < sectionCount; i++)
-                sections.Add(null);
 
             // section categories
             List<long> subsetCategoryOffsets = new List<long>();
@@ -991,8 +1005,9 @@ namespace MeshSetPlugin.Resources
 
             reader.Pad(16);
 
-            // bone data
             long curPos = reader.Position;
+
+            // bone data
             if (meshType == MeshType.MeshType_Skinned)
             {
                 reader.Position = bonePartOffset01;
@@ -1025,17 +1040,29 @@ namespace MeshSetPlugin.Resources
                 if (bonePartOffset03 != 0)
                 {
                     reader.Position = bonePartOffset03;
-                    List<int> partIndices = new List<int>();
 
-                    for (int i = 0; i < 0x18; i++)
+                    for (int s = 0; s < sectionCount; s++)
                     {
-                        int b = reader.ReadByte();
-                        for (int j = 0; j < 8; j++)
+                        for (int i = 0; i < 0x18; i++)
                         {
-                            if ((b & 0x01) != 0)
-                                partIndices.Add((i * 8) + j);
-                            b >>= 1;
+                            int b = reader.ReadByte();
+                            for (int j = 0; j < 8; j++)
+                            {
+                                if ((b & 0x01) != 0)
+                                    partIndices.Add((i * 8) + j);
+                                b >>= 1;
+                            }
                         }
+                    }
+
+                    // TEMP
+                    reader.Position = bonePartOffset03;
+
+                    for (int s2 = 0; s2 < sectionCount; s2++)
+                    {
+                        rawPartIndices.Add(reader.ReadLong());
+                        reader.ReadLong();
+                        reader.ReadLong();
                     }
                 }
             }
@@ -1100,33 +1127,24 @@ namespace MeshSetPlugin.Resources
                 subsetCategories[(int)category].Add(index);
         }
 
-        public void SetParts(List<LinearTransform> inPartTransforms, List<AxisAlignedBox> inPartBBoxes)
+        public void SetParts(List<LinearTransform> inPartTransforms, List<AxisAlignedBox> inPartBBoxes, List<int> inPartIndices)
         {
             partTransforms = inPartTransforms;
             partBoundingBoxes = inPartBBoxes;
-
-            if (partTransforms.Count != partBoundingBoxes.Count)
-            {
-                for (int i = 0; i < partBoundingBoxes.Count; i++)
-                {
-                    if (i >= partTransforms.Count)
-                    {
-                        partTransforms.Add(new LinearTransform()
-                        {
-                            right = new Vec3() { x = 1.0f, y = 0.0f, z = 0.0f },
-                            up = new Vec3() { x = 0.0f, y = 1.0f, z = 0.0f },
-                            forward = new Vec3() { x = 0.0f, y = 0.0f, z = 1.0f },
-                            trans = new Vec3() { x = 0.0f, y = 0.0f, z = 0.0f }
-                        });
-                    }
-                }
-            }
+            partIndices = inPartIndices;
         }
 
         public void ClearBones()
         {
             boneIndexArray.Clear();
             boneShortNameArray.Clear();
+        }
+
+        public void ClearPartData()
+        {
+            partTransforms.Clear();
+            partBoundingBoxes.Clear();
+            partIndices.Clear();
         }
 
         public void AddBones(IEnumerable<ushort> bones, IEnumerable<string> boneNames)
@@ -1195,7 +1213,7 @@ namespace MeshSetPlugin.Resources
             return index;
         }
 
-        internal void PreProcess(MeshContainer meshContainer, ref uint inInlineDataOffset)
+        internal void PreProcess(MeshContainer meshContainer, ref uint inInlineDataOffset, int lodIdx)
         {
             inlineDataOffset = 0xFFFFFFFF;
             if (inlineData != null)
@@ -1248,9 +1266,16 @@ namespace MeshSetPlugin.Resources
                     }
                 }
             }
+
+            if(meshType == MeshType.MeshType_Composite)
+            {
+                meshContainer.AddRelocPtr("PARTBBOXES" + lodIdx.ToString(), partBoundingBoxes);
+                meshContainer.AddRelocPtr("PARTTRANSFORMS" + lodIdx.ToString(), partTransforms);
+                meshContainer.AddRelocPtr("PARTINDICES" + lodIdx.ToString(), partIndices);
+            }
         }
 
-        internal void Process(NativeWriter writer, MeshContainer meshContainer)
+        internal void Process(NativeWriter writer, MeshContainer meshContainer, int lodIdx)
         {
             writer.Write((int)meshType);
             writer.Write(maxInstances);
@@ -1320,11 +1345,15 @@ namespace MeshSetPlugin.Resources
                         writer.Write((ulong)0);
                 }
             }
-            //else
-            //{
-            //    // All others
-            //    writer.Write(boneIndexArray.Count);
-            //}
+
+            if(meshType == MeshType.MeshType_Composite)
+            {
+                // Write composite part data
+                writer.Write(boneIndexArray.Count); // part count
+                meshContainer.WriteRelocPtr("PARTBBOXES" + lodIdx.ToString(), partBoundingBoxes, writer);
+                meshContainer.WriteRelocPtr("PARTTRANSFORMS" + lodIdx.ToString(), partTransforms, writer);
+                meshContainer.WriteRelocPtr("PARTINDICES" + lodIdx.ToString(), partIndices, writer);
+            }
             writer.WritePadding(16);
         }
     }
@@ -1398,6 +1427,7 @@ namespace MeshSetPlugin.Resources
 
         private List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
         private List<LinearTransform> partTransforms = new List<LinearTransform>();
+        private List<int> partIndices = new List<int>();
 
         private byte[] unknownbfv;
 
@@ -1606,16 +1636,16 @@ namespace MeshSetPlugin.Resources
                 Debug.Assert(reader.Position == lodOffsets[i]);
                 lods.Add(new MeshSetLod(reader, am));
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
-                    lods[i].SetParts(partTransforms, partBoundingBoxes);
+                //if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                //    lods[i].SetParts(partTransforms, partBoundingBoxes);
             }
 
             // sections
             int z = 0;
             foreach (MeshSetLod lod in lods)
             {
-                for (int i = 0; i < lod.Sections.Count; i++)
-                    lod.Sections[i] = new MeshSetSection(reader, am, z++);
+                for (int i = 0; i < lod.SectionCount; i++)
+                    lod.Sections.Add(new MeshSetSection(reader, am, z++));
             }
 
             // strings
@@ -1794,9 +1824,11 @@ namespace MeshSetPlugin.Resources
         private void PreProcess(MeshContainer meshContainer)
         {
             uint inlineDataOffset = 0;
+            int lodIdx = 0;
             foreach (var lod in lods)
             {
-                lod.PreProcess(meshContainer, ref inlineDataOffset);
+                lod.PreProcess(meshContainer, ref inlineDataOffset, lodIdx);
+                lodIdx++;
             }
             foreach (var lod in lods)
                 meshContainer.AddRelocPtr("LOD", lod);
@@ -1865,10 +1897,12 @@ namespace MeshSetPlugin.Resources
             Debug.Assert(writer.Position == HeaderSize);
 
             // lods
+            int lodIdx = 0;
             foreach (var lod in lods)
             {
                 meshContainer.AddOffset("LOD", lod, writer);
-                lod.Process(writer, meshContainer);
+                lod.Process(writer, meshContainer, lodIdx);
+                lodIdx++;
             }
 
             // sections
@@ -1949,6 +1983,58 @@ namespace MeshSetPlugin.Resources
                     foreach (var bbox in boneBoundingBoxes)
                         writer.Write(bbox);
                     writer.WritePadding(16);
+                }
+            }
+            if (meshType == MeshType.MeshType_Composite)
+            {
+                // each lod needs it's own part bboxes, transforms, and indices
+                int lIdx = 0;
+
+                foreach(var lod in lods)
+                {
+                    meshContainer.AddOffset("PARTBBOXES" + lIdx.ToString(), lod.PartBoundingBoxes, writer);
+                    foreach (AxisAlignedBox box in lod.PartBoundingBoxes)
+                        writer.Write(box);
+
+                    meshContainer.AddOffset("PARTTRANSFORMS" + lIdx.ToString(), lod.PartTransforms, writer);
+                    foreach (LinearTransform lt in lod.PartTransforms)
+                        writer.Write(lt);
+
+                    meshContainer.AddOffset("PARTINDICES" + lIdx.ToString(), lod.PartIndices, writer);
+                    foreach(int partIndice in lod.PartIndices)
+                    {
+                        writer.Write((long)partIndice);
+                        writer.Write((long)0);
+                        writer.Write((long)0);
+                    }
+                    //for (int sectionIdx = 0; sectionIdx < lod.Sections.Count; sectionIdx++)
+                    //{
+                        /*long indice = 0;
+                        for (int indiceIdx = 0; indiceIdx < lod.PartCount; indiceIdx++)
+                        {
+                            int indiceListIdx = sectionIdx == 0 
+                                ? indiceIdx 
+                                : (sectionIdx * lod.PartCount) + indiceIdx;
+
+                            indice |= 1 << lod.PartIndices[indiceListIdx];
+                        }
+                        writer.Write(indice);*/
+                        //writer.Write(origMeshSet.Lods[lIdx].rawPartIndices[sectionIdx]);
+                        //writer.Write((long)0);
+                        //writer.Write((long)0);
+                    //}
+                    long writerPos = writer.Position;
+                    // make sure data is aligned
+                    long alignedPos = (writerPos + 0x10 - (writerPos % 0x10));
+                    bool needsPadding = alignedPos != (writerPos + 0x10);
+                    if (needsPadding)
+                    {
+                        while(writer.Position < alignedPos)
+                        {
+                            writer.Write((byte)0);
+                        }
+                    }
+                    lIdx++;
                 }
             }
         }

@@ -374,16 +374,19 @@ namespace MeshSetPlugin
                 }
 
                 currentProgress++;
+                int lodIdx = 0;
                 foreach (MeshSet meshSet in meshSets)
                 {
                     foreach (MeshSetLod lod in meshSet.Lods)
                     {
                         task.Update("Writing " + lod.String03);
-                        FBXCreateMesh(scene, lod, boneNodes);
+                        FBXCreateMesh(scene, lod, boneNodes, lodIdx);
                         if (exportSingleLod)
                         {
                             break;
                         }
+
+                        lodIdx++;
                     }
                 }
 
@@ -680,7 +683,7 @@ namespace MeshSetPlugin
         /// <summary>
         /// Creates the FBX mesh
         /// </summary>
-        private void FBXCreateMesh(FbxScene scene, MeshSetLod lod, List<FbxNode> boneNodes)
+        private void FBXCreateMesh(FbxScene scene, MeshSetLod lod, List<FbxNode> boneNodes, int lodIdx)
         {
             int indexSize = (lod.IndexUnitSize / 8);
 
@@ -703,7 +706,7 @@ namespace MeshSetPlugin
                 {
                     FbxNode actor = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                     if (flattenHierarchy)
-                        actor.Name = $"{section.Name}:{lod.String03.Insert(lod.String03.Length - 1, ".00")}";
+                        actor.Name = $"{section.Name}.lod{lodIdx}";
                     meshNode.AddChild(actor);
 
                     if ((lod.Type == MeshType.MeshType_Skinned || lod.Type == MeshType.MeshType_Composite) && boneNodes.Count > 0)
@@ -1591,9 +1594,6 @@ namespace MeshSetPlugin
                 }
             }
 
-            if (meshSet.Type != MeshType.MeshType_Rigid && meshSet.Type != MeshType.MeshType_Skinned)
-                throw new FBXImportInvalidMeshTypeException();
-
             // @hack
             entry.LinkedAssets.Clear();
             resEntry.LinkedAssets.Clear();
@@ -1613,7 +1613,19 @@ namespace MeshSetPlugin
                 foreach (FbxNode child in scene.RootNode.Children)
                 {
                     string nodeName = child.Name.ToLower();
-                    if (nodeName.Contains("lod"))
+                    int lodIndex = 0;
+                    string possibleLodIndex = nodeName.Substring(nodeName.LastIndexOf(".") + 4);
+                    // If the node doesn't contain a .0xx, it must be lod 0
+                    if (int.TryParse(possibleLodIndex, out lodIndex))
+                    {
+                        if (lodNodes[lodIndex] == null)
+                        {
+                            lodNodes[lodIndex] = new List<FbxNode>();
+                            lodCount++;
+                        }
+                        lodNodes[lodIndex].Add(child);
+                    }
+                    /*if (nodeName.Contains("lod"))
                     {
                         if (nodeName.Contains(":"))
                         {
@@ -1647,7 +1659,7 @@ namespace MeshSetPlugin
                                 lodNodes[lodIndex].AddRange(child.Children);
                             }
                         }
-                    }
+                    }*/
                 }
 
                 if (lodCount < meshSet.Lods.Count)
@@ -1758,12 +1770,7 @@ namespace MeshSetPlugin
 
             foreach (var node in sectionNodes)
             {
-                string sectionName = node.Name;
-                if (sectionName.Contains(':'))
-                {
-                    // remove the lod portion of the name
-                    sectionName = sectionName.Remove(sectionName.IndexOf(':'));
-                }
+                string sectionName = node.Name.Substring(0, node.Name.LastIndexOf(".")); // remove .lodx from the name
 
                 int idx = meshSections.FindIndex((a) => a.Name == sectionName);
                 if (idx != -1 && sectionNodeMapping[idx] == null)
@@ -1874,6 +1881,11 @@ namespace MeshSetPlugin
                 }
             }
 
+            if (meshSet.Type == MeshType.MeshType_Composite)
+            {
+                CalculateCompositePartDataForLod(sectionNodeMapping, meshLod);
+            }
+
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
             {
                 // update shader block depot mesh parameters
@@ -1944,6 +1956,169 @@ namespace MeshSetPlugin
             }
         }
 
+        private LinearTransform FbxTransformToLinearTransform(FbxNode inFbxNode)
+        {
+            LinearTransform trns = new LinearTransform();
+            float pi = (float)(Math.PI / 180.0);
+
+            // Setup the rotation matrix
+            Vector3 fbxRotation = new Vector3(inFbxNode.LclRotation.X * pi, inFbxNode.LclRotation.Y * pi, inFbxNode.LclRotation.Z * pi);
+
+            Matrix rotMatrix = Matrix.Identity;
+
+            rotMatrix *= Matrix.RotationX(fbxRotation.X);
+            rotMatrix *= Matrix.RotationY(fbxRotation.Y);
+            rotMatrix *= Matrix.RotationZ(fbxRotation.Z);
+
+            // Now create the LinearTransform matrix
+            Vector3 nodeScale = inFbxNode.LclScaling;
+            Matrix fbMatrix = new Matrix();
+            fbMatrix.M11 = rotMatrix.M11 * nodeScale.X;
+            fbMatrix.M12 = rotMatrix.M12 * nodeScale.Y;
+            fbMatrix.M13 = rotMatrix.M13 * nodeScale.Z;
+
+            fbMatrix.M21 = rotMatrix.M21 * nodeScale.X;
+            fbMatrix.M22 = rotMatrix.M22 * nodeScale.Y;
+            fbMatrix.M23 = rotMatrix.M23 * nodeScale.Z;
+
+            fbMatrix.M31 = rotMatrix.M31 * nodeScale.X;
+            fbMatrix.M32 = rotMatrix.M32 * nodeScale.Y;
+            fbMatrix.M33 = rotMatrix.M33 * nodeScale.Z;
+
+            fbMatrix.M41 = inFbxNode.LclTranslation.X;
+            fbMatrix.M42 = inFbxNode.LclTranslation.Y;
+            fbMatrix.M43 = inFbxNode.LclTranslation.Z;
+
+            fbMatrix.M14 = 0f;
+            fbMatrix.M24 = 0f;
+            fbMatrix.M34 = 0f;
+            fbMatrix.M44 = 1f;
+
+            // Converting from the SharpDX Matrix
+            trns.trans.x = inFbxNode.LclTranslation.X;
+            trns.trans.y = inFbxNode.LclTranslation.Y;
+            trns.trans.z = inFbxNode.LclTranslation.Z;
+
+            trns.right.x = fbMatrix.M11;
+            trns.right.y = fbMatrix.M12;
+            trns.right.z = fbMatrix.M13;
+
+            trns.up.x = fbMatrix.M21;
+            trns.up.y = fbMatrix.M22;
+            trns.up.z = fbMatrix.M23;
+
+            trns.forward.x = fbMatrix.M31;
+            trns.forward.y = fbMatrix.M32;
+            trns.forward.z = fbMatrix.M33;
+
+            return trns;
+        }
+
+        private List<Vector3> GetVerticesFromCluster(FbxMesh fmesh, FbxCluster cluster, Matrix sectionMatrix)
+        {
+            IntPtr verticesBuffer = fmesh.GetControlPoints();
+
+            int[] controlPointIndices = cluster.GetControlPointIndices();
+            int controlPointIndiceCount = controlPointIndices.Count();
+            List<int> vertexIndices = new List<int>();
+            List<Vector3> vertexPositions = new List<Vector3>();
+
+            for (int i = 0; i < fmesh.PolygonCount; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    int vertexIndex = fmesh.GetPolygonIndex(i, j);
+
+                    if (controlPointIndiceCount > vertexIndex && controlPointIndices[vertexIndex] >= 0)
+                    {
+                        vertexIndices.Add(vertexIndex);
+                    }
+                }
+            }
+
+            foreach (int vIdx in vertexIndices)
+            {
+                Vector3 position;
+                unsafe
+                {
+                    double* pointsPtr = (double*)(verticesBuffer + (vIdx * 32));
+                    position = new Vector3((float)pointsPtr[XAxis] * Scale, (float)pointsPtr[YAxis] * Scale, (float)(pointsPtr[ZAxis] * FlipZ) * Scale);
+                }
+
+                Vector4 tmp = Vector3.Transform(position, sectionMatrix);
+                position.X = tmp.X;
+                position.Y = tmp.Y;
+                position.Z = tmp.Z;
+
+                vertexPositions.Add(position);
+            }
+
+            return vertexPositions;
+        }
+
+        private void CalculateCompositePartDataForLod(List<FbxNode> nodes, MeshSetLod meshLod)
+        {
+            List<ushort> boneList = new List<ushort>();
+            List<LinearTransform> partTransforms = new List<LinearTransform>();
+            List<AxisAlignedBox> partAABBs = new List<AxisAlignedBox>();
+            List<int> partIndices = new List<int>();
+            Dictionary<ushort, List<Vector3>> boneToVerticesMapping = new Dictionary<ushort, List<Vector3>>();
+
+            foreach(FbxNode node in nodes)
+            {
+                FbxNodeAttribute attr = node.GetNodeAttribute(FbxNodeAttribute.EType.eMesh);
+                FbxMesh fmesh = new FbxMesh(attr);
+                FbxSkin fskin = (fmesh.GetDeformerCount(FbxDeformer.EDeformerType.eSkin) != 0)
+                    ? new FbxSkin(fmesh.GetDeformer(0, FbxDeformer.EDeformerType.eSkin))
+                    : null;
+
+                if (fskin == null)
+                    return;
+
+                foreach (FbxCluster cluster in fskin.Clusters)
+                {
+                    if (cluster.ControlPointIndicesCount == 0)
+                        continue;
+
+                    FbxNode bone = cluster.GetLink();
+                    ushort idx = ushort.Parse(bone.Name.Substring(bone.Name.LastIndexOf('_') + 1));
+
+                    Matrix sectionMatrix = new FbxMatrix(node.EvaluateGlobalTransform()).ToSharpDX();
+
+                    if (!boneList.Contains(idx))
+                    {
+                        boneList.Add(idx);
+                        partTransforms.Add(FbxTransformToLinearTransform(bone));
+
+                        boneToVerticesMapping.Add(idx, GetVerticesFromCluster(fmesh, cluster, sectionMatrix));
+                    }
+                    else
+                    {
+                        boneToVerticesMapping[idx].Concat(GetVerticesFromCluster(fmesh, cluster, sectionMatrix));
+                    }
+                }
+            }
+
+            foreach(var boneAndVertices in boneToVerticesMapping)
+            {
+                partAABBs.Add(AABBFromPoints(boneAndVertices.Value));
+            }
+
+            // TEMP
+            // For now, just set the part indices to include everything
+            foreach(ushort boneIdx in boneList)
+            {
+                int partIndice = 0;
+                for (int i = 0; i < boneList.Count; i++)
+                {
+                    partIndice |= 1 << i;
+                }
+                partIndices.Add(partIndice);
+            }
+
+            meshLod.SetParts(partTransforms, partAABBs, partIndices);
+        }
+
         private void ProcessSection(FbxNode[] sectionNodes, MeshSetLod meshLod, int sectionIndex, MemoryStream verticesBuffer, List<uint> indicesBuffer, uint vertexOffset, ref uint startIndex)
         {
             MeshSetSection meshSection = meshLod.Sections[sectionIndex];
@@ -1958,6 +2133,9 @@ namespace MeshSetPlugin
             List<ushort> boneList = new List<ushort>();
             List<string> boneNames = new List<string>();
             List<string> procBones = new List<string>();
+            List<LinearTransform> partTransforms = new List<LinearTransform>();
+            //List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
+            List<int> partIndices = new List<int>();
 
             // load in skeleton
             dynamic skeleton = null;
@@ -2038,12 +2216,28 @@ namespace MeshSetPlugin
                                 continue;
 
                             FbxNode bone = cluster.GetLink();
-                            ushort idx = (ushort)skeleton.BoneNames.IndexOf(bone.Name);
+                            ushort idx;
+                            if(meshSet.Type == MeshType.MeshType_Composite)
+                            {
+                                // get id from bone name, composite bone names should always be in the format PART_X
+                                idx = ushort.Parse(bone.Name.Substring(bone.Name.LastIndexOf('_') + 1));
+                            }
+                            else
+                            {
+                                idx = (ushort)skeleton.BoneNames.IndexOf(bone.Name);
+                            }
 
                             if (!boneList.Contains(idx))
                             {
                                 boneList.Add(idx);
-                                boneNames.Add(skeleton.BoneNames[idx]);
+                                if(meshSet.Type == MeshType.MeshType_Composite)
+                                {
+                                    boneNames.Add(bone.Name);
+                                }
+                                else
+                                {
+                                    boneNames.Add(skeleton.BoneNames[idx]);
+                                }
                             }
                         }
                     }
@@ -2055,6 +2249,11 @@ namespace MeshSetPlugin
             Array.Sort(boneListArray, boneNamesArray);
 
             meshSection.SetBones(boneListArray);
+            if(meshSet.Type == MeshType.MeshType_Composite)
+            {
+                //meshLod.SetParts(partTransforms, partBoundingBoxes);
+                //meshLod.SetPartIndices(partIndices);
+            }
             meshLod.AddBones(boneListArray, boneNamesArray);
 
             boneList.Clear();
@@ -2106,8 +2305,15 @@ namespace MeshSetPlugin
                         }
                         else
                         {
-                            boneIdx = (ushort)skeleton.BoneNames.IndexOf(bone.Name);
-                            boneIdx = (ushort)boneList.IndexOf(boneIdx);
+                            if(meshSet.Type == MeshType.MeshType_Composite)
+                            {
+                                boneIdx = ushort.Parse(bone.Name.Substring(bone.Name.LastIndexOf('_') + 1));
+                            }
+                            else
+                            {
+                                boneIdx = (ushort)skeleton.BoneNames.IndexOf(bone.Name);
+                                boneIdx = (ushort)boneList.IndexOf(boneIdx);
+                            }
                         }
 
                         for (int i = 0; i < tmpIndices.Length; i++)
@@ -2896,13 +3102,57 @@ namespace MeshSetPlugin
                     numIndices++;
                 }
 
+                // generate part bounding box
+                /*if(meshSet.Type == MeshType.MeshType_Composite)
+                {
+                    List<Vector3> verticePositions = new List<Vector3>();
+                    foreach (DbObject vertex in vertices)
+                    {
+                        Vector4 tmp = vertex.GetValue<Vector4>("Pos");
+                        Vector4 position = Vector3.Transform(new Vector3(tmp.X, tmp.Y, tmp.Z), sectionMatrix);
+                        verticePositions.Add(new Vector3(position.X, position.Y, position.Z));
+                    }
+
+                    //partBoundingBoxes.Add(AABBFromPoints(verticePositions));
+
+                    // TEMP
+                    // For now, just set the part indice to include everything
+                    int partIndice = 0;
+                    for (int i = 0; i < boneList.Count; i++)
+                    {
+                        partIndice |= 1 << i;
+                    }
+                    partIndices.Add(partIndice);
+                }*/
                 meshSection.PrimitiveCount += (uint)(numIndices / 3);
 
                 startIndex += (uint)numIndices;
                 indexOffset += (uint)vertices.Count;
             }
+
+        }
+
+        private AxisAlignedBox AABBFromPoints(List<Vector3> points)
+        {
+            BoundingBox bbox = BoundingBox.FromPoints(points.ToArray());
+
+            Vec3 min = new Vec3();
+            min.x = bbox.Minimum.X;
+            min.y = bbox.Minimum.Y;
+            min.z = bbox.Minimum.Z;
+
+            Vec3 max = new Vec3();
+            max.x = bbox.Maximum.X;
+            max.y = bbox.Maximum.Y;
+            max.z = bbox.Maximum.Z;
+
+            AxisAlignedBox aabb = new AxisAlignedBox();
+            aabb.min = min;
+            aabb.max = max;
+            return aabb;
         }
     }
+
     #endregion
 
     class VariationToStringConverter : IValueConverter
@@ -3481,6 +3731,23 @@ namespace MeshSetPlugin
                 ResAssetEntry rEntry = App.AssetManager.GetResEntry(resRid);
 
                 meshSet = App.AssetManager.GetResAs<MeshSet>(rEntry);
+                /*if (meshSet.Lods[0].SectionCount == 2)
+                {
+                    ResAssetEntry meshset = App.AssetManager.GetResEntry(
+                        "worlds/themepark/vegetation/themepark_rome_busha_indestructable_mesh");
+                    MeshSet donorMeshSet = App.AssetManager.GetResAs<MeshSet>(meshset);
+
+                    for (int i = 0; i < meshSet.Lods.Count; i++)
+                    {
+                        MeshSetLod lod = meshSet.Lods[i];
+                        MeshSetLod donorLod = donorMeshSet.Lods[0];
+
+                        lod.SectionCount++;
+                        MeshSetSection donorSection = donorLod.Sections[1];
+                        lod.Sections.Add(donorSection);
+                    }
+                    App.AssetManager.ModifyRes(meshSet.ResourceId, meshSet.SaveBytes(), meshSet.ResourceMeta);
+                }*/
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20)
                     meshSet.TangentSpaceCompressionType = (TangentSpaceCompressionType)((dynamic)RootObject).TangentSpaceCompressionType;
 
@@ -3968,6 +4235,10 @@ namespace MeshSetPlugin
                             AssetClassGuid guid = material.GetInstanceGuid();
 
                             MeshVariationMaterial varMaterial = mv.GetMaterial(guid.ExportedGuid);
+                            if (varMaterial == null)
+                            {
+                                continue;
+                            }
                             MeshSetMaterialDetails details = new MeshSetMaterialDetails();
                             variationDetails.MaterialCollection = new MeshMaterialCollection.Container(new MeshMaterialCollection(asset, new PointerRef(varMaterial.MaterialVariationAssetGuid)));
                         }
@@ -4144,7 +4415,10 @@ namespace MeshSetPlugin
                             }
                             catch (Exception exp)
                             {
-                                App.AssetManager.RevertAsset(AssetEntry);
+                                if (!AssetEntry.IsAdded)
+                                {
+                                    App.AssetManager.RevertAsset(AssetEntry);
+                                }
                                 logger.LogError(exp.Message);
                             }
                         });
