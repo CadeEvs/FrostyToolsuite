@@ -85,9 +85,9 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
 
     /// <summary>
     /// Creates a <see cref="Block{T}"/> around a <see cref="Span{T}"/>.
-    /// Also does not free the memory
+    /// Automatically marks memory as fragile since <see cref="Span{T}"/> is stack allocated.
     /// </summary>
-    /// <param name="inSpan"></param>
+    /// <param name="inSpan">Source data.</param>
     public Block(Span<T> inSpan)
     {
         // Note: According to the .NET 7 source code the pointer to a Span should not change over its lifetime.
@@ -105,6 +105,10 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         }
     }
 
+    /// <summary>
+    /// Creates a <see cref="Block{T}"/> around an <see cref="T"/>[] and copies the data to a new address.
+    /// </summary>
+    /// <param name="inArray">Source data.</param>
     public Block(T[] inArray)
     {
         fixed (T* ptr = inArray)
@@ -308,7 +312,7 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         {
             if (!m_fragileMemory)
             {
-                Marshal.FreeHGlobal((IntPtr)Ptr);
+                Marshal.FreeHGlobal((IntPtr)BasePtr);
             }
             m_usable = false;
         }
