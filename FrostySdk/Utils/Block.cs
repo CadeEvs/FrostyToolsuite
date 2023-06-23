@@ -8,7 +8,7 @@ namespace Frosty.Sdk.Utils;
 
 /// <summary>
 /// Manages a sequential area of memory like <see cref="Span{T}"/>, but on the unmanaged heap.
-/// If used on stack memory, make sure to 
+/// When used on managed or stack memory, make sure to call <see cref="MarkMemoryAsFragile"/>.
 /// </summary>
 /// <typeparam name="T">Underlying type.</typeparam>
 public unsafe class Block<T> : IDisposable where T : unmanaged
@@ -46,7 +46,6 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
     /// </summary>
     private bool m_usable = true;
 
-    
     /// <summary>
     /// Allocates a new block of memory on the heap.
     /// </summary>
@@ -311,8 +310,6 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
             {
                 Marshal.FreeHGlobal((IntPtr)Ptr);
             }
-            BasePtr = (T*)0;
-            Ptr = (T*)0;
             m_usable = false;
         }
         GC.SuppressFinalize(this);
