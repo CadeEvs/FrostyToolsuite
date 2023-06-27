@@ -1,8 +1,5 @@
-using System;
+namespace Frosty.Sdk.IO.Compression;
 
-namespace Frosty.Sdk;
-
-[Flags]
 public enum CompressionType : byte
 {
     None = 0x00,
@@ -11,7 +8,5 @@ public enum CompressionType : byte
     ZStd = 0x0F,
     OodleKraken = 0x11,
     OodleSelkie = 0x15,
-    OodleLeviathan = 0x19,
-    
-    Obfuscated = 1 << 7
+    OodleLeviathan = 0x19
 }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using Frosty.Sdk.Profiles;
+using Frosty.Sdk.IO.Compression;
 using static Frosty.Sdk.Utils.Utils;
 
 namespace Frosty.Sdk;
