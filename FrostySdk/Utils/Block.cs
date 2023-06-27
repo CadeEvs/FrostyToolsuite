@@ -257,7 +257,9 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         {
             throw new ObjectDisposedException(ToString());
         }
-        return new UnmanagedMemoryStream((byte*)Ptr, Size);
+        UnmanagedMemoryStream s = new((byte*)BasePtr, BaseSize, BaseSize, FileAccess.ReadWrite);
+        s.Position += ShiftAmount * sizeof(T);
+        return s;
     }
 
     /// <summary>
