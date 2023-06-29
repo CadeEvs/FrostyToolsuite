@@ -2,7 +2,7 @@
   <a href="https://frostytoolsuite.com/">
     <h1 align="center">
       <picture>
-        <img height="50px" src="./Frosty_with_name.svg">
+        <img src="./Resources/FrostyBannerChucky296.svg">
       </picture>
     </h1>
   </a>
@@ -17,13 +17,14 @@
   </a>
 </p>
 
-<p align="center">The most advanced modding platform for games running on DICE's Frostbite game engine.</p>
-
 ## Development
 This is a rewrite of the FrostyToolsuite in .NET 7, which is in very early development.
 
 It aims to clean up the code base and use [Avalonia UI](https://github.com/AvaloniaUI/Avalonia) with The [MVVM Community Toolkit](https://aka.ms/mvvmtoolkit/docs) instead of WPF.
 Another reason for the rewrite is to completely seperated the 2 core libraries FrostySdk and FrostyModSupport from the ModManager and Editor.
+
+## Documentation
+Todo
 
 ## Contributing
 If you want to contribute to Frosty you can just fork this branch and make a pull request with your changes.
