@@ -1,141 +1,70 @@
 using System;
+using System.Buffers.Binary;
 using System.IO;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Frosty.Sdk.Deobfuscators;
-using Frosty.Sdk.Interfaces;
-using Frosty.Sdk.Managers;
 
 namespace Frosty.Sdk.IO;
 
-public unsafe class DataStream : Stream
+public unsafe class DataStream : IDisposable
 {
-    public override bool CanRead => m_stream.CanRead;
-    public override bool CanWrite => m_stream.CanWrite;
-    public override bool CanSeek => m_stream.CanSeek;
-    public override long Length => m_stream.Length;
-    public override long Position
+    public long Position
     {
-        get => m_deobfuscator?.GetPosition(m_stream.Position) ?? m_stream.Position;
-        set => m_stream.Position = m_deobfuscator?.SetPosition(value) ?? value;
+        get => m_stream.Position;
+        set => m_stream.Position = value;
     }
-    public override int ReadTimeout { get => m_stream.ReadTimeout; set => m_stream.ReadTimeout = value; }
-    public override int WriteTimeout { get => m_stream.WriteTimeout; set => m_stream.WriteTimeout = value; }
 
+    public long Length => m_stream.Length;
+    
     protected Stream m_stream;
     private readonly byte[] m_buffer;
     private readonly StringBuilder m_stringBuilder;
-    private readonly IDeobfuscator? m_deobfuscator;
 
-    public DataStream(Stream inStream, bool inDeobfuscate = false)
+    protected DataStream()
+    {
+        m_stream = Stream.Null;
+        m_buffer = new byte[20];
+        m_stringBuilder = new StringBuilder();
+    }
+    
+    public DataStream(Stream inStream)
     {
         m_stream = inStream;
         m_buffer = new byte[20];
-        m_stringBuilder = new StringBuilder(100);
-
-        if (inDeobfuscate)
-        {
-            Stream? stream;
-            if ((stream = Deobfuscator.Initialize(this)) != null)
-            {
-                m_stream.Dispose();
-                m_stream = stream;
-            }
-            IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();
-            if (deobfuscator?.Initialize(this) == true)
-            {
-                m_deobfuscator = deobfuscator;
-            }
-        }
+        m_stringBuilder = new StringBuilder();
     }
+    
+    public long Seek(long offset, SeekOrigin origin) => m_stream.Seek(offset, origin);
 
-    public override void CopyTo(Stream destination, int bufferSize) => m_stream.CopyTo(destination, bufferSize);
-    public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken) => m_stream.CopyToAsync(destination, bufferSize, cancellationToken);
-    public override void Close() => m_stream.Close();
-    /// <inheritdoc cref="Stream.Dispose"/>
-    public new void Dispose() => m_stream.Dispose();
-    protected override void Dispose(bool disposing) => m_stream.Dispose();
-    public override ValueTask DisposeAsync() => m_stream.DisposeAsync();
-    public override void Flush() => m_stream.Flush();
-    public override Task FlushAsync(CancellationToken cancellationToken) => m_stream.FlushAsync(cancellationToken);
-    public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state) => m_stream.BeginRead(buffer, offset, count, callback, state);
-    public override int EndRead(IAsyncResult asyncResult) => m_stream.EndRead(asyncResult);
-    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_stream.ReadAsync(buffer, offset, count, cancellationToken);
-    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = new()) => m_stream.ReadAsync(buffer, cancellationToken);
-    public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback? callback, object? state) => m_stream.BeginWrite(buffer, offset, count, callback, state);
-    public override void EndWrite(IAsyncResult asyncResult) => m_stream.EndWrite(asyncResult);
-    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_stream.WriteAsync(buffer, offset, count, cancellationToken);
-    public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new()) => m_stream.WriteAsync(buffer, cancellationToken);
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        if (m_deobfuscator is not null)
-        {
-            throw new Exception();
-        }
+    public void CopyTo(Stream destination) => m_stream.CopyTo(destination);
+    public void CopyTo(Stream destination, int length) => m_stream.CopyTo(destination, length);
 
-        return m_stream.Seek(offset, origin);
-    }
-    public override void SetLength(long value)
-    {
-        if (m_deobfuscator is not null)
-        {
-            throw new Exception();
-        }
-        m_stream.SetLength(value);
-    }
-    public override int Read(byte[] buffer, int offset, int count)
-    {
-        long position = Position;
-        int bytesRead = m_stream.Read(buffer, offset, count);
-        
-        m_deobfuscator?.Deobfuscate(position, buffer, bytesRead);
-
-        return bytesRead;
-    }
-    public override int Read(Span<byte> buffer)
-    {
-        long position = Position;
-        int bytesRead = m_stream.Read(buffer);
-        
-        m_deobfuscator?.Deobfuscate(position, buffer, bytesRead);
-
-        return bytesRead;
-    }
-    public override void Write(byte[] buffer, int offset, int count) => m_stream.Write(buffer, offset, count);
-    public override void Write(ReadOnlySpan<byte> buffer) => m_stream.Write(buffer);
-
-    public void Pad(int alignment)
-    {
-        long r = Position % alignment;
-        if (r != 0)
-        {
-            Position += alignment - r;
-        }
-    }
-
-    public void SetStream(Stream stream)
-    {
-        m_stream = stream;
-    }
-
-    public Stream GetStream()
-    {
-        return m_stream;
-    }
+    public void SetLength(int value) => m_stream.SetLength(value);
 
     #region -- Read --
+
+    public byte[] ReadBytes(int count)
+    {
+        byte[] retVal = new byte[count];
+        m_stream.ReadExactly(retVal, 0, retVal.Length);
+        return retVal;
+    }
+    public void ReadExactly(Span<byte> buffer) => m_stream.ReadExactly(buffer);
+    
+    public int Read(byte[] buffer, int offset, int count) => m_stream.Read(buffer, offset, count);
     
     #region -- Basic Types --
 
-    public new byte ReadByte()
+    public byte ReadByte()
     {
-        if (FillBuffer(sizeof(byte)) != sizeof(byte))
+        int retVal = m_stream.ReadByte();
+        if (retVal == -1)
         {
             throw new EndOfStreamException();
         }
 
-        return m_buffer[0];
+        return (byte)retVal;
     }
     
     public sbyte ReadSByte()
@@ -143,28 +72,25 @@ public unsafe class DataStream : Stream
         return (sbyte)ReadByte();
     }
 
-    public char ReadChar(bool wide = false)
-    {
-        return (char)(wide ? ReadInt16() : ReadByte());
-    }
-
     public bool ReadBoolean()
     {
         return ReadByte() != 0;
     }
 
+    public char ReadChar(bool wide = false)
+    {
+        return (char)(wide ? ReadInt16() : ReadByte());
+    }
+
     public short ReadInt16(Endian endian = Endian.Little)
     {
-        if (FillBuffer(sizeof(short)) != sizeof(short))
-        {
-            throw new EndOfStreamException();
-        }
-
+        m_stream.ReadExactly(m_buffer, 0, sizeof(short));
+        
         if (endian == Endian.Big)
         {
-            return (short)(m_buffer[0] << 8 | m_buffer[1] << 0);
+            Array.Reverse(m_buffer, 0, sizeof(short));
         }
-        return (short)(m_buffer[1] << 8 | m_buffer[0] << 0);
+        return BitConverter.ToInt16(m_buffer);
     }
 
     public ushort ReadUInt16(Endian endian = Endian.Little)
@@ -174,18 +100,17 @@ public unsafe class DataStream : Stream
     
     public int ReadInt32(Endian endian = Endian.Little)
     {
-        if (FillBuffer(sizeof(int)) != sizeof(int))
-        {
-            throw new EndOfStreamException();
-        }
-
+        Span<byte> span = m_buffer.AsSpan(0, sizeof(int));
+        m_stream.ReadExactly(span);
+        
         if (endian == Endian.Big)
         {
-            return m_buffer[0] << 24 | m_buffer[1] << 16 | m_buffer[2] << 8 | m_buffer[3] << 0;
+            return BinaryPrimitives.ReadInt32BigEndian(span);
         }
-        return m_buffer[3] << 24 | m_buffer[2] << 16 | m_buffer[1] << 8 | m_buffer[0] << 0;
-    }
 
+        return BinaryPrimitives.ReadInt32LittleEndian(span);
+    }
+    
     public uint ReadUInt32(Endian endian = Endian.Little)
     {
         return (uint)ReadInt32(endian);
@@ -193,18 +118,15 @@ public unsafe class DataStream : Stream
     
     public long ReadInt64(Endian endian = Endian.Little)
     {
-        if (FillBuffer(sizeof(long)) != sizeof(long))
-        {
-            throw new EndOfStreamException();
-        }
-
+        Span<byte> span = m_buffer.AsSpan(0, sizeof(long));
+        m_stream.ReadExactly(span);
+        
         if (endian == Endian.Big)
         {
-            return (long)m_buffer[0] << 56 | (long)m_buffer[1] << 48 | (long)m_buffer[2] << 40 | (long)m_buffer[3] << 32 |
-                   (uint)(m_buffer[4] << 24) | (uint)(m_buffer[5] << 16) | (uint)(m_buffer[6] << 8) | (uint)(m_buffer[7] << 0);
+            return BinaryPrimitives.ReadInt64BigEndian(span);
         }
-        return (long)m_buffer[7] << 56 | (long)m_buffer[6] << 48 | (long)m_buffer[5] << 40 | (long)m_buffer[4] << 32 |
-               (uint)(m_buffer[3] << 24) | (uint)(m_buffer[2] << 16) | (uint)(m_buffer[1] << 8) | (uint)(m_buffer[0] << 0);
+
+        return BinaryPrimitives.ReadInt64LittleEndian(span);
     }
 
     public ulong ReadUInt64(Endian endian = Endian.Little)
@@ -214,208 +136,140 @@ public unsafe class DataStream : Stream
     
     public float ReadSingle(Endian endian = Endian.Little)
     {
-        if (FillBuffer(sizeof(float)) != sizeof(float))
-        {
-            throw new EndOfStreamException();
-        }
-
-        int tmp;
+        Span<byte> span = m_buffer.AsSpan(0, sizeof(float));
+        m_stream.ReadExactly(span);
+        
         if (endian == Endian.Big)
         {
-            tmp = (m_buffer[0] << 24 | m_buffer[1] << 16 | m_buffer[2] << 8 | m_buffer[3] << 0);
+            return BinaryPrimitives.ReadSingleBigEndian(span);
         }
-        else
-        {
-            tmp = (m_buffer[3] << 24 | m_buffer[2] << 16 | m_buffer[1] << 8 | m_buffer[0] << 0);
-        }
-        
-        return *(float*)&tmp;
+
+        return BinaryPrimitives.ReadSingleLittleEndian(span);
     }
     
     public double ReadDouble(Endian endian = Endian.Little)
     {
-        if (FillBuffer(sizeof(long)) != sizeof(long))
-        {
-            throw new EndOfStreamException();
-        }
-
-        long tmp;
+        Span<byte> span = m_buffer.AsSpan(0, sizeof(double));
+        m_stream.ReadExactly(span);
+        
         if (endian == Endian.Big)
         {
-            tmp = (long)m_buffer[0] << 56 | (long)m_buffer[1] << 48 | (long)m_buffer[2] << 40 | (long)m_buffer[3] << 32 |
-                  (uint)(m_buffer[4] << 24) | (uint)(m_buffer[5] << 16) | (uint)(m_buffer[6] << 8) | (uint)(m_buffer[7] << 0);
-        }
-        else
-        {
-            tmp = (long)m_buffer[7] << 56 | (long)m_buffer[6] << 48 | (long)m_buffer[5] << 40 | (long)m_buffer[4] << 32 |
-                  (uint)(m_buffer[3] << 24) | (uint)(m_buffer[2] << 16) | (uint)(m_buffer[1] << 8) | (uint)(m_buffer[0] << 0);
-        }
-        return *(double*)&tmp;
-    }
-
-    public byte[] ReadBytes(int count)
-    {
-        byte[] retVal = new byte[count];
-        
-        if (Read(retVal, 0, count) != count)
-        {
-            throw new EndOfStreamException();
+            return BinaryPrimitives.ReadDoubleBigEndian(span);
         }
 
-        return retVal;
+        return BinaryPrimitives.ReadDoubleLittleEndian(span);
     }
 
     #endregion
 
     #region -- Strings --
-
+    
     public string ReadNullTerminatedString(bool wide = false)
     {
         m_stringBuilder.Clear();
-
         while (true)
         {
             char c = ReadChar(wide);
             if (c == 0)
             {
-                break;
+                return m_stringBuilder.ToString();
             }
+
             m_stringBuilder.Append(c);
         }
-
-        return m_stringBuilder.ToString();
     }
 
-    public string ReadFixedSizedString(int size, bool wide = false)
+    public string ReadFixedSizedString(int size)
     {
-        int actualSize = size * (wide ? 2 : 1);
-        m_stringBuilder.Clear();
+        Span<byte> buffer = new byte[size];
+        m_stream.ReadExactly(buffer);
 
-        byte[] tmp = ReadBytes(actualSize);
-
-        for (int i = 0; i < size; i++)
-        {
-            char c;
-            if (wide)
-            {
-                c = (char)(tmp[i * 2] | tmp[i * 2 + 1] << 8);
-            }
-            else
-            {
-                c = (char)tmp[i];
-            }
-
-            if (c != 0)
-            {
-                m_stringBuilder.Append(c);
-            }
-        }
-
-        return m_stringBuilder.ToString();
+        return Encoding.UTF8.GetString(buffer).TrimEnd((char)0);
     }
-    
+
     public string ReadSizedString()
     {
-        return ReadFixedSizedString(Read7BitEncodedInt());
+        return ReadFixedSizedString(Read7BitEncodedInt32());
     }
 
     #endregion
 
+    public int Read7BitEncodedInt32()
+    {
+        uint num1 = 0;
+        for (int index = 0; index < 28; index += 7)
+        {
+            byte num2 = ReadByte();
+            num1 |= (uint) ((num2 & sbyte.MaxValue) << index);
+            if (num2 <= 127)
+            {
+                return (int) num1;
+            }
+        }
+        byte num3 = ReadByte();
+        if (num3 > 15)
+        {
+            throw new FormatException();
+        }
+
+        return (int) (num1 | (uint) num3 << 28);
+    }
+
+    public long Read7BitEncodedInt64()
+    {
+        ulong num1 = 0;
+        for (int index = 0; index < 63; index += 7)
+        {
+            byte num2 = ReadByte();
+            num1 |= (ulong) (((long) num2 & sbyte.MaxValue) << index);
+            if (num2 <= 127)
+            {
+                return (long) num1;
+            }
+        }
+        byte num3 = ReadByte();
+        if (num3 > 1)
+        {
+            throw new FormatException();
+        }
+
+        return (long) (num1 | (ulong) num3 << 63);
+    }
+
     public Guid ReadGuid(Endian endian = Endian.Little)
     {
-        if (FillBuffer(sizeof(Guid)) != sizeof(Guid))
-        {
-            throw new EndOfStreamException();
-        }
-        int a;
-        short b, c;
-        if (endian == Endian.Big)
-        {
-            a = m_buffer[0] << 24 | m_buffer[1] << 16 | m_buffer[2] << 8 | m_buffer[3] << 0;
-            b = (short)(m_buffer[4] << 8 | m_buffer[5] << 0);
-            c = (short)(m_buffer[6] << 8 | m_buffer[7] << 0);
-        }
-        else
-        {
-            a = m_buffer[3] << 24 | m_buffer[2] << 16 | m_buffer[1] << 8 | m_buffer[0] << 0; 
-            b = (short)(m_buffer[5] << 8 | m_buffer[4] << 0);
-            c = (short)(m_buffer[7] << 8 | m_buffer[6] << 0);
-        }
+        Span<byte> span = m_buffer.AsSpan(0, sizeof(Guid));
+        m_stream.ReadExactly(span);
         
-        byte[] d = new byte[8];
-        Array.Copy(m_buffer, 8, d, 0, 8);
-        
-        return new Guid(a, b, c, d);
+        return MemoryMarshal.Read<Guid>(span);
     }
 
-    public int Read7BitEncodedInt(Endian endian = Endian.Little)
+    public Sha1 ReadSha1(Endian endian = Endian.Little)
     {
-        int result = 0;
-        int i = 0;
-
-        while (true)
-        {
-            int b = ReadByte();
-            result |= (b & 127) << i;
-
-            if (b >> 7 == 0)
-            {
-                return result;
-            }
-
-            i += 7;
-        }
-    }
-    
-    public long Read7BitEncodedLong(Endian endian = Endian.Little)
-    {
-        long result = 0;
-        int i = 0;
-
-        while (true)
-        {
-            int b = ReadByte();
-            result |= (long)((b & 127) << i);
-
-            if (b >> 7 == 0)
-            {
-                return result;
-            }
-
-            i += 7;
-        }
-    }
-
-    public Sha1 ReadSha1()
-    {
-        if (FillBuffer(sizeof(Sha1)) != sizeof(Sha1))
-        {
-            throw new EndOfStreamException();
-        }
+        Span<byte> span = m_buffer.AsSpan(0, sizeof(Sha1));
+        m_stream.ReadExactly(span);
         
-        return new Sha1(m_buffer);
+        return MemoryMarshal.Read<Sha1>(span);
     }
 
     #endregion
     
     #region -- Write --
-    
+
+    public void Write(ReadOnlySpan<byte> buffer) => m_stream.Write(buffer);
+
+    public void Write(byte[] buffer, int offset, int count) => m_stream.Write(buffer, offset, count);
+
     #region -- Basic Types --
 
-    public new void WriteByte(byte value)
+    public void WriteByte(byte value)
     {
-        m_buffer[0] = value;
-        WriteBuffer(sizeof(byte));
+        m_stream.WriteByte(value);
     }
 
     public void WriteSByte(sbyte value)
     {
         WriteByte((byte)value);
-    }
-
-    public void WriteBoolean(bool value)
-    {
-        WriteByte((byte)(value ? 1 : 0));
     }
 
     public void WriteChar(char value, bool wide = false)
@@ -432,9 +286,12 @@ public unsafe class DataStream : Stream
 
     public void WriteInt16(short value, Endian endian = Endian.Little)
     {
-        WriteToBuffer((byte*)&value, 0, sizeof(short), endian);
-        
-        WriteBuffer(sizeof(short));
+        if (endian == Endian.Big)
+        {
+            value = Reverse(value);
+        }
+        Unsafe.As<byte, short>(ref m_buffer[0]) = value;
+        m_stream.Write(m_buffer, 0, sizeof(short));
     }
 
     public void WriteUInt16(ushort value, Endian endian = Endian.Little)
@@ -444,11 +301,14 @@ public unsafe class DataStream : Stream
     
     public void WriteInt32(int value, Endian endian = Endian.Little)
     {
-        WriteToBuffer((byte*)&value, 0, sizeof(int), endian);
-        
-        WriteBuffer(sizeof(int));
+        if (endian == Endian.Big)
+        {
+            value = Reverse(value);
+        }
+        Unsafe.As<byte, int>(ref m_buffer[0]) = value;
+        m_stream.Write(m_buffer, 0, sizeof(int));
     }
-
+    
     public void WriteUInt32(uint value, Endian endian = Endian.Little)
     {
         WriteInt32((int)value, endian);
@@ -456,9 +316,12 @@ public unsafe class DataStream : Stream
     
     public void WriteInt64(long value, Endian endian = Endian.Little)
     {
-        WriteToBuffer((byte*)&value, 0, sizeof(long), endian);
-        
-        WriteBuffer(sizeof(long));
+        if (endian == Endian.Big)
+        {
+            value = Reverse(value);
+        }
+        Unsafe.As<byte, long>(ref m_buffer[0]) = value;
+        m_stream.Write(m_buffer, 0, sizeof(long));
     }
 
     public void WriteUInt64(ulong value, Endian endian = Endian.Little)
@@ -468,16 +331,34 @@ public unsafe class DataStream : Stream
 
     public void WriteSingle(float value, Endian endian = Endian.Little)
     {
-        WriteToBuffer((byte*)&value, 0, sizeof(float), endian);
-        
-        WriteBuffer(sizeof(float));
+        if (endian == Endian.Big)
+        {
+            int i = 0;
+            Unsafe.As<int, float>(ref i) = value;
+            i = Reverse(i);
+            Unsafe.As<byte, int>(ref m_buffer[0]) = i;
+        }
+        else
+        {
+            Unsafe.As<byte, float>(ref m_buffer[0]) = value;   
+        }
+        m_stream.Write(m_buffer, 0, sizeof(float));
     }
-    
+
     public void WriteDouble(double value, Endian endian = Endian.Little)
     {
-        WriteToBuffer((byte*)&value, 0, sizeof(double), endian);
-        
-        WriteBuffer(sizeof(double));
+        if (endian == Endian.Big)
+        {
+            long i = 0;
+            Unsafe.As<long, double>(ref i) = value;
+            i = Reverse(i);
+            Unsafe.As<byte, long>(ref m_buffer[0]) = i;
+        }
+        else
+        {
+            Unsafe.As<byte, double>(ref m_buffer[0]) = value;   
+        }
+        m_stream.Write(m_buffer, 0, sizeof(double));
     }
 
     #endregion
@@ -486,109 +367,114 @@ public unsafe class DataStream : Stream
 
     public void WriteNullTerminatedString(string value, bool wide = false)
     {
-        byte[] tmp = new byte[(value.Length + 1) * (wide ? 2 : 1)];
-        for (int i = 0; i < value.Length; i++)
+        Span<byte> span = new byte[(value.Length + 1) * (wide ? 2 : 1)];
+        if (wide)
         {
-            tmp[i * (wide ? 2 : 1)] = (byte)value[i];
-            if (wide)
-            {
-                tmp[i * 2 + 1] = (byte)((short)value[i] >> 8);
-            }
+            Encoding.Unicode.GetBytes(value, span);
         }
-        m_stream.Write(tmp, 0, (value.Length + 1) * (wide ? 2 : 1));
+        else
+        {
+            Encoding.ASCII.GetBytes(value, span);
+        }
+        m_stream.Write(span);
     }
 
     public void WriteFixedSizedString(string value, int size)
     {
-        byte[] tmp = new byte[size];
-        for (int i = 0; i < value.Length; i++)
-        {
-            tmp[i] = (byte)value[i];
-        }
-        Write(tmp, 0, size);
+        Span<byte> span = new byte[size];
+        Encoding.UTF8.GetBytes(value, span);
+        m_stream.Write(span);
     }
     
     public void WriteSizedString(string value)
     {
-        Write7BitEncodedInt(value.Length);
-        WriteFixedSizedString(value, value.Length);
+        int size = Encoding.UTF8.GetByteCount(value) + 1;
+        Write7BitEncodedInt32(size);
+        WriteFixedSizedString(value, size);
     }
 
     #endregion
 
     public void WriteGuid(Guid value, Endian endian = Endian.Little)
     {
-        WriteToBuffer((byte*)&value, 0, sizeof(int), endian);
-        WriteToBuffer(((byte*)&value + 4), 4, sizeof(short), endian);
-        WriteToBuffer(((byte*)&value + 6), 6, sizeof(short), endian);
-        WriteToBuffer(((byte*)&value + 8), 8, 8, Endian.Little);
-        WriteBuffer(sizeof(Guid));
+        Unsafe.As<byte, Guid>(ref m_buffer[0]) = value;
+        
+        if (endian == Endian.Big)
+        {
+            Array.Reverse(m_buffer, 0, sizeof(Guid));
+        }
+        m_stream.Write(m_buffer, 0, sizeof(Guid));
+    }
+
+    public void WriteSha1(Sha1 value, Endian endian = Endian.Little)
+    {
+        Unsafe.As<byte, Sha1>(ref m_buffer[0]) = value;
+        
+        if (endian == Endian.Big)
+        {
+            Array.Reverse(m_buffer, 0, sizeof(Sha1));
+        }
+        m_stream.Write(m_buffer, 0, sizeof(Sha1));
     }
     
-    public void Write7BitEncodedInt(int value)
+    public void Write7BitEncodedInt32(int value)
     {
-        uint v = (uint)value;
-        while (v >= 0x80)
+        uint num;
+        for (num = (uint) value; num > (uint) sbyte.MaxValue; num >>= 7)
         {
-            WriteByte((byte)(v | 0x80));
-            v >>= 7;
+            WriteByte((byte) (num | 0xFFFFFF80U));
         }
-        WriteByte((byte)v);
+
+        WriteByte((byte) num);
     }
 
-    public void Write7BitEncodedLong(long value)
+    public void Write7BitEncodedInt64(long value)
     {
-        ulong v = (ulong)value;
-        while (v >= 0x80)
+        ulong num;
+        for (num = (ulong) value; num > (ulong) sbyte.MaxValue; num >>= 7)
         {
-            WriteByte((byte)(v | 0x80));
-            v >>= 7;
+            WriteByte((byte) ((uint) num | 0xFFFFFF80U));
         }
-        WriteByte((byte)v);
-    }
 
-    public void WriteSha1(Sha1 value)
-    {
-        m_stream.Write(value.ToByteArray(), 0, 20);
+        WriteByte((byte) num);
     }
 
     #endregion
 
-    public Stream CreateViewStream(long offset, long size)
+    public void Pad(int alignment)
     {
-        m_stream.Position = offset;
-
-        return new MemoryStream(ReadBytes((int)size));
-    }
-    
-    public byte[] ToByteArray()
-    {
-        byte[] retVal = new byte[m_stream.Length];
-        m_stream.Position = 0;
-        int bytesRead = Read(retVal, 0, (int)m_stream.Length);
-        if (bytesRead != m_stream.Length)
+        if (m_stream.Position % alignment != 0)
         {
-            throw new Exception();
-        }
-        return retVal;
+            m_stream.Position += alignment - (m_stream.Position % alignment);
+        } 
     }
     
-    private int FillBuffer(int count)
+    public static implicit operator Stream(DataStream stream) => stream.m_stream;
+    
+    public virtual void Dispose()
     {
-        int read = Read(m_buffer, 0, count);
-        return read;
+        m_stream.Dispose();
     }
 
-    private void WriteToBuffer(byte* data, int offset, int count, Endian endian)
+    private short Reverse(short s)
     {
-        for (int i = 0; i < count; i++)
-        {
-            m_buffer[i + offset] = data[endian == Endian.Big ? count - i - 1 : i];
-        }
+        ushort val = (ushort)s;
+        return (short)(((val & 0xff) << 8) | ((val & 0xff00) >> 8));
     }
     
-    private void WriteBuffer(int count)
+    private int Reverse(int i)
     {
-        m_stream.Write(m_buffer, 0, count);
+        uint val = (uint)i;
+        return (int)(((val & 0xff) << 24) | ((val & 0xff000000) >> 24) |
+                     ((val & 0xff00) << 8) | ((val & 0xff0000) >> 8));
+    }
+
+    private long Reverse(long l)
+    {
+        ulong val = (uint)l;
+        return (long)(((val & 0x00000000000000ffUL) << 56) | ((val & 0xff00000000000000UL) >> 56) |
+                      ((val & 0x000000000000ff00UL) << 40) | ((val & 0x00ff000000000000UL) >> 40) |
+                      ((val & 0x0000000000ff0000UL) << 24) | ((val & 0x0000ff0000000000UL) >> 24) |
+                      ((val & 0x00000000ff000000UL) <<  8) | ((val & 0x000000ff00000000UL) >> 8));
     }
 }

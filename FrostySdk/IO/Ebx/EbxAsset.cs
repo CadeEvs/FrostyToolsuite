@@ -44,7 +44,9 @@ public partial class EbxAsset
                 dynamic obj = objects[i];
                 AssetClassGuid guid = obj.GetInstanceGuid();
                 if (guid.IsExported)
+                {
                     yield return obj;
+                }
             }
         }
     }
@@ -78,27 +80,14 @@ public partial class EbxAsset
     {
     }
 
-    /// <summary>
-    /// Saves the resource as a specialized ModifiedResource object
-    /// </summary>
-    public virtual ModifiedResource? SaveModifiedResource()
-    {
-        return null;
-    }
-
-    /// <summary>
-    /// Apply the modified resource data onto the loaded ebx data
-    /// </summary>
-    public virtual void ApplyModifiedResource(ModifiedResource modifiedResource)
-    {
-    }
-
     public dynamic? GetObject(Guid guid)
     {
         foreach (dynamic obj in ExportedObjects)
         {
             if (obj.GetInstanceGuid() == guid)
+            {
                 return obj;
+            }
         }
         return null;
     }
@@ -106,7 +95,10 @@ public partial class EbxAsset
     public bool AddDependency(Guid guid)
     {
         if (dependencies.Contains(guid))
+        {
             return false;
+        }
+
         dependencies.Add(guid);
         return true;
     }
@@ -130,7 +122,9 @@ public partial class EbxAsset
     {
         int idx = objects.IndexOf(obj);
         if (idx == -1)
+        {
             return;
+        }
 
         objects.RemoveAt(idx);
     }
@@ -192,7 +186,9 @@ public partial class EbxAsset
                 }
 
                 if (requiresChange)
+                {
                     refProp.Item1.SetValue(refProp.Item2, list);
+                }
             }
         }
     }
@@ -207,9 +203,14 @@ public partial class EbxAsset
         foreach (PropertyInfo pi in pis)
         {
             if (pi.PropertyType.IsPrimitive)
+            {
                 continue;
+            }
+
             if (pi.PropertyType.IsEnum)
+            {
                 continue;
+            }
 
             Type pType = pi.PropertyType;
 
@@ -272,7 +273,9 @@ public partial class EbxAsset
             {
                 BoxedValueRef boxedValue = (pi.GetValue(obj) as BoxedValueRef)!;
                 if (boxedValue.Value != null)
+                {
                     CountRefs(boxedValue.Value, classObj, ref refProps, ref externalProps);
+                }
             }
 
             // Structures

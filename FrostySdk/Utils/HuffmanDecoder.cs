@@ -73,7 +73,9 @@ internal class HuffmanNode : IComparable<HuffmanNode>
 
         string bitVal;
         if (this == Parent.Left)
+        {
             bitVal = "0";
+        }
         else if (this == Parent.Right)
         {
             bitVal = "1";

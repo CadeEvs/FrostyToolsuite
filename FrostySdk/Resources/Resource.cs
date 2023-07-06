@@ -31,8 +31,4 @@ public class Resource
     public virtual void Serialize(DataStream stream)
     {
     }
-
-    public virtual void ApplyModifications(ModifiedResource? modifiedResource)
-    {
-    }
 }

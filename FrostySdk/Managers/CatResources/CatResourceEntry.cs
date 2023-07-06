@@ -12,5 +12,4 @@ public struct CatResourceEntry
     public uint OriginalSize;
     public string KeyId;
     public byte[] Checksum;
-    public uint EncryptedSize;
 }

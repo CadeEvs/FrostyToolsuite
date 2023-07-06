@@ -4,15 +4,17 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using Frosty.Sdk.DbObjectElements;
 using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.Entries;
 using Frosty.Sdk.Managers.Infos;
-using FileInfo = Frosty.Sdk.Managers.Infos.FileInfo;
+using Frosty.Sdk.Managers.Infos.FileInfos;
+using Frosty.Sdk.Utils;
 
 namespace Frosty.Sdk.Managers.Loaders;
 
-public class FifaAssetLoader : IAssetLoader
+public class KelvinAssetLoader : IAssetLoader
 {
     public void Load()
     {
@@ -55,182 +57,168 @@ public class FifaAssetLoader : IAssetLoader
                     
                     int superBundleId = AssetManager.AddSuperBundle(sbInfo.Name);
                 
-                    LoadToc(superBundleId, tocPath);
+                    //LoadToc(superBundleId, tocPath);
                 }
             }
         }
     }
 
+    private struct FileIdentifier
+    {
+        public int FileIndex;
+        public uint Offset;
+        public uint Size;
+
+        public FileIdentifier(int inFileIndex, uint inOffset, uint inSize)
+        {
+            FileIndex = inFileIndex;
+            Offset = inOffset;
+            Size = inSize;
+        }
+    }
+    
     private void LoadToc(int superBundleId, string tocPath)
     {
-        using (DataStream stream = new(new FileStream(tocPath, FileMode.Open, FileAccess.Read), true))
+        using (BlockStream stream = BlockStream.FromFile(tocPath, true))
         {
             uint magic = stream.ReadUInt32();
             uint bundlesOffset = stream.ReadUInt32();
             uint chunksOffset = stream.ReadUInt32();
-
+    
             if (magic == 0xC3E5D5C3)
             {
-                // get second encryption key
-                byte[] key = KeyManager.GetKey("Key2");
-
-                byte[] buffer = stream.ReadBytes((int)(stream.Length - 0x0C));
-                byte[] outBuffer = new byte[buffer.Length + 0x0C];
-                using (Aes aes = Aes.Create())
-                {
-                    aes.Key = key;
-                    aes.IV = key;
-                    aes.Padding = PaddingMode.None;
-
-                    ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
-                    using (CryptoStream cryptoStream = new(new MemoryStream(buffer), decryptor, CryptoStreamMode.Read))
-                    {
-                        cryptoStream.Read(outBuffer, 0x0C, buffer.Length);
-                    }
-                }
-
-                stream.SetStream(new MemoryStream(outBuffer));
+                stream.Decrypt(KeyManager.GetKey("BundleEncryptionKey"), PaddingMode.None);
             }
-
+    
             if (bundlesOffset != 0)
             {
                 stream.Position = bundlesOffset;
-
+    
                 int bundleCount = stream.ReadInt32();
-
-                // hashmap
+    
+                // bundle hashmap
                 for (int i = 0; i < bundleCount; i++)
                 {
-                    stream.ReadInt32();
+                    stream.Position += sizeof(int);
                 }
-
+    
                 for (int i = 0; i < bundleCount; i++)
                 {
                     uint bundleOffset = stream.ReadUInt32();
-
+    
                     long curPos = stream.Position;
-
+    
                     stream.Position = bundleOffset;
-
-                    string name = ReadString(stream, stream.ReadInt32() - 1);
-
-                    List<CasMergedResourceInfo> files = new();
+    
+                    string name = ReadString(stream, stream.ReadInt32());
+    
+                    List<FileIdentifier> files = new();
                     while (true)
                     {
                         int file = stream.ReadInt32();
                         uint fileOffset = stream.ReadUInt32();
                         uint fileSize = stream.ReadUInt32();
-
-                        files.Add(new CasMergedResourceInfo(file & 0x7FFFFFFF, fileOffset, fileSize));
+    
+                        files.Add(new FileIdentifier(file & 0x7FFFFFFF, fileOffset, fileSize));
                         if ((file & 0x80000000) == 0)
                         {
                             break;
                         }
                     }
-
+    
                     stream.Position = curPos;
-
+    
                     int index = 0;
-                    CasMergedResourceInfo resourceInfo = files[index];
+                    FileIdentifier resourceInfo = files[index];
 
-                    DataStream dataStream =
-                        new (new FileStream(
-                            FileSystemManager.ResolvePath(
-                                FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                            FileAccess.Read));
-
+                    BlockStream dataStream = BlockStream.FromFile(
+                        FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)), false);
+    
                     dataStream.Position = resourceInfo.Offset;
-                    DbObject bundle = BinaryBundle.Deserialize(dataStream);
-
-                    foreach (DbObject ebx in bundle["ebx"].As<DbObject>())
+                    BinaryBundle bundle = BinaryBundle.Deserialize(dataStream);
+    
+                    foreach (EbxAssetEntry ebx in bundle.EbxList)
                     {
                         if (dataStream.Position == resourceInfo.Offset + resourceInfo.Size)
                         {
                             dataStream.Dispose();
                             resourceInfo = files[++index];
-                            dataStream =
-                                new DataStream(new FileStream(
-                                    FileSystemManager.ResolvePath(
-                                        FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                                    FileAccess.Read));
+                            dataStream = BlockStream.FromFile(
+                                FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)), false);
+                            dataStream.Position = resourceInfo.Offset;
                         }
-
-                        ebx.AddValue("path",
-                            FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)));
-                        ebx.AddValue("offset", dataStream.Position);
-                        ebx.AddValue("size", StandardAssetLoader.GetSize(dataStream, ebx["originalSize"].As<long>()));
+                
+                        uint offset = (uint)dataStream.Position;
+                        ebx.Size = DbObjectAssetLoader.GetSize(dataStream, ebx.OriginalSize);
+                
+                        ebx.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(resourceInfo.FileIndex), offset, (uint)ebx.Size, 0));
+                
+                        AssetManager.AddEbx(ebx);
                     }
-                    foreach (DbObject res in bundle["res"].As<DbObject>())
+                    foreach (ResAssetEntry res in bundle.ResList)
                     {
                         if (dataStream.Position == resourceInfo.Offset + resourceInfo.Size)
                         {
                             dataStream.Dispose();
                             resourceInfo = files[++index];
-                            dataStream =
-                                new DataStream(new FileStream(
-                                    FileSystemManager.ResolvePath(
-                                        FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                                    FileAccess.Read));
+                            dataStream = BlockStream.FromFile(
+                                FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)), false);
+                            dataStream.Position = resourceInfo.Offset;
                         }
-
-                        res.AddValue("path",
-                            FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)));
-                        res.AddValue("offset", dataStream.Position);
-                        res.AddValue("size", StandardAssetLoader.GetSize(dataStream, res["originalSize"].As<long>()));
+                        uint offset = (uint)dataStream.Position;
+                        res.Size = DbObjectAssetLoader.GetSize(dataStream, res.OriginalSize);
+                        res.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(resourceInfo.FileIndex), offset, (uint)res.Size, 0));
+                        
+                        AssetManager.AddRes(res);
                     }
-                    foreach (DbObject chunk in bundle["chunks"].As<DbObject>())
+                    foreach (ChunkAssetEntry chunk in bundle.ChunkList)
                     {
                         if (dataStream.Position == resourceInfo.Offset + resourceInfo.Size)
                         {
                             dataStream.Dispose();
                             resourceInfo = files[++index];
-                            dataStream =
-                                new DataStream(new FileStream(
-                                    FileSystemManager.ResolvePath(
-                                        FileSystemManager.GetFilePath(resourceInfo.FileIndex)), FileMode.Open,
-                                    FileAccess.Read));
+                            dataStream = BlockStream.FromFile(
+                                FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)), false);
+                            dataStream.Position = resourceInfo.Offset;
                         }
 
-                        chunk.AddValue("path",
-                            FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(resourceInfo.FileIndex)));
-                        chunk.AddValue("offset", dataStream.Position);
-                        chunk.AddValue("size", StandardAssetLoader.GetSize(dataStream, chunk["originalSize"].As<long>()));
+                        uint offset = (uint)dataStream.Position;
+                        chunk.Size = DbObjectAssetLoader.GetSize(dataStream, (chunk.LogicalOffset & 0xFFFF) | chunk.LogicalSize);
+                        chunk.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(resourceInfo.FileIndex), offset, (uint)chunk.Size, chunk.LogicalOffset));
+                        
+                        AssetManager.AddChunk(chunk);
                     }
-
+    
                     dataStream.Dispose();
-
-                    AssetManager.ProcessBundle(bundle, superBundleId, name);
                 }
             }
-
+    
             if (chunksOffset > 0)
             {
                 stream.Position = chunksOffset;
                 int chunksCount = stream.ReadInt32();
-
+    
                 // hashmap
                 for (int i = 0; i < chunksCount; i++)
                 {
-                    stream.ReadInt32();
+                    stream.Position += sizeof(int);
                 }
-
+    
                 for (int i = 0; i < chunksCount; i++)
                 {
                     int offset = stream.ReadInt32();
-
+    
                     long pos = stream.Position;
                     stream.Position = offset;
-
+    
                     Guid guid = stream.ReadGuid();
                     int fileIndex = stream.ReadInt32();
-                    int dataOffset = stream.ReadInt32();
-                    int dataSize = stream.ReadInt32();
-
-                    ChunkAssetEntry chunk = new(guid, Sha1.Zero, dataSize, 0, 0, superBundleId)
-                    {
-                        Location = AssetDataLocation.CasNonIndexed,
-                        FileInfo = new FileInfo(FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(fileIndex)), dataOffset, dataSize)
-                    };
+                    uint dataOffset = stream.ReadUInt32();
+                    uint dataSize = stream.ReadUInt32();
+    
+                    ChunkAssetEntry chunk = new(guid, Sha1.Zero, dataSize, 0, 0, superBundleId);
+    
+                    chunk.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(fileIndex), dataOffset, dataSize, 0));
                     
                     AssetManager.AddSuperBundleChunk(chunk);
                     
@@ -243,16 +231,16 @@ public class FifaAssetLoader : IAssetLoader
     private string ReadString(DataStream reader, int offset)
     {
         long curPos = reader.Position;
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
 
         do
         {
-            reader.Position = offset;
+            reader.Position = offset - 1;
             string tmp = reader.ReadNullTerminatedString();
-            offset = reader.ReadInt32() - 1;
+            offset = reader.ReadInt32();
 
             sb.Append(tmp);
-        } while (offset != -1);
+        } while (offset != 0);
 
         reader.Position = curPos;
         return sb.ToString().Reverse().ToString()!;

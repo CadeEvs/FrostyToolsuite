@@ -32,48 +32,12 @@ public class ChunkAssetEntry : AssetEntry
     /// </summary>
     public readonly HashSet<int> SuperBundles = new();
 
-    // these are not assigned by the AssetLoader, but are needed for rewriting of the asset
-    
-    /// <summary>
-    /// Hash of the asset referencing this chunk.
-    /// </summary>
-    public int H32 { get; }
-    
-    /// <summary>
-    /// First mip that is stored in the bundle version of a chunk for a texture, else its -1.
-    /// </summary>
-    public int FirstMip { get; } = -1;
-    
-    /// <summary>
-    /// Offset of the FirstMip in the compressed chunk if this is a chunk for a texture, else it's 0.
-    /// </summary>
-    public uint RangeStart { get; }
-    
-    /// <summary>
-    /// Size of the compressed chunk from the FirstMip if this is a chunk for a texture, else it's the size of the compressed chunk.
-    /// </summary>
-    public uint RangeEnd { get; }
-
     public ChunkAssetEntry(Guid inChunkId, Sha1 inSha1, long inSize, uint inLogicalOffset, uint inLogicalSize, params int[] superBundleIds)
         : base(inSha1, inSize, inLogicalOffset + inLogicalSize)
     {
         Id = inChunkId;
         LogicalOffset = inLogicalOffset;
         LogicalSize = inLogicalSize;
-        SuperBundles.UnionWith(superBundleIds);
-    }
-
-    public ChunkAssetEntry(Guid inChunkId, Sha1 inSha1, long inSize, uint inLogicalOffset, uint inLogicalSize,
-        uint inRangeStart, uint inRangeEnd, int inH32, int inFirstMip, params int[] superBundleIds)
-        : base(inSha1, inSize, inLogicalOffset + inLogicalSize)
-    {
-        Id = inChunkId;
-        LogicalOffset = inLogicalOffset;
-        LogicalSize = inLogicalSize;
-        RangeStart = inRangeStart;
-        RangeEnd = inRangeEnd;
-        H32 = inH32;
-        FirstMip = inFirstMip;
         SuperBundles.UnionWith(superBundleIds);
     }
 

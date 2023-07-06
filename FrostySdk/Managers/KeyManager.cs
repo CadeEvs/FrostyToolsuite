@@ -9,14 +9,7 @@ public static class KeyManager
     public static void AddKey(string id, byte[] data)
     {
         int hash = Utils.Utils.HashString(id);
-        if (!s_keys.ContainsKey(hash))
-        {
-            s_keys.Add(hash, data);
-        }
-        else
-        {
-            s_keys[hash] = data;
-        }
+        s_keys.TryAdd(hash, data);
     }
 
     public static byte[] GetKey(string id)

@@ -1,9 +1,8 @@
 ﻿{
   "Name": "MirrorsEdgeCatalyst",
   "DisplayName": "Mirror's Edge™ Catalyst",
-  "CacheName": "mirrorsedge",
+  "InternalName": "mirrorsedge",
   "Deobfuscator": "Signature",
-  "AssetLoader": "Standard",
   "DataVersion": 20160606,
   "Sources": [
     {
@@ -15,8 +14,6 @@
       "SubDirs": false
     }
   ],
-  "SdkFileName": "MirrorsEdgeSDK",
-  "BannerPath": "mec",
   "EbxVersion": 2,
   "RequiresKey": false,
   "MustAddChunks": false,

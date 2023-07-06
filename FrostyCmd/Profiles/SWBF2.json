@@ -1,9 +1,8 @@
 ﻿{
   "Name": "starwarsbattlefrontii",
   "DisplayName": "STAR WARS™ Battlefront™ II",
-  "CacheName": "starwarsii",
+  "InternalName": "starwarsii",
   "Deobfuscator": "Signature",
-  "AssetLoader": "Manifest",
   "DataVersion": 20171116,
   "Sources": [
     {
@@ -15,8 +14,6 @@
       "SubDirs": false
     }
   ],
-  "SdkFileName": "StarWarsIISDK",
-  "BannerPath": "SWBF2",
   "EbxVersion": 4,
   "RequiresKey": false,
   "MustAddChunks": false,

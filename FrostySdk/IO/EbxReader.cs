@@ -438,7 +438,9 @@ public class EbxReader : DataStream
     protected virtual string ReadString(uint offset)
     {
         if (offset == 0xFFFFFFFF)
+        {
             return string.Empty;
+        }
 
         long pos = Position;
         Position = m_stringsOffset + offset;
@@ -488,7 +490,9 @@ public class EbxReader : DataStream
         Position += 4;
 
         if (string.IsNullOrEmpty(str))
+        {
             return new TypeRef();
+        }
 
         if (Guid.TryParse(str, out Guid guid))
         {
@@ -507,7 +511,9 @@ public class EbxReader : DataStream
         Position += 12;
 
         if (index == -1)
+        {
             return new BoxedValueRef();
+        }
 
         EbxBoxedValue boxedValue = m_boxedValues[index];
         TypeFlags.TypeEnum subType = TypeFlags.TypeEnum.Inherited;

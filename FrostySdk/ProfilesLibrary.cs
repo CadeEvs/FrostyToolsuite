@@ -10,14 +10,15 @@ namespace Frosty.Sdk;
 
 public static class ProfilesLibrary
 {
+    public static bool IsInitialized { get; private set; }
+    
     public static string ProfileName => s_effectiveProfile?.Name ?? string.Empty;
     public static string DisplayName => s_effectiveProfile?.DisplayName ?? string.Empty;
-    public static string CacheName => s_effectiveProfile?.CacheName?? string.Empty;
+    public static string CacheName => s_effectiveProfile?.InternalName?? string.Empty;
     public static string Deobfuscator => s_effectiveProfile?.Deobfuscator ?? string.Empty;
-    public static string AssetLoader => s_effectiveProfile?.AssetLoader ?? string.Empty;
     public static int DataVersion => s_effectiveProfile?.DataVersion ?? -1;
     public static List<FileSystemSource> Sources => s_effectiveProfile?.Sources ?? new List<FileSystemSource>();
-    public static string SdkFilename => s_effectiveProfile?.SdkFileName ?? string.Empty;
+    public static string SdkFilename => s_effectiveProfile is null ? string.Empty : $"{s_effectiveProfile.InternalName}SDK";
 
     public static int EbxVersion => s_effectiveProfile?.EbxVersion ?? -1;
     public static bool RequiresKey => s_effectiveProfile?.RequiresKey ?? false;
@@ -37,7 +38,7 @@ public static class ProfilesLibrary
     public static string DefaultMask => s_effectiveProfile?.DefaultMask ?? string.Empty;
     public static string DefaultTint => s_effectiveProfile?.DefaultTint ?? string.Empty;
 
-    public static bool HasLoadedProfile => s_effectiveProfile != null;
+    public static bool HasLoadedProfile => s_effectiveProfile is not null;
 
     public static readonly Dictionary<int, string> SharedBundles = new();
 
@@ -61,18 +62,23 @@ public static class ProfilesLibrary
 
     public static bool Initialize(string profileKey)
     {
+        if (IsInitialized)
+        {
+            return true;
+        }
         if (!s_initialized)
         {
             Initialize();
         }
         s_effectiveProfile = s_profiles.Find(a => a.Name.Equals(profileKey, StringComparison.OrdinalIgnoreCase));
-        if (s_effectiveProfile != null)
+        if (s_effectiveProfile is not null)
         {
             foreach (string bundle in  s_effectiveProfile.SharedBundles)
             {
                 SharedBundles.Add(HashString(bundle), bundle);
             }
 
+            IsInitialized = true;
             return true;
         }
 

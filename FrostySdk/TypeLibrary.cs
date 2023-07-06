@@ -8,6 +8,8 @@ namespace Frosty.Sdk;
 
 public static class TypeLibrary
 {
+    public static bool IsInitialized { get; private set; }
+    
     private static readonly Dictionary<string, int> s_nameMapping = new();
     private static readonly Dictionary<uint, int> s_nameHashMapping = new();
     private static readonly Dictionary<Guid, int> s_guidMapping = new();
@@ -15,6 +17,11 @@ public static class TypeLibrary
 
     public static bool Initialize()
     {
+        if (IsInitialized)
+        {
+            return true;
+        }
+        
         FileInfo fileInfo = new($"Sdk/{ProfilesLibrary.SdkFilename}.dll");
         if (!fileInfo.Exists)
         {
@@ -40,6 +47,7 @@ public static class TypeLibrary
             }
         }
 
+        IsInitialized = true;
         return true;
     }
     

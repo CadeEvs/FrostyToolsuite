@@ -8,8 +8,8 @@ namespace Frosty.Sdk.IO;
 
 struct PatternType
 {
-    public bool isWildcard;
-    public byte value;
+    public bool IsWildcard;
+    public byte Value;
 }
 
 public class MemoryReader : IDisposable
@@ -39,10 +39,6 @@ public class MemoryReader : IDisposable
     private IntPtr m_handle;
     protected readonly byte[] m_buffer = new byte[20];
     protected long m_position;
-
-    internal MemoryReader()
-    {
-    }
 
     public MemoryReader(Process process, long initialAddr)
     {
@@ -167,7 +163,9 @@ public class MemoryReader : IDisposable
         {
             char c = (char)ReadByte();
             if (c == 0x00)
+            {
                 break;
+            }
 
             sb.Append(c);
         }
@@ -185,7 +183,10 @@ public class MemoryReader : IDisposable
 
         VirtualProtectEx(m_handle, m_position, new UIntPtr((uint)numBytes), 0x02, ref oldProtect);
         if (!ReadProcessMemory(m_handle, m_position, outBuffer, numBytes, ref bytesRead))
+        {
             return null;
+        }
+
         VirtualProtectEx(m_handle, m_position, new UIntPtr((uint)numBytes), oldProtect, ref oldProtect);
 
         m_position += numBytes;
@@ -201,7 +202,7 @@ public class MemoryReader : IDisposable
         for (int i = 0; i < bytePattern.Length; i++)
         {
             string str = pattern.Substring(i * 2, 2);
-            bytePattern[i] = new PatternType() { isWildcard = (str == "??"), value = (str != "??") ? byte.Parse(pattern.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber) : (byte)0x00 };
+            bytePattern[i] = new PatternType() { IsWildcard = (str == "??"), Value = (str != "??") ? byte.Parse(pattern.Substring(i * 2, 2), System.Globalization.NumberStyles.HexNumber) : (byte)0x00 };
         }
 
         bool bFound = false;
@@ -215,14 +216,14 @@ public class MemoryReader : IDisposable
 
         while (buf != null)
         {
-            if (*ptr == bytePattern[0].value)
+            if (*ptr == bytePattern[0].Value)
             {
                 tmpPtr = ptr;
                 bFound = true;
 
                 for (int i = 0; i < bytePattern.Length; i++)
                 {
-                    if (!bytePattern[i].isWildcard && *tmpPtr != bytePattern[i].value)
+                    if (!bytePattern[i].IsWildcard && *tmpPtr != bytePattern[i].Value)
                     {
                         bFound = false;
                         break;
@@ -244,7 +245,9 @@ public class MemoryReader : IDisposable
                 pos = Position;
                 buf = ReadBytes(1024 * 1024);
                 if (buf == null)
+                {
                     break;
+                }
 
                 startPtr = (byte*)Marshal.UnsafeAddrOfPinnedArrayElement(buf, 0);
                 ptr = startPtr;

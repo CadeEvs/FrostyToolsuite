@@ -91,49 +91,7 @@ internal class ClassInfoData : TypeInfoData
         {
             sb.AppendLine($"[{nameof(FieldIndexAttribute)}({i + superClassFieldCount})]");
             m_fieldInfos[i].CreateField(sb);
-            
-            // TODO: move to source generator
-            // string fieldName = m_fieldInfos[i].GetName();
-            // if (fieldName.Equals("Name", StringComparison.OrdinalIgnoreCase) && m_name != "Asset" && m_fieldInfos[i].GetTypeInfo().GetFlags().GetTypeEnum() == TypeFlags.TypeEnum.CString)
-            // {
-            //     Type tmpType = typeof(EbxClassMetaAttribute);
-            //     string namespaceName = tmpType.GetProperties()[4].Name;
-            //     tmpType = typeof(GlobalAttributes);
-            //     string displayModuleName = tmpType.GetFields()[0].Name;
-            //     tmpType = typeof(CString);
-            //     string funcName1 = tmpType.GetMethods()[0].Name;
-            //     string funcName2 = tmpType.GetMethods()[3].Name;
-            //
-            //     if (superClassName == "DataContainer")
-            //     {
-            //         sb.AppendLine("protected virtual CString GetId()\r\n{");
-            //         sb.AppendLine("if (__id != \"\") return __id;");
-            //         sb.AppendLine("if (_" + fieldName + " != \"\") return _" + fieldName + "." + funcName1 + "();");
-            //         sb.AppendLine("if (" + typeof(GlobalAttributes).Name + "." + displayModuleName + ")\r\n{\r\n" + nameof(EbxClassMetaAttribute) + " attr = GetType().GetCustomAttribute<" + nameof(EbxClassMetaAttribute) + ">();\r\nif (attr != null && attr." + namespaceName + " != \"\")\r\nreturn attr." + namespaceName + " + \".\" + GetType().Name;\r\n}\r\nreturn GetType().Name;");
-            //         sb.AppendLine("}");
-            //         addedGetId = true;
-            //     }
-            //     else
-            //     {
-            //         sb.AppendLine("protected override CString GetId()\r\n{");
-            //         sb.AppendLine("if (__id != \"\") return __id;");
-            //         sb.AppendLine("if (_" + fieldName + " != \"\") return _" + fieldName + "." + funcName1 + "();\r\nreturn base.GetId();");
-            //         sb.AppendLine("}");
-            //     }
-            // }
         }
-
-        // if (superClassName == "DataContainer" && !addedGetId)
-        // {
-        //     Type tmpType = typeof(EbxClassMetaAttribute);
-        //     string namespaceName = tmpType.GetProperties()[4].Name;
-        //     tmpType = typeof(GlobalAttributes);
-        //     string displayModuleName = tmpType.GetFields()[0].Name;
-        //
-        //     sb.AppendLine("protected virtual CString GetId()\r\n{");
-        //     sb.AppendLine("if (__id == \"\")\r\n{\r\nif (" + typeof(GlobalAttributes).Name + "." + displayModuleName + ")\r\n{\r\n" + nameof(EbxClassMetaAttribute) + " attr = GetType().GetCustomAttribute<" + nameof(EbxClassMetaAttribute) + ">();\r\nif (attr != null && attr." + namespaceName + " != \"\")\r\nreturn attr." + namespaceName + " + \".\" + GetType().Name;\r\n}\r\nreturn GetType().Name;\r\n}\r\nreturn __id;");
-        //     sb.AppendLine("}");
-        // }
 
         // TODO: what to do with functions
         foreach (MethodInfo method in m_methodInfos)

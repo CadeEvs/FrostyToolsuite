@@ -38,7 +38,9 @@ public class TypeSdkGenerator
                 reader.Position = startAddress;
                 offsets = reader.Scan(pattern);
                 if (offsets.Count != 0)
+                {
                     break;
+                }
             }
         
             reader.Position = offsets![0] + 3;

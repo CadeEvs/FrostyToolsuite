@@ -1,9 +1,8 @@
 ﻿{
   "Name": "Anthem",
   "DisplayName": "Anthem™",
-  "CacheName": "anthem",
+  "InternalName": "anthem",
   "Deobfuscator": "Signature",
-  "AssetLoader": "Cas",
   "DataVersion": 20190221,
   "Sources": [
     {
@@ -15,8 +14,6 @@
       "SubDirs": false
     }
   ],
-  "SdkFileName": "AnthemSDK",
-  "BannerPath": "anthem",
   "EbxVersion": 5,
   "RequiresKey": true,
   "MustAddChunks": false,

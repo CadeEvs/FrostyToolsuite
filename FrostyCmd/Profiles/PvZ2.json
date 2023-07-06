@@ -1,9 +1,8 @@
 ﻿{
   "Name": "GW2.Main_Win64_Retail",
   "DisplayName": "Plants vs Zombies™ Garden Warfare 2",
-  "CacheName": "nfs14",
+  "InternalName": "gw2",
   "Deobfuscator": "Legacy",
-  "AssetLoader": "Standard",
   "DataVersion": 20160222,
   "Sources": [
     {
@@ -19,8 +18,6 @@
       "SubDirs": false
     }
   ],
-  "SdkFileName": "PVZ2SDK",
-  "BannerPath": "PVZ2",
   "EbxVersion": 2,
   "RequiresKey": false,
   "MustAddChunks": false,

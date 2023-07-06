@@ -1,9 +1,8 @@
 ﻿{
   "Name": "NFS14",
   "DisplayName": "Need for Speed™ Rivals",
-  "CacheName": "nfs14",
+  "InternalName": "nfs14",
   "Deobfuscator": "Legacy",
-  "AssetLoader": "Standard",
   "DataVersion": 20131118,
   "Sources": [
     {
@@ -19,8 +18,6 @@
       "SubDirs": false
     }
   ],
-  "SdkFileName": "NFS14SDK",
-  "BannerPath": "nfs14",
   "EbxVersion": 2,
   "RequiresKey": false,
   "MustAddChunks": false,

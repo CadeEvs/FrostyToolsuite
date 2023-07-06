@@ -1,230 +1,238 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using Frosty.Sdk.DbObjectElements;
+using Frosty.Sdk.IO;
 
 namespace Frosty.Sdk;
 
-public class InvalidDbTypeException : Exception
+public abstract class DbObject
 {
-    public InvalidDbTypeException(bool isObject)
-     :base(isObject ? "DbObject is List type not Object type." : "DbObject is Object type not List type.")
+    [Flags]
+    protected internal enum Type
     {
-    }
-}
-
-public partial class DbObject
-{
-    public int Count => m_list?.Count ?? 0;
-
-    internal readonly Dictionary<string, object>? m_hash;
-    internal readonly List<object>? m_list;
-
-    public DbObject(bool bObject = true, int capacity = 0)
-    {
-        if (bObject)
-        {
-            m_hash = new Dictionary<string, object>(capacity, StringComparer.OrdinalIgnoreCase);
-        }
-        else
-        {
-            m_list = new List<object>(capacity);
-        }
-    }
-
-    public DbObject(object inVal)
-    {
-        if (inVal is List<object> list)
-        {
-            m_list = list;
-        }
-
-        else if (inVal is Dictionary<string, object> hash)
-        {
-            m_hash = hash;
-        }
-    }
-
-    public static DbObject CreateObject(int capacity = 0) => new(bObject: true, capacity);
-    public static DbObject CreateList(int capacity = 0)   => new(bObject: false, capacity);
-
-    public DbType GetDbType()
-    {
-        if (m_hash != null)
-            return DbType.Object;
-        else if (m_list != null)
-            return DbType.List;
-        return DbType.Invalid;
-    }
-
-    #region -- Object functions --
-    public object this[string key]
-    {
-        get
-        {
-            if (m_hash == null)
-            {
-                throw new InvalidDbTypeException(true);
-            }
-
-            return m_hash[key];
-        }
-        set
-        {
-            if (m_hash == null)
-            {
-                throw new InvalidDbTypeException(true);
-            }
-
-            if (!m_hash.ContainsKey(key))
-            {
-                m_hash.Add(key, SanitizeData(value));
-            }
-            else
-            {
-                m_hash[key] = SanitizeData(value);
-            }
-        }
-    }
-
-    public bool ContainsKey(string key)
-    {
-        if (m_hash == null)
-        {
-            throw new InvalidDbTypeException(true);
-        }
-
-        return m_hash.ContainsKey(key);
-    }
-
-    public void AddValue(string name, object value)
-    {
-        if (m_hash == null)
-        {
-            throw new InvalidDbTypeException(true);
-        }
-
-        m_hash.TryAdd(name, SanitizeData(value));
-    }
-
-    public void RemoveValue(string name)
-    {
-        if (m_hash == null)
-        {
-            throw new InvalidDbTypeException(true);
-        }
-
-        m_hash.Remove(name);
+        Null = 0,
+        List = 1,
+        Dict = 2,
+        Boolean = 6,
+        String = 7,
+        Int = 8,
+        Long = 9,
+        Float = 11,
+        Double = 12,
+        Guid = 15,
+        Sha1 = 16,
+        Blob = 19,
+        
+        Anonymous = 1 << 7
     }
     
-    public IEnumerable<string> EnumerateKeys()
+    public string Name { get; private set; }
+
+    private readonly Type m_type;
+
+    protected DbObject(Type inType)
     {
-        if (m_hash == null)
+        Name = string.Empty;
+        m_type = inType;
+    }
+
+    protected DbObject(Type inType, string inName)
+        : this(inType)
+    {
+        Name = inName;
+    }
+
+    /// <summary>
+    /// Serializes a <see cref="DbObject"/> to a file.
+    /// </summary>
+    /// <param name="path">The path of the file.</param>
+    /// <param name="value">The <see cref="DbObject"/> to serialize.</param>
+    public static void Serialize(string path, DbObject value)
+    {
+        using (DataStream stream = new(new FileStream(path, FileMode.Create, FileAccess.ReadWrite)))
         {
-            throw new InvalidDbTypeException(true);
+            Serialize(stream, value);
+        }
+    }
+    
+    /// <summary>
+    /// Serializes a <see cref="DbObject"/> to a <see cref="DataStream"/>.
+    /// </summary>
+    /// <param name="stream">The <see cref="DataStream"/> to serialize the <see cref="DbObject"/> to.</param>
+    /// <param name="value">The <see cref="DbObject"/> to serialize.</param>
+    public static void Serialize(DataStream stream, DbObject value)
+    {
+        stream.WriteByte((byte)value.m_type);
+        
+        if (!value.m_type.HasFlag(Type.Anonymous))
+        {
+            stream.WriteNullTerminatedString(value.Name);
         }
         
-        int count = m_hash.Keys.Count;
-        for (int i = 0; i < count; i++)
-            yield return m_hash.Keys.ElementAt(i);
+        value.InternalSerialize(stream);
     }
 
-    #endregion
-
-    #region -- List functions --
-    public IEnumerator GetEnumerator()
+    /// <summary>
+    /// Deserializes a <see cref="DbObject"/> from a file.
+    /// </summary>
+    /// <param name="path">The path of the file.</param>
+    /// <returns>The deserialized <see cref="DbObject"/>.</returns>
+    public static DbObject? Deserialize(string path)
     {
-        if (m_list == null)
+        using (BlockStream stream = BlockStream.FromFile(path, true))
         {
-            throw new InvalidDbTypeException(false);
+            return Deserialize(stream);
+        }
+    }
+
+    /// <summary>
+    /// Deserializes a <see cref="DbObject"/> from a <see cref="DataStream"/>.
+    /// </summary>
+    /// <param name="stream">The <see cref="DataStream"/> to deserialize the <see cref="DbObject"/> from.</param>
+    /// <returns>The deserialized <see cref="DbObject"/>.</returns>
+    public static DbObject? Deserialize(DataStream stream)
+    {
+        Type type = (Type)stream.ReadByte();
+        
+        DbObject? obj = CreateDbObject(type);
+
+        if (obj is null)
+        {
+            return obj;
         }
         
-        int count = m_list.Count;
-        for (int i = 0; i < count; i++)
-            yield return m_list[i];
-    }
-
-    public object this[int id] => m_list == null ? throw new InvalidDbTypeException(false) : m_list[id];
-
-    public void Add(object value) => m_list?.Add(SanitizeData(value));
-
-    public void SetAt(int id, object value)
-    {
-        if (m_list == null || id >= m_list.Count)
+        if (!type.HasFlag(Type.Anonymous))
         {
-            return;
-        }
-
-        m_list[id] = SanitizeData(value);
-    }
-
-    public void Insert(int id, object value)
-    {
-        if (m_list == null)
-        {
-            throw new InvalidDbTypeException(false);
-        }
-        m_list.Insert(id, value);
-    }
-
-    public void RemoveAt(int id)
-    {
-        if (m_list == null)
-        {
-            throw new InvalidDbTypeException(false);
-        }
-        m_list.RemoveAt(id);
-    }
-
-    public int FindIndex(Predicate<object> match)
-    {
-        if (m_list == null)
-        {
-            throw new InvalidDbTypeException(false);
-        }
-        for (int i = 0; i < m_list.Count; i++)
-        {
-            if (match.Invoke(m_list[i]))
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public T? Find<T>(Predicate<object> match)
-    {
-        if (m_list == null)
-        {
-            throw new InvalidDbTypeException(false);
-        }
-
-        return (T?)((List<object>)m_list).Find(match);
-    }
-    #endregion
-
-    private object SanitizeData(object value)
-    {
-        // these are here so there arent any crashes when converting values that are added by frosty
-        if (value is byte b)
-        {
-            value = (sbyte)b;
-        }
-        else if (value is ushort us)
-        {
-            value = (short)us;
+            obj.Name = stream.ReadNullTerminatedString();
         }
         
-        // only those are actually needed
-        else if (value is uint u)
+        obj.InternalDeserialize(stream);
+
+        return obj;
+    }
+
+    public virtual bool IsDict() => false;
+    
+    public virtual DbObjectDict AsDict()
+    {
+        throw new Exception();
+    }
+
+    public virtual bool IsList() => false;
+    
+    public virtual DbObjectList AsList()
+    {
+        throw new Exception();
+    }
+
+    public virtual bool AsBoolean()
+    {
+        throw new Exception();
+    }
+
+    public virtual string AsString()
+    {
+        throw new Exception();
+    }
+
+    public virtual int AsInt()
+    {
+        throw new Exception();
+    }
+
+    public virtual uint AsUInt()
+    {
+        throw new Exception();
+    }
+
+    public virtual long AsLong()
+    {
+        throw new Exception();
+    }
+
+    public virtual ulong AsULong()
+    {
+        throw new Exception();
+    }
+
+    public virtual float AsFloat()
+    {
+        throw new Exception();
+    }
+
+    public virtual double AsDouble()
+    {
+        throw new Exception();
+    }
+
+    public virtual Guid AsGuid()
+    {
+        throw new Exception();
+    }
+
+    public virtual Sha1 AsSha1()
+    {
+        throw new Exception();
+    }
+
+    public virtual byte[] AsBlob()
+    {
+        throw new Exception();
+    }
+
+    public static DbObjectDict CreateDict(int capacity = 0) => new(capacity);
+    public static DbObjectDict CreateDict(string name, int capacity = 0) => new(name, capacity);
+    public static DbObjectList CreateList(int capacity = 0) => new(capacity);
+    public static DbObjectList CreateList(string name, int capacity = 0) => new(name, capacity);
+    
+    protected abstract void InternalSerialize(DataStream stream);
+    
+    protected abstract void InternalDeserialize(DataStream stream);
+
+    private static DbObject? CreateDbObject(Type type)
+    {
+        DbObject obj;
+        switch (type & ~Type.Anonymous)
         {
-            value = (int)u;
-        }
-        else if (value is ulong ul)
-        {
-            value = (long)ul;
+            case Type.Null:
+                return null;
+            case Type.List:
+                obj = new DbObjectList(type);
+                break;
+            case Type.Dict:
+                obj = new DbObjectDict(type);
+                break;
+            case Type.Boolean:
+                obj = new DbObjectBool(type);
+                break;
+            case Type.String:
+                obj = new DbObjectString(type);
+                break;
+            case Type.Int:
+                obj = new DbObjectInt(type);
+                break;
+            case Type.Long:
+                obj = new DbObjectLong(type);
+                break;
+            case Type.Float:
+                obj = new DbObjectFloat(type);
+                break;
+            case Type.Double:
+                obj = new DbObjectDouble(type);
+                break;
+            case Type.Guid:
+                obj = new DbObjectGuid(type);
+                break;
+            case Type.Sha1:
+                obj = new DbObjectSha1(type);
+                break;
+            case Type.Blob:
+                obj = new DbObjectBlob(type);
+                break;
+            default:
+                throw new Exception();
         }
 
-        return value;
+        return obj;
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.Managers.Infos;
 
 namespace Frosty.Sdk.Managers.Entries;
@@ -48,17 +49,17 @@ public abstract class AssetEntry
     /// <summary>
     /// The <see cref="Sha1"/> hash of the compressed data of this <see cref="AssetEntry"/>.
     /// </summary>
-    public Sha1 Sha1 { get; }
-    
+    public Sha1 Sha1 { get; internal set; }
+
     /// <summary>
     /// The size of the compressed data of this <see cref="AssetEntry"/>.
     /// </summary>
-    public long Size { get; }
-    
+    public long Size { get; internal set; }
+
     /// <summary>
     /// The size of the uncompressed data of this <see cref="AssetEntry"/>.
     /// </summary>
-    public long OriginalSize { get; }
+    public long OriginalSize { get; internal set; }
 
     /// <summary>
     /// The Bundles that contain this <see cref="AssetEntry"/>. 
@@ -66,24 +67,9 @@ public abstract class AssetEntry
     public readonly HashSet<int> Bundles = new();
 
     /// <summary>
-    /// The <see cref="AssetDataLocation"/> of where this <see cref="AssetEntry"/> is stored.
+    /// The <see cref="FileInfos"/> of this <see cref="AssetEntry"/>.
     /// </summary>
-    internal AssetDataLocation Location;
-
-    /// <summary>
-    /// The <see cref="Sha1"/> hash of the BaseData if this <see cref="AssetEntry"/> is stored as Delta.
-    /// </summary>
-    internal Sha1 BaseSha1;
-    
-    /// <summary>
-    /// The <see cref="Sha1"/> hash of the DeltaData if this <see cref="AssetEntry"/> is stored as Delta.
-    /// </summary>
-    internal Sha1 DeltaSha1;
-
-    /// <summary>
-    /// The <see cref="FileInfo"/> of this <see cref="AssetEntry"/> if its not stored as Delta.
-    /// </summary>
-    internal FileInfo FileInfo;
+    internal readonly HashSet<IFileInfo> FileInfos = new();
 
     protected AssetEntry(Sha1 inSha1, long inSize, long inOriginalSize)
     {

@@ -181,6 +181,16 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         Ptr = BasePtr + currentOffset;
     }
 
+    public Block<T> Slice(int inStart)
+    {
+        return new Block<T>(Ptr + inStart, Size - inStart);
+    }
+
+    public Block<T> Slice(int inStart, int inLength)
+    {
+        return new Block<T>(Ptr + inStart, inLength);
+    }
+
     /// <summary>
     /// Shifts the beginning of the Block by the specified amount.
     /// </summary>

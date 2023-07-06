@@ -58,7 +58,9 @@ public static class Deobfuscator
             total = subTotalB + subTotalA;
 
             if (unknown != 0)
+            {
                 DeobfuscateBlock(buffer, 410, unknown);
+            }
 
             DeobfuscateBlock(buffer, 394, 4);
             DeobfuscateBlock(buffer, 0, 4);

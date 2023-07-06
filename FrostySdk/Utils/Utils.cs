@@ -48,7 +48,7 @@ public static class Utils
 
                 using (MD5 md5 = MD5.Create())
                 {
-                    outGuid = new Guid(md5.ComputeHash(writer.ToByteArray()));
+                    outGuid = Guid.Empty;//new Guid(md5.ComputeHash(writer.ToByteArray()));
                     bool bFound = false;
                     foreach (dynamic obj in objects)
                     {
@@ -62,7 +62,9 @@ public static class Utils
                     }
 
                     if (!bFound)
+                    {
                         break;
+                    }
                 }
             }
         }

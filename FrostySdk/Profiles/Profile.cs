@@ -7,14 +7,11 @@ public class Profile
     public string Name  { get; set; } = string.Empty;
     public string DisplayName { get; set; } = string.Empty;
 
-    public string CacheName { get; set; } = string.Empty;
+    public string InternalName { get; set; } = string.Empty;
     public string Deobfuscator { get; set; } = string.Empty;
-    public string AssetLoader { get; set; } = string.Empty;
 
     public int DataVersion { get; set; }
     public List<FileSystemSource> Sources { get; set; } = new();
-    public string SdkFileName { get; set; } = string.Empty;
-    public string BannerPath { get; set; } = string.Empty;
 
     public int EbxVersion { get; set; }
     public bool RequiresKey { get; set; }

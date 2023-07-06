@@ -66,18 +66,13 @@ internal static class Program
         {
             throw new Exception("ResourceManager");
         }
-
+        
         // init asset manager, this parses the SuperBundles and loads all the assets
         if (!AssetManager.Initialize())
         {
             throw new Exception("AssetManager");
         }
-
-        EbxAssetEntry? ebxEntry = AssetManager.GetEbxAssetEntry("default/settings_win32");
-
-        if (ebxEntry is not null)
-        {
-            EbxAsset asset = AssetManager.GetEbx(ebxEntry);
-        }
+        
+        
     }
 }
