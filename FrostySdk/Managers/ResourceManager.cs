@@ -17,11 +17,27 @@ public static class ResourceManager
     
     private static readonly Dictionary<Sha1, List<IFileInfo>> s_resourceEntries = new();
 
+    private static readonly List<CatPatchEntry> s_patchEntries = new();
+
     public static void LoadInstallChunks()
     {
         foreach (InstallChunkInfo installChunkInfo in FileSystemManager.EnumerateInstallChunks())
         {
             LoadInstallChunk(installChunkInfo);
+        }
+
+        foreach (CatPatchEntry entry in s_patchEntries)
+        {
+            List<IFileInfo> baseEntry = s_resourceEntries[entry.BaseSha1];
+            List<IFileInfo> deltaEntry = s_resourceEntries[entry.DeltaSha1];
+            
+            for (int j = 0; j < baseEntry.Count; j++)
+            {
+                PatchFileInfo fileInfo = new(deltaEntry[j], baseEntry[j]);
+                
+                s_resourceEntries.TryAdd(entry.Sha1, new List<IFileInfo>());
+                s_resourceEntries[entry.Sha1].Add(fileInfo);
+            }
         }
     }
     
@@ -69,23 +85,15 @@ public static class ResourceManager
         
             for (int i = 0; i < stream.PatchCount; i++)
             {
-                CatPatchEntry entry = stream.ReadPatchEntry();
-
-                List<IFileInfo> baseEntry = s_resourceEntries[entry.BaseSha1];
-                List<IFileInfo> deltaEntry = s_resourceEntries[entry.DeltaSha1];
-
-                for (int j = 0; j < baseEntry.Count; j++)
-                {
-                    PatchFileInfo fileInfo = new(deltaEntry[j], baseEntry[j]);
-                    
-                    s_resourceEntries.TryAdd(entry.Sha1, new List<IFileInfo>());
-                    s_resourceEntries[entry.Sha1].Add(fileInfo);
-                }
-
-                s_resourceEntries.Remove(entry.BaseSha1);
-                s_resourceEntries.Remove(entry.DeltaSha1);
+                s_patchEntries.Add(stream.ReadPatchEntry());
             }
         }
+    }
+
+    public static void CLearInstallChunks()
+    {
+        s_resourceEntries.Clear();
+        s_patchEntries.Clear();
     }
     
     public static bool Initialize()

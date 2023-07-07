@@ -136,6 +136,8 @@ public class KelvinAssetLoader : IAssetLoader
     
                     dataStream.Position = resourceInfo.Offset;
                     BinaryBundle bundle = BinaryBundle.Deserialize(dataStream);
+            
+                    int bundleId = AssetManager.AddBundle(name, superBundleId);
     
                     foreach (EbxAssetEntry ebx in bundle.EbxList)
                     {
@@ -153,7 +155,7 @@ public class KelvinAssetLoader : IAssetLoader
                 
                         ebx.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(resourceInfo.FileIndex), offset, (uint)ebx.Size, 0));
                 
-                        AssetManager.AddEbx(ebx);
+                        AssetManager.AddEbx(ebx, bundleId);
                     }
                     foreach (ResAssetEntry res in bundle.ResList)
                     {
@@ -169,7 +171,7 @@ public class KelvinAssetLoader : IAssetLoader
                         res.Size = DbObjectAssetLoader.GetSize(dataStream, res.OriginalSize);
                         res.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(resourceInfo.FileIndex), offset, (uint)res.Size, 0));
                         
-                        AssetManager.AddRes(res);
+                        AssetManager.AddRes(res, bundleId);
                     }
                     foreach (ChunkAssetEntry chunk in bundle.ChunkList)
                     {
@@ -186,7 +188,7 @@ public class KelvinAssetLoader : IAssetLoader
                         chunk.Size = DbObjectAssetLoader.GetSize(dataStream, (chunk.LogicalOffset & 0xFFFF) | chunk.LogicalSize);
                         chunk.FileInfos.Add(new PathFileInfo(FileSystemManager.GetFilePath(resourceInfo.FileIndex), offset, (uint)chunk.Size, chunk.LogicalOffset));
                         
-                        AssetManager.AddChunk(chunk);
+                        AssetManager.AddChunk(chunk, bundleId);
                     }
     
                     dataStream.Dispose();

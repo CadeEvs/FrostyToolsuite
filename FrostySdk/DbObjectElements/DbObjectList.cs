@@ -10,7 +10,6 @@ public class DbObjectList : DbObject, IEnumerable<DbObject>
     public int Count => m_items.Count;
     
     private readonly List<DbObject> m_items;
-    private int m_position = -1;
 
     protected internal DbObjectList(Type inType)
         : base(inType)

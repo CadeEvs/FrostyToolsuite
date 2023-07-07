@@ -190,6 +190,8 @@ public class DbObjectAssetLoader : IAssetLoader
                 stream = baseStream;
             }
             
+            int bundleId = AssetManager.AddBundle(bundleInfo.Name, superBundleId);
+
             // load bundle from sb file
             if (bundleInfo.IsCas)
             {
@@ -229,7 +231,7 @@ public class DbObjectAssetLoader : IAssetLoader
                         }
                     }
                     
-                    AssetManager.AddEbx(entry);
+                    AssetManager.AddEbx(entry, bundleId);
                 }
                 
                 for(int i = 0; i < resList?.Count; i++)
@@ -261,7 +263,7 @@ public class DbObjectAssetLoader : IAssetLoader
                         }
                     }
                     
-                    AssetManager.AddRes(entry);
+                    AssetManager.AddRes(entry, bundleId);
                 }
                 
                 for(int i = 0; i < chunkList?.Count; i++)
@@ -292,7 +294,7 @@ public class DbObjectAssetLoader : IAssetLoader
                         }
                     }
                     
-                    AssetManager.AddChunk(entry);
+                    AssetManager.AddChunk(entry, bundleId);
                 }
             }
             else
@@ -333,7 +335,7 @@ public class DbObjectAssetLoader : IAssetLoader
                         ebx.Size = GetSize(stream, ebx.OriginalSize);
                         ebx.FileInfos.Add(new PathFileInfo(path, offset, (uint)ebx.Size, 0));
                         
-                        AssetManager.AddEbx(ebx);
+                        AssetManager.AddEbx(ebx, bundleId);
                     }
                     foreach (ResAssetEntry res in bundle.ResList)
                     {
@@ -341,7 +343,7 @@ public class DbObjectAssetLoader : IAssetLoader
                         res.Size = GetSize(stream, res.OriginalSize);
                         res.FileInfos.Add(new PathFileInfo(path, offset, (uint)res.Size, 0));
                         
-                        AssetManager.AddRes(res);
+                        AssetManager.AddRes(res, bundleId);
                     }
                     foreach (ChunkAssetEntry chunk in bundle.ChunkList)
                     {
@@ -349,7 +351,7 @@ public class DbObjectAssetLoader : IAssetLoader
                         chunk.Size = GetSize(stream, (chunk.LogicalOffset & 0xFFFF) | chunk.LogicalSize);
                         chunk.FileInfos.Add(new PathFileInfo(path, offset, (uint)chunk.Size, chunk.LogicalOffset));
                         
-                        AssetManager.AddChunk(chunk);
+                        AssetManager.AddChunk(chunk, bundleId);
                     }
                     
                     Debug.Assert(stream.Position == bundleInfo.Offset + bundleInfo.Size);

@@ -81,6 +81,8 @@ public static class AssetManager
             
             Console.WriteLine($"Loaded data from SuperBundles in {timer.Elapsed}");
             
+            ResourceManager.CLearInstallChunks();
+            
             timer.Restart();
             DoEbxIndexing();
             timer.Stop();
@@ -380,7 +382,7 @@ public static class AssetManager
         return id;
     }
 
-    private static int AddBundle(string name, int superBundleId)
+    internal static int AddBundle(string name, int superBundleId)
     {
         int hash = Utils.Utils.HashString(name, true);
         if (s_bundlesNameHashHashMap.TryGetValue(hash, out int bundleId))
@@ -411,7 +413,7 @@ public static class AssetManager
 
     #region -- AddingAssets --
 
-    internal static void AddEbx(EbxAssetEntry entry)
+    internal static void AddEbx(EbxAssetEntry entry, int bundleId)
     {
         int nameHash = Utils.Utils.HashString(entry.Name, true);
         if (s_ebxNameHashHashMap.TryGetValue(nameHash, out int index))
@@ -422,15 +424,19 @@ public static class AssetManager
             existing.Bundles.UnionWith(entry.Bundles);
             
             existing.FileInfos.UnionWith(entry.FileInfos);
+
+            existing.Bundles.Add(bundleId);
         }
         else
         {
+            entry.Bundles.Add(bundleId);
             s_ebxNameHashHashMap.Add(nameHash, s_ebxAssetEntries.Count);
             s_ebxAssetEntries.Add(entry);
         }
+        
     }
 
-    internal static void AddRes(ResAssetEntry entry)
+    internal static void AddRes(ResAssetEntry entry, int bundleId)
     {
         int nameHash = Utils.Utils.HashString(entry.Name, true);
         if (s_resNameHashHashMap.TryGetValue(nameHash, out int index))
@@ -441,9 +447,12 @@ public static class AssetManager
             existing.Bundles.UnionWith(entry.Bundles);
             
             existing.FileInfos.UnionWith(entry.FileInfos);
+
+            existing.Bundles.Add(bundleId);
         }
         else
         {
+            entry.Bundles.Add(bundleId);
             if (entry.ResRid != 0)
             {
                 s_resRidHashMap.Add(entry.ResRid, s_resAssetEntries.Count);
@@ -453,7 +462,7 @@ public static class AssetManager
         }
     }
 
-    internal static void AddChunk(ChunkAssetEntry entry)
+    internal static void AddChunk(ChunkAssetEntry entry, int bundleId)
     {
         if (s_chunkGuidHashMap.TryGetValue(entry.Id, out int index))
         {
@@ -463,6 +472,8 @@ public static class AssetManager
             existing.Bundles.UnionWith(entry.Bundles);
             
             existing.FileInfos.UnionWith(entry.FileInfos);
+
+            existing.Bundles.Add(bundleId);
             
             if (existing.LogicalSize == 0)
             {
@@ -475,6 +486,7 @@ public static class AssetManager
         }
         else
         {
+            entry.Bundles.Add(bundleId);
             s_chunkGuidHashMap.Add(entry.Id, s_chunkAssetEntries.Count);
             s_chunkAssetEntries.Add(entry);
         }

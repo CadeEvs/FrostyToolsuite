@@ -7,7 +7,7 @@ public readonly struct Sha1
     public static readonly Sha1 Zero = new();
     private readonly uint m_a, m_b, m_c, m_d, m_e;
 
-    public Sha1(byte[] bytes)
+    public Sha1(ReadOnlySpan<byte> bytes)
     {
         if (bytes.Length < 20)
         {

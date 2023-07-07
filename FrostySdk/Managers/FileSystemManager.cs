@@ -23,7 +23,7 @@ public static class FileSystemManager
 
     public static BundleFormat BundleFormat;
 
-    public static DbObject? Manifest;
+    public static DbObjectDict? Manifest;
 
     private static readonly List<string> s_paths = new();
 

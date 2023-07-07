@@ -136,9 +136,11 @@ public class TypeSdkGenerator
             }
         }
 
-        OptimizationLevel level = OptimizationLevel.Release;
+        
 #if EBX_TYPE_SDK_DEBUG
-        level = OptimizationLevel.Debug;
+        OptimizationLevel level = OptimizationLevel.Debug;
+#else
+        OptimizationLevel level = OptimizationLevel.Release;
 #endif
         
         CSharpCompilation compilation = CSharpCompilation.Create("EbxTypes", new[] { syntaxTree }, references,
@@ -161,7 +163,7 @@ public class TypeSdkGenerator
         driver.RunGeneratorsAndUpdateCompilation(
             compilation,
             out Compilation outputCompilation,
-            out ImmutableArray<Diagnostic> diagnostics);
+            out _);
 
 #if EBX_TYPE_SDK_DEBUG
         foreach (SyntaxTree tree in outputCompilation.SyntaxTrees)

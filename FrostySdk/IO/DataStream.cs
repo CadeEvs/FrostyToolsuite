@@ -240,16 +240,23 @@ public unsafe class DataStream : IDisposable
     {
         Span<byte> span = m_buffer.AsSpan(0, sizeof(Guid));
         m_stream.ReadExactly(span);
-        
-        return MemoryMarshal.Read<Guid>(span);
+
+        if (endian == Endian.Big)
+        {
+            return new Guid(BinaryPrimitives.ReadInt32BigEndian(span),
+                BinaryPrimitives.ReadInt16BigEndian(span[4..]), BinaryPrimitives.ReadInt16BigEndian(span[6..]),
+                span[8], span[9], span[10], span[11], span[12], span[13], span[14], span[15]);
+        }
+
+        return new Guid(span);
     }
 
-    public Sha1 ReadSha1(Endian endian = Endian.Little)
+    public Sha1 ReadSha1()
     {
         Span<byte> span = m_buffer.AsSpan(0, sizeof(Sha1));
         m_stream.ReadExactly(span);
         
-        return MemoryMarshal.Read<Sha1>(span);
+        return new Sha1(span);
     }
 
     #endregion

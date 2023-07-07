@@ -129,10 +129,6 @@ public class Manifest2019AssetLoader : IAssetLoader
                 tableOffset = stream.ReadUInt32(Endian.Big);
             }
 
-    #if FROSTY_DEVELOPER
-            Debug.Assert(unknownOffset1 == chunkDataOffset && unknownOffset2 == chunkDataOffset);
-    #endif
-
             if (bundlesCount != 0)
             {
                 if (flags.HasFlag(Flags.HasCompressedNames))
@@ -204,11 +200,11 @@ public class Manifest2019AssetLoader : IAssetLoader
 
                 stream.Position = chunkGuidOffset;
                 Guid[] chunkGuids = new Guid[dataCount / 3];
+                Span<byte> b = stackalloc byte[16];
                 for (int i = 0; i < chunksCount; i++)
                 {
-                    byte[] b = stream.ReadBytes(16);
-
-                    Array.Reverse(b);
+                    stream.ReadExactly(b);
+                    b.Reverse();
 
                     Guid guid = new(b);
 
@@ -219,9 +215,9 @@ public class Manifest2019AssetLoader : IAssetLoader
                     {
                         // im guessing the unknown offsets are connected to this
                         byte flag = (byte)((index & 0xFF000000) >> 24);
-    #if FROSTY_DEVELOPER
+#if FROSTY_DEVELOPER
                         Debug.Assert(flag == 1);
-    #endif
+#endif    
                         index = (index & 0xFFFFFF) / 3;
 
 
@@ -371,6 +367,8 @@ public class Manifest2019AssetLoader : IAssetLoader
                     bundle = BinaryBundle.Deserialize(casStream);
                 }
             }
+            
+            int bundleId = AssetManager.AddBundle(bundleInfo.Name, superBundleId);
 
             foreach (EbxAssetEntry ebx in bundle.EbxList)
             {
@@ -384,7 +382,7 @@ public class Manifest2019AssetLoader : IAssetLoader
                 
                 ebx.FileInfos.Add(new CasFileInfo(casFileIdentifier, offset, (uint)ebx.Size, 0));
                 
-                AssetManager.AddEbx(ebx);
+                AssetManager.AddEbx(ebx, bundleId);
             }
 
             foreach (ResAssetEntry res in bundle.ResList)
@@ -399,7 +397,7 @@ public class Manifest2019AssetLoader : IAssetLoader
                 
                 res.FileInfos.Add(new CasFileInfo(casFileIdentifier, offset, (uint)res.Size, 0));
                 
-                AssetManager.AddRes(res);
+                AssetManager.AddRes(res, bundleId);
             }
 
             foreach (ChunkAssetEntry chunk in bundle.ChunkList)
@@ -414,7 +412,7 @@ public class Manifest2019AssetLoader : IAssetLoader
                 
                 chunk.FileInfos.Add(new CasFileInfo(casFileIdentifier, offset, (uint)chunk.Size, chunk.LogicalOffset));
                 
-                AssetManager.AddChunk(chunk);
+                AssetManager.AddChunk(chunk, bundleId);
             }
         }
 
