@@ -3,10 +3,11 @@
   "DisplayName": "Need for Speed™ Rivals",
   "InternalName": "nfs14",
   "Deobfuscator": "Legacy",
+  "TypeInfoSignature" : "",
   "DataVersion": 20131118,
   "Sources": [
     {
-      "Path": "Update\\Patch\\Data",
+      "Path": "Update/Patch/Data",
       "SubDirs": false
     },
     {

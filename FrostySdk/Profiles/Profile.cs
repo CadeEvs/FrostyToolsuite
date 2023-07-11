@@ -10,6 +10,8 @@ public class Profile
     public string InternalName { get; set; } = string.Empty;
     public string Deobfuscator { get; set; } = string.Empty;
 
+    public string TypeInfoSignature { get; set; } = string.Empty;
+
     public int DataVersion { get; set; }
     public List<FileSystemSource> Sources { get; set; } = new();
 

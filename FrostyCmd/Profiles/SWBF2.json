@@ -3,6 +3,7 @@
   "DisplayName": "STAR WARS™ Battlefront™ II",
   "InternalName": "starwarsii",
   "Deobfuscator": "Signature",
+  "TypeInfoSignature" : "",
   "DataVersion": 20171116,
   "Sources": [
     {

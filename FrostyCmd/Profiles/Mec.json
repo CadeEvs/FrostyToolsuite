@@ -3,6 +3,7 @@
   "DisplayName": "Mirror's Edge™ Catalyst",
   "InternalName": "mirrorsedge",
   "Deobfuscator": "Signature",
+  "TypeInfoSignature" : "",
   "DataVersion": 20160606,
   "Sources": [
     {

@@ -3,10 +3,11 @@
   "DisplayName": "Plants vs Zombies™ Garden Warfare 2",
   "InternalName": "gw2",
   "Deobfuscator": "Legacy",
+  "TypeInfoSignature" : "",
   "DataVersion": 20160222,
   "Sources": [
     {
-      "Path": "Update\\Patch\\Data",
+      "Path": "Update/Patch/Data",
       "SubDirs": false
     },
     {

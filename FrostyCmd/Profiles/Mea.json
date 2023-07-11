@@ -3,6 +3,7 @@
   "DisplayName": "Mass Effect: Andromeda",
   "InternalName": "masseffect",
   "Deobfuscator": "Signature",
+  "TypeInfoSignature" : "",
   "DataVersion": 20170320,
   "Sources": [
     {

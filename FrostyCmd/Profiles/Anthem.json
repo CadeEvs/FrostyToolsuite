@@ -3,6 +3,7 @@
   "DisplayName": "Anthem™",
   "InternalName": "anthem",
   "Deobfuscator": "Signature",
+  "TypeInfoSignature" : "",
   "DataVersion": 20190221,
   "Sources": [
     {
