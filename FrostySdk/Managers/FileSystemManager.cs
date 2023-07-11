@@ -51,10 +51,10 @@ public static class FileSystemManager
             return false;
         }
 
-        BasePath = basePath;
-        if (!BasePath.EndsWith("\\") || !BasePath.EndsWith("/"))
+        BasePath = basePath.Replace('\\', '/');
+        if (!BasePath.EndsWith("/"))
         {
-            BasePath = $"{BasePath}\\";
+            BasePath = $"{BasePath}/";
         }
 
         CacheName = $"Caches/{ProfilesLibrary.CacheName}";
@@ -109,7 +109,7 @@ public static class FileSystemManager
         {
             if (File.Exists($"{BasePath}{s_paths[i]}{filename}") || Directory.Exists($"{BasePath}{s_paths[i]}{filename}"))
             {
-                return $"{BasePath}{s_paths[i]}{filename}".Replace("\\\\", "\\");
+                return $"{BasePath}{s_paths[i]}{filename}".Replace("//", "/");
             }
         }
         return string.Empty;
@@ -178,22 +178,22 @@ public static class FileSystemManager
         {
             foreach (string subPath in Directory.EnumerateDirectories($"{BasePath}{path}", "*", SearchOption.AllDirectories))
             {
-                if (subPath.Contains("\\Patch", StringComparison.OrdinalIgnoreCase))
+                if (subPath.Contains("/Patch", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
 
-                if (!File.Exists($"{subPath}\\package.mft"))
+                if (!File.Exists($"{subPath}/package.mft"))
                 {
                     continue;
                 }
 
-                s_paths.Add($"\\{subPath.Replace(BasePath, "")}\\Data\\");
+                s_paths.Add($"/{subPath.Replace(BasePath, "")}/Data/");
             }
         }
         else
         {
-            s_paths.Add($"\\{path}\\");
+            s_paths.Add($"/{path}/");
         }
     }
     
