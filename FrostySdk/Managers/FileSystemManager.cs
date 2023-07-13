@@ -437,7 +437,22 @@ public static class FileSystemManager
 
                 if (installChunk.AsDict().ContainsKey("splitTocs"))
                 {
-                    throw new NotImplementedException("splitTocs");
+                    foreach (DbObject superBundleContainer in installChunk.AsDict().AsList("splitTocs"))
+                    {
+                        string superBundle = superBundleContainer.AsDict().AsString("superbundle");
+                        info.SplitSuperBundles.Add(superBundle);
+
+                        SuperBundleInfo sb = s_superBundles.Find(si =>
+                            si.Name.Equals(superBundle, StringComparison.OrdinalIgnoreCase))!;
+                        if (!sb.InstallChunks.ContainsKey(index))
+                        {
+                            sb.InstallChunks.Add(index, InstallChunkType.Split);
+                        }
+                        else
+                        {
+                            sb.InstallChunks[index] |= InstallChunkType.Split;
+                        }
+                    }
                 }
             }
 

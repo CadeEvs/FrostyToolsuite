@@ -141,10 +141,7 @@ public class Manifest2019AssetLoader : IAssetLoader
                 }
 
                 stream.Position = bundleHashMapOffset;
-                for (int i = 0; i < bundlesCount; i++)
-                {
-                    stream.Position += sizeof(int);
-                }
+                stream.Position += sizeof(int) * bundlesCount;
 
                 stream.Position = bundleDataOffset;
 
@@ -193,10 +190,7 @@ public class Manifest2019AssetLoader : IAssetLoader
             if (chunksCount != 0)
             {
                 stream.Position = chunkHashMapOffset;
-                for (int i = 0; i < chunksCount; i++)
-                {
-                    stream.Position += sizeof(int);
-                }
+                stream.Position += sizeof(int) * chunksCount;
 
                 stream.Position = chunkGuidOffset;
                 Guid[] chunkGuids = new Guid[dataCount / 3];
