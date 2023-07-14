@@ -13,9 +13,33 @@ internal class TypeInfo
     {
         get
         {
+            if (ProfilesLibrary.FrostbiteVersion <= "2014.1")
+            {
+                return 1;
+            }
+            if (ProfilesLibrary.FrostbiteVersion <= "2014.4.11")
+            {
+                return 2;
+            }
+            if (ProfilesLibrary.FrostbiteVersion <= "2015.4.6")
+            {
+                return 3;
+            }
+            if (ProfilesLibrary.FrostbiteVersion <= "2016.4.7" || ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5))
+            {
+                return 4;
+            }
+            if (ProfilesLibrary.FrostbiteVersion <= "2018.2")
+            {
+                return 5;
+            }
+
+            return 6;
+            
             switch ((ProfileVersion)ProfilesLibrary.DataVersion)
             {
                 // Prev TypeInfo
+                // 2019.0, 2020.0, 2021.1.1, 2021.2.0, 2021.2.3
                 case ProfileVersion.Fifa21:
                 case ProfileVersion.Madden22:
                 case ProfileVersion.Fifa22:
@@ -27,6 +51,7 @@ internal class TypeInfo
                     return 6;
 
                 // Guid and NameHash in TypeInfoData
+                // 2017.7, 2018.2, ???
                 case ProfileVersion.Fifa19:
                 case ProfileVersion.Anthem:
                 case ProfileVersion.Madden20:
@@ -36,6 +61,7 @@ internal class TypeInfo
                     return 5;
 
                 // Guid in TypeInfo
+                // 2016.4.4, 2016.4.7, 2018.0 (BfV), 2019-PR5 (SWBfII), ???
                 case ProfileVersion.Fifa18:
                 case ProfileVersion.NeedForSpeedPayback:
                 case ProfileVersion.StarWarsBattlefrontII:
@@ -45,12 +71,14 @@ internal class TypeInfo
                     return 4;
 
                 // ArrayInfo
+                // 2015.4.6, ???
                 case ProfileVersion.Fifa17:
                 case ProfileVersion.MassEffectAndromeda:
                     return 3;
 
                 // ushort FieldCount
-                case ProfileVersion.Battlefield4: // would expect version 1 ???
+                // 2014.4.11
+                case ProfileVersion.Battlefield4: // i would assume version 1 for it
                 case ProfileVersion.Battlefield1:
                 case ProfileVersion.StarWarsBattlefront:
                 case ProfileVersion.MirrorsEdgeCatalyst:
@@ -59,20 +87,19 @@ internal class TypeInfo
                 case ProfileVersion.PlantsVsZombiesGardenWarfare2:
                     return 2;
 
+                // 2013.2, 2014.1
                 case ProfileVersion.NeedForSpeedRivals:
                 case ProfileVersion.DragonAgeInquisition:
                 case ProfileVersion.PlantsVsZombiesGardenWarfare:
                     return 1;
                 
                 default:
-                    return 0;
+                    return -1;
             }
         }
     }
 
     public static readonly Dictionary<long, TypeInfo> TypeInfoMapping = new();
-
-    public static bool HasNames => !ProfilesLibrary.IsLoaded(ProfileVersion.Anthem, ProfileVersion.Battlefield2042);
 
     protected TypeInfoData m_data;
     protected long p_prev;

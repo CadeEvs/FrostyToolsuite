@@ -15,7 +15,7 @@ internal class ArrayInfoData : TypeInfoData
     {
         base.Read(reader);
 
-        if (!TypeInfo.HasNames && string.IsNullOrEmpty(m_name))
+        if (ProfilesLibrary.HasStrippedTypeNames && string.IsNullOrEmpty(m_name))
         {
             m_name = $"Array_{m_nameHash:x8}";
         }

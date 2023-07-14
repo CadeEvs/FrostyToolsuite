@@ -17,7 +17,9 @@ public static class ProfilesLibrary
     public static string CacheName => s_effectiveProfile?.InternalName?? string.Empty;
     public static string Deobfuscator => s_effectiveProfile?.Deobfuscator ?? string.Empty;
     public static string TypeInfoSignature => s_effectiveProfile?.TypeInfoSignature ?? string.Empty;
+    public static bool HasStrippedTypeNames => s_effectiveProfile?.HasStrippedTypeNames ?? false;
     public static int DataVersion => s_effectiveProfile?.DataVersion ?? -1;
+    public static FrostbiteVersion FrostbiteVersion => s_effectiveProfile?.FrostbiteVersion ?? "0.0.0";
     public static List<FileSystemSource> Sources => s_effectiveProfile?.Sources ?? new List<FileSystemSource>();
     public static string SdkFilename => s_effectiveProfile is null ? string.Empty : $"{s_effectiveProfile.InternalName}SDK";
 

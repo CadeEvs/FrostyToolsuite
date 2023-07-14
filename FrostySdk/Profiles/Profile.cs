@@ -11,8 +11,11 @@ public class Profile
     public string Deobfuscator { get; set; } = string.Empty;
 
     public string TypeInfoSignature { get; set; } = string.Empty;
+    public bool HasStrippedTypeNames { get; set; }
 
     public int DataVersion { get; set; }
+    public string FrostbiteVersion { get; set; } = "0.0.0";
+    
     public List<FileSystemSource> Sources { get; set; } = new();
 
     public int EbxVersion { get; set; }

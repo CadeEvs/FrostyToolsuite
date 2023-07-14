@@ -58,7 +58,7 @@ public static class ResourceManager
         
         int installChunkIndex = FileSystemManager.GetInstallChunkIndex(info);
         
-        using (CatStream stream = new(BlockStream.FromFile(filePath, true)))
+        using (CatStream stream = new(filePath))
         {
             for (int i = 0; i < stream.ResourceCount; i++)
             {

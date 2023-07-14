@@ -9,12 +9,12 @@ using Frosty.Sdk.Profiles;
 
 namespace Frosty.Sdk.IO;
 
-public partial class BinaryBundle
+public class BinaryBundle
 {
     public enum Magic : uint
     {
         Standard = 0xED1CEDB8,
-        Fifa = 0xC3889333,
+        Kelvin = 0xC3889333,
         Encrypted = 0xC3E5D5C3
     }
  
@@ -52,8 +52,7 @@ public partial class BinaryBundle
         int resCount = stream.ReadInt32(endian);
         int chunkCount = stream.ReadInt32(endian);
         long stringsOffset = stream.ReadUInt32(endian) + (magic == Magic.Encrypted ? 0 : startPos);
-        long metaOffset = stream.ReadUInt32(endian) + (magic == Magic.Encrypted ? 0 : startPos);
-        uint metaSize = stream.ReadUInt32(endian);
+        stream.Position += sizeof(uint) + sizeof(int); // metaOffset + metaSize
 
         EbxList = new EbxAssetEntry[ebxCount];
         ResList = new ResAssetEntry[resCount];
@@ -144,7 +143,7 @@ public partial class BinaryBundle
             salt = "arie";
         }
 
-        else if (ProfilesLibrary.DataVersion >= (int)ProfileVersion.Fifa19 && !ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsSquadrons))
+        else if (ProfilesLibrary.FrostbiteVersion >= "2017")
         {
             salt = "pecn";
         }
@@ -160,14 +159,11 @@ public partial class BinaryBundle
     /// <returns>The magic the current game uses.</returns>
     public static Magic GetMagic()
     {
-        switch (ProfilesLibrary.DataVersion)
+        switch (FileSystemManager.BundleFormat)
         {
             // TODO: what game uses encrypted magic
-            case (int)ProfileVersion.Fifa19:
-            case (int)ProfileVersion.Madden20:
-            case (int)ProfileVersion.Fifa20:
-            case (int)ProfileVersion.Madden21:
-                return Magic.Fifa;
+            case BundleFormat.Kelvin:
+                return Magic.Kelvin;
             default:
                 return Magic.Standard;
         }

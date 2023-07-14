@@ -13,10 +13,11 @@ public class CatStream : IDisposable
     private const string c_catMagic = "NyanNyanNyanNyan";
 
     private readonly DataStream m_stream;
+    private readonly bool m_isNewFormat;
 
-    public CatStream(DataStream inStream)
+    public CatStream(string inFilename)
     {
-        m_stream = inStream;
+        m_stream = BlockStream.FromFile(inFilename, out m_isNewFormat);
         
         string magic = m_stream.ReadFixedSizedString(16);
         if (magic != c_catMagic)
@@ -28,21 +29,17 @@ public class CatStream : IDisposable
         PatchCount = 0;
         EncryptedCount = 0;
 
-        if (!ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedRivals, ProfileVersion.DragonAgeInquisition, ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed))
+        if (m_isNewFormat)
         {
             ResourceCount = m_stream.ReadUInt32();
             PatchCount = m_stream.ReadUInt32();
 
-            if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Fifa18, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+            // 2015.4.6, 2019-PR5, 2016.4.7, 2016.4.4, 2018.0
+            //if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Fifa18, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
+            if (ProfilesLibrary.FrostbiteVersion >= "2015")
             {
                 EncryptedCount = m_stream.ReadUInt32();
                 m_stream.Position += 12;
-
-                if (EncryptedCount != 0 && ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
-                {
-                    EncryptedCount = 0;
-                    throw new Exception("test");
-                }
             }
         }
     }
@@ -56,8 +53,7 @@ public class CatStream : IDisposable
             Size = m_stream.ReadUInt32()
         };
 
-        if (!ProfilesLibrary.IsLoaded(ProfileVersion.NeedForSpeedRivals, ProfileVersion.DragonAgeInquisition,
-                ProfileVersion.Battlefield4, ProfileVersion.NeedForSpeed))
+        if (m_isNewFormat)
         {
             entry.LogicalOffset = m_stream.ReadUInt32();
         }

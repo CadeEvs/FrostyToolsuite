@@ -24,7 +24,7 @@ internal class TypeInfoData
     {
         TypeInfoData retVal;
         string name = string.Empty;
-        if (TypeInfo.HasNames)
+        if (!ProfilesLibrary.HasStrippedTypeNames)
         {
             name = reader.ReadNullTerminatedString();
         }
@@ -85,7 +85,7 @@ internal class TypeInfoData
                 break;
         }
 
-        if (!TypeInfo.HasNames)
+        if (!ProfilesLibrary.HasStrippedTypeNames)
         {
             if (Strings.ClassHashes.TryGetValue(nameHash, out string? hash))
             {

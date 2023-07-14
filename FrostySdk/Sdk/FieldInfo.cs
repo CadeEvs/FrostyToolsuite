@@ -20,7 +20,7 @@ internal class FieldInfo : IComparable
     
     public void Read(MemoryReader reader, uint classHash)
     {
-        if (TypeInfo.HasNames)
+        if (!ProfilesLibrary.HasStrippedTypeNames)
         {
             m_name = reader.ReadNullTerminatedString();
         }
@@ -33,7 +33,7 @@ internal class FieldInfo : IComparable
 
         p_typeInfo = reader.ReadLong();
 
-        if (!TypeInfo.HasNames)
+        if (ProfilesLibrary.HasStrippedTypeNames)
         {
             if (Strings.FieldHashes.ContainsKey(classHash) && Strings.FieldHashes[classHash].ContainsKey(m_nameHash))
             {

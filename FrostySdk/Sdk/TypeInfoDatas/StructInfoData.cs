@@ -14,7 +14,7 @@ internal class StructInfoData : TypeInfoData
     {
         base.Read(reader);
 
-        if (!TypeInfo.HasNames && string.IsNullOrEmpty(m_name))
+        if (ProfilesLibrary.HasStrippedTypeNames && string.IsNullOrEmpty(m_name))
         {
             m_name = $"Struct_{m_nameHash:x8}";
         }

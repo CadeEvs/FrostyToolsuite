@@ -61,6 +61,43 @@ public class BlockStream : DataStream
     }
 
     /// <summary>
+    /// Loads whole file into memory and deobfuscates it if necessary.
+    /// </summary>
+    /// <param name="inPath">The path of the file</param>
+    /// <param name="wasObfuscated">A boolean that indicates if the file was obfuscated.</param>
+    /// <returns>A <see cref="BlockStream"/> that has the file loaded.</returns>
+    public static BlockStream FromFile(string inPath, out bool wasObfuscated)
+    {
+        wasObfuscated = false;
+        using (FileStream stream = new(inPath, FileMode.Open, FileAccess.Read))
+        {
+            BlockStream retVal;
+            Span<byte> header = stackalloc byte[0x22C];
+            stream.ReadExactly(header);
+
+            if (header[0] == 0x00 && header[1] == 0xD1 && header[2] == 0xCE &&
+                (header[3] == 0x00 || header[3] == 0x01 || header[3] == 0x03)) // version 0 is not used in fb3
+            {
+                wasObfuscated = true;
+                
+                retVal = new BlockStream((int)(stream.Length - 0x22C));
+                stream.ReadExactly(retVal.m_block.ToSpan());
+                    
+                // deobfuscate the data
+                IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();
+                deobfuscator?.Deobfuscate(header, retVal.m_block);
+                    
+                return retVal;
+            }
+            stream.Position = 0;
+
+            retVal = new BlockStream((int)stream.Length);
+            stream.ReadExactly(retVal.m_block.ToSpan());
+            return retVal;
+        }
+    }
+
+    /// <summary>
     /// Loads part of a file into memory.
     /// </summary>
     /// <param name="inPath">The path of the file.</param>

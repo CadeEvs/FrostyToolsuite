@@ -310,9 +310,10 @@ public class DbObjectAssetLoader : IAssetLoader
 
                     stream.Position = bundleInfo.Offset;
                     
-                    //bundle = DeserializeDeltaBundle(baseStream, stream).AsDict();
-
                     throw new NotImplementedException("delta sb storing");
+                    
+                    BinaryBundle bundle = DeserializeDeltaBundle(baseStream, stream);
+
                     
                     Debug.Assert(stream.Position == bundleInfo.Offset + bundleInfo.Size);
 
