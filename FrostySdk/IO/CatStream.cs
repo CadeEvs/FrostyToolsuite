@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Frosty.Sdk.Managers.CatResources;
 using Frosty.Sdk.Profiles;
 

@@ -1,5 +1,4 @@
 using System;
-using System.Text;
 using Frosty.Sdk.IO.Ebx;
 using Frosty.Sdk.Sdk;
 

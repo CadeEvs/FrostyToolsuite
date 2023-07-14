@@ -1,5 +1,4 @@
 ﻿using Frosty.Sdk.IO;
-using Frosty.Sdk.IO.Ebx;
 using Frosty.Sdk.Managers.Entries;
 
 namespace Frosty.Sdk.Resources;

@@ -1,5 +1,4 @@
-﻿using System;
-using Frosty.Sdk.IO;
+﻿using Frosty.Sdk.IO;
 using Frosty.Sdk.Sdk.TypeInfoDatas;
 
 namespace Frosty.Sdk.Sdk.TypeInfos;

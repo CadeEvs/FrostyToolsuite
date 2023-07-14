@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Profiles;

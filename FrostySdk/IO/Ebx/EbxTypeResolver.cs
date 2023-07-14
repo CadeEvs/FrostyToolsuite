@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Frosty.Sdk.IO.Ebx;
+﻿namespace Frosty.Sdk.IO.Ebx;
 
 internal class EbxTypeResolver
 {

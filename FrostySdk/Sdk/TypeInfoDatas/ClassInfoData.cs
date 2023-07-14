@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using Frosty.Sdk.Attributes;
-using Frosty.Sdk.Ebx;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Sdk.TypeInfos;
-using IsReadOnlyAttribute = System.Runtime.CompilerServices.IsReadOnlyAttribute;
 
 namespace Frosty.Sdk.Sdk.TypeInfoDatas;
 
