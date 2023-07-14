@@ -4,7 +4,9 @@
   "InternalName": "masseffect",
   "Deobfuscator": "Signature",
   "TypeInfoSignature" : "",
+  "HasStrippedTypeNames": false,
   "DataVersion": 20170320,
+  "FrostbiteVersion": "2015.4.6",
   "Sources": [
     {
       "Path": "Patch",
