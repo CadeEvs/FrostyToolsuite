@@ -1,0 +1,34 @@
+{
+  "Name": "BF2042",
+  "DisplayName": "Battlefield™ 2042",
+  "InternalName": "bf2042",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20211119,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 6,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": true,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Common/Shaders/Textures/Debug/Debug_D",
+  "DefaultNormals": "Common/Shaders/Textures/Debug/Debug_N",
+  "DefaultMask": "Common/Shaders/Textures/Debug/Debug_R",
+  "DefaultTint": "Common/Shaders/Textures/Debug/Debug_SRM",
+  "SharedBundles": []
+}

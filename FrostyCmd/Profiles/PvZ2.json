@@ -4,9 +4,7 @@
   "InternalName": "gw2",
   "Deobfuscator": "Legacy",
   "TypeInfoSignature" : "",
-  "HasStrippedTypeNames": false,
   "DataVersion": 20160222,
-  "FrostbiteVersion": "2014.4.11",
   "Sources": [
     {
       "Path": "Update/Patch/Data",

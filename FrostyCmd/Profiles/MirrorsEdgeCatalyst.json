@@ -1,14 +1,18 @@
-﻿{
+{
   "Name": "MirrorsEdgeCatalyst",
   "DisplayName": "Mirror's Edge™ Catalyst",
   "InternalName": "mirrorsedge",
   "Deobfuscator": "Signature",
-  "TypeInfoSignature" : "",
+  "TypeInfoSignature": "",
   "DataVersion": 20160606,
   "Sources": [
     {
       "Path": "Patch",
       "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
     },
     {
       "Path": "Data",

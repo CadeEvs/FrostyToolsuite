@@ -1,0 +1,34 @@
+{
+  "Name": "Dead Space",
+  "DisplayName": "Dead Space",
+  "InternalName": "deadspace",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20211119,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 6,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": true,
+  "EbxCompression": 15,
+  "ResCompression": 15,
+  "ChunkCompression": 15,
+  "TextureChunkCompression": 15,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 16,
+  "DefaultDiffuse": "Game/_Shared/Textures/T_Default_Color_White_BC",
+  "DefaultNormals": "Game/_Shared/Textures/T_Default_N",
+  "DefaultMask": "Game/_Shared/Textures/T_Default_Color_Black_BC",
+  "DefaultTint": "Game/_Shared/Textures/T_Default_Color_White_BC",
+  "SharedBundles": []
+}

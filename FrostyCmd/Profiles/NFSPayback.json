@@ -1,0 +1,34 @@
+{
+  "Name": "NeedForSpeedPayback",
+  "DisplayName": "Need for Speed™ Payback",
+  "InternalName": "nfs17",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20171110,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 4,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Characters/common/textures/debug/common_debug_texture_color",
+  "DefaultNormals": "Textures/Generic/defaultNormalMap_N",
+  "DefaultMask": "Characters/common/textures/debug/common_debug_texture_coeff",
+  "DefaultTint": "Characters/common/textures/debug/common_debug_texture_coeff",
+  "SharedBundles": []
+}

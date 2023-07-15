@@ -1,13 +1,13 @@
-﻿{
-  "Name": "NFS14",
-  "DisplayName": "Need for Speed™ Rivals",
-  "InternalName": "nfs14",
-  "Deobfuscator": "Legacy",
-  "TypeInfoSignature" : "",
-  "DataVersion": 20131118,
+{
+  "Name": "bf1",
+  "DisplayName": "Battlefield™ 1",
+  "InternalName": "bf1",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20161012,
   "Sources": [
     {
-      "Path": "Update/Patch/Data",
+      "Path": "Patch",
       "SubDirs": false
     },
     {
@@ -30,9 +30,9 @@
   "TextureChunkCompression": 9,
   "MaxBufferSize": 65536,
   "ZStdCompressionLevel": 0,
-  "DefaultDiffuse": "Shaders/Textures/defaultTextures/default_D",
-  "DefaultNormals": "Shaders/Textures/defaultTextures/default_N",
-  "DefaultMask": "Shaders/Textures/defaultTextures/defaultBlack_D",
-  "DefaultTint": "Shaders/Textures/defaultTextures/defaultBlack_D",
+  "DefaultDiffuse": "Shaders/Textures/T_DefaultGrey50_CS",
+  "DefaultNormals": "Shaders/Textures/T_DefaultNormal_N",
+  "DefaultMask": "Shaders/Textures/T_DefaultGrey50_C",
+  "DefaultTint": "Shaders/Textures/T_DefaultGrey50_C",
   "SharedBundles": []
 }

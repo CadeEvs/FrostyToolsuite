@@ -1,0 +1,34 @@
+{
+  "Name": "NeedForSpeedUnbound",
+  "DisplayName": "Need for Speed™ Unbound",
+  "InternalName": "nfsunbound",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20221202,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 6,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 15,
+  "ResCompression": 15,
+  "ChunkCompression": 15,
+  "TextureChunkCompression": 15,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 16,
+  "DefaultDiffuse": "shaders/generictextures/ut_defaultwhite_d",
+  "DefaultNormals": "shaders/generictextures/UT_Default_N",
+  "DefaultMask": "Shaders/GenericTextures/UT_defaultBlack_D",
+  "DefaultTint": "shaders/generictextures/ut_defaultwhite_d",
+  "SharedBundles": []
+}

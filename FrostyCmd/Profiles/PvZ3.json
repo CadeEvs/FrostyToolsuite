@@ -1,0 +1,38 @@
+{
+  "Name": "PVZBattleforNeighborville",
+  "DisplayName": "Plants vs Zombies: Battle for Neighborville™",
+  "InternalName": "PVZ3",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20191017,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 5,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": true,
+  "EbxCompression": 17,
+  "ResCompression": 17,
+  "ChunkCompression": 17,
+  "TextureChunkCompression": 17,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "GW2_art/Shaders/_System/BaseShaders/default_textures/white",
+  "DefaultNormals": "GW2_art/Shaders/_System/BaseShaders/default_textures/normal_default",
+  "DefaultMask": "GW2_art/Shaders/_System/BaseShaders/default_textures/white",
+  "DefaultTint": "GW2_art/Shaders/_System/BaseShaders/default_textures/white",
+  "SharedBundles": []
+}

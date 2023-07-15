@@ -1,21 +1,25 @@
-﻿{
-  "Name": "MassEffectAndromeda",
-  "DisplayName": "Mass Effect: Andromeda",
-  "InternalName": "masseffect",
+{
+  "Name": "Madden19",
+  "DisplayName": "Madden NFL 19™",
+  "InternalName": "madden19",
   "Deobfuscator": "Signature",
-  "TypeInfoSignature" : "",
-  "DataVersion": 20170320,
+  "TypeInfoSignature": "",
+  "DataVersion": 20180828,
   "Sources": [
     {
       "Path": "Patch",
       "SubDirs": false
     },
     {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
       "Path": "Data",
       "SubDirs": false
     }
   ],
-  "EbxVersion": 2,
+  "EbxVersion": 4,
   "RequiresKey": false,
   "MustAddChunks": false,
   "EnableExecution": true,
@@ -26,9 +30,9 @@
   "TextureChunkCompression": 15,
   "MaxBufferSize": 65536,
   "ZStdCompressionLevel": 16,
-  "DefaultDiffuse": "Systems/Terrain/DefaultGrid",
-  "DefaultNormals": "Textures/Generic/NormalmapDefault_N",
-  "DefaultMask": "Placeholder/Lookdev/MEC_Lookdev/textures/Default_Black",
-  "DefaultTint": "Placeholder/Lookdev/MEC_Lookdev/textures/Default_Black",
+  "DefaultDiffuse": "Longshot/Common/Debug_Grey",
+  "DefaultNormals": "Longshot/Common/Debug_Normal",
+  "DefaultMask": "Longshot/Common/Default_S",
+  "DefaultTint": "Longshot/Common/Debug_Grey",
   "SharedBundles": []
 }
