@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=System.Runtime">
+    <!-- MenuItems -->
+    <system:String x:Key="MenuItemFile">File</system:String>
+    <system:String x:Key="MenuItemTools">Tools</system:String>
+    <system:String x:Key="MenuItemHelp">Help</system:String>
+    
+    <!-- ProfileSelectWindow -->
+    <system:String x:Key="ProfileSelect">Select</system:String>
+    <system:String x:Key="ProfileAdd">Add</system:String>
+    <system:String x:Key="ProfileCancel">Cancel</system:String>
+    
+</ResourceDictionary>

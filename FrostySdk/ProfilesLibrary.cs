@@ -14,7 +14,7 @@ public static class ProfilesLibrary
     
     public static string ProfileName => s_effectiveProfile?.Name ?? string.Empty;
     public static string DisplayName => s_effectiveProfile?.DisplayName ?? string.Empty;
-    public static string CacheName => s_effectiveProfile?.InternalName?? string.Empty;
+    public static string InternalName => s_effectiveProfile?.InternalName?? string.Empty;
     public static string Deobfuscator => s_effectiveProfile?.Deobfuscator ?? string.Empty;
     public static string TypeInfoSignature => s_effectiveProfile?.TypeInfoSignature ?? string.Empty;
     public static bool HasStrippedTypeNames => s_effectiveProfile?.HasStrippedTypeNames ?? false;
@@ -51,12 +51,15 @@ public static class ProfilesLibrary
     
     public static void Initialize()
     {
-        foreach (string file in Directory.EnumerateFiles("Profiles"))
+        if (Directory.Exists("Profiles"))
         {
-            Profile? profile = JsonSerializer.Deserialize<Profile>(new FileStream(file, FileMode.Open, FileAccess.Read));
-            if (profile != null)
+            foreach (string file in Directory.EnumerateFiles("Profiles"))
             {
-                s_profiles.Add(profile);
+                Profile? profile = JsonSerializer.Deserialize<Profile>(new FileStream(file, FileMode.Open, FileAccess.Read));
+                if (profile != null)
+                {
+                    s_profiles.Add(profile);
+                }
             }
         }
 

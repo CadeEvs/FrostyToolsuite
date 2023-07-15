@@ -57,7 +57,7 @@ public static class FileSystemManager
             BasePath = $"{BasePath}/";
         }
 
-        CacheName = $"Caches/{ProfilesLibrary.CacheName}";
+        CacheName = $"Caches/{ProfilesLibrary.InternalName}";
         s_deobfuscator = Type.GetType($"Frosty.Sdk.Deobfuscators.{ProfilesLibrary.Deobfuscator}Deobfuscator");
 
         foreach (FileSystemSource source in ProfilesLibrary.Sources)

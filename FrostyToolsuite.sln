@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator.Exam
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdkTest", "FrostySdkTest\FrostySdkTest.csproj", "{0D68BF68-5166-4995-BBAF-4D0257A9DB38}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyEditor", "FrostyEditor\FrostyEditor.csproj", "{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +44,9 @@ Global
 		{0D68BF68-5166-4995-BBAF-4D0257A9DB38}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0D68BF68-5166-4995-BBAF-4D0257A9DB38}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0D68BF68-5166-4995-BBAF-4D0257A9DB38}.Release|Any CPU.Build.0 = Release|Any CPU
+		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
