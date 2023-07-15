@@ -57,7 +57,8 @@
                                                                 Width="16">
                                                             <Path x:Name="ExpandPath"
                                                                   Fill="White"
-                                                                  Stroke="White">
+                                                                  Stroke="White"
+                                                                  Cursor="Hand">
                                                                 <Path.Data>
                                                                     <PathGeometry Figures="M0,0 L0,6 L6,0 z" />
                                                                 </Path.Data>
@@ -127,7 +128,7 @@
             <Setter Property="Height"
                     Value="22" />
             <Setter Property="Margin"
-                    Value="21,0,0,0" />
+                    Value="16,0,0,0" />
             <Setter Property="HorizontalAlignment"
                     Value="Stretch" />
             <Setter Property="VerticalAlignment"
@@ -146,11 +147,25 @@
                                     <ColumnDefinition Width="16" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
-                                <Image x:Name="icon"
-                                       Source="/FrostyModManager;component/Images/Plus.png"
-                                       Margin="-2,10,0,14"
-                                       Width="12"
-                                       Cursor="Hand" />
+                                <Border Background="Transparent"
+                                        Height="16"
+                                        Padding="5" 
+                                        Width="16"
+                                        Margin="-8,10,0,10"
+                                        Cursor="Hand">
+                                    <Path x:Name="ExpandPath"
+                                          Fill="White"
+                                          Stroke="White">
+                                        <Path.Data>
+                                            <PathGeometry Figures="M0,0 L0,6 L6,0 z" />
+                                        </Path.Data>
+                                        <Path.RenderTransform>
+                                            <RotateTransform Angle="135" 
+                                                             CenterY="3" 
+                                                             CenterX="3" />
+                                        </Path.RenderTransform>
+                                    </Path>
+                                </Border>
                                 <ContentPresenter Grid.Column="1"
                                                   HorizontalAlignment="Left"
                                                   Margin="4,0,0,0"
@@ -159,12 +174,18 @@
                                                   VerticalAlignment="Center" />
                             </Grid>
                         </Border>
+
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked"
-                                     Value="true">
-                                <Setter Property="Source"
-                                        TargetName="icon"
-                                        Value="/FrostyModManager;component/Images/Minus.png" />
+                                     Value="True">
+                                <Setter Property="RenderTransform"
+                                        TargetName="ExpandPath">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="180"
+                                                         CenterY="3"
+                                                         CenterX="3" />
+                                    </Setter.Value>
+                                </Setter>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -763,7 +784,7 @@
                                                                               IsExpanded="False">
                                                                         <Border BorderThickness="1"
                                                                                 BorderBrush="#454545"
-                                                                                Margin="16, 0, -97, 2">
+                                                                                Margin="8, 0, -97, 2">
                                                                             <ListView x:Name="collectionModsList"
                                                                                       ItemsSource="{Binding Path=Mods}"
                                                                                       MouseDoubleClick="collectionModsList_MouseDoubleClick"
