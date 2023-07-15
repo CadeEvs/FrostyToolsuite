@@ -5,6 +5,8 @@
   "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20190802,
+  "HasStrippedTypeNames": false,
+  "FrostbiteVersion": "3.0",
   "Sources": [
     {
       "Path": "Patch",

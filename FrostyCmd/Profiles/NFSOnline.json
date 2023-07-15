@@ -1,21 +1,13 @@
 {
-  "Name": "NFS16",
-  "DisplayName": "Need for Speed™",
-  "InternalName": "nfs16",
+  "Name": "NFSOL",
+  "DisplayName": "Need for Speed™ ONLINE",
+  "InternalName": "nfsedge",
   "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
-  "DataVersion": 20160317,
+  "DataVersion": 20160000,
   "FrostbiteVersion": "2014.4.11",
   "HasStrippedTypeNames": false,
   "Sources": [
-    {
-      "Path": "Update/Patch/Data",
-      "SubDirs": false
-    },
-    {
-      "Path": "Update",
-      "SubDirs": true
-    },
     {
       "Path": "Data",
       "SubDirs": false
@@ -32,9 +24,9 @@
   "TextureChunkCompression": 9,
   "MaxBufferSize": 65536,
   "ZStdCompressionLevel": 0,
-  "DefaultDiffuse": "Textures/T_white_A2",
-  "DefaultNormals": "Textures/Generic/NormalmapDefault_N",
-  "DefaultMask": "Textures/T_white_A2",
-  "DefaultTint": "Textures/T_white_A2",
+  "DefaultDiffuse": "Shaders/Textures/debugTextures/debugGrid_D",
+  "DefaultNormals": "Shaders/Textures/defaultTextures/default_N",
+  "DefaultMask": "Shaders/Textures/debugTextures/debugGrid_D",
+  "DefaultTint": "Shaders/Textures/debugTextures/debugGrid_D",
   "SharedBundles": []
 }

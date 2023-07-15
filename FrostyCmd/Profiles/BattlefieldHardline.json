@@ -1,8 +1,8 @@
 {
-  "Name": "bf4",
-  "DisplayName": "Battlefield™ 4",
-  "InternalName": "bf4",
-  "Deobfuscator": "Signature",
+  "Name": "bfh",
+  "DisplayName": "Battlefield™ Hardline",
+  "InternalName": "bfh",
+  "Deobfuscator": "Legacy",
   "TypeInfoSignature": "",
   "DataVersion": 20161012,
   "FrostbiteVersion": "2013.2",
@@ -32,9 +32,9 @@
   "TextureChunkCompression": 2,
   "MaxBufferSize": 65536,
   "ZStdCompressionLevel": 0,
-  "DefaultDiffuse": "EditorData/Grid_128_D",
-  "DefaultNormals": "Architecture/_Textures/NormalmapDefault_N",
-  "DefaultMask": "EditorData/Grid_128_D",
-  "DefaultTint": "EditorData/Grid_128_D",
+  "DefaultDiffuse": "havana/Textures/_Defaults/Debug_D",
+  "DefaultNormals": "Havana/Textures/_Defaults/Debug_N",
+  "DefaultMask": "havana/Textures/_Defaults/Debug_D",
+  "DefaultTint": "havana/Textures/_Defaults/Debug_D",
   "SharedBundles": []
 }

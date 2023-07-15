@@ -5,6 +5,8 @@
   "Deobfuscator": "Legacy",
   "TypeInfoSignature": "",
   "DataVersion": 20140623,
+  "FrostbiteVersion": "2013.2",
+  "HasStrippedTypeNames": false,
   "Sources": [
     {
       "Path": "Update/Patch/Data",
