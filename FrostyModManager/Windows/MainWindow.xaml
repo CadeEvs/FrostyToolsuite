@@ -1352,10 +1352,9 @@
                                                     RenderOptions.EdgeMode="Aliased">
                                                 <StackPanel VerticalAlignment="Center"
                                                             Orientation="Horizontal"
-                                                            Margin="6,0,6,0">
+                                                            Margin="4,0,4,0">
                                                     <!-- Down Button -->
                                                     <Button x:Name="downButton"
-                                                            Margin="4,0,0,0"
                                                             IsEnabled="False"
                                                             Click="downButton_Click"
                                                             ToolTip="Move mod down in list &#x0a;Shift click to move down 5 spaces &#x0a;Ctrl Shift click to move to bottom">
@@ -1372,7 +1371,6 @@
                                                     </Button>
                                                     <!-- Remove Button -->
                                                     <Button x:Name="removeButton"
-                                                            Margin="4,0,0,0"
                                                             IsEnabled="False"
                                                             Click="removeButton_Click"
                                                             ToolTip="Remove mod from list">
