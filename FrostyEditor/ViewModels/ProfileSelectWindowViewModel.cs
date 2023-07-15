@@ -1,4 +1,6 @@
-using System.Threading.Tasks;
+using System;
+using System.Collections.ObjectModel;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,33 +11,35 @@ namespace FrostyEditor.ViewModels;
 
 public partial class ProfileSelectWindowViewModel : ObservableObject
 {
+    public class ProfileConfig
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Path { get; set; } = string.Empty;
+    }
+    
     private bool m_wasSuccessful = true;
+    
     private string m_profileKey = string.Empty;
     private string m_profilePath = string.Empty;
-    
-    private readonly IClassicDesktopStyleApplicationLifetime? m_desktopLifetime;
+
+    public ObservableCollection<ProfileConfig> Profiles { get; set; } = new();
 
     public ProfileSelectWindowViewModel()
     {
-        m_desktopLifetime = null;
-    }
-    
-    public ProfileSelectWindowViewModel(IClassicDesktopStyleApplicationLifetime inDesktopLifetime)
-    {
-        m_desktopLifetime = inDesktopLifetime;
+        // TODO: get profiles from config file
+        Profiles.Add(new ProfileConfig
+        {
+            Key = "NFS14",
+            Path = "/some/path/Need for Speed(TM) Rivals"
+        });
     }
 
     [RelayCommand]
     private void CloseWindow()
     {
-        if (m_desktopLifetime is null)
+        if (m_wasSuccessful && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
         {
-            return;
-        }
-        
-        if (m_wasSuccessful)
-        {
-            Window? window = m_desktopLifetime.MainWindow;
+            Window? window = desktopLifetime.MainWindow;
 
             MainWindowViewModel mainWindowViewModel = new(m_profileKey, m_profilePath);
             MainWindow mainWindow = new()
@@ -48,14 +52,14 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
                 mainWindowViewModel.CloseLayout();
             };
             
-            m_desktopLifetime.MainWindow = mainWindow;
+            desktopLifetime.MainWindow = mainWindow;
             
-            m_desktopLifetime.Exit += (_, _) =>
+            desktopLifetime.Exit += (_, _) =>
             {
                 mainWindowViewModel.CloseLayout();
             };
             
-            m_desktopLifetime.MainWindow!.Show();
+            desktopLifetime.MainWindow!.Show();
             window?.Close();
         }
     }

@@ -22,7 +22,7 @@ public class App : Application
             {
                 ProfileSelectWindow selectWindow = new()
                 {
-                    DataContext = new ProfileSelectWindowViewModel(desktopLifetime)
+                    DataContext = new ProfileSelectWindowViewModel()
                 };
 
                 desktopLifetime.MainWindow = selectWindow;

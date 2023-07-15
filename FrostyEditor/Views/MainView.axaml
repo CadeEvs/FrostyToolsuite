@@ -6,7 +6,9 @@
              xmlns:views="using:FrostyEditor.Views"
              xmlns:vm="using:FrostyEditor.ViewModels"
              mc:Ignorable="d"
-             d:DesignWidth="700" d:DesignHeight="350">
+             d:DesignWidth="700" d:DesignHeight="350"
+             x:DataType="vm:MainWindowViewModel"
+             x:CompileBindings="True">
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
