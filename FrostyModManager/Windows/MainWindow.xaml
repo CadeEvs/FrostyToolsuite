@@ -258,10 +258,10 @@
 
         <Grid Grid.RowSpan="2">
             <Grid.RowDefinitions>
-                <RowDefinition Height="22" />
-                <RowDefinition Height="26" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="23" />
+                <RowDefinition Height="22"/>
+                <RowDefinition Height="26"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="0"/>
             </Grid.RowDefinitions>
 
             <!-- Menu -->
@@ -447,7 +447,7 @@
 
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="2" />
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="Auto" />
@@ -1135,7 +1135,7 @@
 
                                                         <Grid>
                                                             <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="14" />
+                                                                <ColumnDefinition Width="2" />
                                                                 <ColumnDefinition Width="*" />
                                                                 <ColumnDefinition Width="Auto" />
                                                                 <ColumnDefinition Width="Auto" />
