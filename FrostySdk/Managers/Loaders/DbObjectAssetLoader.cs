@@ -201,7 +201,7 @@ public class DbObjectAssetLoader : IAssetLoader
 
                 DbObjectList? ebxList = bundle.AsList("ebx", null);
                 DbObjectList? resList = bundle.AsList("res", null);
-                DbObjectList? chunkList = bundle.AsList("res", null);
+                DbObjectList? chunkList = bundle.AsList("chunks", null);
                 
                 for(int i = 0; i < ebxList?.Count; i++)
                 {
