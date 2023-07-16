@@ -1,0 +1,40 @@
+{
+  "Name": "PVZ.Main_Win64_Retail",
+  "DisplayName": "Plants vs Zombies™ Garden Warfare",
+  "InternalName": "pvz",
+  "Deobfuscator": "Legacy",
+  "TypeInfoSignature": "",
+  "DataVersion": 20140623,
+  "FrostbiteVersion": "2013.2",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Update/Patch/Data",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 21,
+  "ResCompression": 21,
+  "ChunkCompression": 21,
+  "TextureChunkCompression": 21,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "_pvz/Shaders/_System/BaseShaders/default_textures/white",
+  "DefaultNormals": "_pvz/Shaders/_System/BaseShaders/default_textures/normal_default",
+  "DefaultMask": "_pvz/Shaders/_System/BaseShaders/default_textures/white",
+  "DefaultTint": "_pvz/Shaders/_System/BaseShaders/default_textures/white",
+  "SharedBundles": []
+}
