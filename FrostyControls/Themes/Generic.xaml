@@ -9,6 +9,8 @@
 
     <SolidColorBrush x:Key="WindowBackground"
                      Color="#141414" />
+    <SolidColorBrush x:Key="TitlebarBackground"
+                     Color="#040404" />
     <SolidColorBrush x:Key="FontColor"
                      Color="#F8F8F8" />
     <SolidColorBrush x:Key="ControlBackground"
@@ -2110,7 +2112,7 @@
                                               TileMode="Tile">
                                     <DrawingBrush.Drawing>
                                         <DrawingGroup>
-                                            <GeometryDrawing Brush="{StaticResource WindowBackground}">
+                                            <GeometryDrawing Brush="{StaticResource TitlebarBackground}">
                                                 <GeometryDrawing.Geometry>
                                                     <RectangleGeometry Rect="0,0,1,1" />
                                                 </GeometryDrawing.Geometry>
@@ -2169,56 +2171,91 @@
                                                FontFamily="Segoe UI"
                                                FontWeight="DemiBold" />
                                 </StackPanel>
-                                <Label x:Name="dragLabel"
+                                <Label x:Name="dragLabel" 
                                        Margin="0" />
-                                <StackPanel Orientation="Horizontal"
-                                            HorizontalAlignment="Right"
+                                <StackPanel Orientation="Horizontal" 
+                                            HorizontalAlignment="Right" 
                                             WindowChrome.IsHitTestVisibleInChrome="True">
-                                    <Button x:Name="minimizeButton"
-                                            Background="{StaticResource WindowBackground}"
-                                            Command="{StaticResource MinimizeCommand}"
-                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
-                                            Width="46"
-                                            Height="32"
+                                    <Button x:Name="minimizeButton" 
+                                            Background="{StaticResource TitlebarBackground}" 
+                                            Command="{StaticResource MinimizeCommand}" 
+                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" 
+                                            Width="46" 
+                                            Height="32" 
                                             ToolTip="Minimize">
-                                        <Image Source="/FrostyControls;component/Images/MinimizeWindow.png"
-                                               Width="18"
-                                               Height="18" />
+                                        <Button.Content>
+                                            <TextBlock Text="&#xE949;" 
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="10px" 
+                                                       RenderOptions.ClearTypeHint="Auto" 
+                                                       TextOptions.TextRenderingMode="Aliased" 
+                                                       TextOptions.TextFormattingMode="Display"/>
+                                        </Button.Content>
                                     </Button>
-                                    <Button x:Name="maximizeButton"
-                                            Background="{StaticResource WindowBackground}"
-                                            Command="{StaticResource MaximizeCommand}"
-                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
-                                            Width="46"
-                                            Height="32"
+                                    <Button x:Name="maximizeButton" 
+                                            Background="{StaticResource TitlebarBackground}" 
+                                            Command="{StaticResource MaximizeCommand}" 
+                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" 
+                                            Width="46" 
+                                            Height="32" 
                                             ToolTip="Maximize">
-                                        <Image Source="/FrostyControls;component/Images/MaximizeWindow.png"
-                                               Width="18"
-                                               Height="18" />
+                                        <Button.Content>
+                                            <TextBlock Text="&#xE739;" 
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="10px" 
+                                                       RenderOptions.ClearTypeHint="Auto" 
+                                                       TextOptions.TextRenderingMode="Aliased" 
+                                                       TextOptions.TextFormattingMode="Display"/>
+                                        </Button.Content>
                                     </Button>
-                                    <Button x:Name="restoreButton"
-                                            Background="{StaticResource WindowBackground}"
-                                            Command="{StaticResource MaximizeCommand}"
-                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
-                                            Width="46"
-                                            Height="32"
-                                            Visibility="Collapsed"
+                                    <Button x:Name="restoreButton" 
+                                            Background="{StaticResource TitlebarBackground}" 
+                                            Command="{StaticResource MaximizeCommand}" 
+                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" 
+                                            Width="46" 
+                                            Height="32" 
+                                            Visibility="Collapsed" 
                                             ToolTip="Restore Down">
-                                        <Image Source="/FrostyControls;component/Images/RestoreWindow.png"
-                                               Width="18"
-                                               Height="18"
-                                               OpacityMask="White" />
+                                        <Button.Content>
+                                            <TextBlock Text="&#xE923;" 
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="10px" 
+                                                       RenderOptions.ClearTypeHint="Auto" 
+                                                       TextOptions.TextRenderingMode="Aliased" 
+                                                       TextOptions.TextFormattingMode="Display"/>
+                                        </Button.Content>
                                     </Button>
-                                    <Button x:Name="closeButton"
-                                            Background="{StaticResource WindowBackground}"
-                                            Command="{StaticResource CloseCommand}"
-                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"
-                                            Width="46"
-                                            Height="32"
+                                    <Button x:Name="closeButton" 
+                                            Command="{StaticResource CloseCommand}" 
+                                            CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}" 
+                                            Width="46" 
+                                            Height="32" 
                                             ToolTip="Close">
-                                        <Image Source="/FrostyControls;component/Images/CloseWindow.png"
-                                               Width="18"
-                                               Height="18" />
+                                        <Button.Content>
+                                            <TextBlock Text="&#xE106;" 
+                                                       FontFamily="Segoe MDL2 Assets" FontSize="10px" 
+                                                       RenderOptions.ClearTypeHint="Auto" 
+                                                       TextOptions.TextRenderingMode="Aliased" 
+                                                       TextOptions.TextFormattingMode="Display"/>
+                                        </Button.Content>
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}">
+                                                <Setter Property="Background" Value="{StaticResource TitlebarBackground}"/>
+                                                <Setter Property="Foreground" Value="{StaticResource FontColor}"/>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#FFF01428"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsPressed" Value="True">
+                                                        <Setter Property="Background" Value="#FF940A14"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="{x:Type Button}">
+                                                <Border Background="{TemplateBinding Background}">
+                                                    <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
                                     </Button>
                                 </StackPanel>
                             </Grid>
