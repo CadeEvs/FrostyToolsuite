@@ -21,7 +21,7 @@
   "RequiresKey": true,
   "MustAddChunks": false,
   "EnableExecution": true,
-  "HasAntiCheat": false,
+  "HasAntiCheat": true,
   "EbxCompression": 15,
   "ResCompression": 15,
   "ChunkCompression": 15,

@@ -5,7 +5,7 @@
   "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20211119,
-  "FrostbiteVersion": "2021-1.1",
+  "FrostbiteVersion": "2021.1.1",
   "HasStrippedTypeNames": true,
   "Sources": [
     {
@@ -22,10 +22,10 @@
   "MustAddChunks": false,
   "EnableExecution": true,
   "HasAntiCheat": true,
-  "EbxCompression": 9,
-  "ResCompression": 9,
-  "ChunkCompression": 9,
-  "TextureChunkCompression": 9,
+  "EbxCompression": 25,
+  "ResCompression": 25,
+  "ChunkCompression": 25,
+  "TextureChunkCompression": 25,
   "MaxBufferSize": 65536,
   "ZStdCompressionLevel": 0,
   "DefaultDiffuse": "Common/Shaders/Textures/Debug/Debug_D",

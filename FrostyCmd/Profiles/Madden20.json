@@ -6,7 +6,7 @@
   "TypeInfoSignature": "",
   "DataVersion": 20190802,
   "HasStrippedTypeNames": false,
-  "FrostbiteVersion": "3.0",
+  "FrostbiteVersion": "2018.0",
   "Sources": [
     {
       "Path": "Patch",

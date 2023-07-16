@@ -5,7 +5,7 @@
   "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20190927,
-  "FrostbiteVersion": "3.0",
+  "FrostbiteVersion": "2018.0",
   "HasStrippedTypeNames": false,
   "Sources": [
     {
@@ -27,9 +27,9 @@
   "EnableExecution": true,
   "HasAntiCheat": false,
   "EbxCompression": 15,
-  "ResCompression": 15,
-  "ChunkCompression": 15,
-  "TextureChunkCompression": 15,
+  "ResCompression": 17,
+  "ChunkCompression": 17,
+  "TextureChunkCompression": 17,
   "MaxBufferSize": 262144,
   "ZStdCompressionLevel": 16,
   "DefaultDiffuse": "content/Common/textures/debug/debug_texture_color",
