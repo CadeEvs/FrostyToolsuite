@@ -59,7 +59,7 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
                 mainWindowViewModel.CloseLayout();
             };
             
-            desktopLifetime.MainWindow!.Show();
+            desktopLifetime.MainWindow.Show();
             window?.Close();
         }
     }

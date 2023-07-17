@@ -15,23 +15,20 @@ public class ViewLocator : IDataTemplate
         {
             return new TextBlock { Text = "Invalid Data Type" };
         }
+        
         Type? type = Type.GetType(name);
-        if (type is { })
+        if (type is not null)
         {
             object? instance = Activator.CreateInstance(type);
-            if (instance is { })
+            if (instance is not null)
             {
                 return (Control)instance;
             }
-            else
-            {
-                return new TextBlock { Text = "Create Instance Failed: " + type.FullName };
-            }
+
+            return new TextBlock { Text = "Create Instance Failed: " + type.FullName };
         }
-        else
-        {
-            return new TextBlock { Text = "Not Found: " + name };
-        }
+
+        return new TextBlock { Text = "Not Found: " + name };
     }
 
     public bool Match(object? data)

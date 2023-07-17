@@ -32,10 +32,10 @@
         
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                <Button Content="{DynamicResource ProfileAdd}" />
-                <Button Content="{DynamicResource ProfileSelect}" Command="{Binding CloseWindowCommand}"/>
+                <Button Content="{StaticResource ID_PROFILE_ADD}" />
+                <Button Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding CloseWindowCommand}"/>
             </StackPanel>
-            <Button Content="{DynamicResource ProfileCancel}" Command="{Binding CloseWindowCommand}"/>
+            <Button Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CloseWindowCommand}"/>
         </Grid>
     </Grid>
 </Window>

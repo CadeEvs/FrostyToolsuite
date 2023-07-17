@@ -9,13 +9,13 @@
              x:DataType="vm:MenuViewModel"
              x:CompileBindings="True">
     <Menu>
-        <MenuItem Header="{DynamicResource MenuItemFile}">
+        <MenuItem Header="{StaticResource ID_MENU_FILE}">
       
         </MenuItem>
-        <MenuItem Header="{DynamicResource MenuItemTools}">
+        <MenuItem Header="{StaticResource ID_MENU_TOOLS}">
   
         </MenuItem>
-        <MenuItem Header="{DynamicResource MenuItemHelp}">
+        <MenuItem Header="{StaticResource ID_MENU_HELP}">
   
         </MenuItem>
     </Menu>

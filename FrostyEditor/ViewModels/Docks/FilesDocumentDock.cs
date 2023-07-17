@@ -19,7 +19,7 @@ public class FilesDocumentDock : DocumentDock
             return;
         }
 
-        FileViewModel? document = new()
+        FileViewModel document = new()
         {
             Title = "Untitled"
         };
