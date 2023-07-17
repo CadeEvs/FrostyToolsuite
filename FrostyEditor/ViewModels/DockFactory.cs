@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Collections.Generic;
 using Dock.Avalonia.Controls;
 using Dock.Model.Controls;
@@ -14,15 +13,15 @@ namespace FrostyEditor.ViewModels;
 
 public class DockFactory : Factory
 {
-    private IRootDock? _rootDock;
-    private IDocumentDock? _documentDock;
-    private ITool? _findTool;
+    private IRootDock? m_rootDock;
+    private IDocumentDock? m_documentDock;
+    private ITool? m_findTool;
 
     public override IDocumentDock CreateDocumentDock() => new FilesDocumentDock();
 
     public override IRootDock CreateLayout()
     {
-        FileViewModel untitledFileViewModel = new DefaultPageViewModel()
+        DefaultPageViewModel untitledFileViewModel = new()
         {
             Title = "Home"
         };
@@ -44,7 +43,7 @@ public class DockFactory : Factory
             (
                 untitledFileViewModel
             ),
-            CanCreateDocument = true
+            CanCreateDocument = false
         };
 
         ProportionalDock tools = new()
@@ -90,9 +89,9 @@ public class DockFactory : Factory
         rootDock.ActiveDockable = windowLayout;
         rootDock.DefaultDockable = windowLayout;
 
-        _documentDock = documentDock;
-        _rootDock = rootDock;
-        _findTool = dataExplorerViewModel;
+        m_documentDock = documentDock;
+        m_rootDock = rootDock;
+        m_findTool = dataExplorerViewModel;
 
         return rootDock;
     }
@@ -106,9 +105,9 @@ public class DockFactory : Factory
 
         DockableLocator = new Dictionary<string, Func<IDockable?>>
         {
-            ["Root"] = () => _rootDock,
-            ["Files"] = () => _documentDock,
-            ["Data Explorer"] = () => _findTool
+            ["Root"] = () => m_rootDock,
+            ["Files"] = () => m_documentDock,
+            ["Data Explorer"] = () => m_findTool
         };
 
         HostWindowLocator = new Dictionary<string, Func<IHostWindow?>>

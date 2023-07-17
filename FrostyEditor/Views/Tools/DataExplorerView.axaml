@@ -8,7 +8,7 @@
              d:DesignWidth="400" d:DesignHeight="150"
              x:DataType="vm:DataExplorerViewModel"
              x:CompileBindings="True">
-  <Grid RowDefinitions="Auto,Auto">
+  <Grid RowDefinitions="Auto,Auto" >
     <TextBlock Text="{Binding Test}" Margin="4" Grid.Row="0" />
   </Grid>
 </UserControl>

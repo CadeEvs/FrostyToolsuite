@@ -6,12 +6,19 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="FrostyEditor.Views.Windows.ProfileSelectWindow"
         Title="ProfileSelectWindow"
+        WindowState="Normal" WindowStartupLocation="CenterScreen"
+        Background="{x:Null}"
+        TransparencyLevelHint="AcrylicBlur"
+        Foreground="{DynamicResource DockThemeForegroundBrush}"
+        BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
         x:DataType="vm:ProfileSelectWindowViewModel"
         x:CompileBindings="True">
     <Design.DataContext>
         <vm:ProfileSelectWindowViewModel />
     </Design.DataContext>
-    <Grid>
+    <Grid Background="Transparent">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>

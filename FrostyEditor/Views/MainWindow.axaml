@@ -13,6 +13,8 @@
         x:CompileBindings="True"
         UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
         WindowState="Normal" WindowStartupLocation="CenterScreen"
+        Background="{x:Null}"
+        TransparencyLevelHint="AcrylicBlur"
         Foreground="{DynamicResource DockThemeForegroundBrush}"
         BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
         FontFamily="Segoe UI, SF Pro Display, Noto Sans, Cantarel"
@@ -23,17 +25,21 @@
   <Design.DataContext>
     <vm:MainWindowViewModel />
   </Design.DataContext>
-  <Panel Margin="{Binding #MainWindowView.OffScreenMargin}">
-    <Panel Height="30" HorizontalAlignment="Center" VerticalAlignment="Top">
-      <Label Content="FrostyEditor"
-             Margin="4,0,4,0"
-             FontSize="14"
-             FontWeight="Normal"
-             VerticalAlignment="Center"
-             VerticalContentAlignment="Center" />
-    </Panel>
-    <Panel Margin="{Binding #MainWindowView.WindowDecorationMargin}">
-      <views:MainView />
+  
+  <Panel>
+    <ExperimentalAcrylicBorder IsHitTestVisible="False">
+      <ExperimentalAcrylicBorder.Material>
+        <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                     TintColor="{DynamicResource SystemAltHighColor}"
+                                     TintOpacity="1"
+                                     FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                                     MaterialOpacity="0.55" />
+      </ExperimentalAcrylicBorder.Material>
+    </ExperimentalAcrylicBorder>
+    <Panel Margin="{Binding #MainWindowView.OffScreenMargin}">
+      <Panel Margin="{Binding #MainWindowView.WindowDecorationMargin}">
+        <views:MainView />
+      </Panel>
     </Panel>
   </Panel>
 </Window>

@@ -2,7 +2,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Documents"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="FrostyEditor.Views.Documents.DefaultPageView">
-    Welcome to Avalonia!
+             x:Class="FrostyEditor.Views.Documents.DefaultPageView"
+             x:DataType="vm:DefaultPageViewModel"
+             x:CompileBindings="True">
+    <Grid Focusable="True">
+        <TextBlock Text="Welcome"/>
+    </Grid>
 </UserControl>
