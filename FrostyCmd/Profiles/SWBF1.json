@@ -5,7 +5,7 @@
   "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20151117,
-  "FrostbiteVersion": "2014.4.1",
+  "FrostbiteVersion": "2014.4.17",
   "HasStrippedTypeNames": false,
   "Sources": [
     {
