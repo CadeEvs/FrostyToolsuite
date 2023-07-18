@@ -30,7 +30,7 @@ public enum ProfileVersion
     Fifa21 = 20201008,
     Madden22 = 20210819,
     Fifa22 = 20210930,
-    Battlefield2042 = 20211119, 
+    Battlefield2042 = 20211119,
     Madden23 = 20220819,
     Fifa23 = 20220930,
     NeedForSpeedUnbound = 20221202,

@@ -55,7 +55,11 @@ public static class ProfilesLibrary
         {
             foreach (string file in Directory.EnumerateFiles("Profiles"))
             {
-                Profile? profile = JsonSerializer.Deserialize<Profile>(new FileStream(file, FileMode.Open, FileAccess.Read));
+                Profile? profile;
+                using (FileStream stream = new(file, FileMode.Open, FileAccess.Read))
+                {
+                    profile = JsonSerializer.Deserialize<Profile>(stream);
+                }
                 if (profile != null)
                 {
                     s_profiles.Add(profile);
