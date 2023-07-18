@@ -53,6 +53,8 @@ public class DbObjectAssetLoader : IAssetLoader
     {
         // flag for if the assets are stored in cas files or in the superbundle directly
         bool isCas = toc.AsBoolean("cas");
+        // flag for das files (used in NFS Edge)
+        bool isDas = toc.AsBoolean("das");
 
         // process toc chunks
         if (toc.ContainsKey("chunks"))
@@ -86,34 +88,69 @@ public class DbObjectAssetLoader : IAssetLoader
         }
 
         bool processBaseBundles = false;
-        
+
         // process bundles
         if (toc.ContainsKey("bundles"))
         {
-            foreach (DbObject bundleInfo in toc.AsList("bundles"))
+            // das TOC - stores bundles as a dict
+            if (isDas)
             {
-                string name = bundleInfo.AsDict().AsString("id");
+                DbObjectDict dasBundlesDict = toc.AsDict("bundles");
 
-                bool isDelta = bundleInfo.AsDict().AsBoolean("delta");
-                bool isBase = bundleInfo.AsDict().AsBoolean("base");
-                    
-                long offset = bundleInfo.AsDict().AsLong("offset");
-                long size = bundleInfo.AsDict().AsLong("size");
-                
-                bundles.Add(new BundleInfo()
-                {
-                    Name = name,
-                    SbName = sbName,
-                    Offset = offset,
-                    Size = size,
-                    IsDelta = isDelta,
-                    IsPatch = isPatched && !isBase,
-                    IsCas = isCas
-                });
+                DbObjectList dasBundleNames = dasBundlesDict.AsList("names");
+                DbObjectList dasBundleOffsets = dasBundlesDict.AsList("offsets");
+                DbObjectList dasBundleSizes = dasBundlesDict.AsList("sizes");
 
-                if (isDelta)
+                for (int bundleIter = 0; bundleIter < dasBundleNames.Count; bundleIter++)
                 {
-                    processBaseBundles = true;
+                    string name = dasBundleNames[bundleIter].AsString();
+                    int offset = dasBundleOffsets[bundleIter].AsInt();
+                    int size = dasBundleSizes[bundleIter].AsInt();
+
+                    bundles.Add(new BundleInfo()
+                    {
+                        Name = name,
+                        SbName = sbName,
+                        Offset = offset,
+                        Size = size,
+                        IsDelta = false,
+                        IsPatch = false, // Edge has no patch or update folder
+                        IsCas = isCas,
+                        IsDas = isDas
+                    });
+                }
+            }
+            // standard TOC, stores bundles as a list
+            else
+            {
+                foreach (DbObject bundleInfo in toc.AsList("bundles"))
+                {
+                    DbObjectDict bundleInfoDict = bundleInfo.AsDict();
+
+                    string name = bundleInfoDict.AsString("id");
+
+                    bool isDelta = bundleInfoDict.AsBoolean("delta");
+                    bool isBase = bundleInfoDict.AsBoolean("base");
+
+                    long offset = bundleInfoDict.AsLong("offset");
+                    long size = bundleInfoDict.AsLong("size");
+
+                    bundles.Add(new BundleInfo()
+                    {
+                        Name = name,
+                        SbName = sbName,
+                        Offset = offset,
+                        Size = size,
+                        IsDelta = isDelta,
+                        IsPatch = isPatched && !isBase,
+                        IsCas = isCas,
+                        IsDas = isDas
+                    });
+
+                    if (isDelta)
+                    {
+                        processBaseBundles = true;
+                    }
                 }
             }
         }

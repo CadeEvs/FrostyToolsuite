@@ -9,4 +9,5 @@ internal struct BundleInfo
     public bool IsDelta;
     public bool IsPatch;
     public bool IsCas;
+    public bool IsDas;
 }
