@@ -13,13 +13,7 @@ public class FluentThemeManager : IThemeManager
 
     private static readonly FluentTheme s_fluent = new();
 
-    private static readonly Styles s_dockFluent = new()
-    {
-        new StyleInclude(s_baseUri)
-        {
-            Source = new Uri("avares://Dock.Avalonia/Themes/DockFluentTheme.axaml")
-        }
-    };
+    private static readonly DockFluentTheme s_dockFluent = new();
 
     private static readonly Styles s_fluentDark = new()
     {

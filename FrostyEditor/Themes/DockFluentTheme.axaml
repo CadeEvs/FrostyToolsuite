@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="FrostyEditor.Themes.DockFluentTheme">
+    <Styles.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceInclude Source="/Themes/Controls/ProportionalStackPanelSplitter.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DocumentTabStripItem.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DocumentTabStrip.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolTabStripItem.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolTabStrip.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DockTarget.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DocumentControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolChromeControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolPinItemControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolPinnedControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DockDockControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DocumentContentControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DocumentDockControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ProportionalDockControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/RootDockControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolContentControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/ToolDockControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/DockControl.axaml" />
+                <ResourceInclude Source="/Themes/Controls/HostWindowTitleBar.axaml" />
+                <ResourceInclude Source="/Themes/Controls/HostWindow.axaml" />
+                <ResourceInclude Source="/Themes/Accents/Fluent.axaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Styles.Resources>
+</Styles>

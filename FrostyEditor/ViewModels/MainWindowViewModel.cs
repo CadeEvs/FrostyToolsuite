@@ -186,7 +186,7 @@ public partial class MainWindowViewModel : ObservableObject, IDropTarget
             {
                 foreach (IStorageItem path in result)
                 {
-                    if (!string.IsNullOrEmpty(path.Path.AbsolutePath))
+                    if (!string.IsNullOrEmpty(path.Path.LocalPath))
                     {
                         // check if its a fbproject and then load it
                     }

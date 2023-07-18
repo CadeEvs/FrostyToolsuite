@@ -25,11 +25,11 @@
         </Grid.RowDefinitions>
         
         <Grid Grid.Row="0">
-            <ListBox ItemsSource="{Binding Profiles}">
+            <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
-                            <TextBlock Text="{Binding Key}"/>
+                            <TextBlock Text="{Binding Name}"/>
                             <TextBlock Text="{Binding Path}"/>
                         </StackPanel>
                     </DataTemplate>
@@ -39,7 +39,7 @@
         
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-                <Button Content="{StaticResource ID_PROFILE_ADD}" />
+                <Button Content="{StaticResource ID_PROFILE_ADD}" Command="{Binding AddProfileCommand}"/>
                 <Button Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding CloseWindowCommand}"/>
             </StackPanel>
             <Button Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CloseWindowCommand}"/>
