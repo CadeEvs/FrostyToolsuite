@@ -1,0 +1,40 @@
+{
+  "Name": "NFS14",
+  "DisplayName": "Need for Speed™ Rivals",
+  "InternalName": "nfs14",
+  "Deobfuscator": "Legacy",
+  "TypeInfoSignature" : "",
+  "HasStrippedTypeNames": false,
+  "DataVersion": 20131118,
+  "FrostbiteVersion": "2013.2",
+  "Sources": [
+    {
+      "Path": "Update/Patch/Data",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Shaders/Textures/defaultTextures/default_D",
+  "DefaultNormals": "Shaders/Textures/defaultTextures/default_N",
+  "DefaultMask": "Shaders/Textures/defaultTextures/defaultBlack_D",
+  "DefaultTint": "Shaders/Textures/defaultTextures/defaultBlack_D",
+  "SharedBundles": []
+}

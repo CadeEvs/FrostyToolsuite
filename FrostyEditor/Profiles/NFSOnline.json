@@ -1,0 +1,32 @@
+{
+  "Name": "NFSOL",
+  "DisplayName": "Need for Speed™ ONLINE",
+  "InternalName": "nfsedge",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20160000,
+  "FrostbiteVersion": "2014.4.11",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Shaders/Textures/debugTextures/debugGrid_D",
+  "DefaultNormals": "Shaders/Textures/defaultTextures/default_N",
+  "DefaultMask": "Shaders/Textures/debugTextures/debugGrid_D",
+  "DefaultTint": "Shaders/Textures/debugTextures/debugGrid_D",
+  "SharedBundles": []
+}

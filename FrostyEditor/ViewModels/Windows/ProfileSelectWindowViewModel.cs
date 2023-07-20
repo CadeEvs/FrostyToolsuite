@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Avalonia;
@@ -9,26 +8,28 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Frosty.Sdk;
 using FrostyEditor.Utils;
 using FrostyEditor.Views;
 
-namespace FrostyEditor.ViewModels;
+namespace FrostyEditor.ViewModels.Windows;
 
 public partial class ProfileSelectWindowViewModel : ObservableObject
 {
     public class ProfileConfig
     {
-        public string Name { get; set; } = string.Empty;
-        public string Key { get; set; } = string.Empty;
-        public string Path { get; set; } = string.Empty;
+        public string Name { get; set; }
+        public string Key { get; set; }
+        public string Path { get; set; }
 
-        public ProfileConfig()
-        {
-        }
-        
+        // if they would ever actually release non windows version we would need to change the extension here
+        public string FileName => System.IO.Path.Combine(Path, $"{Key}.exe");
+
         public ProfileConfig(string inKey)
         {
             Key = inKey;
+            Path = Config.Get("GamePath", string.Empty, ConfigScope.Game, Key);
+            Name = ProfilesLibrary.GetDisplayName(Key) ?? Key;
         }
     }
 
@@ -39,12 +40,22 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
 
     public ProfileSelectWindowViewModel()
     {
-        // TODO: get profiles from config file
-        Profiles.Add(new ProfileConfig
+        // init ProfilesLibrary to load all profile json files
+        ProfilesLibrary.Initialize();
+        
+        foreach (string profile in Config.GameProfiles)
         {
-            Key = "NFS14",
-            Path = "/some/path/Need for Speed(TM) Rivals"
-        });
+            ProfileConfig config = new(profile);
+            if (File.Exists(config.FileName))
+            {
+                Profiles.Add(config);   
+            }
+            else
+            {
+                Config.RemoveGame(profile);
+            }
+        }
+        Config.Save(App.ConfigPath);
     }
 
     [RelayCommand]
@@ -68,8 +79,10 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         foreach (IStorageFile file in files)
         {
             string key = Path.GetFileNameWithoutExtension(file.Name);
-            Profiles.Add(new ProfileConfig(key) { Path = Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty });
+            Config.AddGame(key, Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty);
+            Profiles.Add(new ProfileConfig(key));
         }
+        Config.Save(App.ConfigPath);
     }
 
     [RelayCommand]

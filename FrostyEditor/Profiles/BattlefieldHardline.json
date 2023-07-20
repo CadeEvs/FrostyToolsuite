@@ -1,0 +1,40 @@
+{
+  "Name": "bfh",
+  "DisplayName": "Battlefield™ Hardline",
+  "InternalName": "bfh",
+  "Deobfuscator": "Legacy",
+  "TypeInfoSignature": "",
+  "DataVersion": 20161012,
+  "FrostbiteVersion": "2013.2",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Update/Patch/Data",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 2,
+  "ResCompression": 2,
+  "ChunkCompression": 2,
+  "TextureChunkCompression": 2,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "havana/Textures/_Defaults/Debug_D",
+  "DefaultNormals": "Havana/Textures/_Defaults/Debug_N",
+  "DefaultMask": "havana/Textures/_Defaults/Debug_D",
+  "DefaultTint": "havana/Textures/_Defaults/Debug_D",
+  "SharedBundles": []
+}

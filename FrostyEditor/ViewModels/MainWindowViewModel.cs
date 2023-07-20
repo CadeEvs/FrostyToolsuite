@@ -140,18 +140,18 @@ public partial class MainWindowViewModel : ObservableObject, IDropTarget
 
     private void AddFileViewModel(FileViewModel fileViewModel)
     {
-        IDocumentDock? files = m_factory?.GetDockable<IDocumentDock>("Files");
+        IDocumentDock? files = m_factory.GetDockable<IDocumentDock>("Files");
         if (Layout is not null && files is not null)
         {
-            m_factory?.AddDockable(files, fileViewModel);
-            m_factory?.SetActiveDockable(fileViewModel);
-            m_factory?.SetFocusedDockable(Layout, fileViewModel);
+            m_factory.AddDockable(files, fileViewModel);
+            m_factory.SetActiveDockable(fileViewModel);
+            m_factory.SetFocusedDockable(Layout, fileViewModel);
         }
     }
 
     private FileViewModel? GetActiveFileViewModel()
     {
-        IDocumentDock? files = m_factory?.GetDockable<IDocumentDock>("Files");
+        IDocumentDock? files = m_factory.GetDockable<IDocumentDock>("Files");
         return files?.ActiveDockable as FileViewModel;
     }
 

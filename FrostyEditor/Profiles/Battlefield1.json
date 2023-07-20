@@ -1,0 +1,40 @@
+{
+  "Name": "bf1",
+  "DisplayName": "Battlefield™ 1",
+  "InternalName": "bf1",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20161012,
+  "FrostbiteVersion": "2014.4.11",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Shaders/Textures/T_DefaultGrey50_CS",
+  "DefaultNormals": "Shaders/Textures/T_DefaultNormal_N",
+  "DefaultMask": "Shaders/Textures/T_DefaultGrey50_C",
+  "DefaultTint": "Shaders/Textures/T_DefaultGrey50_C",
+  "SharedBundles": []
+}

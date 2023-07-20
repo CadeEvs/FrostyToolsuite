@@ -1,0 +1,40 @@
+{
+  "Name": "DragonAgeInquisition",
+  "DisplayName": "Dragon Age™: Inquisition",
+  "InternalName": "dragonage",
+  "Deobfuscator": "Legacy",
+  "TypeInfoSignature": "",
+  "HasStrippedTypeNames": false,
+  "DataVersion": 20140304,
+  "FrostbiteVersion": "2014.1",
+  "Sources": [
+    {
+      "Path": "Update/Patch/Data",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": true,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 2,
+  "ResCompression": 2,
+  "ChunkCompression": 2,
+  "TextureChunkCompression": 2,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "DA3/Actors/BaseMaterials/Patterns/Fabric/generic_cloth_swatch_d",
+  "DefaultNormals": "DA3/shaders/Textures/NormalmapDefault_N",
+  "DefaultMask": "DA3/Actors/BaseMaterials/Patterns/Fabric/generic_cloth_swatch_s",
+  "DefaultTint": "DA3/Actors/BaseMaterials/Patterns/Fabric/generic_cloth_swatch_t",
+  "SharedBundles": []
+}

@@ -771,7 +771,7 @@ public static class AssetManager
 
     private static void WriteCache()
     {
-        System.IO.FileInfo fi = new($"{FileSystemManager.CacheName}.cache");
+        FileInfo fi = new($"{FileSystemManager.CacheName}.cache");
         Directory.CreateDirectory(fi.DirectoryName!);
 
         using (DataStream stream = new(new FileStream(fi.FullName, FileMode.Create, FileAccess.Write)))

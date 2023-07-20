@@ -1,0 +1,40 @@
+{
+  "Name": "NeedForSpeedHeat",
+  "DisplayName": "Need for Speed™ Heat",
+  "InternalName": "NFSHEAT",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20191107,
+  "FrostbiteVersion": "2018.2",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 4,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 17,
+  "ResCompression": 17,
+  "ChunkCompression": 17,
+  "TextureChunkCompression": 17,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Shaders/GenericTextures/UT_default_D",
+  "DefaultNormals": "Shaders/GenericTextures/UT_default_N",
+  "DefaultMask": "Shaders/GenericTextures/UT_defaultBlack_D",
+  "DefaultTint": "Shaders/GenericTextures/UT_default_D",
+  "SharedBundles": []
+}

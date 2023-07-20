@@ -1,0 +1,40 @@
+{
+  "Name": "starwarsbattlefront",
+  "DisplayName": "STAR WARS™ Battlefront™",
+  "InternalName": "starwars",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20151117,
+  "FrostbiteVersion": "2014.4.17",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "shaders/T_DefaultOrange_C",
+  "DefaultNormals": "shaders/T_DefaultNormal_NS",
+  "DefaultMask": "shaders/T_DefaultMask_MSW",
+  "DefaultTint": "shaders/T_DefaultBlack_C",
+  "SharedBundles": []
+}

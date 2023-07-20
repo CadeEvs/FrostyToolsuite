@@ -7,7 +7,6 @@ using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.CatResources;
 using Frosty.Sdk.Managers.Infos;
 using Frosty.Sdk.Managers.Infos.FileInfos;
-using Frosty.Sdk.Utils.CompressionTypes;
 
 namespace Frosty.Sdk.Managers;
 
@@ -111,7 +110,6 @@ public static class ResourceManager
         if (FileSystemManager.HasFileInMemoryFs("Dictionaries/ebx.dict"))
         {
             // load dictionary from memoryFs (used for decompressing ebx)
-            ZStd.SetDictionary(FileSystemManager.GetFileFromMemoryFs("Dictionaries/ebx.dict"));
         }
         
         if (FileSystemManager.HasFileInMemoryFs("Scripts/CasEncrypt.yaml"))

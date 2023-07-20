@@ -1,0 +1,40 @@
+{
+  "Name": "Madden19",
+  "DisplayName": "Madden NFL 19™",
+  "InternalName": "madden19",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20180828,
+  "FrostbiteVersion": "2016.4.1",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 4,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 15,
+  "ResCompression": 15,
+  "ChunkCompression": 15,
+  "TextureChunkCompression": 15,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 16,
+  "DefaultDiffuse": "Longshot/Common/Debug_Grey",
+  "DefaultNormals": "Longshot/Common/Debug_Normal",
+  "DefaultMask": "Longshot/Common/Default_S",
+  "DefaultTint": "Longshot/Common/Debug_Grey",
+  "SharedBundles": []
+}

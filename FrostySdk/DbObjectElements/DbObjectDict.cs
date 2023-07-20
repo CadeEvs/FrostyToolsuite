@@ -195,7 +195,7 @@ public class DbObjectDict : DbObject
 
     protected override void InternalDeserialize(DataStream stream)
     {
-        long size = stream.Read7BitEncodedInt64();
+        stream.Read7BitEncodedInt64();
         while (true)
         {
             DbObject? obj = Deserialize(stream);

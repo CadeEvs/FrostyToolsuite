@@ -1,0 +1,70 @@
+{
+  "Name": "starwarssquadrons",
+  "DisplayName": "STAR WARS™: Squadrons",
+  "InternalName": "starwarsiii",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20201001,
+  "HasStrippedTypeNames": false,
+  "FrostbiteVersion": "2016.4.4",
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 4,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": true,
+  "EbxCompression": 15,
+  "ResCompression": 15,
+  "ChunkCompression": 15,
+  "TextureChunkCompression": 15,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 18,
+  "DefaultDiffuse": "Game/Shaders/Textures/T_DefaultWhite_C",
+  "DefaultNormals": "Game/Shaders/Textures/T_DefaultNormal_N",
+  "DefaultMask": "Game/Shaders/Textures/T_Default_Midgray",
+  "DefaultTint": "Game/Shaders/Textures/T_Default_Midgray",
+  "SharedBundles": [
+    "win32/game/ui/systems/uiassetsbundle_stategroups",
+    "win32/game/gameplay/starships/starships_sharedbundle",
+    "win32/game/levels/lobby/bundles/sharedbundlelobbylooseassets",
+    "win32/game/gameplay/bundles/sharedbundles/starships/sharedbundlestarshipscine",
+    "win32/game/gameplay/bundles/sharedbundles/pilots/sharedbundlepilots",
+    "win32/default_settings",
+    "win32/ui/static",
+    "win32/systems/frostbitestartupdata",
+    "win32/loadingscreens_bundle",
+    "win32/game/incomgameconfiguration",
+    "win32/game/gameplay/bundles/sharedbundles/starships/sharedbundlestarshipsgarage",
+    "win32/game/gameplay/bundles/sharedbundles/flairs/sharedbundleflairs",
+    "win32/game/gameplay/starships/starships_sp_sharedbundle",
+    "win32/sound/music/mav01_loadingmusic_title_and_frontend:89dce4fb-ac26-4be0-9f57-8969eaff7f28",
+    "win32/game/ui/frontend/webbrowser/webbrowserresourcebundle",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_english",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_french",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_german",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_spanish",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_spanishmex",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_italian",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_japanese",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_russian",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_polish",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_traditionalchinese",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_korean",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_brazilianportuguese",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_simplifiedchinese",
+    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_worstcase"
+  ]
+}

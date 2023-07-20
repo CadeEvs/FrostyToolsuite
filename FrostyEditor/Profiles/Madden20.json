@@ -1,0 +1,40 @@
+{
+  "Name": "Madden20",
+  "DisplayName": "Madden NFL 20™",
+  "InternalName": "madden20",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20190802,
+  "HasStrippedTypeNames": false,
+  "FrostbiteVersion": "2018.0",
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 4,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 9,
+  "ResCompression": 9,
+  "ChunkCompression": 9,
+  "TextureChunkCompression": 9,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "Longshot/Common/Debug_Grey",
+  "DefaultNormals": "content/common/textures/debug/debug_texture_norm",
+  "DefaultMask": "content/Common/textures/debug/debug_texture_coeff",
+  "DefaultTint": "Longshot/Common/Debug_Grey",
+  "SharedBundles": []
+}

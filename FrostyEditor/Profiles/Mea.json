@@ -1,0 +1,36 @@
+{
+  "Name": "MassEffectAndromeda",
+  "DisplayName": "Mass Effect: Andromeda",
+  "InternalName": "masseffect",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature" : "",
+  "HasStrippedTypeNames": false,
+  "DataVersion": 20170320,
+  "FrostbiteVersion": "2015.4.6",
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 15,
+  "ResCompression": 15,
+  "ChunkCompression": 15,
+  "TextureChunkCompression": 15,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 16,
+  "DefaultDiffuse": "Systems/Terrain/DefaultGrid",
+  "DefaultNormals": "Textures/Generic/NormalmapDefault_N",
+  "DefaultMask": "Placeholder/Lookdev/MEC_Lookdev/textures/Default_Black",
+  "DefaultTint": "Placeholder/Lookdev/MEC_Lookdev/textures/Default_Black",
+  "SharedBundles": []
+}

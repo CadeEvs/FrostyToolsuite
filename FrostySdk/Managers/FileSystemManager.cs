@@ -107,9 +107,10 @@ public static class FileSystemManager
 
         for (int i = startCount; i < endCount; i++)
         {
-            if (File.Exists($"{BasePath}{s_paths[i]}{filename}") || Directory.Exists($"{BasePath}{s_paths[i]}{filename}"))
+            string path = Path.Combine(BasePath, s_paths[i], filename);
+            if (File.Exists(path) || Directory.Exists(path))
             {
-                return $"{BasePath}{s_paths[i]}{filename}".Replace("//", "/");
+                return path;
             }
         }
         return string.Empty;
@@ -131,7 +132,7 @@ public static class FileSystemManager
         return s_paths[0];
     }
     
-    public static IDeobfuscator? CreateDeobfuscator() => s_deobfuscator != null ? (IDeobfuscator?)Activator.CreateInstance(s_deobfuscator) : null;
+    public static  IDeobfuscator? CreateDeobfuscator() => s_deobfuscator != null ? (IDeobfuscator?)Activator.CreateInstance(s_deobfuscator) : null;
 
     public static IEnumerable<SuperBundleInfo> EnumerateSuperBundles()
     {
@@ -188,12 +189,12 @@ public static class FileSystemManager
                     continue;
                 }
 
-                s_paths.Add($"/{subPath.Replace(BasePath, "")}/Data/");
+                s_paths.Add($"{subPath.Replace(BasePath, "")}/Data/");
             }
         }
         else
         {
-            s_paths.Add($"/{path}/");
+            s_paths.Add($"{path}/");
         }
     }
     

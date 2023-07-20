@@ -46,7 +46,7 @@ public static class ProfilesLibrary
     public static readonly Dictionary<int, string> SharedBundles = new();
 
     private static Profile? s_effectiveProfile;
-    private static bool s_initialized;
+    private static bool s_profilesLoaded;
     private static readonly List<Profile> s_profiles = new();
     
     public static void Initialize()
@@ -67,7 +67,7 @@ public static class ProfilesLibrary
             }
         }
 
-        s_initialized = true;
+        s_profilesLoaded = true;
     }
 
     public static bool Initialize(string profileKey)
@@ -76,7 +76,7 @@ public static class ProfilesLibrary
         {
             return true;
         }
-        if (!s_initialized)
+        if (!s_profilesLoaded)
         {
             Initialize();
         }
@@ -103,5 +103,10 @@ public static class ProfilesLibrary
     public static bool IsLoaded(params ProfileVersion[] versions)
     {
         return versions.Contains((ProfileVersion)DataVersion);
+    }
+
+    public static string? GetDisplayName(string profileKey)
+    {
+        return s_profiles.Find(a => a.Name.Equals(profileKey, StringComparison.OrdinalIgnoreCase))?.DisplayName;
     }
 }

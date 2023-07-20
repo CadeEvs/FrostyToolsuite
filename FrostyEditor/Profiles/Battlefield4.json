@@ -1,0 +1,40 @@
+{
+  "Name": "bf4",
+  "DisplayName": "Battlefield™ 4",
+  "InternalName": "bf4",
+  "Deobfuscator": "Signature",
+  "TypeInfoSignature": "",
+  "DataVersion": 20131101,
+  "FrostbiteVersion": "2013.2",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Update/Patch/Data",
+      "SubDirs": false
+    },
+    {
+      "Path": "Update",
+      "SubDirs": true
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 2,
+  "RequiresKey": false,
+  "MustAddChunks": false,
+  "EnableExecution": true,
+  "HasAntiCheat": false,
+  "EbxCompression": 2,
+  "ResCompression": 2,
+  "ChunkCompression": 2,
+  "TextureChunkCompression": 2,
+  "MaxBufferSize": 65536,
+  "ZStdCompressionLevel": 0,
+  "DefaultDiffuse": "EditorData/Grid_128_D",
+  "DefaultNormals": "Architecture/_Textures/NormalmapDefault_N",
+  "DefaultMask": "EditorData/Grid_128_D",
+  "DefaultTint": "EditorData/Grid_128_D",
+  "SharedBundles": []
+}
