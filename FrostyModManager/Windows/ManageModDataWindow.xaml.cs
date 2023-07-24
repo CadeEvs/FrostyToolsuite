@@ -17,7 +17,7 @@ namespace FrostyModManager
     }
 
     /// <summary>
-    /// Author: Clonedelta, Dyvinia
+    /// Author: Stoichiom, Dyvinia
     /// Class <c>ManageModDataWindow</c> handles the logic for deleting specified ModData folders. 
     /// </summary>
     public partial class ManageModDataWindow : FrostyDockableWindow
