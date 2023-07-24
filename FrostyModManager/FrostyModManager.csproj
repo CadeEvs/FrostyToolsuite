@@ -104,6 +104,9 @@
     <Compile Include="Windows\KeyPromptWindow.xaml.cs">
       <DependentUpon>KeyPromptWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\ManageModDataWindow.xaml.cs">
+      <DependentUpon>ManageModDataWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\PrelaunchWindow2.xaml.cs">
       <DependentUpon>PrelaunchWindow2.xaml</DependentUpon>
     </Compile>
@@ -174,6 +177,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Themes\Generic.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\ManageModDataWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -284,6 +291,7 @@
     <Resource Include="Images\SecondaryActionAdd.png" />
     <Resource Include="Images\PrimaryActionAdd.png" />
     <Resource Include="Images\PrimaryActionMerge.png" />
+    <Resource Include="Images\Open.png" />
     <Content Include="ThirdParty\Newtonsoft.Json.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
