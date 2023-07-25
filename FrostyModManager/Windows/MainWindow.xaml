@@ -289,6 +289,9 @@
                 <MenuItem x:Name="toolsMenuItem"
                           Header="Tools"
                           Height="22">
+                    <MenuItem x:Name="manageModData" 
+                              Header="Manage ModData" 
+                              Click="modDataMenuItem_Click"/>
                 </MenuItem>
                 <MenuItem Header="Help"
                           Height="22">
