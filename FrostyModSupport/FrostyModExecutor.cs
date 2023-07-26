@@ -1787,7 +1787,21 @@ namespace Frosty.ModSupport
 
             try
             {
-                ExecuteProcess($"{fs.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+                string steamAppIdPath = $"{fs.BasePath}steam_appid.txt";
+                if (File.Exists(steamAppIdPath))
+                {
+                    string steamAppId = File.ReadAllLines(steamAppIdPath).First();
+                    string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}";
+                    string url = Uri.EscapeDataString(arguments);
+                    App.Logger.Log($"Launch: {arguments}");
+                    App.Logger.Log($"Encoded: {url}");
+                    Process.Start($"steam://run/{steamAppId}//{url}/");
+                }
+                else
+                {
+                    ExecuteProcess($"{fs.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+                }
+
             }
             catch (Exception ex)
             {
