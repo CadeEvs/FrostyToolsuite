@@ -23,6 +23,8 @@ public static class FileSystemManager
 
     public static BundleFormat BundleFormat;
 
+    public static GamePlatform GamePlatform;
+
     public static DbObjectDict? Manifest;
 
     private static readonly List<string> s_paths = new();
@@ -132,7 +134,7 @@ public static class FileSystemManager
         return s_paths[0];
     }
     
-    public static  IDeobfuscator? CreateDeobfuscator() => s_deobfuscator != null ? (IDeobfuscator?)Activator.CreateInstance(s_deobfuscator) : null;
+    public static IDeobfuscator? CreateDeobfuscator() => s_deobfuscator != null ? (IDeobfuscator?)Activator.CreateInstance(s_deobfuscator) : null;
 
     public static IEnumerable<SuperBundleInfo> EnumerateSuperBundles()
     {
@@ -200,6 +202,8 @@ public static class FileSystemManager
     
     private static bool LoadInitFs(string name)
     {
+        ParseGamePlatform(name);
+        
         string path = ResolvePath(name);
         if (string.IsNullOrEmpty(path))
         {
@@ -246,6 +250,22 @@ public static class FileSystemManager
             s_memoryFs.TryAdd(fileName, file.AsBlob("payload"));
         }
         return true;
+    }
+
+    private static void ParseGamePlatform(string initFsName)
+    {
+        string platform = initFsName.Remove(0, 7);
+        switch (platform)
+        {
+            case "Win32":
+                GamePlatform = GamePlatform.Win32;
+                break;
+            case "Gen4b":
+                GamePlatform = GamePlatform.Gen4b;
+                break;
+            default:
+                throw new NotImplementedException($"GamePlatform not implemented: {platform}");
+        }
     }
     
     private static bool ProcessLayouts()
