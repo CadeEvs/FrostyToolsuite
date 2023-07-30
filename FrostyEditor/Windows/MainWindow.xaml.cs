@@ -401,7 +401,7 @@ namespace FrostyEditor
             ModSettings editorSettings = new ModSettings { Title = "Editor Mod", Author = "Frosty Editor", Version = "1", Category = "Editor" };
 
             // apply mod
-            string additionalArgs = "";
+            string additionalArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ";
             FrostyModExecutor executor = new FrostyModExecutor();
 
             // Set pack
@@ -428,7 +428,7 @@ namespace FrostyEditor
                         cancelToken.Token.ThrowIfCancellationRequested();
 
                         task.Update("");
-                        executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs, modPaths.ToArray());
+                        executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), modPaths.ToArray());
 
                         foreach (var executionAction in App.PluginManager.ExecutionActions)
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
