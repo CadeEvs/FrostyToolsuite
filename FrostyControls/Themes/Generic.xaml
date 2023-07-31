@@ -3030,12 +3030,12 @@
                                           VerticalScrollBarVisibility="Hidden"
                                           Padding="0"
                                           Visibility="Hidden" />
-                            <TextBlock x:Name="PART_EllipsedText"
+                            <TextBox x:Name="PART_EllipsedText"
                                        Margin="2,0,0,0"
                                        VerticalAlignment="Center"
                                        Text="{Binding Path=Text, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}"
                                        Foreground="{TemplateBinding Foreground}"
-                                       TextTrimming="CharacterEllipsis"
+                                       AcceptsReturn="True"
                                        TextWrapping="NoWrap"
                                        Focusable="True"
                                        Cursor="IBeam" />

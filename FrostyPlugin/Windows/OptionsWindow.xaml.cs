@@ -126,6 +126,12 @@ namespace Frosty.Core.Windows
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
 
+        [Category("General")]
+        [DisplayName("Command Line Arguments")]
+        [Description("Command line arguments to run on launch.")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public string CommandLineArgs { get; set; } = "";
+
         public override void Load()
         {
             List<string> langs = GetLocalizedLanguages();
@@ -150,6 +156,8 @@ namespace Frosty.Core.Windows
             List<string> sizes = new List<string>() { "1GB", "512MB", "256MB" };
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
+
+            CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
@@ -185,6 +193,8 @@ namespace Frosty.Core.Windows
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
+
+            Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
 
             if (RememberChoice)
                 Config.Add("DefaultProfile", ProfilesLibrary.ProfileName);
