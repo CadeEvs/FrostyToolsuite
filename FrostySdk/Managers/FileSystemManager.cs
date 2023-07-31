@@ -260,8 +260,23 @@ public static class FileSystemManager
             case "Win32":
                 GamePlatform = GamePlatform.Win32;
                 break;
+            case "Linux":
+                GamePlatform = GamePlatform.Linux;
+                break;
+            case "Xenon":
+                GamePlatform = GamePlatform.Xenon;
+                break;
+            case "Gen4a":
+                GamePlatform = GamePlatform.Gen4a;
+                break;
+            case "Ps3":
+                GamePlatform = GamePlatform.Ps3;
+                break;
             case "Gen4b":
                 GamePlatform = GamePlatform.Gen4b;
+                break;
+            case "Nx":
+                GamePlatform = GamePlatform.Nx;
                 break;
             default:
                 throw new NotImplementedException($"GamePlatform not implemented: {platform}");
