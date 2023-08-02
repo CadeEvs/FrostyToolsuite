@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
-using System.Text;
 using Frosty.Sdk.Managers;
 using Frosty.Sdk.Managers.Entries;
 using Frosty.Sdk.Managers.Loaders;
@@ -11,7 +10,7 @@ namespace Frosty.Sdk.IO;
 
 public class BinaryBundle
 {
-    public enum Magic : uint
+    private enum Magic : uint
     {
         Standard = 0xED1CEDB8,
         Kelvin = 0xC3889333,
@@ -24,6 +23,7 @@ public class BinaryBundle
 
     private BinaryBundle(DataStream stream)
     {
+        // we use big endian for default
         Endian endian = Endian.Big;
         
         uint size = stream.ReadUInt32(Endian.Big);
@@ -36,8 +36,9 @@ public class BinaryBundle
         if (!IsValidMagic(magic))
         {
             endian = Endian.Little;
-            stream.Position -= 4;
-            magic = (Magic)(stream.ReadUInt32(endian) ^ GetSalt());
+            uint value = (uint)magic ^ GetSalt();
+            magic = (Magic)((((value & 0x000000FFu) << 24) | ((value & 0x0000FF00u) << 8) |
+                             ((value & 0x00FF0000u) >> 8) | ((value & 0xFF000000u) >> 24)) ^ GetSalt());
 
             if (!IsValidMagic(magic))
             {
@@ -129,39 +130,38 @@ public class BinaryBundle
     }
     
     /// <summary>
-    /// Dependent on the FB version, games have different salts.
+    /// Dependent on the FB version, games use different salts.
     /// If the game uses a version newer than 2017 it uses "pecn", else it uses "pecm".
     /// <see cref="ProfileVersion.Battlefield5"/> is the only game that uses "arie".
     /// </summary>
     /// <returns>The salt, that the current game uses.</returns>
-    public static uint GetSalt()
+    private static uint GetSalt()
     {
-        string salt = "pecm";
+        const uint pecm = 0x7065636D;
+        const uint pecn = 0x7065636E;
+        const uint arie = 0x61726965;
 
         if (ProfilesLibrary.IsLoaded(ProfileVersion.Battlefield5))
         {
-            salt = "arie";
+            return arie;
         }
 
-        else if (ProfilesLibrary.FrostbiteVersion >= "2017")
+        if (ProfilesLibrary.FrostbiteVersion >= "2017")
         {
-            salt = "pecn";
+            return pecn;
         }
 
-
-        byte[] bytes = Encoding.ASCII.GetBytes(salt);
-        return (uint)(bytes[0] << 24 | bytes[1] << 16 | bytes[2] << 8 | bytes[3] << 0);
+        return pecm;
     }
 
     /// <summary>
     /// Only the games using the <see cref="KelvinAssetLoader"/> use a different Magic than <see cref="Magic.Standard"/>.
     /// </summary>
     /// <returns>The magic the current game uses.</returns>
-    public static Magic GetMagic()
+    private static Magic GetMagic()
     {
         switch (FileSystemManager.BundleFormat)
         {
-            // TODO: what game uses encrypted magic
             case BundleFormat.Kelvin:
                 return Magic.Kelvin;
             default:
@@ -169,7 +169,8 @@ public class BinaryBundle
         }
     }
 
-    public static bool IsValidMagic(Magic magic) => Enum.IsDefined(typeof(Magic), magic);
+    private static bool IsValidMagic(Magic magic) =>
+        magic == Magic.Standard || magic == Magic.Kelvin || magic == Magic.Encrypted;
     
     /// <summary>
     /// Deserialize a binary stored bundle as <see cref="DbObject"/>.
