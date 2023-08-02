@@ -1,0 +1,54 @@
+﻿<ctrl:FrostyDockableWindow x:Class="FsLocalizationPlugin.ConvertIDWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FsLocalizationPlugin"
+        xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
+        mc:Ignorable="d"
+        Title="Convert Hash to String ID" Height="Auto" Width="350" 
+        ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/FrostyControls;component/Themes/Generic.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Background="{StaticResource WindowBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="38"/>
+        </Grid.RowDefinitions>
+
+        <Grid Background="{StaticResource ListBackground}">
+            <StackPanel>
+
+                <DockPanel LastChildFill="True" Margin="5">
+                    <Label Content="Hash: " FontFamily="Global User Interface" Width="90"/>
+                    <TextBox x:Name="varHashTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" TextChanged="varHashTextBox_TextChanged"/>
+                </DockPanel>
+                <DockPanel Margin="5,0,5,5" LastChildFill="True">
+                    <Label Content="String: " FontFamily="Global User Interface" Width="90"/>
+                    <TextBox IsReadOnly="True" x:Name="varCurrentValueTextBox" Text="" Margin="1" BorderThickness="1" Height="64" AcceptsReturn="True" TextWrapping="Wrap" MaxLines="999999" VerticalScrollBarVisibility="Auto" Background="#FF141414"/>
+                </DockPanel>
+                <DockPanel LastChildFill="True" Margin="5">
+                    <Label Content="ID: " FontFamily="Global User Interface" Width="90"/>
+                    <TextBox x:Name="StringIDTextBox" VerticalContentAlignment="Center" Text="" Margin="1" BorderThickness="1" IsReadOnly="True"/>
+                </DockPanel>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1">
+            <Grid Margin="8">
+                <DockPanel LastChildFill="False">
+                    <Button x:Name="CloseButton" Content="Close" DockPanel.Dock="Left" Width="50" Click="CloseButton_Click"/>
+                    <Label x:Name="TryTimesLable" Content="Times: NULL" FontFamily="Global User Interface" Width="90"/>
+                    <Button x:Name="GenerateButton" Content="Generate" DockPanel.Dock="Right" Width="75" Click="GenerateButton_Click" IsEnabled="False"/>
+                    <Button x:Name="RevertButton" Content="Revert" DockPanel.Dock="Right" Margin="8,0" Width="50" Click="RevertButton_Click" IsEnabled="False"/>
+                </DockPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ctrl:FrostyDockableWindow>

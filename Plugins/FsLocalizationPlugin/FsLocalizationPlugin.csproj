@@ -42,6 +42,9 @@
   </Target>
   
   <ItemGroup>
+    <Compile Update="Windows\ConvertStringWindow.xaml.cs">
+      <DependentUpon>ConvertStringWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Windows\AddStringWindow.xaml.cs">
       <DependentUpon>AddStringWindow.xaml</DependentUpon>
     </Compile>
