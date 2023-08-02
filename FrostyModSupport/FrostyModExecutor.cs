@@ -1754,6 +1754,10 @@ namespace Frosty.ModSupport
                 // create the frosty mod list file
                 File.WriteAllText(Path.Combine(modDataPath, patchPath, "mods.json"), JsonConvert.SerializeObject(GenerateModInfoList(modPaths, rootPath), Formatting.Indented));
             }
+            else
+            {
+                App.Logger.Log("No modding required, start with last mod.");
+            }
 
             cancelToken.ThrowIfCancellationRequested();
 
