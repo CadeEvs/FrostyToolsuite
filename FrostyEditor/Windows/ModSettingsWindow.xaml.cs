@@ -78,9 +78,7 @@ namespace FrostyEditor.Windows
                 return;
             }
 
-            string[] approvedDomains = { "nexusmods.com", "moddb.com" };
-
-            if (modPageLinkTextBox.Text != "" && (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute) || !approvedDomains.Any(modPageLinkTextBox.Text.Contains)))
+            if (modPageLinkTextBox.Text != "" && (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute)))
             {
                 FrostyMessageBox.Show("Link needs to be valid", "Frosty Editor");
                 return;
