@@ -990,7 +990,7 @@ namespace Frosty.ModSupport
             }
         }
 
-        public int Run(FileSystem inFs, CancellationToken cancelToken, ILogger inLogger, string rootPath, string modPackName, string additionalArgs, params string[] modPaths)
+        public int Run(FileSystem inFs, CancellationToken cancelToken, ILogger inLogger, string rootPath, string modPackName, string additionalArgs, bool mustNeedsModding, params string[] modPaths)
         {
             modDirName = "ModData\\" + modPackName;
             cancelToken.ThrowIfCancellationRequested();
@@ -1048,6 +1048,8 @@ namespace Frosty.ModSupport
                 if (!IsSamePatch(modDataPath + patchPath) || !oldModInfoList.SequenceEqual(currentModInfoList))
                     needsModding = true;
             }
+            if (mustNeedsModding)
+                needsModding = true;
 
             cancelToken.ThrowIfCancellationRequested();
             if (needsModding)

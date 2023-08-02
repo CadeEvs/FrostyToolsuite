@@ -397,10 +397,10 @@ namespace FrostyEditor
 
             DateTime localDate = DateTime.Now;
             Random r = new Random();
-            string editorModName = $"EditorMod_{localDate.Date.ToString().Replace("/", "-").Replace(":", "-").Replace(" ", "_")}_{r.Next(1000, 9999).ToString("D4")}.fbmod";
+            string editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
 
             // create temporary editor mod
-            ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor", Description = $"Project: {Project.Filename}\nDate: {localDate.Date}\nFrostyEditor {App.Version}: {Directory.GetCurrentDirectory()}"};
+            ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor", Description = $"Project: {Project.Filename}\nDate: {localDate.Date}\nFrostyEditor {App.Version}: {Directory.GetCurrentDirectory()}\n\n{r.Next(10000000, 99999999).ToString("D8")}"};
 
             // apply mod
             string additionalArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ";
@@ -430,8 +430,11 @@ namespace FrostyEditor
 
                         cancelToken.Token.ThrowIfCancellationRequested();
 
+                        App.Logger.Log("Clean ModData");
+                        
+
                         task.Update("");
-                        executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), modPaths.ToArray());
+                        executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), true, modPaths.ToArray());
 
                         foreach (var executionAction in App.PluginManager.ExecutionActions)
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
