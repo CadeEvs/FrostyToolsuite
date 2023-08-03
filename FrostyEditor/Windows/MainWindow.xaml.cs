@@ -390,21 +390,20 @@ namespace FrostyEditor
 
             // get all mods
             List<string> modPaths = new List<string>();
-            // Remove existing mods, because unhandled exceptions will cause mods to remain
+            // Remove existing editor mods
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
-            foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "*.fbmod", SearchOption.AllDirectories))
+            foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "EditorMod*.fbmod", SearchOption.AllDirectories))
                 File.Delete(modPath);
 
-            DateTime localDate = DateTime.Now;
             Random r = new Random();
             string editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
             while (File.Exists(editorModName))
             {
-                editorModName = $"EditorMod_{r.Next(100000, 999999).ToString("D6")}.fbmod";
+                editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
             }
 
             // create temporary editor mod
-            ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor", Description = $"Project: {Project.Filename}\nDate: {localDate.Date}\nFrostyEditor {App.Version}: {Directory.GetCurrentDirectory()}\n\n{r.Next(10000000, 99999999).ToString("D8")}"};
+            ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor"};
 
             // apply mod
             string additionalArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ";
@@ -433,8 +432,15 @@ namespace FrostyEditor
                         //        at any stage of a large mod
 
                         cancelToken.Token.ThrowIfCancellationRequested();
+                        // Remove mods.json
+                        task.Update("Removing mods.json");
+                        if (File.Exists(App.FileSystem.BasePath + "\\ModData\\Editor\\Update\\Patch\\Data\\mods.json"))
+                        {
+                            File.Delete(App.FileSystem.BasePath + "\\ModData\\Editor\\Update\\Patch\\Data\\mods.json");
+                            App.Logger.Log("Removed mods.json");
+                        }
                         task.Update("");
-                        executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), true, modPaths.ToArray());
+                        executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), modPaths.ToArray());
 
                         foreach (var executionAction in App.PluginManager.ExecutionActions)
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
