@@ -390,6 +390,7 @@ namespace FrostyEditor
 
             // get all mods
             List<string> modPaths = new List<string>();
+
             // Remove existing editor mods
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
             foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "EditorMod*.fbmod", SearchOption.AllDirectories))
@@ -432,6 +433,7 @@ namespace FrostyEditor
                         //        at any stage of a large mod
 
                         cancelToken.Token.ThrowIfCancellationRequested();
+
                         // Remove mods.json
                         task.Update("Removing mods.json");
                         string gamePatchPath = "Patch";
