@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Utils;
@@ -8,88 +7,69 @@ namespace Frosty.Sdk.Managers.Infos.FileInfos;
 
 public class CasFileInfo : IFileInfo
 {
-    protected CasFileIdentifier m_casFileIdentifier;
-    protected uint m_offset;
-    protected uint m_size;
-    private uint m_logicalOffset;
-
-    internal CasFileInfo()
+    public CasResourceInfo? GetBase() => m_base;
+    
+    private CasResourceInfo? m_base;
+    private CasResourceInfo? m_delta;
+    
+    public CasFileInfo(CasResourceInfo? inBase, CasResourceInfo? inDelta = null)
     {
+        m_base = inBase;
+        m_delta = inDelta;
     }
     
     public CasFileInfo(CasFileIdentifier inCasFileIdentifier, uint inOffset, uint inSize, uint inLogicalOffset)
     {
-        m_casFileIdentifier = inCasFileIdentifier;
-        m_offset = inOffset;
-        m_size = inSize;
-        m_logicalOffset = inLogicalOffset;
+        m_base = new CasResourceInfo(inCasFileIdentifier, inOffset, inSize, inLogicalOffset);
     }
     
-    public CasFileInfo(bool inIsPatch, int inInstallChunkIndex, int inCasIndex, uint inOffset, uint inSize, uint inLogicalOffset)
+    public CasFileInfo(CasFileIdentifier inCasFileIdentifier, uint inOffset, uint inSize, uint inLogicalOffset, string inKeyId)
     {
-        m_casFileIdentifier = new CasFileIdentifier(inIsPatch, inInstallChunkIndex, inCasIndex);
-        m_offset = inOffset;
-        m_size = inSize;
-        m_logicalOffset = inLogicalOffset;
+        m_base = new CasCryptoResourceInfo(inCasFileIdentifier, inOffset, inSize, inLogicalOffset, inKeyId);
     }
 
-    public bool IsComplete() => m_logicalOffset == 0;
-
-    public long GetSize() => m_size;
-
-    public virtual Block<byte> GetRawData()
+    public bool IsComplete() => true;
+    public long GetSize() => m_base?.GetSize() ?? 0;
+    
+    public Block<byte> GetRawData()
     {
-        using (FileStream stream = new(FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(m_casFileIdentifier)), FileMode.Open, FileAccess.Read))
-        {
-            stream.Position = m_offset;
+        throw new NotImplementedException();
+    }
 
-            Block<byte> retVal = new((int)m_size);
-            
-            stream.ReadExactly(retVal.ToSpan());
-            return retVal;
+    public Block<byte> GetData(int inOriginalSize)
+    {
+        if (m_base is null)
+        {
+            throw new Exception("Base CasResourceInfo can't be null.");
         }
-    }
-
-    public virtual Block<byte> GetData(int originalSize)
-    {
-        using (BlockStream stream = BlockStream.FromFile(FileSystemManager.ResolvePath(FileSystemManager.GetFilePath(m_casFileIdentifier)), m_offset, (int)m_size))
+        
+        if (m_delta is null)
         {
-            return Cas.DecompressData(stream, originalSize);
+            return m_base.GetData(inOriginalSize);
+        }
+
+        using (BlockStream deltaStream = new(m_delta.GetRawData()))
+        using (BlockStream baseStream = new(m_base.GetRawData()))
+        {
+            return Cas.DecompressData(deltaStream, baseStream, inOriginalSize);
         }
     }
 
     void IFileInfo.SerializeInternal(DataStream stream)
     {
-        SerializeInternal(stream);
+        CasResourceInfo.Serialize(stream, m_base);
+        CasResourceInfo.Serialize(stream, m_delta);
     }
 
-    void IFileInfo.DeserializeInternal(DataStream stream)
+    internal static CasFileInfo DeserializeInternal(DataStream stream)
     {
-        DeserializeInternal(stream);
-    }
-    
-    protected virtual void DeserializeInternal(DataStream stream)
-    {
-        m_casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32());
-        m_offset = stream.ReadUInt32();
-        m_size = stream.ReadUInt32();
-        m_logicalOffset = stream.ReadUInt32();
-    }
-    
-    protected virtual void SerializeInternal(DataStream stream)
-    {
-        stream.WriteUInt32(CasFileIdentifier.ToFileIdentifier(m_casFileIdentifier));
-        stream.WriteUInt32(m_offset);
-        stream.WriteUInt32(m_size);
-        stream.WriteUInt32(m_logicalOffset);
+        return new CasFileInfo(CasResourceInfo.Deserialize(stream), CasResourceInfo.Deserialize(stream));
     }
 
     public bool Equals(CasFileInfo b)
     {
-        return m_casFileIdentifier == b.m_casFileIdentifier &&
-               m_offset == b.m_offset &&
-               m_size == b.m_size &&
-               m_logicalOffset == b.m_logicalOffset;
+        return m_base == b.m_base &&
+               m_delta == b.m_delta;
     }
     
     public override bool Equals(object? obj)
@@ -104,6 +84,6 @@ public class CasFileInfo : IFileInfo
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(m_casFileIdentifier, m_offset, m_size, m_logicalOffset);
+        return HashCode.Combine(m_base, m_delta);
     }
 }

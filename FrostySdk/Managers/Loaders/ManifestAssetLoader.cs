@@ -73,7 +73,7 @@ public class ManifestAssetLoader : IAssetLoader
                     IEnumerable<IFileInfo>? fileInfos = ResourceManager.GetFileInfos(ebx.Sha1);
                     if (fileInfos is not null)
                     {
-                        ebx.FileInfos.UnionWith(fileInfos);   
+                        ebx.FileInfos.UnionWith(fileInfos);
                     }
                     
                     AssetManager.AddEbx(ebx, bundleId);
@@ -84,7 +84,7 @@ public class ManifestAssetLoader : IAssetLoader
                     IEnumerable<IFileInfo>? fileInfos = ResourceManager.GetFileInfos(res.Sha1);
                     if (fileInfos is not null)
                     {
-                        res.FileInfos.UnionWith(fileInfos);   
+                        res.FileInfos.UnionWith(fileInfos);
                     }
 
                     AssetManager.AddRes(res, bundleId);
@@ -95,7 +95,7 @@ public class ManifestAssetLoader : IAssetLoader
                     IEnumerable<IFileInfo>? fileInfos = ResourceManager.GetFileInfos(chunk.Sha1);
                     if (fileInfos is not null)
                     {
-                        chunk.FileInfos.UnionWith(fileInfos);   
+                        chunk.FileInfos.UnionWith(fileInfos);
                     }
 
                     AssetManager.AddChunk(chunk, bundleId);
@@ -112,7 +112,7 @@ public class ManifestAssetLoader : IAssetLoader
 
                 entry.FileInfos.Add(
                     new CasFileInfo(resourceInfo.Item1, resourceInfo.Item2, (uint)resourceInfo.Item3, 0));
-        
+
                 AssetManager.AddSuperBundleChunk(entry);
             }
         }
