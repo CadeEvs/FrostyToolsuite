@@ -145,11 +145,8 @@ public class BlockStream : DataStream
         using (Aes aes = Aes.Create())
         {
             aes.Key = inKey;
-            long curPos = Position;
-            m_block.Shift((int)Position);
-            aes.DecryptCbc(m_block.ToSpan(), inKey, m_block.ToSpan(), inPaddingMode);
-            m_block.ResetShift();
-            Position = curPos;
+            Span<byte> span = m_block.ToSpan((int)Position);
+            aes.DecryptCbc(span, inKey, span, inPaddingMode);
         }
     }
 
@@ -164,11 +161,8 @@ public class BlockStream : DataStream
         using (Aes aes = Aes.Create())
         {
             aes.Key = inKey;
-            long curPos = Position;
-            m_block.Shift((int)Position);
-            aes.DecryptCbc(m_block.Slice(0, inSize).ToSpan(), inKey, m_block.Slice(0, inSize).ToSpan(), inPaddingMode);
-            m_block.ResetShift();
-            Position = curPos;
+            Span<byte> span = m_block.ToSpan((int)Position, inSize);
+            aes.DecryptCbc(span, inKey, span, inPaddingMode);
         }
     }
 

@@ -180,22 +180,12 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         Ptr = BasePtr + currentOffset;
     }
 
-    public Block<T> Slice(int inStart)
-    {
-        return new Block<T>(Ptr + inStart, Size - inStart);
-    }
-
-    public Block<T> Slice(int inStart, int inLength)
-    {
-        return new Block<T>(Ptr + inStart, inLength);
-    }
-
     /// <summary>
     /// Shifts the beginning of the Block by the specified amount.
     /// </summary>
     /// <param name="inAmount">Amount of elements to shift the <see cref="Block{T}"/> start by.
     /// Can be negative, but attempting to shift before the beginning of the block will result in an exception.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if attempting to shift before the beginning of the block (e.g. BasePtr[-1]).</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if attempting to shift before the beginning of the block (e.g. BasePtr[-1]) or after the end of the block.</exception>
     public void Shift(int inAmount)
     {
         if (!m_usable)
@@ -205,6 +195,10 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         if (Ptr + inAmount < BasePtr)
         {
             throw new ArgumentOutOfRangeException(nameof(inAmount), $"Attempted to shift before the beginning of the block!");
+        }
+        if (inAmount > Size)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inAmount), $"Attempted to shift after the end of the block!");
         }
         Ptr += inAmount;
     }
@@ -245,6 +239,40 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         return new Span<T>(Ptr, Size);
     }
 
+    public Span<T> ToSpan(int inStart)
+    {
+        if (!m_usable)
+        {
+            throw new ObjectDisposedException(ToString());
+        }
+        if (Ptr + inStart < BasePtr)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inStart), $"Attempted to slice before the beginning of the block!");
+        }
+        if (Ptr + inStart > BasePtr + BaseSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inStart), $"Attempted to slice after the end of the block!");
+        }
+        return new Span<T>(Ptr + inStart, Size - inStart);
+    }
+
+    public Span<T> ToSpan(int inStart, int inLength)
+    {
+        if (!m_usable)
+        {
+            throw new ObjectDisposedException(ToString());
+        }
+        if (Ptr + inStart < BasePtr)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inStart), $"Attempted to slice before the beginning of the block!");
+        }
+        if (Ptr + inStart + inLength > BasePtr + BaseSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inLength), $"Attempted to slice after the end of the block!");
+        }
+        return new Span<T>(Ptr + inStart, inLength);
+    }
+
     public List<T> ToList()
     {
         if (!m_usable)
@@ -283,6 +311,11 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         }
         return Marshal.PtrToStringUTF8((IntPtr)inBlock.Ptr);
     }
+
+    public static implicit operator Span<T>(Block<T> inBlock)
+    {
+        return inBlock.ToSpan();
+    }
     
     /// <summary>
     /// Copies the data of this <see cref="Block{T}"/> to the specified destination.
@@ -299,6 +332,29 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
             throw new ArgumentOutOfRangeException(nameof(inDest), "The target block must be at least as big as the source block!");
         }
         Buffer.MemoryCopy(BasePtr, inDest.BasePtr, inDest.BaseSize, BaseSize);
+    }
+
+    /// <summary>
+    /// Copies part of the data of this <see cref="Block{T}"/> to the specified destination.
+    /// </summary>
+    /// <param name="inDest">The block to copy to.</param>
+    /// <param name="inSize">The number of bytes to copy.</param>
+    public void CopyTo(Block<T> inDest, int inSize)
+    {
+        if (!m_usable)
+        {
+            throw new ObjectDisposedException(ToString());
+        }
+
+        if (inSize > Size)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inSize), "The source block is not big enough!");
+        }
+        if (inDest.Size < inSize)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inDest), "The target block is not big enough!");
+        }
+        Buffer.MemoryCopy(Ptr, inDest.Ptr, Size, inSize);
     }
 
     /// <summary>
