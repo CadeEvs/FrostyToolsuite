@@ -434,9 +434,14 @@ namespace FrostyEditor
                         cancelToken.Token.ThrowIfCancellationRequested();
                         // Remove mods.json
                         task.Update("Removing mods.json");
-                        if (File.Exists(App.FileSystem.BasePath + "\\ModData\\Editor\\Update\\Patch\\Data\\mods.json"))
+                        string gamePatchPath = "Patch";
+                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
+                            gamePatchPath = "Update\\Patch\\Data";
+                        else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfn and bfv dont have a patch directory
+                            gamePatchPath = "Data";
+                        if (File.Exists(App.FileSystem.BasePath + $"\\ModData\\{App.SelectedPack}\\{gamePatchPath}\\mods.json"))
                         {
-                            File.Delete(App.FileSystem.BasePath + "\\ModData\\Editor\\Update\\Patch\\Data\\mods.json");
+                            File.Delete(App.FileSystem.BasePath + $"\\ModData\\{App.SelectedPack}\\{gamePatchPath}\\mods.json");
                             App.Logger.Log("Removed mods.json");
                         }
                         task.Update("");

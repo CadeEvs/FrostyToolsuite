@@ -1756,7 +1756,7 @@ namespace Frosty.ModSupport
             }
             else
             {
-                App.Logger.Log("No modding required, start with last mod.");
+                App.Logger.Log("Launching with previously generated data.");
             }
 
             cancelToken.ThrowIfCancellationRequested();
