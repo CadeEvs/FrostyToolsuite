@@ -29,7 +29,7 @@ public class CasCryptoResourceInfo : CasResourceInfo
 
             Block<byte> retVal = new((int)GetSize());
             
-            stream.ReadExactly(retVal.ToSpan());
+            stream.ReadExactly(retVal);
             return retVal;
         }
     }

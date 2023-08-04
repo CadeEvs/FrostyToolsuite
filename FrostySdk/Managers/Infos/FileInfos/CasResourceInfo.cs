@@ -42,7 +42,7 @@ public class CasResourceInfo
 
             Block<byte> retVal = new((int)m_size);
             
-            stream.ReadExactly(retVal.ToSpan());
+            stream.ReadExactly(retVal);
             return retVal;
         }
     }

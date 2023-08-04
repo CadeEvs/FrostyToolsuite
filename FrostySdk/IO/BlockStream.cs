@@ -42,7 +42,7 @@ public class BlockStream : DataStream
                     int size = (int)(stream.Length - keySize);
                     using (Block<byte> data = new Block<byte>(size))
                     {
-                        stream.ReadExactly(data.ToSpan());
+                        stream.ReadExactly(data);
                 
                         // this is not how the game actually decrypts the data, but also seems to work
                         // look at https://github.com/CadeEvs/FrostyToolsuite/blob/1.0.6.2/FrostySdk/Deobfuscators/MEADeobfuscator.cs for actual decryption algorithm
@@ -82,7 +82,7 @@ public class BlockStream : DataStream
             }
 
             retVal = new BlockStream((int)stream.Length);
-            stream.ReadExactly(retVal.m_block.ToSpan());
+            stream.ReadExactly(retVal.m_block);
             return retVal;
         }
     }
@@ -110,7 +110,7 @@ public class BlockStream : DataStream
             stream.Position = 0;
 
             retVal = new BlockStream((int)stream.Length);
-            stream.ReadExactly(retVal.m_block.ToSpan());
+            stream.ReadExactly(retVal.m_block);
             return retVal;
         }
     }
@@ -130,7 +130,7 @@ public class BlockStream : DataStream
 
             BlockStream retVal = new(inSize);
             
-            stream.ReadExactly(retVal.m_block.ToSpan());
+            stream.ReadExactly(retVal.m_block);
             return retVal;
         }
     }
@@ -208,7 +208,7 @@ public class BlockStream : DataStream
         }
         
         stream = new BlockStream((int)(inStream.Length - 0x22C));
-        inStream.ReadExactly(stream.m_block.ToSpan());
+        inStream.ReadExactly(stream.m_block);
                     
         // deobfuscate the data
         IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();

@@ -163,7 +163,7 @@ public static class Cas
             compressedBuffer = new Block<byte>(bufferSize);
         }
         
-        inStream.ReadExactly(compressedBuffer.ToSpan());
+        inStream.ReadExactly(compressedBuffer);
         
         if (compressionType.HasFlag(CompressionType.Obfuscated))
         {
@@ -241,7 +241,7 @@ public static class Cas
             compressedBuffer = new Block<byte>(bufferSize);
         }
         
-        inStream.ReadExactly(compressedBuffer.ToSpan());
+        inStream.ReadExactly(compressedBuffer);
         
         if (compressionType.HasFlag(CompressionType.Obfuscated))
         {
