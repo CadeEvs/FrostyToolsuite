@@ -47,26 +47,25 @@ public static class Cas
                     int blockCount = (int)(packed & 0x0FFFFFFF);
                     
                     // read base block
-                    Block<byte> toPatch = ReadBlock(inBaseStream);
-                    
-                    while (blockCount-- > 0)
+                    using (Block<byte> toPatch = ReadBlock(inBaseStream))
                     {
-                        uint packed2 = inDeltaStream.ReadUInt32(Endian.Big);
+                        while (blockCount-- > 0)
+                        {
+                            ushort offset = inDeltaStream.ReadUInt16(Endian.Big);
+                            ushort skipCount = inDeltaStream.ReadUInt16(Endian.Big);
 
-                        ushort offset = (ushort)((packed2 & 0xFFFF0000) >> 16);
-                        ushort skipCount = (ushort)(packed2 & 0xFFFF);
-
-                        // use base
-                        int baseSize = offset - toPatch.ShiftAmount;
-                        toPatch.CopyTo(outBuffer, baseSize);
-                        toPatch.Shift(baseSize);
-                        outBuffer.Shift(baseSize);
+                            // use base
+                            int baseSize = offset - toPatch.ShiftAmount;
+                            toPatch.CopyTo(outBuffer, baseSize);
+                            toPatch.Shift(baseSize);
+                            outBuffer.Shift(baseSize);
                         
-                        // use delta
-                        ReadBlock(inDeltaStream, outBuffer);
+                            // use delta
+                            ReadBlock(inDeltaStream, outBuffer);
                         
-                        // skip base
-                        toPatch.Shift(skipCount);
+                            // skip base
+                            toPatch.Shift(skipCount);
+                        }
                     }
                     
                     break;
@@ -74,33 +73,34 @@ public static class Cas
                 case 2:
                 {
                     // make small fixes in base block
-                    int deltaBlockCount = (int)(packed & 0x0FFFFFFF) / 4;
-                    
-                    // read base block
-                    Block<byte> toPatch = ReadBlock(inBaseStream);
+                    int deltaBlockSize = (int)(packed & 0x0FFFFFFF);
+                    long curPos = inDeltaStream.Position;
                     
                     int newBlockSize = inDeltaStream.ReadUInt16(Endian.Big) + 1;
                     int currentOffset = outBuffer.ShiftAmount;
 
-                    while (deltaBlockCount-- > 0)
+                    // read base block
+                    using (Block<byte> toPatch = ReadBlock(inBaseStream))
                     {
-                        uint packed2 = inDeltaStream.ReadUInt32(Endian.Big);
-                        ushort offset = (ushort)((packed2 & 0xFFFF0000) >> 16);
-                        byte skipCount = (byte)((packed2 & 0xFF00) >> 8);
-                        byte addCount = (byte)(packed2 & 0xFF);
+                        while (inDeltaStream.Position < curPos + deltaBlockSize)
+                        {
+                            ushort offset = inDeltaStream.ReadUInt16(Endian.Big);
+                            byte skipCount = inDeltaStream.ReadByte();
+                            byte addCount = inDeltaStream.ReadByte();
                         
-                        // use base
-                        int baseSize = offset - toPatch.ShiftAmount;
-                        toPatch.CopyTo(outBuffer, baseSize);
-                        toPatch.Shift(baseSize);
-                        outBuffer.Shift(baseSize);
+                            // use base
+                            int baseSize = offset - toPatch.ShiftAmount;
+                            toPatch.CopyTo(outBuffer, baseSize);
+                            toPatch.Shift(baseSize);
+                            outBuffer.Shift(baseSize);
 
-                        // skip base
-                        toPatch.Shift(skipCount);
+                            // skip base
+                            toPatch.Shift(skipCount);
                         
-                        // add delta
-                        inDeltaStream.ReadExactly(outBuffer.ToSpan(0, addCount));
-                        outBuffer.Shift(addCount);
+                            // add delta
+                            inDeltaStream.ReadExactly(outBuffer.ToSpan(0, addCount));
+                            outBuffer.Shift(addCount);
+                        }
                     }
                     
                     Debug.Assert(outBuffer.ShiftAmount - currentOffset == newBlockSize, "Fuck");
@@ -123,7 +123,7 @@ public static class Cas
                     int blockCount = (int)(packed & 0x0FFFFFFF);
                     while (blockCount-- > 0)
                     {
-                        ReadBlock(inBaseStream);
+                        ReadBlock(inBaseStream, null);
                     }
                     break;
                 }
