@@ -390,8 +390,7 @@ namespace FrostyEditor
 
             // get all mods
             List<string> modPaths = new List<string>();
-
-            // Remove existing editor mods
+            
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
             foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", *.fbmod", SearchOption.AllDirectories))
             {
