@@ -393,9 +393,14 @@ namespace FrostyEditor
 
             // Remove existing editor mods
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
-            foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "EditorMod*.fbmod", SearchOption.AllDirectories))
-                File.Delete(modPath);
-
+            foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", *.fbmod", SearchOption.AllDirectories))
+            {
+                if()
+                    File.Delete(modPath);
+                else
+                    modPaths.Add(Path.GetFileName(modPath));
+            }
+            
             Random r = new Random();
             string editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
             while (File.Exists(editorModName))
