@@ -392,9 +392,9 @@ namespace FrostyEditor
             List<string> modPaths = new List<string>();
             
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
-            foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", *.fbmod", SearchOption.AllDirectories))
+            foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "*.fbmod", SearchOption.AllDirectories))
             {
-                if()
+                if(modPath.Contains("EditorMod"))
                     File.Delete(modPath);
                 else
                     modPaths.Add(Path.GetFileName(modPath));
