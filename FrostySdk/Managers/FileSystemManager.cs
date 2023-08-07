@@ -181,7 +181,7 @@ public static class FileSystemManager
         {
             foreach (string subPath in Directory.EnumerateDirectories($"{BasePath}{path}", "*", SearchOption.AllDirectories))
             {
-                if (subPath.Contains("/Patch", StringComparison.OrdinalIgnoreCase))
+                if (subPath.Contains("Patch", StringComparison.OrdinalIgnoreCase))
                 {
                     continue;
                 }
@@ -321,8 +321,12 @@ public static class FileSystemManager
             {
                 // Merge super bundles
                 string superBundleName = superBundle.AsDict().AsString("name");
+                bool delta = superBundle.AsDict().AsBoolean("delta");
+                bool same = superBundle.AsDict().AsBoolean("same");
+                bool added = superBundle.AsDict().AsBoolean("added");
                 if (s_superBundles.FindIndex(si => si.Name.Equals(superBundleName, StringComparison.OrdinalIgnoreCase)) == -1)
                 {
+                    
                     s_superBundles.Add(new SuperBundleInfo(superBundleName));
                 }
             }

@@ -126,10 +126,10 @@ internal class TypeInfo
         if (Version == 4)
         {
             m_data.SetGuid(reader.ReadGuid());
-            reader.ReadGuid();
         }
-        if (Version == 5)
+        if (Version == 4 || Version == 5)
         {
+            // signature
             reader.ReadGuid();
         }
 
