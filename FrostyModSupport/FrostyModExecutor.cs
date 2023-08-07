@@ -1454,7 +1454,15 @@ namespace Frosty.ModSupport
                             continue;
 
                         ManifestBundleInfo manifestBundle = fs.GetManifestBundle(bundle.Name);
-                        string catalog = fs.GetCatalog(manifestBundle.files[0].file);
+                        string catalog;
+                        if (manifestBundle.files.Count == 0)
+                        {
+                            catalog = fs.GetCatalog(new ManifestFileRef(1, false, 0));
+                        }
+                        else
+                        {
+                            catalog = fs.GetCatalog(manifestBundle.files[0].file);
+                        }
 
                         if (!tasks.ContainsKey(catalog))
                             tasks.Add(catalog, new List<ModBundleInfo>());
