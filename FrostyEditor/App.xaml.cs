@@ -29,7 +29,7 @@ namespace FrostyEditor
         public static PluginManager PluginManager { get => Frosty.Core.App.PluginManager; set => Frosty.Core.App.PluginManager = value; }
         public static EbxAssetEntry SelectedAsset { get => Frosty.Core.App.SelectedAsset; set => Frosty.Core.App.SelectedAsset = value; }
         public static ILogger Logger { get => Frosty.Core.App.Logger; set => Frosty.Core.App.Logger = value; }
-        public static List<int> WhitelistedBundles { get => Frosty.Core.App.WhitelistedBundles; set => Frosty.Core.App.WhitelistedBundles = value; }
+        public static HashSet<int> WhitelistedBundles { get => Frosty.Core.App.WhitelistedBundles; set => Frosty.Core.App.WhitelistedBundles = value; }
 
         public static string SelectedPack { get => Frosty.Core.App.SelectedPack; set => Frosty.Core.App.SelectedPack = value; }
 

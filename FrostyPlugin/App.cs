@@ -18,7 +18,7 @@ namespace Frosty.Core
         public static string SelectedProfile;
         public static string SelectedPack;
         public static ILogger Logger;
-        public static List<int> WhitelistedBundles = new List<int>();
+        public static HashSet<int> WhitelistedBundles = new HashSet<int>();
 
         public static readonly int Version = 2;
 
