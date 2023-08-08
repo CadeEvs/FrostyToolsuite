@@ -346,6 +346,8 @@ namespace FrostySdk.Managers
 
         public List<Guid> DependentAssets = new List<Guid>();
         public string UserData = "";
+
+        public bool IsDirty = false;
     }
 
     public class EbxAssetEntry : AssetEntry
@@ -1022,6 +1024,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.OriginalSize = 0;
             entry.ModifiedEntry.Sha1 = Sha1.Zero;
             entry.ModifiedEntry.IsInline = false;
+            entry.ModifiedEntry.IsDirty = true;
             entry.IsDirty = true;
             entry.IsAdded = true;
 
@@ -1062,6 +1065,7 @@ namespace FrostySdk.Managers
             };
 
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
+            entry.ModifiedEntry.IsDirty = true;
 
             resList.Add(entry.Name, entry);
             resRidList.Add(entry.ResRid, entry);
@@ -1093,6 +1097,7 @@ namespace FrostySdk.Managers
                 entry.ModifiedEntry.RangeStart = texture.RangeStart;
                 entry.ModifiedEntry.RangeEnd = texture.RangeEnd;
                 entry.ModifiedEntry.FirstMip = texture.FirstMip;
+                entry.ModifiedEntry.IsDirty = true;
             }
 
 
@@ -1143,6 +1148,7 @@ namespace FrostySdk.Managers
                 entry.ModifiedEntry.RangeStart = texture.RangeStart;
                 entry.ModifiedEntry.RangeEnd = (uint)entry.ModifiedEntry.Data.Length;
                 entry.ModifiedEntry.FirstMip = texture.FirstMip;
+                entry.ModifiedEntry.IsDirty = true;
             }
 
             entry.IsDirty = true;
@@ -1167,6 +1173,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.Data = Utils.CompressFile(buffer, resType: (ResourceType)entry.ResType, compressionOverride: compressType);
             entry.ModifiedEntry.OriginalSize = buffer.Length;
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
+            entry.ModifiedEntry.IsDirty = true;
 
             if (meta != null)
                 entry.ModifiedEntry.ResMeta = meta;
@@ -1187,6 +1194,7 @@ namespace FrostySdk.Managers
 
                 entry.ModifiedEntry.DataObject = modifiedResource;
                 entry.ModifiedEntry.ResMeta = resource.ResourceMeta;
+                entry.ModifiedEntry.IsDirty = true;
                 entry.IsDirty = true;
             }
             else
@@ -1212,6 +1220,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.Data = Utils.CompressFile(buffer, resType: (ResourceType)entry.ResType, compressionOverride: compressType);
             entry.ModifiedEntry.OriginalSize = buffer.Length;
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
+            entry.ModifiedEntry.IsDirty = true;
 
             if (meta != null)
                 entry.ModifiedEntry.ResMeta = meta;
@@ -1232,6 +1241,7 @@ namespace FrostySdk.Managers
 
                 entry.ModifiedEntry.DataObject = modifiedResource;
                 entry.ModifiedEntry.ResMeta = resource.ResourceMeta;
+                entry.ModifiedEntry.IsDirty = true;
                 entry.IsDirty = true;
             }
             else
@@ -1261,6 +1271,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.IsTransientModified = asset.TransientEdit;
             entry.ModifiedEntry.DependentAssets.Clear();
             entry.ModifiedEntry.DependentAssets.AddRange(asset.Dependencies);
+            entry.ModifiedEntry.IsDirty = true;
             entry.IsDirty = true;
         }
 

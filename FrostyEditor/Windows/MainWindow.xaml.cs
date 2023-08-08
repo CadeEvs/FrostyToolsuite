@@ -485,7 +485,7 @@ namespace FrostyEditor
 
         public void ExportMod(ModSettings modSettings, string filename, bool bSilent)
         {
-            m_project.WriteToMod(filename, modSettings);
+            m_project.WriteToMod(filename, modSettings, bSilent);
             if (!bSilent)
                 App.Logger.Log("Mod saved to {0}", filename);
         }
@@ -602,6 +602,7 @@ namespace FrostyEditor
 
                 // clear all modifications
                 App.AssetManager.Reset();
+                App.WhitelistedBundles.Clear();
 
                 // load project
                 newProject = new FrostyProject();

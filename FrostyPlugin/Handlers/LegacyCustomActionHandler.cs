@@ -182,6 +182,7 @@ namespace Frosty.Core.Handlers
 
                     // and add new chunk
                     ChunkAssetEntry newEntry = App.AssetManager.GetChunkEntry(chunkId);
+                    newEntry.ModifiedEntry.IsDirty = false;
                     newEntry.IsDirty = false;
                     newEntry.ModifiedEntry.UserData = "legacy;" + entry.Name;
                     newEntry.ModifiedEntry.AddToChunkBundle = true;
