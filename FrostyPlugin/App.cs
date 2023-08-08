@@ -3,6 +3,7 @@ using FrostySdk;
 using FrostySdk.Interfaces;
 using FrostySdk.Managers;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 
 namespace Frosty.Core
@@ -17,6 +18,7 @@ namespace Frosty.Core
         public static string SelectedProfile;
         public static string SelectedPack;
         public static ILogger Logger;
+        public static List<int> WhitelistedBundles = new List<int>();
 
         public static readonly int Version = 2;
 

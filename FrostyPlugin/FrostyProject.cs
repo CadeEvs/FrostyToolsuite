@@ -436,10 +436,10 @@ namespace Frosty.Core
             return modSettings;
         }
 
-        public void WriteToMod(string filename, ModSettings overrideSettings)
+        public void WriteToMod(string filename, ModSettings overrideSettings, bool editorLaunch)
         {
             using (FrostyModWriter writer = new FrostyModWriter(new FileStream(filename, FileMode.Create), overrideSettings))
-                writer.WriteProject(this);
+                writer.WriteProject(this, editorLaunch);
         }
 
         public static void SaveLinkedAssets(AssetEntry entry, NativeWriter writer)

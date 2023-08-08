@@ -250,7 +250,7 @@ namespace Frosty.Core.IO
             overrideSettings = inOverrideSettings;
         }
 
-        public void WriteProject(FrostyProject project)
+        public void WriteProject(FrostyProject project, bool editorLaunch)
         {
             Write(FrostyMod.Magic);
             Write(FrostyMod.Version);
@@ -275,12 +275,27 @@ namespace Frosty.Core.IO
             // @todo: superbundles
 
             // added bundles
+            bool addedBundlesAllowed = Config.Get<bool>("AddedBundlesFbmod", true);
+            List<int> disallowedBundles = new List<int>();
             foreach (BundleEntry bentry in App.AssetManager.EnumerateBundles(modifiedOnly: true))
             {
                 if (!bentry.Added)
                     continue;
 
-                AddResource(new BundleResource(bentry, manifest));
+                if (addedBundlesAllowed)
+                    AddResource(new BundleResource(bentry, manifest));
+                else
+                    disallowedBundles.Add(HashBundle(bentry));
+            }
+
+            int HashBundle(BundleEntry bentry)
+            {
+                int hash = Fnv1.HashString(bentry.Name.ToLower());
+
+                if (bentry.Name.Length == 8 && int.TryParse(bentry.Name, System.Globalization.NumberStyles.HexNumber, null, out int tmp))
+                    hash = tmp;
+
+                return hash;
             }
 
             // ebx
@@ -291,6 +306,25 @@ namespace Frosty.Core.IO
                     // ignore transient only edits (such as id fields)
                     if (entry.HasModifiedData && entry.ModifiedEntry.IsTransientModified)
                         continue;
+
+                    //Don't bother writing assets if they are not in whitelisted bundles, when launching from the editor.
+                    if (editorLaunch && App.WhitelistedBundles.Count != 0 && !(entry.Bundles.Count == 0 && !entry.IsAdded))
+                    {
+                        List<int> totalBundles = new List<int>(entry.Bundles);
+                        totalBundles.AddRange(entry.AddedBundles);
+
+                        bool hasWhitelistedBundle = false;
+                        foreach (int bunId in totalBundles)
+                        {
+                            if (App.WhitelistedBundles.Contains(HashBundle(App.AssetManager.GetBundleEntry(bunId))) || (addedBundlesAllowed && App.AssetManager.GetBundleEntry(bunId).Added))
+                            {
+                                hasWhitelistedBundle = true;
+                                break;
+                            }
+                        }
+                        if (!hasWhitelistedBundle)
+                            continue;
+                    }
 
                     if (entry.HasModifiedData)
                     {
