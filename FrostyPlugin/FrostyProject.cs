@@ -284,6 +284,10 @@ namespace Frosty.Core
                         writer.Write(bCustomHandler);
                         writer.Write(buf.Length);
                         writer.Write(buf);
+
+
+                        if (updateDirtyState)
+                            entry.ModifiedEntry.IsDirty = false;
                     }
 
                     if (updateDirtyState)
@@ -338,6 +342,8 @@ namespace Frosty.Core
 
                         writer.Write(buffer.Length);
                         writer.Write(buffer);
+                        if (updateDirtyState)
+                            entry.ModifiedEntry.IsDirty = false;
                     }
 
                     if (updateDirtyState)
@@ -381,6 +387,8 @@ namespace Frosty.Core
 
                         writer.Write(entry.ModifiedEntry.Data.Length);
                         writer.Write(entry.ModifiedEntry.Data);
+                        if (updateDirtyState)
+                            entry.ModifiedEntry.IsDirty = false;
                     }
 
                     if (updateDirtyState)
