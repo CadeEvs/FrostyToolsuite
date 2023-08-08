@@ -402,11 +402,7 @@ namespace FrostyEditor
             
             Random r = new Random();
             string editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
-            while (File.Exists(editorModName))
-            {
-                editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
-            }
-
+            
             // create temporary editor mod
             ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor"};
 
