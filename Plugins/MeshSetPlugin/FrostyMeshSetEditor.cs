@@ -379,7 +379,7 @@ namespace MeshSetPlugin
                 {
                     foreach (MeshSetLod lod in meshSet.Lods)
                     {
-                        task.Update("Writing " + lod.String03);
+                        task.Update("Writing " + lod.ShortName);
                         FBXCreateMesh(scene, lod, boneNodes, lodIdx);
                         if (exportSingleLod)
                         {
@@ -407,6 +407,7 @@ namespace MeshSetPlugin
 
                         node.LclTranslation = new Vector3(translation.X, translation.Y, translation.Z);
                         node.LclRotation = new Vector3(euler.X, euler.Y, euler.Z);
+                        node.LclScaling = new Vector3(scale.X, scale.Y, scale.Z);
                     }
                 }
 
@@ -689,7 +690,7 @@ namespace MeshSetPlugin
 
             FbxNode meshNode = (flattenHierarchy) 
                 ? scene.RootNode 
-                : new FbxNode(scene, lod.String03);
+                : new FbxNode(scene, lod.ShortName);
 
             foreach (MeshSetSection section in lod.Sections)
             {
@@ -1560,7 +1561,6 @@ namespace MeshSetPlugin
         public float FlipZ { get; set; } = 1.0f;
 
         private MeshSet meshSet;
-        private Stream resStream;
         private List<ShaderBlockDepot> shaderBlockDepots;
         private ResAssetEntry resEntry;
         private ILogger logger;
@@ -1578,7 +1578,6 @@ namespace MeshSetPlugin
 
             settings = inSettings;
             meshSet = inMeshSet;
-            resStream = App.AssetManager.GetRes(resEntry);
 
             shaderBlockDepots = new List<ShaderBlockDepot>();
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
@@ -1665,10 +1664,18 @@ namespace MeshSetPlugin
                 if (lodCount < meshSet.Lods.Count)
                     throw new FBXImportInvalidLodCountException();
 
+                meshSet.ClearPartData();
+                List<BoundingBox> partBbox = new List<BoundingBox>();
+                List<LinearTransform> transforms = new List<LinearTransform>();
                 // process each lod
                 for (int i = 0; i < meshSet.Lods.Count; i++)
                 {
-                    ProcessLod(lodNodes[i], i);
+                    ProcessLod(lodNodes[i], i, ref partBbox, ref transforms);
+                }
+
+                if (meshSet.Type == MeshType.MeshType_Composite)
+                {
+                    meshSet.SetParts(ToAxisAlignedBoundingBoxes(partBbox), transforms);
                 }
             }
 
@@ -1677,6 +1684,28 @@ namespace MeshSetPlugin
             // modify resource
             App.AssetManager.ModifyRes(resRid, meshSet);
             entry.LinkAsset(resEntry);
+        }
+
+        private List<AxisAlignedBox> ToAxisAlignedBoundingBoxes(List<BoundingBox> inBoundingBoxes)
+        {
+            List<AxisAlignedBox> retVal = new List<AxisAlignedBox>(inBoundingBoxes.Count);
+
+            foreach (BoundingBox bbox in inBoundingBoxes)
+            {
+                Vec3 min = new Vec3();
+                min.x = bbox.Minimum.X;
+                min.y = bbox.Minimum.Y;
+                min.z = bbox.Minimum.Z;
+
+                Vec3 max = new Vec3();
+                max.x = bbox.Maximum.X;
+                max.y = bbox.Maximum.Y;
+                max.z = bbox.Maximum.Z;
+                
+                retVal.Add(new AxisAlignedBox(){min = min, max =  max});
+            }
+
+            return retVal;
         }
 
         private float CubeMapFaceID(float inX, float inY, float inZ)
@@ -1731,7 +1760,7 @@ namespace MeshSetPlugin
             FbxDocumentInfo info = scene.SceneInfo;
         }
 
-        private void ProcessLod(List<FbxNode> nodes, int lodIndex)
+        private void ProcessLod(List<FbxNode> nodes, int lodIndex, ref List<BoundingBox> partBbox, ref List<LinearTransform> transforms)
         {
             MeshSetLod meshLod = meshSet.Lods[lodIndex];
             List<FbxNode> sectionNodes = new List<FbxNode>();
@@ -1883,7 +1912,7 @@ namespace MeshSetPlugin
 
             if (meshSet.Type == MeshType.MeshType_Composite)
             {
-                CalculateCompositePartDataForLod(sectionNodeMapping, meshLod);
+                CalculateCompositePartDataForLod(sectionNodeMapping, meshLod, ref partBbox, ref transforms);
             }
 
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
@@ -2056,15 +2085,14 @@ namespace MeshSetPlugin
             return vertexPositions;
         }
 
-        private void CalculateCompositePartDataForLod(List<FbxNode> nodes, MeshSetLod meshLod)
+        private void CalculateCompositePartDataForLod(List<FbxNode> nodes, MeshSetLod meshLod, ref List<BoundingBox> bbox, ref List<LinearTransform> transforms)
         {
-            List<ushort> boneList = new List<ushort>();
             List<LinearTransform> partTransforms = new List<LinearTransform>();
             List<AxisAlignedBox> partAABBs = new List<AxisAlignedBox>();
-            List<int> partIndices = new List<int>();
+            List<List<int>> partIndices = new List<List<int>>();
             Dictionary<ushort, List<Vector3>> boneToVerticesMapping = new Dictionary<ushort, List<Vector3>>();
 
-            foreach(FbxNode node in nodes)
+            foreach (FbxNode node in nodes)
             {
                 FbxNodeAttribute attr = node.GetNodeAttribute(FbxNodeAttribute.EType.eMesh);
                 FbxMesh fmesh = new FbxMesh(attr);
@@ -2074,6 +2102,7 @@ namespace MeshSetPlugin
 
                 if (fskin == null)
                     return;
+                List<int> boneList = new List<int>();
 
                 foreach (FbxCluster cluster in fskin.Clusters)
                 {
@@ -2082,40 +2111,57 @@ namespace MeshSetPlugin
 
                     FbxNode bone = cluster.GetLink();
                     ushort idx = ushort.Parse(bone.Name.Substring(bone.Name.LastIndexOf('_') + 1));
+                    boneList.Add(idx);
 
                     Matrix sectionMatrix = new FbxMatrix(node.EvaluateGlobalTransform()).ToSharpDX();
 
-                    if (!boneList.Contains(idx))
+                    if (!boneToVerticesMapping.ContainsKey(idx))
                     {
-                        boneList.Add(idx);
-                        partTransforms.Add(FbxTransformToLinearTransform(bone));
+                        while (partTransforms.Count <= idx)
+                        {
+                            partTransforms.Add(LinearTransform.Identity);
+                        }
+                        partTransforms[idx] = FbxTransformToLinearTransform(bone);
+                        while (transforms.Count <= idx)
+                        {
+                            transforms.Add(LinearTransform.Identity);
+                        }
+                        transforms[idx] = partTransforms[idx];
 
                         boneToVerticesMapping.Add(idx, GetVerticesFromCluster(fmesh, cluster, sectionMatrix));
                     }
                     else
                     {
-                        boneToVerticesMapping[idx].Concat(GetVerticesFromCluster(fmesh, cluster, sectionMatrix));
+                        boneToVerticesMapping[idx].AddRange(GetVerticesFromCluster(fmesh, cluster, sectionMatrix));
                     }
                 }
+
+                partIndices.Add(boneList);
             }
 
-            foreach(var boneAndVertices in boneToVerticesMapping)
+            foreach(KeyValuePair<ushort, List<Vector3>> boneAndVertices in boneToVerticesMapping)
             {
-                partAABBs.Add(AABBFromPoints(boneAndVertices.Value));
-            }
-
-            // TEMP
-            // For now, just set the part indices to include everything
-            foreach(ushort boneIdx in boneList)
-            {
-                int partIndice = 0;
-                for (int i = 0; i < boneList.Count; i++)
+                (AxisAlignedBox, BoundingBox) aabbs = AABBFromPoints(boneAndVertices.Value);
+                while (partAABBs.Count <= boneAndVertices.Key)
                 {
-                    partIndice |= 1 << i;
+                    partAABBs.Add(default);
                 }
-                partIndices.Add(partIndice);
+                partAABBs[boneAndVertices.Key] = aabbs.Item1;
+                if (bbox.Count > boneAndVertices.Key)
+                {
+                    bbox[boneAndVertices.Key] = BoundingBox.Merge(bbox[boneAndVertices.Key], aabbs.Item2);
+                }
+                else
+                {
+                    for (int i = bbox.Count; i < boneAndVertices.Key; i++)
+                    {
+                        bbox.Add(new BoundingBox());
+                    }
+                    bbox.Add(aabbs.Item2);
+                }
             }
 
+            meshLod.ClearPartData();
             meshLod.SetParts(partTransforms, partAABBs, partIndices);
         }
 
@@ -2133,9 +2179,6 @@ namespace MeshSetPlugin
             List<ushort> boneList = new List<ushort>();
             List<string> boneNames = new List<string>();
             List<string> procBones = new List<string>();
-            List<LinearTransform> partTransforms = new List<LinearTransform>();
-            //List<AxisAlignedBox> partBoundingBoxes = new List<AxisAlignedBox>();
-            List<int> partIndices = new List<int>();
 
             // load in skeleton
             dynamic skeleton = null;
@@ -2168,7 +2211,7 @@ namespace MeshSetPlugin
                     }
 
                     // Madden19/FIFA17/FIFA18/Madden20
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20)
+                    if (meshSet.Type != MeshType.MeshType_Composite && (ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20))
                     {
                         // @todo: if works, then merge with below
                         for (int i = 0; i < skeleton.BoneNames.Count; i++)
@@ -2182,8 +2225,12 @@ namespace MeshSetPlugin
                     }
 
                     // MEC/BF1/SWBF2/BFV/Anthem/FIFA19/FIFA20/BFN/SWS
-                    else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
-                             ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons)
+                    else if (meshSet.Type != MeshType.MeshType_Composite && (ProfilesLibrary.DataVersion == (int)ProfileVersion.MirrorsEdgeCatalyst ||
+                                                                             ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5 ||
+                                                                             ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII ||
+                                                                             ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 ||
+                                                                             ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 ||
+                                                                             ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsSquadrons))
                     {
                         // ushort/uint, can handle long lists so just put all bones into sections
                         for (int i = 0; i < skeleton.BoneNames.Count; i++)
@@ -2249,11 +2296,6 @@ namespace MeshSetPlugin
             Array.Sort(boneListArray, boneNamesArray);
 
             meshSection.SetBones(boneListArray);
-            if(meshSet.Type == MeshType.MeshType_Composite)
-            {
-                //meshLod.SetParts(partTransforms, partBoundingBoxes);
-                //meshLod.SetPartIndices(partIndices);
-            }
             meshLod.AddBones(boneListArray, boneNamesArray);
 
             boneList.Clear();
@@ -3132,7 +3174,7 @@ namespace MeshSetPlugin
 
         }
 
-        private AxisAlignedBox AABBFromPoints(List<Vector3> points)
+        private (AxisAlignedBox, BoundingBox) AABBFromPoints(List<Vector3> points)
         {
             BoundingBox bbox = BoundingBox.FromPoints(points.ToArray());
 
@@ -3149,7 +3191,7 @@ namespace MeshSetPlugin
             AxisAlignedBox aabb = new AxisAlignedBox();
             aabb.min = min;
             aabb.max = max;
-            return aabb;
+            return (aabb, bbox);
         }
     }
 
@@ -3812,7 +3854,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetLod lod in meshSet.Lods)
             {
-                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.String03 };
+                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
                 foreach (MeshSetSection section in lod.Sections)
                 {
                     if (lod.IsSectionRenderable(section) && section.PrimitiveCount > 0)
@@ -4395,33 +4437,26 @@ namespace MeshSetPlugin
 
                 if (bOk)
                 {
-                    ulong resRid = ((dynamic)RootObject).MeshSetResource;
-                    ResAssetEntry resEntry = App.AssetManager.GetResEntry(resRid);
-                    Stream resStream = App.AssetManager.GetRes(resEntry);
-
                     EbxAsset localAsset = asset;
                     EbxAssetEntry localEntry = AssetEntry as EbxAssetEntry;
                     //List<ShaderBlockEntry> tmpShaderBlockEntries = new List<ShaderBlockEntry>();
 
                     FrostyTaskWindow.Show("Importing", "", (task) =>
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
+                        try
                         {
-                            try
+                            // import
+                            FBXImporter importer = new FBXImporter(logger);
+                            importer.ImportFBX(ofd.FileName, meshSet, localAsset, localEntry, settings);
+                        }
+                        catch (Exception exp)
+                        {
+                            if (!AssetEntry.IsAdded)
                             {
-                                // import
-                                FBXImporter importer = new FBXImporter(logger);
-                                importer.ImportFBX(ofd.FileName, meshSet, localAsset, localEntry, settings);
+                                App.AssetManager.RevertAsset(AssetEntry);
                             }
-                            catch (Exception exp)
-                            {
-                                if (!AssetEntry.IsAdded)
-                                {
-                                    App.AssetManager.RevertAsset(AssetEntry);
-                                }
-                                logger.LogError(exp.Message);
-                            }
-                        });
+                            logger.LogError(exp.Message);
+                        }
                     });
 
                     // @todo: Reload the main mesh shader block depot

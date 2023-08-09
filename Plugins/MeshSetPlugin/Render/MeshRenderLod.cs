@@ -17,7 +17,7 @@ namespace MeshSetPlugin.Render
     public class MeshRenderLod : MeshRenderBase, IDisposable
     {
         public IEnumerable<MeshRenderSection> Sections => sections;
-        public override string DebugName => meshLod.String03;
+        public override string DebugName => meshLod.ShortName;
 
         private D3D11.Buffer indexBuffer;
         private SharpDX.DXGI.Format indexBufferFormat;
