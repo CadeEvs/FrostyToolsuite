@@ -25,180 +25,30 @@ namespace DuplicationPlugin
     public class DuplicationTool
     {
         #region --Extensions--
-        public class BlueprintBundleExtension : DuplicateAssetExtension
+
+        public class SvgImageExtension : DuplicateAssetExtension
         {
-            public override string AssetType => "BlueprintBundle";
+            public override string AssetType => "SvgImage";
 
             public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
             {
-                // Duplicate the ebx
-                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName.ToLower(), createNew, newType);
-
-                BundleEntry bundleEntry = App.AssetManager.GetBundleEntry(entry.Bundles[0]);
-
-                EbxAssetEntry mvdb = App.AssetManager.EnumerateEbx("MeshVariationDatabase", bundleSubPath: bundleEntry.Name).First();
-
-                BundleEntry newBundleEntry = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.BlueprintBundle, bundleEntry.SuperBundleId);
-                newBundleEntry.Blueprint = newEntry;
-
-                if (App.AssetManager.GetEbx(newName.ToLower() + "/MeshVariationDb_Win32") != null)
-                {
-                    EbxAssetEntry newMvdb = base.DuplicateAsset(mvdb, newName.ToLower() + "/MeshVariationDb_Win32", false, null);
-                    newMvdb.AddedBundles.Clear();
-                    newMvdb.AddToBundle(App.AssetManager.GetBundleId(newBundleEntry));
-
-                    newEntry.AddedBundles.Clear();
-                    newEntry.AddToBundle(App.AssetManager.GetBundleId(newBundleEntry));
-                }
-
-                return newEntry;
-            }
-        }
-
-        //ToDo: this doesn't work for SWBF2, so add in support for it
-        public class ObjectVariationExtension : DuplicateAssetExtension
-        {
-            public override string AssetType => "ObjectVariation";
-
-            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
-            {
-                EbxAssetEntry ebxAssetEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-                if (ebxAssetEntry == null)
-                {
+                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                if (refEntry == null)
                     return null;
-                }
-                EbxAsset ebx = App.AssetManager.GetEbx(ebxAssetEntry);
-                dynamic rootObject = ebx.RootObject;
+                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
+                dynamic refRoot = refAsset.RootObject;
 
-                rootObject.NameHash = (uint)Fnv1.HashString(newName.ToLower()); //Setup the name hash
+                ResAssetEntry resEntry = App.AssetManager.GetResEntry(refRoot.Resource);
+                SvgImage svgTexture = App.AssetManager.GetResAs<SvgImage>(resEntry);
 
-                //Warnings for the user, that way they know of potential Bundle Editor conflicts
-                string guidString = newName.Split('/').ToList().Last().Split('_').ToList().First(); //What the fuck is this
-                bool isValid = Guid.TryParse(guidString, out Guid originalMeshGuid);
-                if (!isValid) //Check if the name is valid
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, refEntry.Name, ResourceType.SvgImage);
+                if (newResEntry != null)
                 {
-                    App.Logger.LogWarning("For the Bundle Editor to be able to add new variations to the MeshVariationDatabase, the first part of the name needs to be the original mesh guid. For example, 0cd5f035-1737-4056-8ac0-9cf4692084b7_ShockTrooperVariation");
+                    refRoot.Resource = newResEntry.ResRid;
+                    App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
                 }
 
-                else if (isValid) //If it is valid, then we will copy the materials from the original mesh into here
-                {
-                    int Index = -1; //The material index we are currently on
-
-                    //Find the original mesh, based off of the root instance guid
-                    EbxAsset meshEbx = new EbxAsset();
-                    foreach (EbxAssetEntry potentialMesh in App.AssetManager.EnumerateEbx("MeshAsset"))
-                    {
-                        if (App.AssetManager.GetEbx(potentialMesh).RootInstanceGuid == originalMeshGuid)
-                        {
-                            meshEbx = App.AssetManager.GetEbx(potentialMesh);
-                            break;
-                        }
-                    }
-
-                    //Clear out the variation's materials
-                    List<object> list = new List<object>(ebx.Objects.ToList());
-                    foreach (object matObject in list)
-                    {
-                        if (matObject.GetType().ToString().Split('.').ToList().Last() == "MeshMaterialVariation")
-                        {
-                            ebx.RemoveObject(matObject);
-                        }
-                    }
-
-                    //Create new materials in the variation
-                    dynamic meshProperties = meshEbx.RootObject;
-                    ResAssetEntry ResEntry = App.AssetManager.GetResEntry(meshProperties.MeshSetResource);
-                    MeshSet meshSet = App.AssetManager.GetResAs<MeshSet>(ResEntry);
-                    foreach (PointerRef matPointer in meshProperties.Materials)
-                    {
-                        //Grab the mesh's material
-                        dynamic meshMatProperties = matPointer.Internal as dynamic;
-
-                        //Create a new object
-                        dynamic newMaterialV = TypeLibrary.CreateObject("MeshMaterialVariation");
-
-                        AssetClassGuid guid = new AssetClassGuid(Utils.GenerateDeterministicGuid(ebx.Objects, (Type)newMaterialV.GetType(), ebx.FileGuid), -1);
-                        newMaterialV.SetInstanceGuid(guid);
-
-                        //Write the properties
-                        Index++;
-                        MeshSetSection meshSection = meshSet.Lods[0].Sections[Index];
-                        //newMaterialV.__Id = ((dynamic)matPointer.Internal).GetInstanceGuid().ExportedGuid.ToString() + "_" + meshSection.Name; //Change the ID to be valid for the Bundle Editor
-                        newMaterialV.Shader.TextureParameters = meshMatProperties.Shader.TextureParameters;
-
-                        ebx.AddRootObject(newMaterialV as object);
-                    }
-                }
-
-                return ebxAssetEntry;
-            }
-        }
-
-        //ToDo: double check that this works for everything
-        public class SubworldExtension : DuplicateAssetExtension
-        {
-            public override string AssetType => "SubWorldData";
-
-            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
-            {
-                EbxAssetEntry DuplicatedEbxEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-                if (DuplicatedEbxEntry == null)
-                {
-                    return null;
-                }
-
-                //Remove bundles that already exist
-                DuplicatedEbxEntry.AddedBundles.Clear();
-
-                //Get the original super bundle, then create a new bundle and link it to that
-                BundleEntry originalBundleEntry = App.AssetManager.GetBundleEntry(entry.Bundles.FirstOrDefault());
-                BundleEntry newBundleEntry = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.SubLevel, originalBundleEntry.SuperBundleId);
-                //Add the new asset to the new bundle
-                DuplicatedEbxEntry.AddToBundle(App.AssetManager.GetBundleId(newBundleEntry));
-                App.Logger.Log("Created subworld {0}, and created a new bundle {1}", DuplicatedEbxEntry.Name, newBundleEntry.DisplayName);
-
-                return DuplicatedEbxEntry;
-            }
-        }
-
-        //Idk if this actually works, I am fairly certain it does and my testing in SWBF1 suggests it does, but the FX was also broken during those tests due to unrelated technical fuck-ups
-        public class AtlasTextureExtension : DuplicateAssetExtension
-        {
-            public override string AssetType => "AtlasTextureAsset";
-
-            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
-            {
-                // Duplicate the ebx
-                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
-
-                // Get the original asset root object data
-                EbxAsset asset = App.AssetManager.GetEbx(entry);
-                dynamic textureAsset = asset.RootObject;
-
-                // Get the original chunk and res entries
-                ResAssetEntry resEntry = App.AssetManager.GetResEntry(textureAsset.Resource);
-                AtlasTexture texture = App.AssetManager.GetResAs<AtlasTexture>(resEntry);
-                ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
-
-                // Duplicate the chunk
-                ChunkAssetEntry newChunkEntry = DuplicateChunk(chunkEntry);
-
-                // Duplicate the res
-                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName, ResourceType.AtlasTexture);
-                ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
-                AtlasTexture newTexture = App.AssetManager.GetResAs<AtlasTexture>(newResEntry);
-                newTexture.SetData(texture.Width, texture.Height, newChunkEntry.Id, App.AssetManager);
-
-                // Link the newly duplicates ebx, chunk, and res entries together
-                newResEntry.LinkAsset(newChunkEntry);
-                newEntry.LinkAsset(newResEntry);
-
-                // Modify ebx and res
-                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
-                App.AssetManager.ModifyRes(newResEntry.Name, newTexture);
-
-                return newEntry;
+                return refEntry;
             }
         }
 
@@ -208,28 +58,110 @@ namespace DuplicationPlugin
 
             public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
             {
+                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                if (refEntry == null)
+                    return null;
+                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
+                dynamic refRoot = refAsset.RootObject;
+
+                foreach (dynamic chkref in refRoot.Chunks)
+                {
+                    ChunkAssetEntry soundChunk = App.AssetManager.GetChunkEntry(chkref.ChunkId);
+                    if (soundChunk != null)
+                    {
+                        ChunkAssetEntry newSoundChunk = DuplicateChunk(soundChunk);
+                        if (newSoundChunk != null)
+                        {
+                            chkref.ChunkId = new Guid(newSoundChunk.Name);
+                        }
+                    }
+                }
+                App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
+
+                return refEntry;
+            }
+        }
+
+        public class VisualUnlockBlueprintBundleExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "BlueprintBundle";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
                 // Duplicate the ebx
                 EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
 
-                // Get the original asset root object data
-                dynamic SoundObjects = newAsset.RootObject;
+                // Add new bundle
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.SubLevel, 0);
 
-                // Read the original sound chunks then duplicate them
-                foreach (var SoundChunk in SoundObjects.Chunks)
+                newEntry.AddedBundles.Clear();
+                newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
+
+                newBundle.Blueprint = newEntry;
+
+                return newEntry;
+            }
+        }
+
+        public class SubWorldDataExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "SubWorldData";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                // Duplicate the ebx
+                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+
+                // Add new bundle
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName, BundleType.SubLevel, 0);
+
+                newEntry.AddedBundles.Clear();
+                newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
+                //App.Logger.Log(App.AssetManager.GetBundleEntry(entry.Bundles[0]).SuperBundleId.ToString());
+
+                newBundle.Blueprint = newEntry;
+                newEntry.LinkAsset(entry);
+
+                //List<AssetEntry> assets = new List<AssetEntry>();
+                //assets.AddRange(App.AssetManager.EnumerateEbx());
+                //assets.AddRange(App.AssetManager.EnumerateRes());
+                //assets.AddRange(App.AssetManager.EnumerateChunks());
+
+                //foreach (AssetEntry asset in assets)
+                //    if (asset.IsInBundle(entry.Bundles[0]) && asset != entry)
+                //        asset.AddToBundle(App.AssetManager.GetBundleId(newBundle));
+
+                return newEntry;
+            }
+        }
+
+        public class PathfindingExtension : DuplicateAssetExtension
+        {
+
+            public override string AssetType => "PathfindingBlobAsset";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                if (refEntry == null)
+                    return null;
+
+
+                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
+                dynamic refRoot = refAsset.RootObject;
+                ChunkAssetEntry pathfindingChunk = App.AssetManager.GetChunkEntry(refRoot.Blob.BlobId);
+                if (pathfindingChunk != null)
                 {
-                    //Grab the original chunk entry, dupe it
-                    ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(SoundChunk.ChunkId);
-                    ChunkAssetEntry NewChunkEntry = DuplicateChunk(chunkEntry);
-                    SoundChunk.ChunkId = NewChunkEntry.Id;
-
-                    //Add to bundles and link asset
-                    NewChunkEntry.AddedBundles.AddRange(chunkEntry.EnumerateBundles());
-                    newEntry.LinkAsset(NewChunkEntry);
+                    ChunkAssetEntry newPathfindingChunk = DuplicateChunk(pathfindingChunk);
+                    if (newPathfindingChunk != null)
+                    {
+                        refRoot.Blob.BlobId = new Guid(newPathfindingChunk.Name);
+                    }
                 }
 
-                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
-                return newEntry;
+                App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
+
+                return refEntry;
             }
         }
 
@@ -326,36 +258,6 @@ namespace DuplicationPlugin
                 //Modify the res and ebx
                 App.AssetManager.ModifyRes(newResAsset.Name, meshSet);
                 App.AssetManager.ModifyEbx(newName, newAsset);
-
-                return newEntry;
-            }
-        }
-
-        public class SvgExtension : DuplicateAssetExtension
-        {
-            public override string AssetType => "SvgImage";
-
-            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
-            {
-                // Duplicate the ebx
-                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
-
-                // Get the original asset root object data
-                EbxAsset asset = App.AssetManager.GetEbx(entry);
-                dynamic textureAsset = asset.RootObject;
-
-                // Get the original chunk and res entries
-                ResAssetEntry resEntry = App.AssetManager.GetResEntry(textureAsset.Resource);
-                SvgImage texture = App.AssetManager.GetResAs<SvgImage>(resEntry);
-
-                //Duplicate the res
-                ResAssetEntry newResAsset = DuplicateRes(resEntry, newName, ResourceType.SvgImage);
-
-                // Modify ebx and res
-                ((dynamic)newAsset.RootObject).Resource = newResAsset.ResRid;
-                newEntry.LinkAsset(newResAsset);
-                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
 
                 return newEntry;
             }
