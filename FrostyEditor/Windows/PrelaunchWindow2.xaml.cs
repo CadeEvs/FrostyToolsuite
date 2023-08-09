@@ -198,7 +198,7 @@ namespace FrostyEditor.Windows
 
         private void RemoveConfigButton_Click(object sender, RoutedEventArgs e)
         {
-            if (FrostyMessageBox.Show("Are you sure you want to delete this configuration?", "Frosty Mod Manager", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            if (FrostyMessageBox.Show("Are you sure you want to delete this configuration?", "Frosty Editor", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
                 FrostyConfiguration selectedItem = ConfigList.SelectedItem as FrostyConfiguration;
 

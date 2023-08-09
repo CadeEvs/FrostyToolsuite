@@ -284,6 +284,10 @@ namespace Frosty.Core
                         writer.Write(bCustomHandler);
                         writer.Write(buf.Length);
                         writer.Write(buf);
+
+
+                        if (updateDirtyState)
+                            entry.ModifiedEntry.IsDirty = false;
                     }
 
                     if (updateDirtyState)
@@ -338,6 +342,8 @@ namespace Frosty.Core
 
                         writer.Write(buffer.Length);
                         writer.Write(buffer);
+                        if (updateDirtyState)
+                            entry.ModifiedEntry.IsDirty = false;
                     }
 
                     if (updateDirtyState)
@@ -381,6 +387,8 @@ namespace Frosty.Core
 
                         writer.Write(entry.ModifiedEntry.Data.Length);
                         writer.Write(entry.ModifiedEntry.Data);
+                        if (updateDirtyState)
+                            entry.ModifiedEntry.IsDirty = false;
                     }
 
                     if (updateDirtyState)
@@ -436,10 +444,10 @@ namespace Frosty.Core
             return modSettings;
         }
 
-        public void WriteToMod(string filename, ModSettings overrideSettings)
+        public void WriteToMod(string filename, ModSettings overrideSettings, bool editorLaunch)
         {
             using (FrostyModWriter writer = new FrostyModWriter(new FileStream(filename, FileMode.Create), overrideSettings))
-                writer.WriteProject(this);
+                writer.WriteProject(this, editorLaunch);
         }
 
         public static void SaveLinkedAssets(AssetEntry entry, NativeWriter writer)
