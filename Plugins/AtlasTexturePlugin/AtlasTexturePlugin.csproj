@@ -10,6 +10,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <UseWPF>true</UseWPF>
     <OutputType>Library</OutputType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Developer - Debug|x64' ">

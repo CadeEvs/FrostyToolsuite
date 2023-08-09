@@ -92,7 +92,7 @@ namespace DuplicationPlugin
                 EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
 
                 // Add new bundle
-                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.SubLevel, 0);
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.BlueprintBundle, 0);
 
                 newEntry.AddedBundles.Clear();
                 newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
@@ -165,6 +165,151 @@ namespace DuplicationPlugin
             }
         }
 
+        public class ObjectVariationExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "ObjectVariation";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                EbxAssetEntry ebxAssetEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                if (ebxAssetEntry == null)
+                {
+                    return null;
+                }
+                EbxAsset ebx = App.AssetManager.GetEbx(ebxAssetEntry);
+                dynamic rootObject = ebx.RootObject;
+
+                //SWBF2 has fancy res files for object variations, we need to dupe these
+                if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII))
+                {
+                    // Get the original name hash, this will be useful for when we change it
+                    uint nameHash = rootObject.NameHash;
+
+                    foreach (MeshVariation mv in MeshVariationDb.FindVariations(nameHash))
+                    {
+                        // Get meshSet
+                        EbxAssetEntry meshEntry = App.AssetManager.GetEbxEntry(mv.MeshGuid);
+                        EbxAsset meshAsset = App.AssetManager.GetEbx(meshEntry);
+                        dynamic meshRoot = meshAsset.RootObject;
+                        ResAssetEntry meshRes = App.AssetManager.GetResEntry(meshRoot.MeshSetResource);
+                        MeshSet meshSet = App.AssetManager.GetResAs<MeshSet>(meshRes);
+
+                        foreach (object matObject in ebx.RootObjects) // For each material in the new variation
+                        {
+                            // Check if this is actually a material
+                            if (TypeLibrary.IsSubClassOf(matObject.GetType(), "MeshMaterialVariation") && ((dynamic)matObject).Shader.TextureParameters.Count == 0)
+                            {
+                                dynamic MatProperties = matObject as dynamic;
+
+                                AssetClassGuid guid = MatProperties.GetInstanceGuid();
+                                MeshVariationMaterial mm = null;
+
+                                foreach (MeshVariationMaterial mvm in mv.Materials)
+                                {
+                                    if (mvm.MaterialVariationClassGuid == guid.ExportedGuid)
+                                    {
+                                        mm = mvm;
+                                        break;
+                                    }
+                                }
+
+                                if (mm != null)
+                                {
+                                    dynamic texParams = mm.TextureParameters;
+                                    foreach (dynamic param in texParams)
+                                        MatProperties.Shader.TextureParameters.Add(param);
+                                }
+                            }
+                        }
+
+                        // Dupe sbd
+                        ResAssetEntry resEntry = App.AssetManager.GetResEntry(entry.Name.ToLower() + "/" + meshEntry.Filename + "_" + (uint)Utils.HashString(meshEntry.Name, true) + "/shaderblocks_variation/blocks");
+                        ResAssetEntry newResEntry = DuplicateRes(resEntry, newName.ToLower() + "/" + meshEntry.Filename + "_" + (uint)Utils.HashString(meshEntry.Name, true) + "/shaderblocks_variation/blocks", ResourceType.ShaderBlockDepot);
+                        ShaderBlockDepot newShaderBlockDepot = App.AssetManager.GetResAs<ShaderBlockDepot>(newResEntry);
+
+                        // change namehash so the sbd hash can be calculated corretcly
+                        nameHash = (uint)Utils.HashString(newName, true);
+                        rootObject.NameHash = nameHash;
+
+                        for (int i = 0; i < newShaderBlockDepot.ResourceCount; i++)
+                        {
+                            ShaderBlockResource res = newShaderBlockDepot.GetResource(i);
+                            if (!(res is MeshParamDbBlock))
+                                res.ChangeHash(nameHash);
+                        }
+
+                        // Change the references in the sbd
+                        for (int lod = 0; lod < meshSet.Lods.Count; lod++)
+                        {
+                            ShaderBlockEntry sbEntry = newShaderBlockDepot.GetSectionEntry(lod);
+                            ShaderBlockMeshVariationEntry sbMvEntry = newShaderBlockDepot.GetResource(sbEntry.Index + 1) as ShaderBlockMeshVariationEntry;
+
+                            sbEntry.SetHash(meshSet.NameHash, nameHash, lod);
+                            sbMvEntry.SetHash(meshSet.NameHash, nameHash, lod);
+                        }
+
+                        App.AssetManager.ModifyRes(newResEntry.Name, newShaderBlockDepot);
+                        ebxAssetEntry.LinkAsset(newResEntry);
+                        App.AssetManager.ModifyEbx(newName, ebx);
+
+                        break;
+                    }
+                }
+
+                //Other games just need the namehash, very simple!
+                else
+                {
+                    //The NameHash needs to be the 32 bit Fnv1 of the  lowercased name
+                    rootObject.NameHash = (uint)Utils.HashString(newName, true);
+                }
+
+                return ebxAssetEntry;
+            }
+        }
+
+        public class AtlasTextureExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "AtlasTextureAsset";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                // Duplicate the ebx
+                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
+
+                // Get the original asset root object data
+                EbxAsset asset = App.AssetManager.GetEbx(entry);
+                dynamic textureAsset = asset.RootObject;
+
+                // Get the original chunk and res entries
+                ResAssetEntry resEntry = App.AssetManager.GetResEntry(textureAsset.Resource);
+                AtlasTexture texture = App.AssetManager.GetResAs<AtlasTexture>(resEntry);
+                ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
+
+                // Duplicate the chunk
+                ChunkAssetEntry newChunkEntry = DuplicateChunk(chunkEntry);
+
+                // Duplicate the res
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName, ResourceType.AtlasTexture);
+                ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
+                AtlasTexture newTexture = App.AssetManager.GetResAs<AtlasTexture>(newResEntry);
+
+                // Set the data in the Atlas Texture
+                newTexture.SetData(texture.Width, texture.Height, newChunkEntry.Id, App.AssetManager);
+                newTexture.SetNameHash((uint)Utils.HashString($"Output/Win32/{newResEntry.Name}.res", true));
+
+                // Link the newly duplicated ebx, chunk, and res entries together
+                newResEntry.LinkAsset(newChunkEntry);
+                newEntry.LinkAsset(newResEntry);
+
+                // Modify ebx and res
+                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
+                App.AssetManager.ModifyRes(newResEntry.Name, newTexture);
+
+                return newEntry;
+            }
+        }
+
         public class MeshExtension : DuplicateAssetExtension
         {
             public override string AssetType => "MeshAsset";
@@ -196,7 +341,7 @@ namespace DuplicationPlugin
                 {
                     lod.Name = newResAsset.Name;
                     //Double check that the lod actually has a chunk id. If it doesn't this means the data is inline and we don't need to worry
-                    if (lod.ChunkId != null && lod.ChunkId != Guid.Empty)
+                    if (lod.ChunkId != Guid.Empty)
                     {
                         //Get the original chunk and dupe it
                         ChunkAssetEntry chunk = App.AssetManager.GetChunkEntry(lod.ChunkId);
@@ -380,10 +525,6 @@ namespace DuplicationPlugin
             }
 
             ChunkAssetEntry newEntry = App.AssetManager.GetChunkEntry(newGuid);
-            foreach (int bId in entry.Bundles)
-            {
-                newEntry.AddToBundle(bId);
-            }
 
             App.Logger.Log(string.Format("Duped chunk {0} to {1}", entry.Name, newGuid));
             return newEntry;
@@ -394,18 +535,9 @@ namespace DuplicationPlugin
             if (App.AssetManager.GetResEntry(name) == null)
             {
                 ResAssetEntry newEntry;
-                using (NativeReader reader = new NativeReader(App.AssetManager.GetRes(entry))) //ToDo: figure out why the hell this isn't adding res to bundles
+                using (NativeReader reader = new NativeReader(App.AssetManager.GetRes(entry)))
                 {
                     newEntry = App.AssetManager.AddRes(name, resType, entry.ResMeta, reader.ReadToEnd(), entry.EnumerateBundles().ToArray());
-                }
-
-                //Hacky workaround to fix this not actually adding to bundles
-                if (newEntry.Bundles.Count == 0)
-                {
-                    foreach (int bId in entry.Bundles)
-                    {
-                        newEntry.AddToBundle(bId);
-                    }
                 }
 
                 App.Logger.Log(string.Format("Duped res {0} to {1}", entry.Name, newEntry.Name));
