@@ -1027,6 +1027,7 @@ namespace FrostySdk.Managers
             entry.ModifiedEntry.IsDirty = true;
             entry.IsDirty = true;
             entry.IsAdded = true;
+            entry.AddedBundles.AddRange(bundles);
 
             ebxList.Add(keyName, entry);
             ebxGuidList.Add(entry.Guid, entry);
@@ -1066,6 +1067,7 @@ namespace FrostySdk.Managers
 
             entry.ModifiedEntry.Sha1 = GenerateSha1(entry.ModifiedEntry.Data);
             entry.ModifiedEntry.IsDirty = true;
+            entry.AddedBundles.AddRange(bundles);
 
             resList.Add(entry.Name, entry);
             resRidList.Add(entry.ResRid, entry);
@@ -1186,7 +1188,7 @@ namespace FrostySdk.Managers
                 return;
 
             object modifiedResource = resource.SaveModifiedResource();
-            if (modifiedResource != null)
+            if (modifiedResource != null && !resRidList[resRid].IsAdded)
             {
                 ResAssetEntry entry = resRidList[resRid];
                 if (entry.ModifiedEntry == null)
@@ -1233,7 +1235,7 @@ namespace FrostySdk.Managers
                 return;
 
             object modifiedResource = resource.SaveModifiedResource();
-            if (modifiedResource != null)
+            if (modifiedResource != null && !resList[resName].IsAdded)
             {
                 ResAssetEntry entry = resList[resName];
                 if (entry.ModifiedEntry == null)
