@@ -129,70 +129,82 @@ namespace ObjectVariationPlugin
 
         private void FrostyObjectVariationEditor_Loaded(object sender, RoutedEventArgs e)
         {
+            MeshVariationDb.LoadModifiedVariations(); // make sure we load the modified variations too, that way we don't miss dupes
             if (firstTimeLoad)
             {
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                if (!MeshVariationDb.IsLoaded)
                 {
-                    if (!MeshVariationDb.IsLoaded)
+                    FrostyTaskWindow.Show("Loading Variations", "", (task) =>
                     {
-                        FrostyTaskWindow.Show("Loading Variations", "", (task) =>
-                        {
-                            MeshVariationDb.LoadVariations(task);
-                        });
-                    }
+                        MeshVariationDb.LoadVariations(task);
+                    });
+                }
 
-                    dynamic ebxData = RootObject;
+                dynamic ebxData = RootObject;
 
-                    // store every unique mesh variation for this object variation
-                    foreach (MeshVariation mvEntry in MeshVariationDb.FindVariations(ebxData.NameHash))
-                        meshVariations.Add(mvEntry);
+                // store every unique mesh variation for this object variation
+                foreach (MeshVariation mvEntry in MeshVariationDb.FindVariations(ebxData.NameHash))
+                {
+                    meshVariations.Add(mvEntry);
+                }
 
-                    foreach (dynamic obj in RootObjects)
+                foreach (dynamic obj in RootObjects)
+                {
+                    Type objType = obj.GetType();
+                    if (TypeLibrary.IsSubClassOf(objType, "MeshMaterialVariation"))
                     {
-                        Type objType = obj.GetType();
-                        if (TypeLibrary.IsSubClassOf(objType, "MeshMaterialVariation"))
-                        {
-                            // use the first mesh variation to populate the texture parameters
-                            // of this object variation
+                        // use the first mesh variation to populate the texture parameters
+                        // of this object variation
 
-                            if (obj.Shader.TextureParameters.Count == 0)
+                        if (obj.Shader.TextureParameters.Count == 0)
+                        {
+                            AssetClassGuid guid = obj.GetInstanceGuid();
+                            MeshVariationMaterial mm = null;
+
+                            foreach (MeshVariationMaterial mvm in meshVariations[0].Materials)
                             {
-                                AssetClassGuid guid = obj.GetInstanceGuid();
-                                MeshVariationMaterial mm = null;
-
-                                foreach (MeshVariationMaterial mvm in meshVariations[0].Materials)
+                                if (mvm.MaterialVariationClassGuid == guid.ExportedGuid)
                                 {
-                                    if (mvm.MaterialVariationClassGuid == guid.ExportedGuid)
-                                    {
-                                        mm = mvm;
-                                        break;
-                                    }
-                                }
-
-                                if (mm != null)
-                                {
-                                    dynamic texParams = mm.TextureParameters;
-                                    foreach (dynamic param in texParams)
-                                        obj.Shader.TextureParameters.Add(param);
+                                    mm = mvm;
+                                    break;
                                 }
                             }
-                        }
-                    }
 
-                    string path = AssetEntry.Name.ToLower();
-                    foreach (var mv in meshVariations)
-                    {
-                        // using the mesh variation mesh, obtain the relevant ShaderBlockDepot
-                        EbxAssetEntry ebxEntry = App.AssetManager.GetEbxEntry(mv.MeshGuid);
-                        ResAssetEntry resEntry = App.AssetManager.GetResEntry(path + "/" + ebxEntry.Filename + "_" + (uint)Fnv1.HashString(ebxEntry.Name.ToLower()) + "/shaderblocks_variation/blocks");
-                        if (resEntry != null)
-                        {
-                            shaderBlockDepots.Add(App.AssetManager.GetResAs<ShaderBlockDepot>(resEntry));
+                            if (mm != null)
+                            {
+                                dynamic texParams = mm.TextureParameters;
+                                foreach (dynamic param in texParams)
+                                    obj.Shader.TextureParameters.Add(param);
+                            }
                         }
                     }
                 }
 
-                firstTimeLoad = false;
+                string path = AssetEntry.Name.ToLower();
+                foreach (var mv in meshVariations)
+                {
+                    // using the mesh variation mesh, obtain the relevant ShaderBlockDepot
+                    EbxAssetEntry ebxEntry = App.AssetManager.GetEbxEntry(mv.MeshGuid);
+                    ResAssetEntry resEntry = App.AssetManager.GetResEntry(path + "/" + ebxEntry.Filename + "_" + (uint)Fnv1.HashString(ebxEntry.Name.ToLower()) + "/shaderblocks_variation/blocks");
+                    if (resEntry != null)
+                    {
+                        shaderBlockDepots.Add(App.AssetManager.GetResAs<ShaderBlockDepot>(resEntry));
+                    }
+                }
+
+                //Double check that our data isn't incorrect
+                if (meshVariations.Count > 0 && ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                {
+                    firstTimeLoad = false;
+                }
+
+                //If it is incorrect, then this data is rubbish and next time the asset is opened we should completely redo.
+                else
+                {
+                    firstTimeLoad = true;
+                    MeshVariationDb.IsLoaded = false;
+                    App.Logger.LogError("Cannot find any Mesh Variation Databases which have this Object Variation. If the asset is duped, please add it to Mesh Variation Databases.");
+                }
             }
         }
     }
