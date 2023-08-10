@@ -65,7 +65,7 @@ namespace DuplicationPlugin
                     ChunkAssetEntry newPathfindingChunk = DuplicateChunk(pathfindingChunk);
                     if (newPathfindingChunk != null)
                     {
-                        refRoot.Blob.BlobId = new Guid(newPathfindingChunk.Name);
+                        refRoot.Blob.BlobId = pathfindingChunk.Id;
                     }
                 }
 
