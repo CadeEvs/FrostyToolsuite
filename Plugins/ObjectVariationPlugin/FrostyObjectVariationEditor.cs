@@ -43,87 +43,84 @@ namespace ObjectVariationPlugin
 
         private void PgAsset_OnModified(object sender, ItemModifiedEventArgs e)
         {
-            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+            for (int i = 0; i < meshVariations.Count; i++)
             {
-                for (int i = 0; i < meshVariations.Count; i++)
+                EbxAsset meshEbx = App.AssetManager.GetEbx(App.AssetManager.GetEbxEntry(meshVariations[i].MeshGuid));
+                dynamic meshObj = meshEbx.RootObject;
+
+                // load mesh asset associated with this variation
+                MeshSet meshAsset = App.AssetManager.GetResAs<MeshSet>(App.AssetManager.GetResEntry(meshObj.MeshSetResource));
+
+                // iterate mesh lods
+                for (int j = 0; j < meshAsset.Lods.Count; j++)
                 {
-                    EbxAsset meshEbx = App.AssetManager.GetEbx(App.AssetManager.GetEbxEntry(meshVariations[i].MeshGuid));
-                    dynamic meshObj = meshEbx.RootObject;
+                    var sbe = shaderBlockDepots[i].GetSectionEntry(j);
 
-                    // load mesh asset associated with this variation
-                    MeshSet meshAsset = App.AssetManager.GetResAs<MeshSet>(App.AssetManager.GetResEntry(meshObj.MeshSetResource));
-
-                    // iterate mesh lods
-                    for (int j = 0; j < meshAsset.Lods.Count; j++)
+                    // iterate mesh sections
+                    for (int k = 0; k < meshAsset.Lods[j].Sections.Count; k++)
                     {
-                        var sbe = shaderBlockDepots[i].GetSectionEntry(j);
+                        var texturesBlock = sbe.GetTextureParams(k);
+                        var paramsBlock = sbe.GetParams(k);
 
-                        // iterate mesh sections
-                        for (int k = 0; k < meshAsset.Lods[j].Sections.Count; k++)
+                        dynamic material = meshObj.Materials[meshAsset.Lods[j].Sections[k].MaterialId].Internal;
+                        AssetClassGuid materialGuid = material.GetInstanceGuid();
+
+                        // search mesh variation for appropriate variation material
+                        foreach (var meshVariationMaterial in meshVariations[i].Materials)
                         {
-                            var texturesBlock = sbe.GetTextureParams(k);
-                            var paramsBlock = sbe.GetParams(k);
-
-                            dynamic material = meshObj.Materials[meshAsset.Lods[j].Sections[k].MaterialId].Internal;
-                            AssetClassGuid materialGuid = material.GetInstanceGuid();
-
-                            // search mesh variation for appropriate variation material
-                            foreach (var meshVariationMaterial in meshVariations[i].Materials)
+                            if (meshVariationMaterial.MaterialGuid == materialGuid.ExportedGuid)
                             {
-                                if (meshVariationMaterial.MaterialGuid == materialGuid.ExportedGuid)
+                                dynamic mvMaterial = Asset.GetObject(meshVariationMaterial.MaterialVariationClassGuid);
+                                foreach (dynamic param in mvMaterial.Shader.BoolParameters)
                                 {
-                                    dynamic mvMaterial = Asset.GetObject(meshVariationMaterial.MaterialVariationClassGuid);
-                                    foreach (dynamic param in mvMaterial.Shader.BoolParameters)
-                                    {
-                                        string paramName = param.ParameterName;
-                                        bool value = param.Value;
+                                    string paramName = param.ParameterName;
+                                    bool value = param.Value;
 
-                                        paramsBlock.SetParameterValue(paramName, value);
-                                    }
-                                    foreach (dynamic param in mvMaterial.Shader.VectorParameters)
-                                    {
-                                        string paramName = param.ParameterName;
-                                        dynamic vec = param.Value;
-
-                                        paramsBlock.SetParameterValue(paramName, new float[] { vec.x, vec.y, vec.z, vec.w });
-                                    }
-                                    foreach (dynamic param in mvMaterial.Shader.ConditionalParameters)
-                                    {
-                                        string value = param.Value;
-                                        PointerRef assetRef = param.ConditionalAsset;
-
-                                        if (assetRef.Type == PointerRefType.External)
-                                        {
-                                            EbxAsset asset = App.AssetManager.GetEbx(App.AssetManager.GetEbxEntry(assetRef.External.FileGuid));
-                                            dynamic conditionalAsset = asset.RootObject;
-
-                                            string conditionName = conditionalAsset.ConditionName;
-                                            byte idx = (byte)conditionalAsset.Branches.IndexOf(value);
-
-                                            paramsBlock.SetParameterValue(conditionName, idx);
-                                        }
-                                    }
-                                    foreach (dynamic param in mvMaterial.Shader.TextureParameters)
-                                    {
-                                        string paramName = param.ParameterName;
-                                        PointerRef value = param.Value;
-
-                                        texturesBlock.SetParameterValue(paramName, value.External.ClassGuid);
-                                    }
-
-                                    texturesBlock.IsModified = true;
-                                    paramsBlock.IsModified = true;
-
-                                    break;
+                                    paramsBlock.SetParameterValue(paramName, value);
                                 }
+                                foreach (dynamic param in mvMaterial.Shader.VectorParameters)
+                                {
+                                    string paramName = param.ParameterName;
+                                    dynamic vec = param.Value;
+
+                                    paramsBlock.SetParameterValue(paramName, new float[] { vec.x, vec.y, vec.z, vec.w });
+                                }
+                                foreach (dynamic param in mvMaterial.Shader.ConditionalParameters)
+                                {
+                                    string value = param.Value;
+                                    PointerRef assetRef = param.ConditionalAsset;
+
+                                    if (assetRef.Type == PointerRefType.External)
+                                    {
+                                        EbxAsset asset = App.AssetManager.GetEbx(App.AssetManager.GetEbxEntry(assetRef.External.FileGuid));
+                                        dynamic conditionalAsset = asset.RootObject;
+
+                                        string conditionName = conditionalAsset.ConditionName;
+                                        byte idx = (byte)conditionalAsset.Branches.IndexOf(value);
+
+                                        paramsBlock.SetParameterValue(conditionName, idx);
+                                    }
+                                }
+                                foreach (dynamic param in mvMaterial.Shader.TextureParameters)
+                                {
+                                    string paramName = param.ParameterName;
+                                    PointerRef value = param.Value;
+
+                                    texturesBlock.SetParameterValue(paramName, value.External.ClassGuid);
+                                }
+
+                                texturesBlock.IsModified = true;
+                                paramsBlock.IsModified = true;
+
+                                break;
                             }
                         }
                     }
-
-                    // modify the ShaderBlockDepot
-                    App.AssetManager.ModifyRes(shaderBlockDepots[i].ResourceId, shaderBlockDepots[i]);
-                    AssetEntry.LinkAsset(App.AssetManager.GetResEntry(shaderBlockDepots[i].ResourceId));
                 }
+
+                // modify the ShaderBlockDepot
+                App.AssetManager.ModifyRes(shaderBlockDepots[i].ResourceId, shaderBlockDepots[i]);
+                AssetEntry.LinkAsset(App.AssetManager.GetResEntry(shaderBlockDepots[i].ResourceId));
             }
         }
 
@@ -193,7 +190,7 @@ namespace ObjectVariationPlugin
                 }
 
                 //Double check that our data isn't incorrect
-                if (meshVariations.Count > 0 && ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
+                if (meshVariations.Count > 0)
                 {
                     firstTimeLoad = false;
                 }
