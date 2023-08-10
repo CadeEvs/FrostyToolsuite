@@ -25,30 +25,6 @@ namespace DuplicationPlugin
     {
         #region --Extensions--
 
-        public class SvgImageExtension : DuplicateAssetExtension
-        {
-            public override string AssetType => "SvgImage";
-
-            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
-            {
-                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-
-                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
-                dynamic refRoot = refAsset.RootObject;
-
-                ResAssetEntry resEntry = App.AssetManager.GetResEntry(refRoot.Resource);
-
-                ResAssetEntry newResEntry = DuplicateRes(resEntry, refEntry.Name, ResourceType.SvgImage);
-                if (newResEntry != null)
-                {
-                    refRoot.Resource = newResEntry.ResRid;
-                    App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
-                }
-
-                return refEntry;
-            }
-        }
-
         public class SoundWaveExtension : DuplicateAssetExtension
         {
             public override string AssetType => "SoundWaveAsset";
@@ -64,7 +40,7 @@ namespace DuplicationPlugin
                 {
                     ChunkAssetEntry soundChunk = App.AssetManager.GetChunkEntry(chkref.ChunkId);
                     ChunkAssetEntry newSoundChunk = DuplicateChunk(soundChunk);
-                    chkref.ChunkId = new Guid(newSoundChunk.Name);
+                    chkref.ChunkId = newSoundChunk.Id;
                 }
                 App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
 
@@ -72,7 +48,36 @@ namespace DuplicationPlugin
             }
         }
 
-        public class VisualUnlockBlueprintBundleExtension : DuplicateAssetExtension
+        public class PathfindingExtension : DuplicateAssetExtension
+        {
+
+            public override string AssetType => "PathfindingBlobAsset";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+
+                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
+                dynamic refRoot = refAsset.RootObject;
+                ChunkAssetEntry pathfindingChunk = App.AssetManager.GetChunkEntry(refRoot.Blob.BlobId);
+                if (pathfindingChunk != null)
+                {
+                    ChunkAssetEntry newPathfindingChunk = DuplicateChunk(pathfindingChunk);
+                    if (newPathfindingChunk != null)
+                    {
+                        refRoot.Blob.BlobId = new Guid(newPathfindingChunk.Name);
+                    }
+                }
+
+                App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
+
+                return refEntry;
+            }
+        }
+
+        #region --Bundles--
+
+        public class BlueprintBundleExtension : DuplicateAssetExtension
         {
             public override string AssetType => "BlueprintBundle";
 
@@ -115,30 +120,59 @@ namespace DuplicationPlugin
             }
         }
 
-        public class PathfindingExtension : DuplicateAssetExtension
-        {
+        #endregion
 
-            public override string AssetType => "PathfindingBlobAsset";
+        #region --Meshes--
+
+        public class ClothWrappingExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "ClothWrappingAsset";
 
             public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
             {
-                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                // Duplicate the ebx
+                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
+                dynamic newRoot = newAsset.RootObject;
 
-                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
-                dynamic refRoot = refAsset.RootObject;
-                ChunkAssetEntry pathfindingChunk = App.AssetManager.GetChunkEntry(refRoot.Blob.BlobId);
-                if (pathfindingChunk != null)
-                {
-                    ChunkAssetEntry newPathfindingChunk = DuplicateChunk(pathfindingChunk);
-                    if (newPathfindingChunk != null)
-                    {
-                        refRoot.Blob.BlobId = new Guid(newPathfindingChunk.Name);
-                    }
-                }
+                // Duplicate the res
+                ResAssetEntry resEntry = App.AssetManager.GetResEntry(newRoot.ClothWrappingAssetResource);
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, newEntry.Name, ResourceType.EAClothEntityData);
 
-                App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
+                // Update the ebx
+                newRoot.ClothWrappingAssetResource = newResEntry.ResRid;
+                newEntry.LinkAsset(newResEntry);
 
-                return refEntry;
+                // Modify the ebx
+                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
+
+                return newEntry;
+            }
+        }
+
+        public class ClothExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "ClothAsset";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                // Duplicate the ebx
+                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
+                dynamic newRoot = newAsset.RootObject;
+
+                // Duplicate the res
+                ResAssetEntry resEntry = App.AssetManager.GetResEntry(newRoot.ClothAssetResource);
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, newEntry.Name, ResourceType.EAClothAssetData);
+
+                // Update the ebx
+                newRoot.ClothAssetResource = newResEntry.ResRid;
+                newEntry.LinkAsset(newResEntry);
+
+                // Modify the ebx
+                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
+
+                return newEntry;
             }
         }
 
@@ -235,49 +269,6 @@ namespace DuplicationPlugin
 
                 App.AssetManager.ModifyEbx(newName, newEbx);
                 return newAssetEntry;
-            }
-        }
-
-        public class AtlasTextureExtension : DuplicateAssetExtension
-        {
-            public override string AssetType => "AtlasTextureAsset";
-
-            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
-            {
-                // Duplicate the ebx
-                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
-                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
-
-                // Get the original asset root object data
-                EbxAsset asset = App.AssetManager.GetEbx(entry);
-                dynamic textureAsset = asset.RootObject;
-
-                // Get the original chunk and res entries
-                ResAssetEntry resEntry = App.AssetManager.GetResEntry(textureAsset.Resource);
-                AtlasTexture texture = App.AssetManager.GetResAs<AtlasTexture>(resEntry);
-                ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
-
-                // Duplicate the chunk
-                ChunkAssetEntry newChunkEntry = DuplicateChunk(chunkEntry);
-
-                // Duplicate the res
-                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName, ResourceType.AtlasTexture);
-                ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
-                AtlasTexture newTexture = App.AssetManager.GetResAs<AtlasTexture>(newResEntry);
-
-                // Set the data in the Atlas Texture
-                newTexture.SetData(texture.Width, texture.Height, newChunkEntry.Id, App.AssetManager);
-                newTexture.SetNameHash((uint)Utils.HashString($"Output/Win32/{newResEntry.Name}.res", true));
-
-                // Link the newly duplicated ebx, chunk, and res entries together
-                newResEntry.LinkAsset(newChunkEntry);
-                newEntry.LinkAsset(newResEntry);
-
-                // Modify ebx and res
-                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
-                App.AssetManager.ModifyRes(newResEntry.Name, newTexture);
-
-                return newEntry;
             }
         }
 
@@ -379,6 +370,77 @@ namespace DuplicationPlugin
             }
         }
 
+        #endregion
+
+        #region --Textures--
+
+        public class AtlasTextureExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "AtlasTextureAsset";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                // Duplicate the ebx
+                EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+                EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
+
+                // Get the original asset root object data
+                EbxAsset asset = App.AssetManager.GetEbx(entry);
+                dynamic textureAsset = asset.RootObject;
+
+                // Get the original chunk and res entries
+                ResAssetEntry resEntry = App.AssetManager.GetResEntry(textureAsset.Resource);
+                AtlasTexture texture = App.AssetManager.GetResAs<AtlasTexture>(resEntry);
+                ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
+
+                // Duplicate the chunk
+                ChunkAssetEntry newChunkEntry = DuplicateChunk(chunkEntry);
+
+                // Duplicate the res
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName, ResourceType.AtlasTexture);
+                ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
+                AtlasTexture newTexture = App.AssetManager.GetResAs<AtlasTexture>(newResEntry);
+
+                // Set the data in the Atlas Texture
+                newTexture.SetData(texture.Width, texture.Height, newChunkEntry.Id, App.AssetManager);
+                newTexture.SetNameHash((uint)Utils.HashString($"Output/Win32/{newResEntry.Name}.res", true));
+
+                // Link the newly duplicated ebx, chunk, and res entries together
+                newResEntry.LinkAsset(newChunkEntry);
+                newEntry.LinkAsset(newResEntry);
+
+                // Modify ebx and res
+                App.AssetManager.ModifyEbx(newEntry.Name, newAsset);
+                App.AssetManager.ModifyRes(newResEntry.Name, newTexture);
+
+                return newEntry;
+            }
+        }
+
+        public class SvgImageExtension : DuplicateAssetExtension
+        {
+            public override string AssetType => "SvgImage";
+
+            public override EbxAssetEntry DuplicateAsset(EbxAssetEntry entry, string newName, bool createNew, Type newType)
+            {
+                EbxAssetEntry refEntry = base.DuplicateAsset(entry, newName, createNew, newType);
+
+                EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
+                dynamic refRoot = refAsset.RootObject;
+
+                ResAssetEntry resEntry = App.AssetManager.GetResEntry(refRoot.Resource);
+
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, refEntry.Name, ResourceType.SvgImage);
+                if (newResEntry != null)
+                {
+                    refRoot.Resource = newResEntry.ResRid;
+                    App.AssetManager.ModifyEbx(refEntry.Name, refAsset);
+                }
+
+                return refEntry;
+            }
+        }
+
         public class TextureExtension : DuplicateAssetExtension
         {
             public override string AssetType => "TextureBaseAsset";
@@ -424,6 +486,8 @@ namespace DuplicationPlugin
                 return newEntry;
             }
         }
+
+        #endregion
 
         public class DuplicateAssetExtension
         {
