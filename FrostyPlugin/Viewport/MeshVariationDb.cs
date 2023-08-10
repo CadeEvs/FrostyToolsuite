@@ -352,8 +352,17 @@ namespace Frosty.Core.Viewport
             return entry == null ? null : GetVariations(entry.Guid);
         }
 
-        public static IEnumerable<MeshVariation> FindVariations(uint hash)
+        public static IEnumerable<MeshVariation> FindVariations(uint hash, bool excludeModified = false)
         {
+            if (!excludeModified)
+            {
+                foreach (MeshVariationDbEntry entry in ModifiedEntries.Values)
+                {
+                    if (entry.ContainsVariation(hash))
+                        yield return entry.GetVariation(hash);
+                }
+            }
+
             foreach (MeshVariationDbEntry entry in entries.Values)
             {
                 if (entry.ContainsVariation(hash))
