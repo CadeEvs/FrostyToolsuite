@@ -466,7 +466,7 @@ namespace BundleEditPlugin
                     EbxAssetEntry entry = App.EditorWindow.DataExplorer.SelectedAsset as EbxAssetEntry;
                     BundleEntry bentry = bundlesListBox.SelectedItem as BundleEntry;
 
-                    if (!entry.Bundles.Contains(App.AssetManager.GetBundleId(bentry)))
+                    if (entry.AddedBundles.Contains(App.AssetManager.GetBundleId(bentry)))
                     {
                         string key = entry.Type;
                         if (!removeFromBundleExtensions.ContainsKey(entry.Type))
@@ -486,7 +486,7 @@ namespace BundleEditPlugin
 
                     else
                     {
-                        App.Logger.LogError("The Bundle Editor can only remove added bundles from an asset, not existing ones");
+                        App.Logger.LogError("{0} cannot be removed from this asset, are you sure its an added bundle?");
                     }
 
                     RefreshExplorer();
