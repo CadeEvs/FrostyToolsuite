@@ -74,7 +74,7 @@ namespace FrostyEditor.Windows
             Config.Save();
             //Config.Save(App.configFilename);
 
-            App.Logger.Log("Loading profile for " + ProfilesLibrary.DisplayName);
+            App.Logger.Log("Loading Profile For " + ProfilesLibrary.DisplayName);
 
             profileTextBlock.Text = ProfilesLibrary.DisplayName;
             bannerImage.Source = LoadBanner(ProfilesLibrary.Banner);
@@ -191,7 +191,7 @@ namespace FrostyEditor.Windows
 
         private async Task<int> LoadLocalizedStringResourceTables(ILogger logger)
         {
-            logger.Log("Loading localized strings");
+            logger.Log("Loading Localized Strings");
             await Task.Run(() => 
             {
                 var localizedStringDb = App.PluginManager.GetLocalizedStringDatabase();
@@ -202,7 +202,7 @@ namespace FrostyEditor.Windows
 
         private async Task<int> LoadStringList(ILogger logger)
         {
-            logger.Log("Loading custom strings");
+            logger.Log("Loading Custom Strings");
             await Task.Run(() => Utils.LoadStringList("strings.txt", logger));
             return 0;
         }       

@@ -139,7 +139,7 @@ namespace Frosty.Core.Viewport
             uint index = 0;
 
             entries.Clear();
-            task.Update("Loading variation databases");
+            task.Update("Loading Variation Databases");
 
             string cache = System.AppDomain.CurrentDomain.BaseDirectory + @"\Caches\" + Enum.GetName(typeof(ProfileVersion), ProfilesLibrary.DataVersion) + "_mvdb.cache";
             bool generateMVDB = true;

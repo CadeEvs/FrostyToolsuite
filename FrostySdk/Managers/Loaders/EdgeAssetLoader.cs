@@ -15,7 +15,7 @@ namespace FrostySdk.Managers
                     if (toc == null)
                         continue;
 
-                    parent.WriteToLog("Loading data ({0})", superBundleName);
+                    parent.WriteToLog("Loading Data ({0})", superBundleName);
                     using (NativeReader sbReader = new NativeReader(new FileStream(parent.fs.ResolvePath(string.Format("{0}.sb", superBundleName)), FileMode.Open, FileAccess.Read)))
                     {
                         DbObject bundles = toc.GetValue<DbObject>("bundles");

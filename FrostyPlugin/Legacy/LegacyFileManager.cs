@@ -23,7 +23,7 @@ namespace Frosty.Core.Legacy
         /* Load in legacy files */
         public void Initialize(ILogger logger)
         {
-            logger.Log("Loading legacy files");
+            logger.Log("Loading Legacy Files");
             foreach (EbxAssetEntry entry in App.AssetManager.EnumerateEbx("ChunkFileCollector"))
             {
                 EbxAsset asset = App.AssetManager.GetEbx(entry);

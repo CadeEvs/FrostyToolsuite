@@ -61,7 +61,7 @@ namespace TestPlugin.Managers
 
         public void Initialize(ILogger logger)
         {
-            logger.Log("Loading fs files");
+            logger.Log("Loading fs Files");
 
             uint totalCount = App.FileSystem.GetFsCount();
             uint index = 0;

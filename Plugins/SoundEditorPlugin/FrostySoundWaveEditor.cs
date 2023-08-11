@@ -135,7 +135,7 @@ namespace SoundEditorPlugin
 
             foreach (dynamic runtimeVariation in soundWave.RuntimeVariations)
             {
-                task.Update(status: "Loading track #" + (index + 1), progress: ((index + 1) / (double)totalCount) * 100.0d);
+                task.Update(status: "Loading Track #" + (index + 1), progress: ((index + 1) / (double)totalCount) * 100.0d);
 
                 SoundDataTrack track = new SoundDataTrack {Name = "Track #" + ((index++) + 1)};
 

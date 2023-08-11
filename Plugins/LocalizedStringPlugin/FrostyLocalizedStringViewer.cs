@@ -143,7 +143,7 @@ namespace LocalizedStringPlugin
 
         private void Refresh_Click(object sender, RoutedEventArgs e)
         {
-            FrostyTaskWindow.Show("Loading strings", "", (task) =>
+            FrostyTaskWindow.Show("Loading Strings", "", (task) =>
             {
                 stringIds = db.EnumerateStrings().Distinct().ToList();
                 stringIds.Sort();
@@ -291,7 +291,7 @@ namespace LocalizedStringPlugin
         {
             if (firstTimeLoad)
             {
-                FrostyTaskWindow.Show("Loading strings", "", (task) =>
+                FrostyTaskWindow.Show("Loading Strings", "", (task) =>
                 {
                     stringIds = db.EnumerateStrings().Distinct().ToList();
                     stringIds.Sort();

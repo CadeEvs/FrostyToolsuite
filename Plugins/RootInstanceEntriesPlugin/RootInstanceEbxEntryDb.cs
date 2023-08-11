@@ -57,7 +57,7 @@ namespace RootInstanceEntiresPlugin
             if (!File.Exists($"{App.FileSystem.CacheName}_rootinstances.cache"))
                 return false;
 
-            task.Update($"Loading data ({App.FileSystem.CacheName}_rootinstances.cache)");
+            task.Update($"Loading Data ({App.FileSystem.CacheName}_rootinstances.cache)");
 
             using (NativeReader reader = new NativeReader(new FileStream($"{App.FileSystem.CacheName}_rootinstances.cache", FileMode.Open, FileAccess.Read)))
             {
