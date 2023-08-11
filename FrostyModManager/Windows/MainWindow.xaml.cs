@@ -541,6 +541,69 @@ namespace FrostyModManager
             }
         }
 
+        private void packRename_Click(object sender, RoutedEventArgs e) {
+
+            AddProfileWindow win = new AddProfileWindow("Rename Pack");
+            win.ShowDialog();
+
+            if (win.DialogResult == true) {
+                string newPackName = win.ProfileName;
+                var oldPack = selectedPack;
+
+                FrostyPack existingPack = packs.Find((FrostyPack a) => {
+                    return a.Name.CompareTo(newPackName) == 0;
+                });
+
+                if (existingPack == null) {
+                    FrostyPack newPack = new FrostyPack(newPackName);
+                    foreach (var mod in oldPack.AppliedMods) {
+                        newPack.AppliedMods.Add(mod);
+                    }
+
+                    Config.Add(newPackName, ConfigScope.Pack);
+                    Config.Remove(oldPack.Name, ConfigScope.Pack);
+
+                    packs.Add(newPack);
+                    packs.Remove(oldPack);
+
+                    packsComboBox.Items.Refresh();
+                    packsComboBox.SelectedItem = newPack;
+                }
+                else FrostyMessageBox.Show("A pack with the same name already exists", "Frosty Mod Manager");
+
+            }
+        }
+
+        private void packDuplicate_Click(object sender, RoutedEventArgs e) {
+
+            AddProfileWindow win = new AddProfileWindow("Duplicate Pack");
+            win.ShowDialog();
+
+            if (win.DialogResult == true) {
+                string newPackName = win.ProfileName;
+                var oldPack = selectedPack;
+
+                FrostyPack existingPack = packs.Find((FrostyPack a) => {
+                    return a.Name.CompareTo(newPackName) == 0;
+                });
+
+                if (existingPack == null) {
+                    Config.Add(newPackName, ConfigScope.Pack);
+
+                    FrostyPack newPack = new FrostyPack(newPackName);
+                    foreach (var mod in oldPack.AppliedMods) {
+                        newPack.AppliedMods.Add(mod);
+                    }
+
+                    packs.Add(newPack);
+
+                    packsComboBox.Items.Refresh();
+                    packsComboBox.SelectedItem = newPack;
+                }
+                else FrostyMessageBox.Show("A pack with the same name already exists", "Frosty Mod Manager");
+            }
+        }
+
         private void removeButton_Click(object sender, RoutedEventArgs e)
         {
             int selectedIndex = appliedModsList.SelectedIndex;

@@ -10,9 +10,11 @@ namespace FrostyModManager
     {
         public string ProfileName { get; set; }
 
-        public AddProfileWindow()
+        public AddProfileWindow(string title = "Add Profile")
         {
             InitializeComponent();
+
+            this.Title = title;
 
             Window mainWin = Application.Current.MainWindow;
             if (mainWin != null)
@@ -41,7 +43,7 @@ namespace FrostyModManager
                 return;
             }
 
-            ProfileName = profileNameTextBox.Text;
+            ProfileName = profileNameTextBox.Text.Trim();
             DialogResult = true;
             Close();
         }
