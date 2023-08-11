@@ -638,6 +638,7 @@ namespace DuplicationPlugin
                             }
                         }
 
+                        task.Update("Duplicating asset...");
                         extensions[key].DuplicateAsset(entry, newName, newType != null, newType);
                     }
                     catch (Exception e)
