@@ -283,7 +283,6 @@
     <Resource Include="Images\Res.png" />
     <Resource Include="Images\Cross.png" />
     <Resource Include="Images\Tick.png" />
-    <Resource Include="BuildDate.txt" />
     <Resource Include="Images\Legacy.png" />
     <Resource Include="Images\Merge.png" />
     <Resource Include="Images\PrimaryActionModify.png" />
