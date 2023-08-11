@@ -15,6 +15,9 @@ using System.Windows;
 using System.Windows.Data;
 using FrostySdk;
 using System.IO;
+using Microsoft.Win32;
+using System.Runtime.InteropServices;
+using System.Media;
 
 namespace Frosty.Core.Windows
 {
@@ -101,6 +104,12 @@ namespace Frosty.Core.Windows
         [EbxFieldMeta(EbxFieldType.Boolean)]
         public bool RememberChoice { get; set; } = false;
 
+        [Category("Editor")]
+        [DisplayName("Set as Default Installation")]
+        [Description("Use this installation for .fbproject files.")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool DefaultInstallation { get; set; } = false;
+
         [Category("Update Checking")]
         [DisplayName("Check for Updates")]
         [Description("Check Github for Frosty updates on startup")]
@@ -159,6 +168,20 @@ namespace Frosty.Core.Windows
 
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
+            // Checks the registry for the current association against current frosty installation
+            string KeyName = "frostyproject";
+            string OpenWith = Assembly.GetEntryAssembly().Location;
+
+            try
+            {
+                string openCommand = Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("").ToString();
+                if (openCommand.Contains(OpenWith))
+                {
+                    DefaultInstallation = true;
+                }
+            }
+            catch { }
+
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
             //AutosaveEnabled = Config.Get<bool>("Autosave", "Enabled", true);
@@ -207,6 +230,44 @@ namespace Frosty.Core.Windows
 
             LocalizedStringDatabase.Current.Initialize();
 
+            // Create file association if enabled
+            if (DefaultInstallation)
+            {
+                string Extension = ".fbproject";
+                string KeyName = "frostyproject";
+                string OpenWith = Assembly.GetEntryAssembly().Location;
+                string FileDescription = "Frosty Project";
+
+                try
+                {
+                    RegistryKey BaseKey = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension}");
+                    BaseKey.SetValue("", KeyName);
+
+                    RegistryKey OpenMethod = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{KeyName}");
+                    OpenMethod.SetValue("", FileDescription);
+                    OpenMethod.CreateSubKey("DefaultIcon").SetValue("", $"\"{OpenWith}\",0");
+
+                    RegistryKey Shell = OpenMethod.CreateSubKey("shell");
+                    Shell.CreateSubKey("edit").CreateSubKey("command").SetValue("", $"\"{OpenWith}\" \"%1\"");
+                    Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", $"\"{OpenWith}\" \"%1\"");
+                    BaseKey.Close();
+                    OpenMethod.Close();
+                    Shell.Close();
+
+                    RegistryKey CurrentUser = Registry.CurrentUser.OpenSubKey($"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{Extension}", true);
+                    CurrentUser.DeleteSubKey("UserChoice", false);
+                    CurrentUser.Close();
+
+                    // Tell explorer the file association has been changed
+                    SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
+                }
+                catch (Exception ex)
+                {
+                    SystemSounds.Hand.Play();
+                    App.Logger.LogError($"Unable to Set File Association: {ex.Message}");
+                }
+            }
+
             //Config.Add("Autosave", "Enabled", AutosaveEnabled);
             //Config.Add("Autosave", "Period", AutosavePeriod);
             //Config.Add("Autosave", "MaxCount", AutosaveMaxSaves);
@@ -220,6 +281,9 @@ namespace Frosty.Core.Windows
             //Config.Add("Init", "RememberChoice", RememberChoice);
             //Config.Add("Init", "Language", Language.SelectedName);
         }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
 
         public override bool Validate()
         {
