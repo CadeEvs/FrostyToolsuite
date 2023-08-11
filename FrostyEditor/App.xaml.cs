@@ -57,8 +57,6 @@ namespace FrostyEditor
             DispatcherUnhandledException += App_DispatcherUnhandledException;
             Exit += Application_Exit;
 
-            string test = FrostyEditor.Properties.Resources.BuildDate;
-
 #if FROSTY_DEVELOPER
             Version += " (Developer)";
 #elif FROSTY_ALPHA
