@@ -66,6 +66,7 @@
                                 <Border Background="{StaticResource ControlBackground}" Margin="1">
                                     <StackPanel Orientation="Horizontal" Margin="6,0" DockPanel.Dock="Left">
                                         <Button Content="Add to Bundle" Command="{Binding Path=AddToBundleCommand, RelativeSource={RelativeSource AncestorType={x:Type local:BundleEditor}}}"/>
+                                        <Button Content="Remove Added Bundle" Command="{Binding Path=RemoveFromBundleCommand, RelativeSource={RelativeSource AncestorType={x:Type local:BundleEditor}}}"/>
                                     </StackPanel>
                                 </Border>
 
