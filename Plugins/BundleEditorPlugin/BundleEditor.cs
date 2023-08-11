@@ -486,7 +486,7 @@ namespace BundleEditPlugin
 
                     else
                     {
-                        App.Logger.LogError("{0} cannot be removed from this asset, are you sure its an added bundle?");
+                        App.Logger.LogError("{0} cannot be removed from this asset, are you sure its an added bundle?", bentry.Name);
                     }
 
                     RefreshExplorer();
