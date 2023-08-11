@@ -341,7 +341,8 @@ namespace FrostyEditor
                 }
             }
 
-            if (App.OpenProject) {
+            if (App.OpenProject)
+            {
                 LoadProject(App.LaunchArgs, false);
             }
         }
