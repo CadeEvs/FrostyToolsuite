@@ -555,12 +555,13 @@ namespace FrostyModManager
                 });
 
                 if (existingPack == null) {
-                    Config.Rename(oldPack.Name, newPackName, ConfigScope.Pack);
-
                     FrostyPack newPack = new FrostyPack(newPackName);
                     foreach (var mod in oldPack.AppliedMods) {
                         newPack.AppliedMods.Add(mod);
                     }
+
+                    Config.Add(newPackName, ConfigScope.Pack);
+                    Config.Remove(oldPack.Name, ConfigScope.Pack);
 
                     packs.Add(newPack);
                     packs.Remove(oldPack);
