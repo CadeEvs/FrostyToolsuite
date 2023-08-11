@@ -87,7 +87,8 @@ namespace DuplicationPlugin
                 EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
 
                 // Add new bundle
-                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.BlueprintBundle, 0);
+                BundleEntry oldBundle = App.AssetManager.GetBundleEntry(newEntry.AddedBundles[0]);
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.BlueprintBundle, oldBundle.SuperBundleId);
 
                 newEntry.AddedBundles.Clear();
                 newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
@@ -108,7 +109,8 @@ namespace DuplicationPlugin
                 EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
 
                 // Add new bundle
-                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName, BundleType.SubLevel, 0);
+                BundleEntry oldBundle = App.AssetManager.GetBundleEntry(newEntry.AddedBundles[0]);
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName, BundleType.SubLevel, oldBundle.SuperBundleId);
 
                 newEntry.AddedBundles.Clear();
                 newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
