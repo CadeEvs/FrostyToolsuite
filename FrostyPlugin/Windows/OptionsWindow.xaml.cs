@@ -168,19 +168,7 @@ namespace Frosty.Core.Windows
 
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
-            // Checks the registry for the current association against current frosty installation
-            string KeyName = "frostyproject";
-            string OpenWith = Assembly.GetEntryAssembly().Location;
-
-            try
-            {
-                string openCommand = Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("").ToString();
-                if (openCommand.Contains(OpenWith))
-                {
-                    DefaultInstallation = true;
-                }
-            }
-            catch { }
+            DefaultInstallation = CheckFileAssociation();
 
             //Language = new CustomComboData<string, string>(langs, langs) { SelectedIndex = langs.IndexOf(Config.Get<string>("Init", "Language", "English")) };
 
@@ -230,42 +218,10 @@ namespace Frosty.Core.Windows
 
             LocalizedStringDatabase.Current.Initialize();
 
-            // Create file association if enabled
-            if (DefaultInstallation)
+            // Create file association if enabled and doesnt already exist
+            if (DefaultInstallation && !CheckFileAssociation())
             {
-                string Extension = ".fbproject";
-                string KeyName = "frostyproject";
-                string OpenWith = Assembly.GetEntryAssembly().Location;
-                string FileDescription = "Frosty Project";
-
-                try
-                {
-                    RegistryKey BaseKey = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension}");
-                    BaseKey.SetValue("", KeyName);
-
-                    RegistryKey OpenMethod = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{KeyName}");
-                    OpenMethod.SetValue("", FileDescription);
-                    OpenMethod.CreateSubKey("DefaultIcon").SetValue("", $"\"{OpenWith}\",0");
-
-                    RegistryKey Shell = OpenMethod.CreateSubKey("shell");
-                    Shell.CreateSubKey("edit").CreateSubKey("command").SetValue("", $"\"{OpenWith}\" \"%1\"");
-                    Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", $"\"{OpenWith}\" \"%1\"");
-                    BaseKey.Close();
-                    OpenMethod.Close();
-                    Shell.Close();
-
-                    RegistryKey CurrentUser = Registry.CurrentUser.OpenSubKey($"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{Extension}", true);
-                    CurrentUser.DeleteSubKey("UserChoice", false);
-                    CurrentUser.Close();
-
-                    // Tell explorer the file association has been changed
-                    SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
-                }
-                catch (Exception ex)
-                {
-                    SystemSounds.Hand.Play();
-                    App.Logger.LogError($"Unable to Set File Association: {ex.Message}");
-                }
+                CreateFileAssociation();
             }
 
             //Config.Add("Autosave", "Enabled", AutosaveEnabled);
@@ -284,6 +240,61 @@ namespace Frosty.Core.Windows
 
         [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern void SHChangeNotify(uint wEventId, uint uFlags, IntPtr dwItem1, IntPtr dwItem2);
+
+        private void CreateFileAssociation()
+        {
+            string Extension = ".fbproject";
+            string KeyName = "frostyproject";
+            string OpenWith = Assembly.GetEntryAssembly().Location;
+            string FileDescription = "Frosty Project";
+            string FileIcon = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "Icons", "fbproject.ico");
+
+            try
+            {
+                RegistryKey BaseKey = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{Extension}");
+                BaseKey.SetValue("", KeyName);
+
+                RegistryKey OpenMethod = Registry.CurrentUser.CreateSubKey($"Software\\Classes\\{KeyName}");
+                OpenMethod.SetValue("", FileDescription);
+                OpenMethod.CreateSubKey("DefaultIcon").SetValue("", $"\"{FileIcon}\"");
+
+                RegistryKey Shell = OpenMethod.CreateSubKey("shell");
+                Shell.CreateSubKey("edit").CreateSubKey("command").SetValue("", $"\"{OpenWith}\" \"%1\"");
+                Shell.CreateSubKey("open").CreateSubKey("command").SetValue("", $"\"{OpenWith}\" \"%1\"");
+                BaseKey.Close();
+                OpenMethod.Close();
+                Shell.Close();
+
+                RegistryKey CurrentUser = Registry.CurrentUser.OpenSubKey($"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\{Extension}", true);
+                CurrentUser.DeleteSubKey("UserChoice", false);
+                CurrentUser.Close();
+
+                // Tell explorer the file association has been changed
+                SHChangeNotify(0x08000000, 0x0000, IntPtr.Zero, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                SystemSounds.Hand.Play();
+                App.Logger.LogError($"Unable to Set File Association: {ex.Message}");
+            }
+        }
+
+        private bool CheckFileAssociation()
+        {
+            // Checks the registry for the current association against current frosty installation
+            string KeyName = "frostyproject";
+            string OpenWith = Assembly.GetEntryAssembly().Location;
+
+            try
+            {
+                string openCommand = Registry.CurrentUser.OpenSubKey("Software\\Classes\\" + KeyName).OpenSubKey("shell").OpenSubKey("open").OpenSubKey("command").GetValue("").ToString();
+                return openCommand.Contains(OpenWith);
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         public override bool Validate()
         {
