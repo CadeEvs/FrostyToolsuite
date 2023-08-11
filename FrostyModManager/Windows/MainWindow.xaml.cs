@@ -339,7 +339,7 @@ namespace FrostyModManager
             }
             else
             {
-                App.Logger.LogWarning("Custom Mods Directory does not exist, using default instead");
+                App.Logger.Log("Custom Mods Directory does not exist, using default instead");
             }
 
             FrostyTaskWindow.Show("Loading Mods", "", (task) =>
