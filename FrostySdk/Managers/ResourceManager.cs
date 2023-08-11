@@ -36,7 +36,7 @@ namespace FrostySdk.Managers
 
             if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20)
             {
-                WriteToLog("Loading catalogs");
+                WriteToLog("Loading Catalogs");
                 foreach (string catalogName in fs.Catalogs)
                 {
                     LoadCatalog("native_data/" + catalogName + "/cas.cat");
