@@ -624,7 +624,7 @@ namespace FrostySdk.Managers
             }
 
             TimeSpan ElapsedTime = DateTime.Now - StartTime;
-            WriteToLog("Loading complete", ElapsedTime.ToString());
+            WriteToLog("Loading Complete", ElapsedTime.ToString());
 
             if (additionalStartup)
             {
@@ -712,7 +712,7 @@ namespace FrostySdk.Managers
                     )
                 {
                     // load class infos
-                    WriteToLog("Loading type info");
+                    WriteToLog("Loading Type Info");
                     TypeLibrary.Reflection.LoadClassInfoAssets(this);
                 }
             }
@@ -2027,7 +2027,7 @@ namespace FrostySdk.Managers
             if (!File.Exists(fs.CacheName + ".cache"))
                 return false;
 
-            WriteToLog("Loading data (" + fs.CacheName + ".cache)");
+            WriteToLog("Loading Data (" + fs.CacheName + ".cache)");
             bool bIsPatched = false;
 
             using (NativeReader reader = new NativeReader(new FileStream(fs.CacheName + ".cache", FileMode.Open, FileAccess.Read)))

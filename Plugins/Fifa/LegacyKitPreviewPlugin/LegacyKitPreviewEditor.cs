@@ -115,7 +115,7 @@ namespace LegacyKitPreviewPlugin
         {
             if (firstTimeLoad)
             {
-                FrostyTaskWindow.Show("Loading database", "", (task) =>
+                FrostyTaskWindow.Show("Loading Database", "", (task) =>
                 {
                     // load in main database
                     LegacyFileEntry dbEntry = App.AssetManager.GetCustomAssetEntry<LegacyFileEntry>("legacy", "data/db/fifa_ng_db.db");

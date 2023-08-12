@@ -289,7 +289,7 @@ namespace BiowareLocalizationPlugin.Controls
         private void LoadTexts0(bool modifiedOnly)
         {
             bool showTextsFromAllResources = m_SHOW_ALL_RESOURCES.Equals(m_selectedResource);
-            FrostyTaskWindow.Show("Loading texts", "", (task) =>
+            FrostyTaskWindow.Show("Loading Texts", "", (task) =>
             {
                 m_textIdsList = LoadTextIds(modifiedOnly, showTextsFromAllResources);
             });
@@ -330,7 +330,7 @@ namespace BiowareLocalizationPlugin.Controls
         private void LoadAdjectives0(bool modifiedOnly)
         {
 
-            FrostyTaskWindow.Show("Loading adjectives", "", (task) =>
+            FrostyTaskWindow.Show("Loading Adjectives", "", (task) =>
             {
                 m_textIdsList = LoadAdjectiveIds(modifiedOnly);
             });

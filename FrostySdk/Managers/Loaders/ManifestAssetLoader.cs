@@ -7,7 +7,7 @@
             public void Load(AssetManager parent, BinarySbDataHelper helper)
             {
                 // SWBF2 reads all data from a manifest
-                parent.WriteToLog("Loading data from manifest");
+                parent.WriteToLog("Loading Data From Manifest");
 
                 // @todo: Get proper superbundle names
                 parent.superBundles.Add(new SuperBundleEntry { Name = "<none>" });

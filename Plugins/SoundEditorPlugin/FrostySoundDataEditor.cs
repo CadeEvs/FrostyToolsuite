@@ -485,7 +485,7 @@ namespace SoundEditorPlugin
                 audioPlayer = new AudioPlayer();
 
                 List<SoundDataTrack> tracks = null;
-                FrostyTaskWindow.Show("Loading tracks", "", owner =>
+                FrostyTaskWindow.Show("Loading Tracks", "", owner =>
                 {
                     tracks = InitialLoad(owner);
                 });

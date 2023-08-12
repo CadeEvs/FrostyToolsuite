@@ -25,7 +25,7 @@ namespace FrostySdk.Managers
                     if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2)
                         isBinarySuperBundle = true;
 
-                    parent.WriteToLog("Loading data ({0})", superBundleName);
+                    parent.WriteToLog("Loading Data ({0})", superBundleName);
 
                     // process patch toc
                     DbObject patchToc = parent.ProcessTocChunks(string.Format("native_patch/{0}.toc", superBundleName), helper);

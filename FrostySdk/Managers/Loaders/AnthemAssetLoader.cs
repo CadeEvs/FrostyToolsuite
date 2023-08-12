@@ -28,7 +28,7 @@ namespace FrostySdk.Managers
                             sbIndex = parent.superBundles.Count - 1;
                         }
 
-                        parent.WriteToLog("Loading data ({0})", sbName);
+                        parent.WriteToLog("Loading Data ({0})", sbName);
 
 
                         string sbPath = sbName.Replace("win32", catalog.Name);
