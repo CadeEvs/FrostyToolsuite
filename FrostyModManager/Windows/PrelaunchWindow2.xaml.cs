@@ -269,14 +269,13 @@ namespace FrostyModManager.Windows
         {
             foreach (string subKeyName in subKey.GetSubKeyNames())
             {
-                if(subKeyName == "Perflib") continue;
                 try
                 {
                     IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount);
                 }
-                catch (System.Security.SecurityException)
+                catch (System.Exception)
                 {
-                    // do nothing
+                    continue;
                 }
             }
 
