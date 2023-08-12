@@ -2,7 +2,6 @@
   "Name": "Madden22",
   "DisplayName": "Madden NFL 22™",
   "InternalName": "madden22",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20210819,
   "FrostbiteVersion": "2020.0",

@@ -2,7 +2,6 @@
   "Name": "PVZBattleforNeighborville",
   "DisplayName": "Plants vs Zombies: Battle for Neighborville™",
   "InternalName": "PVZ3",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20191017,
   "FrostbiteVersion": "2018.2",

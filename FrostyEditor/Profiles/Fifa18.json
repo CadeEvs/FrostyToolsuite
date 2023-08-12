@@ -2,7 +2,6 @@
   "Name": "FIFA18",
   "DisplayName": "FIFA 18",
   "InternalName": "fifa18",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20170929,
   "FrostbiteVersion": "2016.4.1",

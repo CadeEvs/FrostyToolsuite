@@ -2,11 +2,11 @@
   "Name": "starwarsbattlefrontii",
   "DisplayName": "STAR WARS™ Battlefront™ II",
   "InternalName": "starwarsii",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature" : "",
   "HasStrippedTypeNames": false,
   "DataVersion": 20171116,
-  "FrostbiteVersion": "2019",
+  "_comment": "Actual version 2019-PR5, but the engine version is based on 2016.4.4",
+  "FrostbiteVersion": "2016.4.4",
   "Sources": [
     {
       "Path": "Patch",

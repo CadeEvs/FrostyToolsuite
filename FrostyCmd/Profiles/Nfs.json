@@ -2,7 +2,6 @@
   "Name": "NFS16",
   "DisplayName": "Need for Speed™",
   "InternalName": "nfs16",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20160317,
   "FrostbiteVersion": "2014.4.11",

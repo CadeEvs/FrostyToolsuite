@@ -2,7 +2,6 @@
   "Name": "starwarsbattlefront",
   "DisplayName": "STAR WARS™ Battlefront™",
   "InternalName": "starwars",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20151117,
   "FrostbiteVersion": "2014.4.17",

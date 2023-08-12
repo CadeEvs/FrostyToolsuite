@@ -1,8 +1,7 @@
-{
+﻿{
   "Name": "Anthem",
   "DisplayName": "Anthem™",
   "InternalName": "anthem",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature" : "",
   "HasStrippedTypeNames": true,
   "DataVersion": 20190221,

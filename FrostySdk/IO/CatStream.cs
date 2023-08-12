@@ -16,7 +16,8 @@ public class CatStream : IDisposable
 
     public CatStream(string inFilename)
     {
-        m_stream = BlockStream.FromFile(inFilename, out m_isNewFormat);
+        m_isNewFormat = ProfilesLibrary.FrostbiteVersion > "2014.4.11";
+        m_stream = BlockStream.FromFile(inFilename, m_isNewFormat);
         
         string magic = m_stream.ReadFixedSizedString(16);
         if (magic != c_catMagic)
@@ -28,13 +29,13 @@ public class CatStream : IDisposable
         PatchCount = 0;
         EncryptedCount = 0;
 
+        // 2013.2, 2014.1, 2014.4.11
         if (m_isNewFormat)
         {
             ResourceCount = m_stream.ReadUInt32();
             PatchCount = m_stream.ReadUInt32();
 
             // 2015.4.6, 2019-PR5, 2016.4.7, 2016.4.4, 2018.0
-            //if (ProfilesLibrary.IsLoaded(ProfileVersion.MassEffectAndromeda, ProfileVersion.Fifa17, ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Fifa18, ProfileVersion.NeedForSpeedPayback, ProfileVersion.Madden19, ProfileVersion.Battlefield5, ProfileVersion.StarWarsSquadrons))
             if (ProfilesLibrary.FrostbiteVersion >= "2015")
             {
                 EncryptedCount = m_stream.ReadUInt32();

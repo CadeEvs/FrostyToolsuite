@@ -137,14 +137,14 @@ public static class Cas
         return outBuffer;
     }
 
-    private static unsafe int ReadBlock(DataStream inStream, Block<byte>? outBuffer)
+    private static unsafe void ReadBlock(DataStream inStream, Block<byte>? outBuffer)
     {
         ulong packed = inStream.ReadUInt64(Endian.Big);
 
         byte flags = (byte)(packed >> 56);
         int decompressedSize = (int)((packed >> 32) & 0x00FFFFFF);
         CompressionType compressionType = (CompressionType)(packed >> 24);
-        // (packed >> 20) & 0xF should always be 7
+        Debug.Assert(((packed >> 20) & 0xF) == 7, "Invalid cas data");
         int bufferSize = (int)(packed & 0x000FFFFF);
 
         if ((compressionType & ~CompressionType.Obfuscated) == CompressionType.None)
@@ -162,58 +162,16 @@ public static class Cas
         {
             compressedBuffer = new Block<byte>(bufferSize);
         }
-        
-        inStream.ReadExactly(compressedBuffer);
-        
-        if (compressionType.HasFlag(CompressionType.Obfuscated))
+
+        if (outBuffer is not null)
         {
-            // TODO: check if this is only set in fifa 19
-            if (!ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19))
-            {
-                throw new Exception("obfuscation");
-            }
-        
-            byte[] key = KeyManager.GetKey("CasObfuscationKey");
-            for (int i = 0; i < bufferSize; i++)
-            {
-                compressedBuffer[i] ^= key[i & 0x3FFF];
-            }
-        }
-        
-        // TODO: compression methods https://github.com/users/CadeEvs/projects/1?pane=issue&itemId=25477869
-        switch (compressionType & ~CompressionType.Obfuscated)
-        {
-            case CompressionType.None:
-                // we already read the data into the outBuffer so nothing to do
-                break;
-            case CompressionType.ZLib:
-                //ZLib.Decompress(compressedBuffer, ref outBuffer);
-                break;
-            case CompressionType.ZStd:
-                //ZStd.Decompress(compressedBuffer, ref outBuffer, flags != 0 ? CompressionFlags.ZStdUseDicts : CompressionFlags.None);
-                break;
-            case CompressionType.LZ4:
-                //LZ4.Decompress(compressedBuffer, ref outBuffer);
-                break;
-            case CompressionType.OodleKraken:
-                //Oodle.Decompress(compressedBuffer, ref outBuffer, CompressionFlags.OodleKraken);
-                break;
-            case CompressionType.OodleSelkie:
-                //Oodle.Decompress(compressedBuffer, ref outBuffer, CompressionFlags.OodleSelkie);
-                break;
-            case CompressionType.OodleLeviathan:
-                //Oodle.Decompress(compressedBuffer, ref outBuffer, CompressionFlags.OodleLeviathan);
-                break;
-            default:
-                throw new NotImplementedException($"Compression type: {compressionType}");
+            Decompress(inStream, compressedBuffer, compressionType, flags, bufferSize, outBuffer);
         }
 
         compressedBuffer.Dispose();
         outBuffer?.Shift(decompressedSize);
-
-        return decompressedSize;
     }
-    
+
     private static Block<byte> ReadBlock(DataStream inStream)
     {
         ulong packed = inStream.ReadUInt64(Endian.Big);
@@ -221,7 +179,7 @@ public static class Cas
         byte flags = (byte)(packed >> 56);
         int decompressedSize = (int)((packed >> 32) & 0x00FFFFFF);
         CompressionType compressionType = (CompressionType)(packed >> 24);
-        // (packed >> 20) & 0xF should always be 7
+        Debug.Assert(((packed >> 20) & 0xF) == 7, "Invalid cas data");
         int bufferSize = (int)(packed & 0x000FFFFF);
 
         Block<byte> outBuffer = new(decompressedSize);
@@ -241,25 +199,41 @@ public static class Cas
             compressedBuffer = new Block<byte>(bufferSize);
         }
         
-        inStream.ReadExactly(compressedBuffer);
-        
-        if (compressionType.HasFlag(CompressionType.Obfuscated))
+        Decompress(inStream, compressedBuffer, compressionType, flags, bufferSize, outBuffer);
+
+        // dispose compressed buffer, unless there wasn't a compressed buffer
+        if ((compressionType & ~CompressionType.Obfuscated) != CompressionType.None)
         {
-            // TODO: check if this is only set in fifa 19
+            compressedBuffer.Dispose();   
+        }
+
+        return outBuffer;
+    }
+
+    private static void Decompress(DataStream inStream, Block<byte> inCompressedBuffer,
+        CompressionType inCompressionType, byte inFlags, int inBufferSize, Block<byte> outBuffer)
+    {
+        inStream.ReadExactly(inCompressedBuffer);
+
+        if (inCompressionType.HasFlag(CompressionType.Obfuscated))
+        {
+            // this probably only exist in FIFA 19
+            // should be fine to check for it here, since i doubt they will ever have 128 different compression types
+            // currently they are at 25
             if (!ProfilesLibrary.IsLoaded(ProfileVersion.Fifa19))
             {
                 throw new Exception("obfuscation");
             }
-        
+
             byte[] key = KeyManager.GetKey("CasObfuscationKey");
-            for (int i = 0; i < bufferSize; i++)
+            for (int i = 0; i < inBufferSize; i++)
             {
-                compressedBuffer[i] ^= key[i & 0x3FFF];
+                inCompressedBuffer[i] ^= key[i & 0x3FFF];
             }
         }
-        
+
         // TODO: compression methods https://github.com/users/CadeEvs/projects/1?pane=issue&itemId=25477869
-        switch (compressionType & ~CompressionType.Obfuscated)
+        switch (inCompressionType & ~CompressionType.Obfuscated)
         {
             case CompressionType.None:
                 // we already read the data into the outBuffer so nothing to do
@@ -283,15 +257,7 @@ public static class Cas
                 //Oodle.Decompress(compressedBuffer, ref outBuffer, CompressionFlags.OodleLeviathan);
                 break;
             default:
-                throw new NotImplementedException($"Compression type: {compressionType}");
+                throw new NotImplementedException($"Compression type: {inCompressionType}");
         }
-
-        // dispose compressed buffer, unless there wasn't a compressed buffer
-        if ((compressionType & ~CompressionType.Obfuscated) != CompressionType.None)
-        {
-            compressedBuffer.Dispose();   
-        }
-
-        return outBuffer;
     }
 }

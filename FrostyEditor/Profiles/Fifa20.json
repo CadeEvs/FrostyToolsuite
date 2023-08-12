@@ -2,7 +2,6 @@
   "Name": "FIFA20",
   "DisplayName": "FIFA 20",
   "InternalName": "fifa20",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20190927,
   "FrostbiteVersion": "2018.0",

@@ -2,7 +2,6 @@
   "Name": "NeedForSpeedPayback",
   "DisplayName": "Need for Speed™ Payback",
   "InternalName": "nfs17",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20171110,
   "FrostbiteVersion": "2016.4.7",

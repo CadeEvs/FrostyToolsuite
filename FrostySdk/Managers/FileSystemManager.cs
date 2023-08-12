@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using Frosty.Sdk.DbObjectElements;
+using Frosty.Sdk.Deobfuscators;
 using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.Infos;
@@ -60,7 +61,9 @@ public static class FileSystemManager
         }
 
         CacheName = $"Caches/{ProfilesLibrary.InternalName}";
-        s_deobfuscator = Type.GetType($"Frosty.Sdk.Deobfuscators.{ProfilesLibrary.Deobfuscator}Deobfuscator");
+        s_deobfuscator = ProfilesLibrary.FrostbiteVersion > "2014.4.11"
+            ? typeof(SignatureDeobfuscator)
+            : typeof(LegacyDeobfuscator);
 
         foreach (FileSystemSource source in ProfilesLibrary.Sources)
         {

@@ -2,7 +2,6 @@
   "Name": "Madden20",
   "DisplayName": "Madden NFL 20™",
   "InternalName": "madden20",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20190802,
   "HasStrippedTypeNames": false,

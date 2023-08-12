@@ -19,6 +19,8 @@ public static class ResourceManager
 
     private static readonly List<CatPatchEntry> s_patchEntries = new();
 
+    private static readonly Dictionary<Sha1, uint> s_sizeMap = new();
+
     public static void LoadInstallChunks()
     {
         foreach (InstallChunkInfo installChunkInfo in FileSystemManager.EnumerateInstallChunks())
@@ -37,7 +39,7 @@ public static class ResourceManager
             return;
         }
         
-        List<CasFileInfo>? baseFileInfos = new();
+        List<CasFileInfo>? baseFileInfos = null;
         foreach (CatPatchEntry entry in s_patchEntries)
         {
             bool containsBase = baseInfos?.TryGetValue(entry.BaseSha1, out baseFileInfos) == true;
@@ -47,7 +49,7 @@ public static class ResourceManager
                 throw new Exception();
             }
             
-            Debug.Assert(deltaFileInfos.Count == 0, "More than one Delta entry.");
+            Debug.Assert(deltaFileInfos.Count == 1, "More than one Delta entry.");
 
             CasFileInfo? baseInfo = null; 
             if (containsBase)
@@ -88,14 +90,14 @@ public static class ResourceManager
                 
                 s_resourceEntries.TryAdd(entry.Sha1, (new List<CasFileInfo>(), false));
                 s_resourceEntries[entry.Sha1].Item1.Add(fileInfo);
+
+                if (!s_sizeMap.TryAdd(entry.Sha1, entry.Size))
+                {
+                    s_sizeMap[entry.Sha1] = Math.Max(s_sizeMap[entry.Sha1], entry.Size);
+                }
                 
                 retVal.TryAdd(entry.Sha1, new List<CasFileInfo>());
                 retVal[entry.Sha1].Add(fileInfo);
-
-                if (entry.Sha1 == new Sha1("fdc3af3f5d4b6bdeaf5dc1accadd6a10e0cdc6c7"))
-                {
-                    
-                }
             }
         
             for (int i = 0; i < stream.EncryptedCount; i++)
@@ -108,25 +110,20 @@ public static class ResourceManager
                 
                 s_resourceEntries.TryAdd(entry.Sha1, (new List<CasFileInfo>(), false));
                 s_resourceEntries[entry.Sha1].Item1.Add(fileInfo);
+
+                if (!s_sizeMap.TryAdd(entry.Sha1, entry.Size))
+                {
+                    s_sizeMap[entry.Sha1] = Math.Max(s_sizeMap[entry.Sha1], entry.Size);
+                }
                 
                 retVal.TryAdd(entry.Sha1, new List<CasFileInfo>());
                 retVal[entry.Sha1].Add(fileInfo);
-
-                if (entry.Sha1 == new Sha1("fdc3af3f5d4b6bdeaf5dc1accadd6a10e0cdc6c7"))
-                {
-                    
-                }
             }
         
             for (int i = 0; i < stream.PatchCount; i++)
             {
                 var entry = stream.ReadPatchEntry();
                 s_patchEntries.Add(entry);
-
-                if (entry.Sha1 == new Sha1("fdc3af3f5d4b6bdeaf5dc1accadd6a10e0cdc6c7"))
-                {
-                    
-                }
             }
         }
 
@@ -191,17 +188,17 @@ public static class ResourceManager
 
     public static long GetSize(Sha1 sha1)
     {
-        if (!s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos))
-        {
-            return -1;
-        }
-
-        return fileInfos.Item1.First(fi => fi.IsComplete()).GetSize();
+        return s_sizeMap.TryGetValue(sha1, out uint size) ? size : -1;
     }
 
     public static IEnumerable<IFileInfo>? GetPatchFileInfos(Sha1 sha1, Sha1 deltaSha1, Sha1 baseSha1)
     {
-        if (s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos) && fileInfos.Item2)
+        if (!s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos))
+        {
+            return null;
+        }
+
+        if (fileInfos.Item2)
         {
             return null;
         }
@@ -222,12 +219,12 @@ public static class ResourceManager
 
     public static IEnumerable<IFileInfo>? GetFileInfos(Sha1 sha1)
     {
-        if (s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos) && fileInfos.Item2)
+        if (!s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos))
         {
             return null;
         }
 
-        if (!s_resourceEntries.ContainsKey(sha1))
+        if (fileInfos.Item2)
         {
             return null;
         }

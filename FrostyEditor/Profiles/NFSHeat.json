@@ -2,7 +2,6 @@
   "Name": "NeedForSpeedHeat",
   "DisplayName": "Need for Speed™ Heat",
   "InternalName": "NFSHEAT",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20191107,
   "FrostbiteVersion": "2018.2",

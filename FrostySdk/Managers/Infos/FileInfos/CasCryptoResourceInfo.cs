@@ -27,7 +27,10 @@ public class CasCryptoResourceInfo : CasResourceInfo
         {
             stream.Position = GetOffset();
 
-            Block<byte> retVal = new((int)GetSize());
+            // we need to align the size to 16
+            int size = (int)GetSize();
+            size += size & 15;
+            Block<byte> retVal = new(size);
             
             stream.ReadExactly(retVal);
             return retVal;
@@ -52,7 +55,7 @@ public class CasCryptoResourceInfo : CasResourceInfo
         stream.WriteNullTerminatedString(info.m_keyId);
     }
 
-    internal new static CasCryptoResourceInfo DeserializeInternal(DataStream stream)
+    internal static CasCryptoResourceInfo DeserializeInternal(DataStream stream)
     {
         CasFileIdentifier file = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32());
         uint offset = stream.ReadUInt32();

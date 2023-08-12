@@ -2,7 +2,6 @@
   "Name": "Dead Space",
   "DisplayName": "Dead Space",
   "InternalName": "deadspace",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20211119,
   "FrostbiteVersion": "2021.2.3",

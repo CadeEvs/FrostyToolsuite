@@ -2,7 +2,6 @@
   "Name": "FIFA22",
   "DisplayName": "FIFA 22",
   "InternalName": "fifa22",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20210930,
   "FrostbiteVersion": "2020.0",

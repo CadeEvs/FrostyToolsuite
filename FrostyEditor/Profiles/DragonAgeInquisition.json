@@ -2,7 +2,6 @@
   "Name": "DragonAgeInquisition",
   "DisplayName": "Dragon Age™: Inquisition",
   "InternalName": "dragonage",
-  "Deobfuscator": "Legacy",
   "TypeInfoSignature": "",
   "HasStrippedTypeNames": false,
   "DataVersion": 20140304,

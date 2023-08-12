@@ -2,7 +2,6 @@
   "Name": "Madden21",
   "DisplayName": "Madden 21",
   "InternalName": "madden21",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature" : "",
   "HasStrippedTypeNames": false,
   "DataVersion": 20200819,
