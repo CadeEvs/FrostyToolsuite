@@ -218,25 +218,23 @@ namespace DuplicationPlugin
                         // Check if this is actually a material
                         if (TypeLibrary.IsSubClassOf(matObject.GetType(), "MeshMaterialVariation") && ((dynamic)matObject).Shader.TextureParameters.Count == 0)
                         {
+                            // Get the material object as a dynamic, so we can see and edit its properties
                             dynamic matProperties = matObject as dynamic;
 
                             AssetClassGuid guid = matProperties.GetInstanceGuid();
-                            MeshVariationMaterial mm = null;
 
-                            foreach (MeshVariationMaterial mvm in meshVariation.Materials)
+                            foreach (MeshVariationMaterial mvm in meshVariation.Materials) // For each material in the original assets MVDB Entry
                             {
-                                if (mvm.MaterialVariationClassGuid == guid.ExportedGuid)
+                                if (mvm.MaterialVariationClassGuid == guid.ExportedGuid) //If it has the same guid
                                 {
-                                    mm = mvm;
+                                    // We then use its texture params as the texture params in the variation
+                                    // We then use its texture params as the texture params in the variation
+                                    foreach (dynamic texParam in (dynamic)mvm.TextureParameters)
+                                    {
+                                        matProperties.Shader.TextureParameters.Add(texParam);
+                                    }
                                     break;
                                 }
-                            }
-
-                            if (mm != null)
-                            {
-                                dynamic texParams = mm.TextureParameters;
-                                foreach (dynamic param in texParams)
-                                    matProperties.Shader.TextureParameters.Add(param);
                             }
                         }
                     }
@@ -326,9 +324,37 @@ namespace DuplicationPlugin
                 //Link the res and ebx
                 newEntry.LinkAsset(newResAsset);
 
-                //Stuff for SBDs since SWBF2 is weird
+                // Stuff for SBDs since SWBF2 is weird
                 if (ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII))
                 {
+                    // Restore the texture params
+                    MeshVariation meshVariation = MeshVariationDb.GetVariations(entry.Guid).Variations[0];
+
+                    foreach (object matObject in newAsset.Objects) // For each material in the new variation
+                    {
+                        // Check if this is actually a material
+                        if (TypeLibrary.IsSubClassOf(matObject.GetType(), "MeshMaterial") && ((dynamic)matObject).Shader.TextureParameters.Count == 0)
+                        {
+                            // Get the material object as a dynamic, so we can see and edit its properties
+                            dynamic matProperties = matObject as dynamic;
+
+                            AssetClassGuid guid = matProperties.GetInstanceGuid();
+
+                            foreach (MeshVariationMaterial mvm in meshVariation.Materials) // For each material in the original assets MVDB Entry
+                            {
+                                if (mvm.MaterialGuid == guid.ExportedGuid) // If it has the same guid
+                                {
+                                    // We then use its texture params as the texture params in the variation
+                                    foreach (dynamic texParam in (dynamic)mvm.TextureParameters)
+                                    {
+                                        matProperties.Shader.TextureParameters.Add(texParam);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     // Duplicate the sbd
                     ResAssetEntry oldShaderBlock = App.AssetManager.GetResEntry(entry.Name.ToLower() + "_mesh/blocks");
                     ResAssetEntry newShaderBlock = DuplicateRes(oldShaderBlock, newResAsset.Name + "_mesh/blocks", ResourceType.ShaderBlockDepot);
