@@ -4443,20 +4443,20 @@ namespace MeshSetPlugin
 
                     FrostyTaskWindow.Show("Importing", "", (task) =>
                     {
-                        Application.Current.Dispatcher.Invoke(() =>
+                        try 
                         {
-                            try
+                            // import
+                            FBXImporter importer = new FBXImporter(logger);
+                            importer.ImportFBX(ofd.FileName, meshSet, localAsset, localEntry, settings);
+                        }
+                        catch (Exception exp) 
+                        {
+                            if (!localEntry.IsAdded) 
                             {
-                                // import
-                                FBXImporter importer = new FBXImporter(logger);
-                                importer.ImportFBX(ofd.FileName, meshSet, localAsset, localEntry, settings);
+                                App.AssetManager.RevertAsset(localEntry);
                             }
-                            catch (Exception exp)
-                            {
-                                App.AssetManager.RevertAsset(AssetEntry);
-                                logger.LogError(exp.Message);
-                            }
-                        });
+                            logger.LogError(exp.Message);
+                        }
                     });
 
                     // @todo: Reload the main mesh shader block depot
