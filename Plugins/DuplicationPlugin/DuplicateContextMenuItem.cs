@@ -228,7 +228,6 @@ namespace DuplicationPlugin
                                 if (mvm.MaterialVariationClassGuid == guid.ExportedGuid) //If it has the same guid
                                 {
                                     // We then use its texture params as the texture params in the variation
-                                    // We then use its texture params as the texture params in the variation
                                     foreach (dynamic texParam in (dynamic)mvm.TextureParameters)
                                     {
                                         matProperties.Shader.TextureParameters.Add(texParam);
