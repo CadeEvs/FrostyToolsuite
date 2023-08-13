@@ -273,9 +273,9 @@ namespace FrostyModManager.Windows
                 {
                     IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount);
                 }
-                catch (System.Security.SecurityException)
+                catch (System.Exception)
                 {
-                    // do nothing
+                    continue;
                 }
             }
 
