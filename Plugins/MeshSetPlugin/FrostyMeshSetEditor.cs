@@ -4443,15 +4443,15 @@ namespace MeshSetPlugin
 
                     FrostyTaskWindow.Show("Importing", "", (task) =>
                     {
-                        try 
+                        try
                         {
                             // import
                             FBXImporter importer = new FBXImporter(logger);
                             importer.ImportFBX(ofd.FileName, meshSet, localAsset, localEntry, settings);
                         }
-                        catch (Exception exp) 
+                        catch (Exception exp)
                         {
-                            if (!localEntry.IsAdded) 
+                            if (!localEntry.IsAdded)
                             {
                                 App.AssetManager.RevertAsset(localEntry);
                             }
