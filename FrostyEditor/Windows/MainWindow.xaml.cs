@@ -228,7 +228,7 @@ namespace FrostyEditor
                 MenuItem contextMenuItem = new MenuItem
                 {
                     Header = contextItemExtension.ContextItemName,
-                    Icon = new Image() { Source = contextItemExtension.Icon, Opacity = 0.5 },
+                    Icon = new Image() { Source = contextItemExtension.Icon },
                     Command = contextItemExtension.ContextItemClicked
                 };
                 dataExplorer.AssetContextMenu.Items.Add(contextMenuItem);
