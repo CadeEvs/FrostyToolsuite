@@ -16,7 +16,7 @@ namespace DifficultyWeaponTableDataPlugin.Definitions
 
     public class DifficultyWeaponTableDataAssetDefinition : AssetDefinition
     {
-        protected static ImageSource imageSource = new ImageSourceConverter().ConvertFromString("pack://application:,,,/TestPlugin;component/Images/SpreadsheetFileType.png") as ImageSource;
+        protected static ImageSource imageSource = new ImageSourceConverter().ConvertFromString("pack://application:,,,/DifficultyWeaponTableDataPlugin;component/Images/SpreadsheetFileType.png") as ImageSource;
 
         public override ImageSource GetIcon()
         {

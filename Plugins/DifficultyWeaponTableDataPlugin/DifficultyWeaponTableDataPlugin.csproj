@@ -58,6 +58,10 @@
     </ProjectReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Images\SpreadsheetFileType.png" />
+  </ItemGroup>
+
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="xcopy /Y $(TargetPath) $(SolutionDir)$(OutDir)Plugins\" />
 		<Exec Command="xcopy /Y $(TargetPath) $(SolutionDir)..\FrostyModManager\$(OutDir)Plugins\" />
