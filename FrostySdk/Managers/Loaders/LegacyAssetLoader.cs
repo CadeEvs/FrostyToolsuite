@@ -21,9 +21,7 @@ namespace FrostySdk.Managers
                     DbObject baseToc = parent.ProcessTocChunks(string.Format("native_data/{0}.toc", superBundleName), helper, true);
                     if (baseToc == null)
                         continue;
-                    bool isBinarySuperBundle = baseToc.GetValue<bool>("alwaysEmitSuperBundle");
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2)
-                        isBinarySuperBundle = true;
+                    bool isBinarySuperBundle = !baseToc.GetValue<bool>("cas");
 
                     parent.WriteToLog("Loading Data ({0})", superBundleName);
 
