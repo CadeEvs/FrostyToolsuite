@@ -19,11 +19,11 @@ public class DbObjectAssetLoader : IAssetLoader
         foreach (SuperBundleInfo sbInfo in FileSystemManager.EnumerateSuperBundles())
         {
             bool isPatched = true;
-            string tocPath = FileSystemManager.ResolvePath($"native_patch/{sbInfo.Name}.toc");
+            string tocPath = FileSystemManager.ResolvePath(false, $"{sbInfo.Name}.toc");
             if (string.IsNullOrEmpty(tocPath))
             {
                 isPatched = false;
-                tocPath = FileSystemManager.ResolvePath($"native_data/{sbInfo.Name}.toc");
+                tocPath = FileSystemManager.ResolvePath(false, $"{sbInfo.Name}.toc");
                 if (string.IsNullOrEmpty(tocPath))
                 {
                     continue;
@@ -208,7 +208,7 @@ public class DbObjectAssetLoader : IAssetLoader
                     patchSbPath = bundleInfo.SbName;
                     patchStream?.Dispose();
                     patchStream = BlockStream.FromFile(
-                        FileSystemManager.ResolvePath($"native_patch/{patchSbPath}.sb"), false);
+                        FileSystemManager.ResolvePath(true, $"{patchSbPath}.sb"), false);
                 }
                 stream = patchStream;
             }
@@ -219,7 +219,7 @@ public class DbObjectAssetLoader : IAssetLoader
                     baseSbPath = bundleInfo.SbName;
                     baseStream?.Dispose();
                     baseStream = BlockStream.FromFile(
-                        FileSystemManager.ResolvePath($"native_data/{baseSbPath}.sb"), false);
+                        FileSystemManager.ResolvePath(false, $"{baseSbPath}.sb"), false);
                 }
                 stream = baseStream;
             }
@@ -407,7 +407,7 @@ public class DbObjectAssetLoader : IAssetLoader
         }
 
         uint bundleSize = deltaStream.ReadUInt32(Endian.Big);
-        uint dataSize = deltaStream.ReadUInt32(Endian.Big);
+        deltaStream.ReadUInt32(Endian.Big); // size of data after binary bundle
             
         long startOffset = deltaStream.Position;
 

@@ -1,0 +1,35 @@
+{
+  "Name": "FC24",
+  "DisplayName": "FIFA 24",
+  "InternalName": "fifa24",
+  "TypeInfoSignature": "",
+  "DataVersion": 20230929,
+  "FrostbiteVersion": "2022.2.1",
+  "HasStrippedTypeNames": false,
+  "Sources": [
+    {
+      "Path": "Patch",
+      "SubDirs": false
+    },
+    {
+      "Path": "Data",
+      "SubDirs": false
+    }
+  ],
+  "EbxVersion": 6,
+  "RequiresKey": true,
+  "MustAddChunks": false,
+  "EnableExecution": false,
+  "HasAntiCheat": true,
+  "EbxCompression": 15,
+  "ResCompression": 25,
+  "ChunkCompression": 25,
+  "TextureChunkCompression": 25,
+  "MaxBufferSize": 262144,
+  "ZStdCompressionLevel": 16,
+  "DefaultDiffuse": "content/Common/textures/debug/debug_texture_color",
+  "DefaultNormals": "content/Common/textures/debug/debug_texture_normal",
+  "DefaultMask": "content/Common/textures/debug/debug_texture_coeff",
+  "DefaultTint": "content/Common/textures/debug/debug_texture_alpha",
+  "SharedBundles": []
+}

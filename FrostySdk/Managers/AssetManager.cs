@@ -29,14 +29,14 @@ public static class AssetManager
     
     private static readonly Dictionary<int, int> s_ebxNameHashHashMap = new();
     private static readonly Dictionary<Guid, int> s_ebxGuidHashMap = new();
-    private static readonly ObservableCollection<EbxAssetEntry> s_ebxAssetEntries = new();
+    private static readonly List<EbxAssetEntry> s_ebxAssetEntries = new();
     
     private static readonly Dictionary<int, int> s_resNameHashHashMap = new();
     private static readonly Dictionary<ulong, int> s_resRidHashMap = new();
-    private static readonly ObservableCollection<ResAssetEntry> s_resAssetEntries = new();
+    private static readonly List<ResAssetEntry> s_resAssetEntries = new();
     
     private static readonly Dictionary<Guid, int> s_chunkGuidHashMap = new();
-    private static readonly ObservableCollection<ChunkAssetEntry> s_chunkAssetEntries = new();
+    private static readonly List<ChunkAssetEntry> s_chunkAssetEntries = new();
 
     /// <summary>
     /// Cache Versions:
@@ -297,7 +297,7 @@ public static class AssetManager
 
     #endregion
 
-#endregion
+    #endregion
 
     #endregion
 
@@ -418,9 +418,6 @@ public static class AssetManager
         {
             EbxAssetEntry existing = s_ebxAssetEntries[index];
             
-            // add existing Bundles
-            existing.Bundles.UnionWith(entry.Bundles);
-            
             existing.FileInfos.UnionWith(entry.FileInfos);
 
             existing.Bundles.Add(bundleId);
@@ -431,7 +428,6 @@ public static class AssetManager
             s_ebxNameHashHashMap.Add(nameHash, s_ebxAssetEntries.Count);
             s_ebxAssetEntries.Add(entry);
         }
-        
     }
 
     internal static void AddRes(ResAssetEntry entry, int bundleId)
@@ -440,9 +436,6 @@ public static class AssetManager
         if (s_resNameHashHashMap.TryGetValue(nameHash, out int index))
         {
             ResAssetEntry existing = s_resAssetEntries[index];
-            
-            // add existing Bundles
-            existing.Bundles.UnionWith(entry.Bundles);
             
             existing.FileInfos.UnionWith(entry.FileInfos);
 
@@ -465,9 +458,6 @@ public static class AssetManager
         if (s_chunkGuidHashMap.TryGetValue(entry.Id, out int index))
         {
             ChunkAssetEntry existing = s_chunkAssetEntries[index];
-            
-            // add existing Bundles
-            existing.Bundles.UnionWith(entry.Bundles);
             
             existing.FileInfos.UnionWith(entry.FileInfos);
 
@@ -513,10 +503,7 @@ public static class AssetManager
             entry.OriginalSize = existing.OriginalSize;
 
             // merge SuperBundles
-            foreach (int existingSuperBundle in existing.SuperBundles)
-            {
-                entry.SuperBundles.Add(existingSuperBundle);
-            }
+            entry.SuperBundles.UnionWith(existing.SuperBundles);
 
             s_chunkAssetEntries[s_chunkGuidHashMap[entry.Id]] = entry;
         }

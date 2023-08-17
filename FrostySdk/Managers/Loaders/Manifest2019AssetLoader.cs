@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.Entries;
@@ -30,11 +30,11 @@ public class Manifest2019AssetLoader : IAssetLoader
                 if (installChunk.Value.HasFlag(InstallChunkType.Default))
                 {
                     bool isPatched = true;
-                    string tocPath = FileSystemManager.ResolvePath($"native_patch/{sbInfo.Name}.toc");
+                    string tocPath = FileSystemManager.ResolvePath(true, $"{sbInfo.Name}.toc");
                     if (string.IsNullOrEmpty(tocPath))
                     {
                         isPatched = false;
-                        tocPath = FileSystemManager.ResolvePath($"native_data/{sbInfo.Name}.toc");
+                        tocPath = FileSystemManager.ResolvePath(false, $"{sbInfo.Name}.toc");
                         if (string.IsNullOrEmpty(tocPath))
                         {
                             continue;
@@ -59,11 +59,11 @@ public class Manifest2019AssetLoader : IAssetLoader
                     string sbName = $"{installChunkInfo.InstallBundle}{sbInfo.Name[sbInfo.Name.IndexOf("/", StringComparison.Ordinal)..]}";
                     
                     bool isPatched = true;
-                    string tocPath = FileSystemManager.ResolvePath($"native_patch/{sbName}.toc");
+                    string tocPath = FileSystemManager.ResolvePath(true, $"{sbInfo.Name}.toc");
                     if (string.IsNullOrEmpty(tocPath))
                     {
                         isPatched = false;
-                        tocPath = FileSystemManager.ResolvePath($"native_data/{sbName}.toc");
+                        tocPath = FileSystemManager.ResolvePath(false, $"{sbInfo.Name}.toc");
                         if (string.IsNullOrEmpty(tocPath))
                         {
                             continue;
@@ -110,7 +110,7 @@ public class Manifest2019AssetLoader : IAssetLoader
 
             if (flags.HasFlag(Flags.HasBaseBundles) || flags.HasFlag(Flags.HasBaseChunks))
             {
-                string tocPath = FileSystemManager.ResolvePath($"native_data/{sbName}.toc");
+                string tocPath = FileSystemManager.ResolvePath(false, $"{sbName}.toc");
                 LoadToc(sbName, superBundleId, tocPath, ref bundles, false);
             }
 
@@ -190,8 +190,11 @@ public class Manifest2019AssetLoader : IAssetLoader
                 stream.Position = chunkHashMapOffset;
                 stream.Position += sizeof(int) * chunksCount;
 
+                stream.Position = chunkDataOffset;
+                Block<uint> chunkData = new(dataCount);
+                stream.ReadExactly(chunkData.ToBlock<byte>());
+                
                 stream.Position = chunkGuidOffset;
-                Guid[] chunkGuids = new Guid[dataCount / 3];
                 Span<byte> b = stackalloc byte[16];
                 for (int i = 0; i < chunksCount; i++)
                 {
@@ -206,30 +209,36 @@ public class Manifest2019AssetLoader : IAssetLoader
                     if (index != -1)
                     {
                         // im guessing the unknown offsets are connected to this
-                        byte flag = (byte)((index & 0xFF000000) >> 24);
-#if FROSTY_DEVELOPER
-                        Debug.Assert(flag == 1);
-#endif    
-                        index = (index & 0xFFFFFF) / 3;
+                        byte flag = (byte)(index >> 24);
+                        
+                        index &= 0x00FFFFFF;
 
+                        CasFileIdentifier casFileIdentifier;
+                        if (flag == 1)
+                        {
+                            casFileIdentifier = CasFileIdentifier.FromFileIdentifier(BinaryPrimitives.ReverseEndianness(chunkData[index++]));
+                        }
+                        else if (flag == 0x80)
+                        {
+                            casFileIdentifier = CasFileIdentifier.FromFileIdentifier(BinaryPrimitives.ReverseEndianness(chunkData[index++]), BinaryPrimitives.ReverseEndianness(chunkData[index++]));
+                        }
+                        else
+                        {
+                            throw new NotImplementedException("Unknown file identifier flag.");
+                        }
 
-                        chunkGuids[index] = guid;
+                        uint offset = BinaryPrimitives.ReverseEndianness(chunkData[index++]);
+                        uint size = BinaryPrimitives.ReverseEndianness(chunkData[index]);
+
+                        ChunkAssetEntry chunk = new(guid, Sha1.Zero, size, 0, 0, superBundleId);
+
+                        chunk.FileInfos.Add(new CasFileInfo(casFileIdentifier, offset, size, 0));
+
+                        AssetManager.AddSuperBundleChunk(chunk);
                     }
                 }
-
-                stream.Position = chunkDataOffset;
-                for (int i = 0; i < dataCount / 3; i++)
-                {
-                    CasFileIdentifier casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big));
-                    uint offset = stream.ReadUInt32(Endian.Big);
-                    uint size = stream.ReadUInt32(Endian.Big);
-
-                    ChunkAssetEntry chunk = new(chunkGuids[i], Sha1.Zero, size, 0, 0, superBundleId);
-
-                    chunk.FileInfos.Add(new CasFileInfo(casFileIdentifier, offset, size, 0));
-
-                    AssetManager.AddSuperBundleChunk(chunk);
-                }
+                
+                chunkData.Dispose();
             }
 
             return true;
@@ -273,12 +282,12 @@ public class Manifest2019AssetLoader : IAssetLoader
                     if (flag == 1)
                     {
                         patchStream = BlockStream.FromFile(
-                            FileSystemManager.ResolvePath($"native_patch/{patchSbPath}.toc"), true);
+                            FileSystemManager.ResolvePath(true, $"{patchSbPath}.toc"), true);
                     }
                     else
                     {
                         patchStream = BlockStream.FromFile(
-                            FileSystemManager.ResolvePath($"native_patch/{patchSbPath}.sb"), false);
+                            FileSystemManager.ResolvePath(true, $"{patchSbPath}.sb"), false);
                     }
                 }
                 stream = patchStream;
@@ -293,12 +302,12 @@ public class Manifest2019AssetLoader : IAssetLoader
                     if (flag == 1)
                     {
                         baseStream = BlockStream.FromFile(
-                            FileSystemManager.ResolvePath($"native_data/{baseSbPath}.toc"), true);
+                            FileSystemManager.ResolvePath(false, $"{baseSbPath}.toc"), true);
                     }
                     else
                     {
                         baseStream = BlockStream.FromFile(
-                            FileSystemManager.ResolvePath($"native_data/{baseSbPath}.sb"), false);
+                            FileSystemManager.ResolvePath(false, $"{baseSbPath}.sb"), false);
                     }
                 }
                 stream = baseStream;
@@ -311,7 +320,7 @@ public class Manifest2019AssetLoader : IAssetLoader
             int bundleOffset = stream.ReadInt32(Endian.Big);
             int bundleSize = stream.ReadInt32(Endian.Big);
             uint locationOffset = stream.ReadUInt32(Endian.Big);
-            uint totalCount = stream.ReadUInt32(Endian.Big);
+            int totalCount = stream.ReadInt32(Endian.Big);
             uint dataOffset = stream.ReadUInt32(Endian.Big);
 
             // not used by any game rn, again maybe crypto stuff
@@ -326,11 +335,8 @@ public class Manifest2019AssetLoader : IAssetLoader
             
             stream.Position = bundleInfo.Offset + locationOffset;
 
-            bool[] flags = new bool[totalCount];
-            for (uint i = 0; i < totalCount; i++)
-            {
-                flags[i] = stream.ReadBoolean();
-            }
+            Block<byte> flags = new(totalCount);
+            stream.ReadExactly(flags);
 
             CasFileIdentifier casFileIdentifier = default;
             int z = 0;
@@ -345,10 +351,16 @@ public class Manifest2019AssetLoader : IAssetLoader
             {
                 stream.Position = bundleInfo.Offset + dataOffset;
 
-                if (flags[z++])
+                byte fileFlag = flags[z++];
+                if (fileFlag == 1)
                 {
                     casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big));
                 }
+                else if (fileFlag == 0x80)
+                {
+                    casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big), stream.ReadUInt32(Endian.Big));
+                }
+
                 uint offset = stream.ReadUInt32(Endian.Big);
                 int size = stream.ReadInt32(Endian.Big);
 
@@ -364,11 +376,16 @@ public class Manifest2019AssetLoader : IAssetLoader
 
             foreach (EbxAssetEntry ebx in bundle.EbxList)
             {
-                if (flags[z++])
+                byte fileFlag = flags[z++];
+                if (fileFlag == 1)
                 {
                     casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big));
                 }
-                
+                else if (fileFlag == 0x80)
+                {
+                    casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big), stream.ReadUInt32(Endian.Big));
+                }
+
                 uint offset = stream.ReadUInt32(Endian.Big);
                 ebx.Size = stream.ReadUInt32(Endian.Big);
                 
@@ -379,9 +396,14 @@ public class Manifest2019AssetLoader : IAssetLoader
 
             foreach (ResAssetEntry res in bundle.ResList)
             {
-                if (flags[z++])
+                byte fileFlag = flags[z++];
+                if (fileFlag == 1)
                 {
                     casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big));
+                }
+                else if (fileFlag == 0x80)
+                {
+                    casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big), stream.ReadUInt32(Endian.Big));
                 }
 
                 uint offset = stream.ReadUInt32(Endian.Big);
@@ -394,9 +416,14 @@ public class Manifest2019AssetLoader : IAssetLoader
 
             foreach (ChunkAssetEntry chunk in bundle.ChunkList)
             {
-                if (flags[z++])
+                byte fileFlag = flags[z++];
+                if (fileFlag == 1)
                 {
                     casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big));
+                }
+                else if (fileFlag == 0x80)
+                {
+                    casFileIdentifier = CasFileIdentifier.FromFileIdentifier(stream.ReadUInt32(Endian.Big), stream.ReadUInt32(Endian.Big));
                 }
 
                 uint offset = stream.ReadUInt32(Endian.Big);
@@ -406,6 +433,8 @@ public class Manifest2019AssetLoader : IAssetLoader
                 
                 AssetManager.AddChunk(chunk, bundleId);
             }
+            
+            flags.Dispose();
         }
 
         patchStream?.Dispose();

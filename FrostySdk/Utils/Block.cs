@@ -239,6 +239,15 @@ public unsafe class Block<T> : IDisposable where T : unmanaged
         return new Span<T>(Ptr, Size);
     }
 
+    public Block<TOther> ToBlock<TOther>() where TOther : unmanaged
+    {
+        if (!m_usable)
+        {
+            throw new ObjectDisposedException(ToString());
+        }
+        return new Block<TOther>((TOther*)Ptr, (Size * sizeof(T)) / sizeof(TOther));
+    }
+
     public Span<T> ToSpan(int inStart)
     {
         if (!m_usable)

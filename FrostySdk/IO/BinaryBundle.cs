@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Binary;
 using System.IO;
 using System.Security.Cryptography;
 using Frosty.Sdk.Managers;
@@ -37,8 +38,7 @@ public class BinaryBundle
         {
             endian = Endian.Little;
             uint value = (uint)magic ^ GetSalt();
-            magic = (Magic)((((value & 0x000000FFu) << 24) | ((value & 0x0000FF00u) << 8) |
-                             ((value & 0x00FF0000u) >> 8) | ((value & 0xFF000000u) >> 24)) ^ GetSalt());
+            magic = (Magic)(BinaryPrimitives.ReverseEndianness(value) ^ GetSalt());
 
             if (!IsValidMagic(magic))
             {
