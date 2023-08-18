@@ -1,6 +1,7 @@
 ﻿using Frosty.Controls;
 using Frosty.Hash;
 using System;
+using System.Data;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -57,8 +58,29 @@ namespace Frosty.Core.Controls.Editors
                 }
                 else if (valueType == typeof(long)) return long.Parse(strValue);
                 else if (valueType == typeof(ulong)) return ulong.Parse(strValue);
-                else if (valueType == typeof(float)) return float.Parse(strValue);
-                else if (valueType == typeof(double)) return double.Parse(strValue);
+
+                else if (valueType == typeof(float))
+                {
+                    if (float.TryParse(strValue, out float result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (float)mathResult;
+                    }
+                }
+                else if (valueType == typeof(double))
+                {
+                    if (double.TryParse(strValue, out double result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return mathResult;
+                    }
+                }
 
                 return 0;
             }
@@ -113,8 +135,29 @@ namespace Frosty.Core.Controls.Editors
                     }
                     else if (type == typeof(long)) long.Parse(strValue);
                     else if (type == typeof(ulong)) ulong.Parse(strValue);
-                    else if (type == typeof(float)) float.Parse(strValue);
-                    else if (type == typeof(double)) double.Parse(strValue);
+
+                    else if (type == typeof(float)) 
+                    {
+                        if (float.TryParse(strValue, out float _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+                    else if (type == typeof(double))
+                    {
+                        if (double.TryParse(strValue, out double _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
                 }
                 catch (Exception)
                 {
@@ -141,6 +184,21 @@ namespace Frosty.Core.Controls.Editors
             editor.VerticalContentAlignment = VerticalAlignment.Center;
             editor.Margin = new Thickness(-2, 0, 0, 0);
             editor.GotKeyboardFocus += (s, o) => { editor.SelectAll(); };
+            editor.AcceptsReturn = false;
+        }
+
+        private static bool TrySolve(string expression, out double result)
+        {
+            try
+            {
+                result = Convert.ToDouble(new DataTable().Compute(expression, null));
+                return true;
+            }
+            catch
+            {
+                result = double.NaN;
+                return false;
+            }
         }
     }
 }
