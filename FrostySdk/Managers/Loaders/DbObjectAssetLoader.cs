@@ -235,6 +235,13 @@ public class DbObjectAssetLoader : IAssetLoader
                     bool hasBase = baseBundleDic.TryGetValue(hash, out BundleInfo baseBundleInfo);
                     if (hasBase)
                     {
+                        if (baseStream == null || baseSbPath != bundleInfo.SbName)
+                        {
+                            baseSbPath = bundleInfo.SbName;
+                            baseStream?.Dispose();
+                            baseStream = BlockStream.FromFile(
+                                FileSystemManager.ResolvePath(false, $"{baseSbPath}.sb"), false);
+                        }
                         baseStream!.Position = baseBundleInfo.Offset;
                     }
 
@@ -242,10 +249,23 @@ public class DbObjectAssetLoader : IAssetLoader
 
                     BinaryBundle bundle = DeserializeDeltaBundle(baseStream, stream);
 
-                    throw new NotImplementedException("NonCas patched bundle");
-
                     // TODO: get asset refs from sb file similar to this (https://github.com/GreyDynamics/Frostbite3_Editor/blob/develop/src/tk/greydynamics/Resource/Frostbite3/Cas/NonCasBundle.java)
                     // or with a cache like before
+                    // this is just so u can load those games for now
+                    foreach (EbxAssetEntry ebx in bundle.EbxList)
+                    {
+                        AssetManager.AddEbx(ebx, bundleId);
+                    }
+
+                    foreach (ResAssetEntry res in bundle.ResList)
+                    {
+                        AssetManager.AddRes(res, bundleId);
+                    }
+
+                    foreach (ChunkAssetEntry chunk in bundle.ChunkList)
+                    {
+                        AssetManager.AddChunk(chunk, bundleId);
+                    }
                 }
                 else
                 {
@@ -422,7 +442,7 @@ public class DbObjectAssetLoader : IAssetLoader
             while (deltaStream.Position < bundleSize + startOffset)
             {
                 uint packed = deltaStream.ReadUInt32(Endian.Big);
-                uint instructionType = (packed & 0xF000000) >> 28;
+                uint instructionType = (packed & 0xF0000000) >> 28;
                 int blockData = (int)(packed & 0x0FFFFFFF);
 
                 switch (instructionType)
