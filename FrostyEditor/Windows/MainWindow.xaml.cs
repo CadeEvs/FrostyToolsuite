@@ -687,6 +687,17 @@ namespace FrostyEditor
             AddTab(ti);
         }
 
+        public AssetEntry GetOpenedAssetEntry()
+        {
+            FrostyTabItem firstTabItem = tabControl.SelectedItem as FrostyTabItem;
+            if (firstTabItem?.Content is FrostyAssetEditor editor)
+            {
+                return editor.AssetEntry;
+            }
+
+            return null;
+        }
+
         public void OpenAsset(AssetEntry asset, bool createDefaultEditor = true)
         {
             if (asset == null)
