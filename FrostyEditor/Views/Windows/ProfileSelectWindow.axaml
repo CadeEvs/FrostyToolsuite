@@ -33,9 +33,9 @@
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Content="{StaticResource ID_PROFILE_ADD}" Command="{Binding AddProfileCommand}"/>
-                <Button Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding CloseWindowCommand}"/>
+                <Button Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding SelectProfileCommand}"/>
             </StackPanel>
-            <Button Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CloseWindowCommand}"/>
+            <Button Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CancelCommand}"/>
         </Grid>
     </Grid>
 </Window>

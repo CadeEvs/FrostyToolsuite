@@ -4,11 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Tools"
+             xmlns:models="clr-namespace:FrostyEditor.Models"
              mc:Ignorable="d"
              d:DesignWidth="400" d:DesignHeight="150"
              x:DataType="vm:DataExplorerViewModel"
              x:CompileBindings="True">
-  <Grid RowDefinitions="Auto,Auto" >
-    <TextBlock Text="{Binding Test}" Margin="4" Grid.Row="0" />
+  <Grid>
+      <Grid.RowDefinitions>
+          <RowDefinition Height="2*"/>
+          <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      
+      <TreeDataGrid Grid.Row="0" Source="{Binding FolderSource}"/>
+      
+      <TreeDataGrid Grid.Row="1" Source="{Binding AssetsSource}"/>
+      
   </Grid>
 </UserControl>

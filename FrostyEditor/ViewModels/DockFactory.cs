@@ -59,7 +59,7 @@ public class DockFactory : Factory
                     (
                         dataExplorerViewModel
                     ),
-                    Alignment = Alignment.Right,
+                    Alignment = Alignment.Left,
                     GripMode = GripMode.Visible
                 }
             )

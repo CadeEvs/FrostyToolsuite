@@ -68,7 +68,7 @@ public static class ResourceManager
 
     private static Dictionary<Sha1, List<CasFileInfo>>? LoadEntries(InstallChunkInfo info, bool patch)
     {
-        string filePath = FileSystemManager.ResolvePath($"{(patch ? "native_patch" : "native_data")}/{info.InstallBundle}/cas.cat");
+        string filePath = FileSystemManager.ResolvePath(patch, $"{info.InstallBundle}/cas.cat");
 
         if (string.IsNullOrEmpty(filePath))
         {

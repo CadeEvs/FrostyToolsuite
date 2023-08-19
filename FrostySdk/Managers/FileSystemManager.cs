@@ -24,7 +24,7 @@ public static class FileSystemManager
 
     public static BundleFormat BundleFormat;
 
-    public static GamePlatform GamePlatform;
+    public static GamePlatform GamePlatform = GamePlatform.Invalid;
 
     public static DbObjectDict? Manifest;
 
@@ -194,6 +194,7 @@ public static class FileSystemManager
 
     public static int GetInstallChunkIndex(InstallChunkInfo info)
     {
+        // TODO: works for now, since we only call this for the cat which doesnt have a persistent index, but we should create a dict for the reverse thing
         return s_installChunks.IndexOf(info);
     }
     
@@ -233,7 +234,7 @@ public static class FileSystemManager
     
     private static bool LoadInitFs(string name)
     {
-        ParseGamePlatform(name);
+        ParseGamePlatform(name.Remove(0, 7));
         
         string path = ResolvePath(name);
         if (string.IsNullOrEmpty(path))
@@ -283,9 +284,12 @@ public static class FileSystemManager
         return true;
     }
 
-    private static void ParseGamePlatform(string initFsName)
+    private static void ParseGamePlatform(string platform)
     {
-        string platform = initFsName.Remove(0, 7);
+        if (GamePlatform != GamePlatform.Invalid)
+        {
+            return;
+        }
         switch (platform)
         {
             case "Win32":
@@ -318,6 +322,11 @@ public static class FileSystemManager
     {
         string baseLayoutPath = ResolvePath(false, "layout.toc");
         string patchLayoutPath = ResolvePath(true, "layout.toc");
+
+        if (string.IsNullOrEmpty(baseLayoutPath))
+        {
+            return false;
+        }
         
         // Process base layout.toc
         DbObjectDict? baseLayout = DbObject.Deserialize(baseLayoutPath)?.AsDict();
@@ -338,7 +347,7 @@ public static class FileSystemManager
             s_superBundles.Add(new SuperBundleInfo(superBundle.AsDict().AsString("name")));
         }
 
-        if (patchLayoutPath != "")
+        if (!string.IsNullOrEmpty(patchLayoutPath))
         {
             // Process patch layout.toc
             DbObjectDict? patchLayout = DbObject.Deserialize(patchLayoutPath)?.AsDict();
@@ -420,6 +429,13 @@ public static class FileSystemManager
         }
         else
         {
+            string platform = installManifest.AsString("platform");
+            if (!string.IsNullOrEmpty(platform))
+            {
+                ParseGamePlatform(platform);
+            }
+            
+            // check for platform, else we get it from the initFs
             foreach (DbObject installChunk in installManifest.AsList("installChunks"))
             {
                 if (installChunk.AsDict().AsBoolean("testDLC"))

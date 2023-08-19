@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,6 +10,7 @@ using Frosty.Sdk.Managers.Entries;
 using Frosty.Sdk.Managers.Loaders;
 using Frosty.Sdk.Managers.Patch;
 using Frosty.Sdk.Resources;
+using Frosty.Sdk.Utils;
 
 namespace Frosty.Sdk.Managers;
 
@@ -20,6 +20,8 @@ namespace Frosty.Sdk.Managers;
 public static class AssetManager
 {
     public static bool IsInitialized { get; private set; }
+    
+    public static ILogger? Logger { get; set; }
 
     private static readonly Dictionary<int, int> s_superBundlesNameHashHashMap = new();
     private static readonly List<SuperBundleEntry> s_superBundles = new();
@@ -67,25 +69,35 @@ public static class AssetManager
         if (!ReadCache(out List<EbxAssetEntry> prePatchEbx, out List<ResAssetEntry> prePatchRes,
                 out List<ChunkAssetEntry> prePatchChunks))
         {
-            ResourceManager.LoadInstallChunks();
-            
-            IAssetLoader assetLoader = GetAssetLoader();
-
             Stopwatch timer = new();
             
+            Logger?.Report("Sdk", "Loading FileInfos from catalogs");
+            
             timer.Start();
+            ResourceManager.LoadInstallChunks();
+            timer.Stop();
+            
+            Logger?.Report("Sdk", $"Loaded FileInfos from catalogs in {timer.Elapsed.Seconds} seconds");
+            
+            IAssetLoader assetLoader = GetAssetLoader();
+            
+            Logger?.Report("Sdk", "Loading Assets from SuperBundles");
+            
+            timer.Restart();
             assetLoader.Load();
             timer.Stop();
             
-            Console.WriteLine($"Loaded data from SuperBundles in {timer.Elapsed}");
+            Logger?.Report("Sdk", $"Loaded Assets from SuperBundles in {timer.Elapsed.Seconds} seconds");
             
             ResourceManager.CLearInstallChunks();
+            
+            Logger?.Report("Sdk", "Indexing Ebx");
             
             timer.Restart();
             DoEbxIndexing();
             timer.Stop();
             
-            Console.WriteLine($"Indexed ebx in {timer.Elapsed}");
+            Logger?.Report("Sdk", $"Indexed ebx in {timer.Elapsed}");
             
             WriteCache();
 
@@ -174,6 +186,8 @@ public static class AssetManager
                 prePatchChunks.Clear();
             }
         }
+        
+        Logger?.Report("Sdk", "Finished initializing");
         
         IsInitialized = true;
         return true;
@@ -361,6 +375,14 @@ public static class AssetManager
             yield return entry;
         }
     }
+    
+    public static IEnumerable<EbxAssetEntry> EnumerateEbxAssetEntries()
+    {
+        foreach (EbxAssetEntry entry in s_ebxAssetEntries)
+        {
+            yield return entry;
+        }
+    }
 
     /// <summary>
     /// Adds SuperBundle to the AssetManager.
@@ -520,6 +542,9 @@ public static class AssetManager
 
     private static void DoEbxIndexing()
     {
+        // TODO: implement GetAsset()
+        return;
+        
         if (s_ebxGuidHashMap.Count > 0)
         {
             return;
@@ -647,9 +672,11 @@ public static class AssetManager
                 }
             }
 
+            Logger?.Report("Sdk", "Loading ebx from cache");
             int ebxCount = stream.ReadInt32();
             for (int i = 0; i < ebxCount; i++)
             {
+                Logger?.Report(i / (double)ebxCount);
                 string name = stream.ReadNullTerminatedString();
 
                 EbxAssetEntry entry = new(name, stream.ReadSha1(), stream.ReadInt64(), stream.ReadInt64())
@@ -676,15 +703,21 @@ public static class AssetManager
                 }
                 else
                 {
-                    s_ebxGuidHashMap.Add(entry.Guid, s_ebxAssetEntries.Count);
+                    // TODO: remove this when the ebx indexing is working
+                    if (entry.Guid != Guid.Empty)
+                    {
+                        s_ebxGuidHashMap.Add(entry.Guid, s_ebxAssetEntries.Count);
+                    }
                     s_ebxNameHashHashMap.Add(Utils.Utils.HashString(name, true), s_ebxAssetEntries.Count);
                     s_ebxAssetEntries.Add(entry);
                 }
             }
-            
+
+            Logger?.Report("Sdk", "Loading res from cache");
             int resCount = stream.ReadInt32();
             for (int i = 0; i < resCount; i++)
             {
+                Logger?.Report(i / (double)resCount);
                 string name = stream.ReadNullTerminatedString();
 
                 ResAssetEntry entry = new(name, stream.ReadSha1(), stream.ReadInt64(), stream.ReadInt64(),
@@ -717,9 +750,11 @@ public static class AssetManager
                 }
             }
             
+            Logger?.Report("Sdk", "Loading chunks from cache");
             int chunkCount = stream.ReadInt32();
             for (int i = 0; i < chunkCount; i++)
             {
+                Logger?.Report(i / (double)chunkCount);
                 ChunkAssetEntry entry = new(stream.ReadGuid(), stream.ReadSha1(), stream.ReadInt64(),
                     stream.ReadUInt32(), stream.ReadUInt32());
 
