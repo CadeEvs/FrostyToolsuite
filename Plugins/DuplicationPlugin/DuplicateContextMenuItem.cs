@@ -111,7 +111,7 @@ namespace DuplicationPlugin
 
                 // Add new bundle
                 BundleEntry oldBundle = App.AssetManager.GetBundleEntry(newEntry.AddedBundles[0]);
-                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName, BundleType.SubLevel, oldBundle.SuperBundleId);
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.SubLevel, oldBundle.SuperBundleId);
 
                 newEntry.AddedBundles.Clear();
                 newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
