@@ -1,7 +1,7 @@
 {
   "Name": "NeedForSpeedHeat",
   "DisplayName": "Need for Speed™ Heat",
-  "InternalName": "NFSHEAT",
+  "InternalName": "nfsheat",
   "TypeInfoSignature": "",
   "DataVersion": 20191107,
   "FrostbiteVersion": "2018.2",
