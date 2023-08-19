@@ -2,7 +2,6 @@
   "Name": "FIFA21",
   "DisplayName": "FIFA 21",
   "InternalName": "fifa21",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20201001,
   "FrostbiteVersion": "2019.0",

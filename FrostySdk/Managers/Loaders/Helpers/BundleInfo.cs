@@ -8,6 +8,5 @@ internal struct BundleInfo
     public long Size;
     public bool IsDelta;
     public bool IsPatch;
-    public bool IsCas;
-    public bool IsDas;
+    public bool IsNonCas;
 }

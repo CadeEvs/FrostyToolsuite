@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
 using Frosty.Sdk.Interfaces;
@@ -33,29 +34,55 @@ public class BlockStream : DataStream
     {
         using (FileStream stream = new(inPath, FileMode.Open, FileAccess.Read))
         {
-            BlockStream retVal;
+            BlockStream? retVal;
             if (inShouldDeobfuscate)
             {
-                Span<byte> header = stackalloc byte[0x22C];
-                stream.ReadExactly(header);
-
-                if (header[0] == 0x00 && header[1] == 0xD1 && header[2] == 0xCE &&
-                    (header[3] == 0x00 || header[3] == 0x01 || header[3] == 0x03)) // version 0 is not used in fb3
+                if (CheckExtraObfuscation(stream, out int keySize))
                 {
-                    retVal = new BlockStream((int)(stream.Length - 0x22C));
-                    stream.ReadExactly(retVal.m_block.ToSpan());
-                    
-                    // deobfuscate the data
-                    IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();
-                    deobfuscator?.Deobfuscate(header, retVal.m_block);
-                    
-                    return retVal;
+                    int size = (int)(stream.Length - keySize);
+                    using (Block<byte> data = new Block<byte>(size))
+                    {
+                        stream.ReadExactly(data);
+                
+                        // this is not how the game actually decrypts the data, but also seems to work
+                        // look at https://github.com/CadeEvs/FrostyToolsuite/blob/1.0.6.2/FrostySdk/Deobfuscators/MEADeobfuscator.cs for actual decryption algorithm
+                        byte initialValue = data[0];
+                        byte key = data[0];
+                        for (int i = 0; i < size; i++)
+                        {
+                            byte nextKey = (byte)(((initialValue ^ data[i]) - i % 256) & 0xFF);
+                            data[i] ^= key;
+                            key = nextKey;
+                        }
+
+                        Span<byte> header = data.ToSpan();
+                        data.Shift(0x22c);
+
+                        using (Stream dataStream = data.ToStream())
+                        {
+                            if (Deobfuscate(header, dataStream, out retVal))
+                            {
+                                return retVal;
+                            }   
+                        }
+                    }
                 }
+                else
+                {
+                    Span<byte> header = stackalloc byte[0x22C];
+                    stream.ReadExactly(header);
+
+                    if (Deobfuscate(header, stream, out retVal))
+                    {
+                        return retVal;
+                    }
+                }
+
                 stream.Position = 0;
             }
 
             retVal = new BlockStream((int)stream.Length);
-            stream.ReadExactly(retVal.m_block.ToSpan());
+            stream.ReadExactly(retVal.m_block);
             return retVal;
         }
     }
@@ -71,28 +98,19 @@ public class BlockStream : DataStream
         wasObfuscated = false;
         using (FileStream stream = new(inPath, FileMode.Open, FileAccess.Read))
         {
-            BlockStream retVal;
             Span<byte> header = stackalloc byte[0x22C];
             stream.ReadExactly(header);
 
-            if (header[0] == 0x00 && header[1] == 0xD1 && header[2] == 0xCE &&
-                (header[3] == 0x00 || header[3] == 0x01 || header[3] == 0x03)) // version 0 is not used in fb3
+            if (Deobfuscate(header, stream, out BlockStream? retVal))
             {
                 wasObfuscated = true;
-                
-                retVal = new BlockStream((int)(stream.Length - 0x22C));
-                stream.ReadExactly(retVal.m_block.ToSpan());
-                    
-                // deobfuscate the data
-                IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();
-                deobfuscator?.Deobfuscate(header, retVal.m_block);
-                    
                 return retVal;
             }
+            
             stream.Position = 0;
 
             retVal = new BlockStream((int)stream.Length);
-            stream.ReadExactly(retVal.m_block.ToSpan());
+            stream.ReadExactly(retVal.m_block);
             return retVal;
         }
     }
@@ -112,7 +130,7 @@ public class BlockStream : DataStream
 
             BlockStream retVal = new(inSize);
             
-            stream.ReadExactly(retVal.m_block.ToSpan());
+            stream.ReadExactly(retVal.m_block);
             return retVal;
         }
     }
@@ -127,11 +145,8 @@ public class BlockStream : DataStream
         using (Aes aes = Aes.Create())
         {
             aes.Key = inKey;
-            long curPos = Position;
-            m_block.Shift((int)Position);
-            aes.DecryptCbc(m_block.ToSpan(), inKey, m_block.ToSpan(), inPaddingMode);
-            m_block.ResetShift();
-            Position = curPos;
+            Span<byte> span = m_block.ToSpan((int)Position);
+            aes.DecryptCbc(span, inKey, span, inPaddingMode);
         }
     }
 
@@ -146,11 +161,8 @@ public class BlockStream : DataStream
         using (Aes aes = Aes.Create())
         {
             aes.Key = inKey;
-            long curPos = Position;
-            m_block.Shift((int)Position);
-            aes.DecryptCbc(m_block.Slice(0, inSize).ToSpan(), inKey, m_block.Slice(0, inSize).ToSpan(), inPaddingMode);
-            m_block.ResetShift();
-            Position = curPos;
+            Span<byte> span = m_block.ToSpan((int)Position, inSize);
+            aes.DecryptCbc(span, inKey, span, inPaddingMode);
         }
     }
 
@@ -159,5 +171,49 @@ public class BlockStream : DataStream
         base.Dispose();
         m_block.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private static bool CheckExtraObfuscation(Stream inStream, out int keySize)
+    {
+        keySize = 0;
+        
+        // read signature
+        inStream.Seek(-36, SeekOrigin.End);
+        Span<byte> signature = stackalloc byte[36];
+        inStream.ReadExactly(signature);
+        inStream.Position = 0;
+
+        // check signature
+        const string magic = "@e!adnXd$^!rfOsrDyIrI!xVgHeA!6Vc";
+        for (int i = 0; i < 32; i++)
+        {
+            if (signature[i + 4] != magic[i])
+            {
+                return false;
+            }
+        }
+        
+        // get key size
+        keySize = signature[3] << 24 | signature[2] << 16 | signature[1] << 8 | signature[0] << 0;
+        return true;
+    }
+
+    private static bool Deobfuscate(Span<byte> inHeader, Stream inStream, [NotNullWhen(returnValue:true)] out BlockStream? stream)
+    {
+        if (!(inHeader[0] == 0x00 && inHeader[1] == 0xD1 && inHeader[2] == 0xCE &&
+             (inHeader[3] == 0x00 || inHeader[3] == 0x01 || inHeader[3] == 0x03))) // version 0 is not used in fb3
+        {
+            stream = null;
+            return false;
+        }
+        
+        stream = new BlockStream((int)(inStream.Length - 0x22C));
+        inStream.ReadExactly(stream.m_block);
+                    
+        // deobfuscate the data
+        IDeobfuscator? deobfuscator = FileSystemManager.CreateDeobfuscator();
+        deobfuscator?.Deobfuscate(inHeader, stream.m_block);
+                    
+        return true;
     }
 }

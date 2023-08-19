@@ -244,7 +244,7 @@ public unsafe class DataStream : IDisposable
         {
             return new Guid(BinaryPrimitives.ReadInt32BigEndian(span),
                 BinaryPrimitives.ReadInt16BigEndian(span[4..]), BinaryPrimitives.ReadInt16BigEndian(span[6..]),
-                span[8], span[9], span[10], span[11], span[12], span[13], span[14], span[15]);
+                span[8..].ToArray());
         }
 
         return new Guid(span);

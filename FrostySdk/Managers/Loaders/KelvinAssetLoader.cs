@@ -21,10 +21,10 @@ public class KelvinAssetLoader : IAssetLoader
             {
                 if (installChunk.Value.HasFlag(InstallChunkType.Default))
                 {
-                    string tocPath = FileSystemManager.ResolvePath($"native_patch/{sbInfo.Name}.toc");
+                    string tocPath = FileSystemManager.ResolvePath(true, $"{sbInfo.Name}.toc");
                     if (string.IsNullOrEmpty(tocPath))
                     {
-                        tocPath = FileSystemManager.ResolvePath($"native_data/{sbInfo.Name}.toc");
+                        tocPath = FileSystemManager.ResolvePath(false, $"{sbInfo.Name}.toc");
                         if (string.IsNullOrEmpty(tocPath))
                         {
                             continue;
@@ -42,10 +42,10 @@ public class KelvinAssetLoader : IAssetLoader
 
                     string sbName = $"{installChunkInfo.InstallBundle}{sbInfo.Name[sbInfo.Name.IndexOf("/", StringComparison.Ordinal)..]}";
 
-                    string tocPath = FileSystemManager.ResolvePath($"native_patch/{sbName}.toc");
+                    string tocPath = FileSystemManager.ResolvePath(true, $"{sbName}.toc");
                     if (string.IsNullOrEmpty(tocPath))
                     {
-                        tocPath = FileSystemManager.ResolvePath($"native_data/{sbName}.toc");
+                        tocPath = FileSystemManager.ResolvePath(false, $"{sbName}.toc");
                         if (string.IsNullOrEmpty(tocPath))
                         {
                             continue;

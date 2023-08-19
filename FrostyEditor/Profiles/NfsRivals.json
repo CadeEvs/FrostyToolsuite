@@ -1,8 +1,7 @@
-{
+﻿{
   "Name": "NFS14",
   "DisplayName": "Need for Speed™ Rivals",
   "InternalName": "nfs14",
-  "Deobfuscator": "Legacy",
   "TypeInfoSignature" : "",
   "HasStrippedTypeNames": false,
   "DataVersion": 20131118,

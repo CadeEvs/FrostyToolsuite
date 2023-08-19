@@ -27,8 +27,6 @@ public class PathFileInfo : IFileInfo
 
     public bool IsComplete() => m_logicalOffset != 0;
 
-    public long GetSize() => m_size;
-
     public Block<byte> GetRawData()
     {
         using (FileStream stream = new(FileSystemManager.ResolvePath(m_path), FileMode.Open, FileAccess.Read))
@@ -37,7 +35,7 @@ public class PathFileInfo : IFileInfo
 
             Block<byte> retVal = new((int)m_size);
             
-            stream.ReadExactly(retVal.ToSpan());
+            stream.ReadExactly(retVal);
             return retVal;
         }
     }
@@ -58,12 +56,10 @@ public class PathFileInfo : IFileInfo
         stream.WriteUInt32(m_logicalOffset);
     }
 
-    void IFileInfo.DeserializeInternal(DataStream stream)
+    internal static PathFileInfo DeserializeInternal(DataStream stream)
     {
-        m_path = stream.ReadNullTerminatedString();
-        m_offset = stream.ReadUInt32();
-        m_size = stream.ReadUInt32();
-        m_logicalOffset = stream.ReadUInt32();
+        return new PathFileInfo(stream.ReadNullTerminatedString(), stream.ReadUInt32(), stream.ReadUInt32(),
+            stream.ReadUInt32());
     }
 
     public bool Equals(PathFileInfo b)

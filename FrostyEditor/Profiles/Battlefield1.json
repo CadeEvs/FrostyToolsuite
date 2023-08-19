@@ -2,10 +2,10 @@
   "Name": "bf1",
   "DisplayName": "Battlefield™ 1",
   "InternalName": "bf1",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20161012,
-  "FrostbiteVersion": "2014.4.11",
+  "_comment": "Actual version 2014.4.11, it seems like for some reason they forgot to update it, since its different from other games using that version.",
+  "FrostbiteVersion": "2014.4.17",
   "HasStrippedTypeNames": false,
   "Sources": [
     {

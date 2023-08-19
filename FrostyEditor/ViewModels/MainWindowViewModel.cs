@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -11,7 +10,6 @@ using Dock.Model.Core;
 using Frosty.Sdk;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers;
-using Frosty.Sdk.Sdk;
 using FrostyEditor.ViewModels.Documents;
 
 namespace FrostyEditor.ViewModels;
@@ -33,109 +31,96 @@ public partial class MainWindowViewModel : ObservableObject, IDropTarget
         {
             m_factory.InitLayout(Layout);
         }
-        
-    }
-    public MainWindowViewModel(string inProfileKey, string inProfilePath)
-    {
-        // Setup Docking
-        Layout = m_factory.CreateLayout();
-        if (Layout is not null)
-        {
-            m_factory.InitLayout(Layout);
-        }
-        
-        // Setup FrostySdk
-        if (!SetupFrostySdk(inProfileKey, inProfilePath))
-        {
-            // TODO: show error and close
-        }
     }
 
-    private bool SetupFrostySdk(string inProfileKey, string inProfilePath)
+    public static async Task<bool> SetupFrostySdk(string inProfileKey, string inProfilePath)
     {
-        if (!ProfilesLibrary.Initialize(inProfileKey))
+        return await Task.Run(() =>
         {
-            return false;
-        }
-
-        if (ProfilesLibrary.RequiresKey)
-        {
-            // TODO: key window
-            string keyPath = $"Keys/{ProfilesLibrary.InternalName}.key";
-            if (File.Exists(keyPath))
+            if (!ProfilesLibrary.Initialize(inProfileKey))
             {
-                using (BlockStream stream = BlockStream.FromFile(keyPath, false))
-                {
-                    if (stream.Length < 0x10)
-                    {
-                        return false;
-                    }
-                    
-                    byte[] initFsKey = new byte[0x10];
-                    stream.ReadExactly(initFsKey);
-                    KeyManager.AddKey("InitFsKey", initFsKey);
+                return false;
+            }
 
-                    if (stream.Length > 0x10)
+            if (ProfilesLibrary.RequiresKey)
+            {
+                // TODO: key window
+                string keyPath = $"Keys/{ProfilesLibrary.InternalName}.key";
+                if (File.Exists(keyPath))
+                {
+                    using (BlockStream stream = BlockStream.FromFile(keyPath, false))
                     {
-                        // TODO: add other keys
+                        if (stream.Length < 0x10)
+                        {
+                            return false;
+                        }
+                        
+                        byte[] initFsKey = new byte[0x10];
+                        stream.ReadExactly(initFsKey);
+                        KeyManager.AddKey("InitFsKey", initFsKey);
+
+                        if (stream.Length > 0x10)
+                        {
+                            // TODO: add other keys
+                        }
                     }
                 }
             }
-        }
-            
-        // init filesystem manager, this parses the layout.toc file
-        if (!FileSystemManager.Initialize(inProfilePath))
-        {
-            return false;
-        }
-
-        // generate sdk if needed
-        string sdkPath = $"Sdk/{ProfilesLibrary.SdkFilename}.dll";
-        if (!File.Exists(sdkPath))
-        {
-            TypeSdkGenerator typeSdkGenerator = new();
-            
-            Process.Start($"{FileSystemManager.BasePath}{ProfilesLibrary.ProfileName}");
-            
-            // sleep 10 seconds to give ea time to launch the game
-            Thread.Sleep(10 * 100);
-            
-            Process? game = null;
-            while (game is null)
+                
+            // init filesystem manager, this parses the layout.toc file
+            if (!FileSystemManager.Initialize(inProfilePath))
             {
-                game = Process.GetProcessesByName(ProfilesLibrary.ProfileName).FirstOrDefault();
+                return false;
             }
+
+            // generate sdk if needed
+            string sdkPath = $"Sdk/{ProfilesLibrary.SdkFilename}.dll";
+            // if (!File.Exists(sdkPath))
+            // {
+            //     TypeSdkGenerator typeSdkGenerator = new();
+            //     
+            //     Process.Start($"{FileSystemManager.BasePath}{ProfilesLibrary.ProfileName}");
+            //     
+            //     // sleep 10 seconds to give ea time to launch the game
+            //     Thread.Sleep(10 * 100);
+            //     
+            //     Process? game = null;
+            //     while (game is null)
+            //     {
+            //         game = Process.GetProcessesByName(ProfilesLibrary.ProfileName).FirstOrDefault();
+            //     }
+            //     
+            //     if (!typeSdkGenerator.DumpTypes(game))
+            //     {
+            //         return false;
+            //     }
+            //     
+            //     if (!typeSdkGenerator.CreateSdk(sdkPath))
+            //     {
+            //         return false;
+            //     }
+            // }
+            //
+            // // init type library, this loads the EbxTypeSdk used to properly parse ebx assets
+            // if (!TypeLibrary.Initialize())
+            // {
+            //     return false;
+            // }
             
-            if (!typeSdkGenerator.DumpTypes(game))
+            // init resource manager, this parses the cas.cat files if they exist for easy asset lookup
+            if (!ResourceManager.Initialize())
             {
                 return false;
             }
             
-            if (!typeSdkGenerator.CreateSdk(sdkPath))
+            // init asset manager, this parses the SuperBundles and loads all the assets
+            if (!AssetManager.Initialize())
             {
                 return false;
             }
-        }
-        
-        // init type library, this loads the EbxTypeSdk used to properly parse ebx assets
-        if (!TypeLibrary.Initialize())
-        {
-            return false;
-        }
-        
-        // init resource manager, this parses the cas.cat files if they exist for easy asset lookup
-        if (!ResourceManager.Initialize())
-        {
-            return false;
-        }
-        
-        // init asset manager, this parses the SuperBundles and loads all the assets
-        if (!AssetManager.Initialize())
-        {
-            return false;
-        }
 
-        return true;
+            return true;
+        });
     }
 
     private void AddFileViewModel(FileViewModel fileViewModel)

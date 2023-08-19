@@ -2,6 +2,7 @@ namespace Frosty.Sdk.Managers;
 
 public enum GamePlatform
 {
+    Invalid = -1,
     /// <summary>
     /// Windows
     /// </summary>

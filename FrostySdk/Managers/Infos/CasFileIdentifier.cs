@@ -13,6 +13,11 @@ public readonly struct CasFileIdentifier
         return new CasFileIdentifier(((file >> 16) & 0xFF) != 0, (int)((file >> 8) & 0xFF), (int)((file >> 0) & 0xFF));
     }
 
+    public static CasFileIdentifier FromFileIdentifier(uint file1, uint file2)
+    {
+        return new CasFileIdentifier(((file1 >> 16) & 0xFF) != 0, (int)(((file1 << 16) & 0xFFFF0000) | ((file2 >> 16) & 0xFFFF)), (int)((file2 >> 0) & 0xFFFF));
+    }
+
     public static uint ToFileIdentifier(CasFileIdentifier file)
     {
         return (uint)((file.IsPatch ? 1 << 16 : 0) | (file.InstallChunkIndex << 8) | (file.CasIndex));

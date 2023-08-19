@@ -2,7 +2,6 @@
   "Name": "bf4",
   "DisplayName": "Battlefield™ 4",
   "InternalName": "bf4",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20131101,
   "FrostbiteVersion": "2013.2",

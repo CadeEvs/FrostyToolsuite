@@ -1,7 +1,6 @@
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
-using System.IO;
 using System.Security.Cryptography;
 using Frosty.Sdk.Ebx;
 using Frosty.Sdk.IO;
@@ -34,39 +33,36 @@ public static class Utils
         Guid outGuid;
 
         int createCount = 0;
-        foreach (object obj in objects)
+        HashSet<Guid> existingGuids = new();
+        foreach (dynamic obj in objects)
+        {
+            AssetClassGuid objGuid = obj.GetInstanceGuid();
+            existingGuids.Add(objGuid.ExportedGuid);
             createCount++;
+        }
+        
+        Block<byte> buffer = new(stackalloc byte[20]);
 
+        Span<byte> result = stackalloc byte[16];
         while (true)
         {
             // generate a deterministic unique guid
-            using (DataStream writer = new (new MemoryStream()))
+            using (DataStream writer = new(buffer.ToStream()))
             {
                 writer.WriteGuid(fileGuid);
                 writer.WriteInt32(++createCount);
+            }
 
-                using (MD5 md5 = MD5.Create())
-                {
-                    outGuid = Guid.Empty;//new Guid(md5.ComputeHash(writer.ToByteArray()));
-                    bool bFound = false;
-                    foreach (dynamic obj in objects)
-                    {
-                        AssetClassGuid objGuid = obj.GetInstanceGuid();
-                        if (objGuid.ExportedGuid == outGuid)
-                        {
-                            // try again
-                            bFound = true;
-                            break;
-                        }
-                    }
+            MD5.HashData(buffer.ToSpan(), result);
+            outGuid = new Guid(result);
 
-                    if (!bFound)
-                    {
-                        break;
-                    }
-                }
+            if (!existingGuids.Contains(outGuid))
+            {
+                break;
             }
         }
+        
+        buffer.Dispose();
 
         return outGuid;
     }

@@ -2,7 +2,6 @@
   "Name": "BF2042",
   "DisplayName": "Battlefield™ 2042",
   "InternalName": "bf2042",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20211119,
   "FrostbiteVersion": "2021.1.1",

@@ -2,7 +2,6 @@
   "Name": "FIFA17",
   "DisplayName": "FIFA 17",
   "InternalName": "fifa17",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20160927,
   "FrostbiteVersion": "2015.4",

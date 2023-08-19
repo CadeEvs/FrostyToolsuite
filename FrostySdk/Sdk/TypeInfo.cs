@@ -18,10 +18,10 @@ internal class TypeInfo
                 // 2013.2, 2014.1
                 return 1;
             }
-            if (ProfilesLibrary.FrostbiteVersion <= "2014.4.11")
+            if (ProfilesLibrary.FrostbiteVersion <= "2014.4.17")
             {
                 // ushort FieldCount
-                // 2014.4.11
+                // 2014.4.11, 2014.4.17
                 return 2;
             }
             if (ProfilesLibrary.FrostbiteVersion <= "2015.4.6")
@@ -30,10 +30,10 @@ internal class TypeInfo
                 // 2015.4, 2015.4.6
                 return 3;
             }
-            if (ProfilesLibrary.FrostbiteVersion <= "2016.4.7" || ProfilesLibrary.IsLoaded(ProfileVersion.StarWarsBattlefrontII, ProfileVersion.Battlefield5))
+            if (ProfilesLibrary.FrostbiteVersion <= "2016.4.7")
             {
                 // Signature Guid in TypeInfo
-                // 2016.4.1, 2016.4.4, 2016.4.7, 2018.0 (BfV), 2019-PR5 (SWBfII)
+                // 2016.4.1, 2016.4.4, 2016.4.7, (2018.0 (BfV), 2019-PR5 (SWBfII) -> changed to 2016.4.4)
                 return 4;
             }
             if (ProfilesLibrary.FrostbiteVersion <= "2018.2")
@@ -126,10 +126,10 @@ internal class TypeInfo
         if (Version == 4)
         {
             m_data.SetGuid(reader.ReadGuid());
-            reader.ReadGuid();
         }
-        if (Version == 5)
+        if (Version == 4 || Version == 5)
         {
+            // signature
             reader.ReadGuid();
         }
 

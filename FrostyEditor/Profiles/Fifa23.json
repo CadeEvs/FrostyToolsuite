@@ -2,7 +2,6 @@
   "Name": "FIFA23",
   "DisplayName": "FIFA 23",
   "InternalName": "fifa23",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20220930,
   "FrostbiteVersion": "2021.2.0",

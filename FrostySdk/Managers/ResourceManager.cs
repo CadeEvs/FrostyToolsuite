@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Frosty.Sdk.Interfaces;
@@ -14,9 +15,11 @@ public static class ResourceManager
 {
     public static bool IsInitialized { get; private set; }
     
-    private static readonly Dictionary<Sha1, List<IFileInfo>> s_resourceEntries = new();
+    private static readonly Dictionary<Sha1, (List<CasFileInfo>, bool)> s_resourceEntries = new();
 
     private static readonly List<CatPatchEntry> s_patchEntries = new();
+
+    private static readonly Dictionary<Sha1, uint> s_sizeMap = new();
 
     public static void LoadInstallChunks()
     {
@@ -24,36 +27,55 @@ public static class ResourceManager
         {
             LoadInstallChunk(installChunkInfo);
         }
-
-        foreach (CatPatchEntry entry in s_patchEntries)
-        {
-            List<IFileInfo> baseEntry = s_resourceEntries[entry.BaseSha1];
-            List<IFileInfo> deltaEntry = s_resourceEntries[entry.DeltaSha1];
-            
-            for (int j = 0; j < baseEntry.Count; j++)
-            {
-                PatchFileInfo fileInfo = new(deltaEntry[j], baseEntry[j]);
-                
-                s_resourceEntries.TryAdd(entry.Sha1, new List<IFileInfo>());
-                s_resourceEntries[entry.Sha1].Add(fileInfo);
-            }
-        }
     }
     
     private static void LoadInstallChunk(InstallChunkInfo info)
     {
-        LoadEntries(info, true);
-        LoadEntries(info, false);
-    }
+        Dictionary<Sha1, List<CasFileInfo>>? deltaInfos = LoadEntries(info, true);
+        Dictionary<Sha1, List<CasFileInfo>>? baseInfos = LoadEntries(info, false);
 
-    private static void LoadEntries(InstallChunkInfo info, bool patch)
-    {
-        string filePath = FileSystemManager.ResolvePath($"{(patch ? "native_patch" : "native_data")}/{info.InstallBundle}/cas.cat");
-
-        if (string.IsNullOrEmpty(filePath))
+        if (deltaInfos is null)
         {
             return;
         }
+        
+        List<CasFileInfo>? baseFileInfos = null;
+        foreach (CatPatchEntry entry in s_patchEntries)
+        {
+            bool containsBase = baseInfos?.TryGetValue(entry.BaseSha1, out baseFileInfos) == true;
+
+            if (!deltaInfos.TryGetValue(entry.DeltaSha1, out List<CasFileInfo>? deltaFileInfos))
+            {
+                throw new Exception();
+            }
+            
+            Debug.Assert(deltaFileInfos.Count == 1, "More than one Delta entry.");
+
+            CasFileInfo? baseInfo = null; 
+            if (containsBase)
+            {
+                // no idea why there are sometimes more than one base entry
+                Debug.Assert(baseFileInfos!.Count >= 1);
+                baseInfo = baseFileInfos[0];
+            }
+            
+            CasFileInfo fileInfo = new(baseInfo?.GetBase(), deltaFileInfos[0].GetBase());
+            s_resourceEntries.TryAdd(entry.Sha1, (new List<CasFileInfo>(), false));
+            s_resourceEntries[entry.Sha1].Item1.Add(fileInfo);
+        }
+        s_patchEntries.Clear();
+    }
+
+    private static Dictionary<Sha1, List<CasFileInfo>>? LoadEntries(InstallChunkInfo info, bool patch)
+    {
+        string filePath = FileSystemManager.ResolvePath(patch, $"{info.InstallBundle}/cas.cat");
+
+        if (string.IsNullOrEmpty(filePath))
+        {
+            return null;
+        }
+
+        Dictionary<Sha1, List<CasFileInfo>> retVal = new();
         
         int installChunkIndex = FileSystemManager.GetInstallChunkIndex(info);
         
@@ -66,8 +88,16 @@ public static class ResourceManager
 
                 CasFileInfo fileInfo = new(casFileIdentifier, entry.Offset, entry.Size, entry.LogicalOffset);
                 
-                s_resourceEntries.TryAdd(entry.Sha1, new List<IFileInfo>());
-                s_resourceEntries[entry.Sha1].Add(fileInfo);
+                s_resourceEntries.TryAdd(entry.Sha1, (new List<CasFileInfo>(), false));
+                s_resourceEntries[entry.Sha1].Item1.Add(fileInfo);
+
+                if (!s_sizeMap.TryAdd(entry.Sha1, entry.Size))
+                {
+                    s_sizeMap[entry.Sha1] = Math.Max(s_sizeMap[entry.Sha1], entry.Size);
+                }
+                
+                retVal.TryAdd(entry.Sha1, new List<CasFileInfo>());
+                retVal[entry.Sha1].Add(fileInfo);
             }
         
             for (int i = 0; i < stream.EncryptedCount; i++)
@@ -75,18 +105,29 @@ public static class ResourceManager
                 CatResourceEntry entry = stream.ReadEncryptedEntry();
                 CasFileIdentifier casFileIdentifier = new(patch, installChunkIndex, entry.ArchiveIndex);
 
-                CryptoCasFileInfo fileInfo = new(casFileIdentifier, entry.Offset, entry.Size, entry.LogicalOffset,
-                    entry.KeyId, entry.Checksum);
+                CasFileInfo fileInfo = new(casFileIdentifier, entry.Offset, entry.Size, entry.LogicalOffset,
+                    entry.KeyId);
                 
-                s_resourceEntries.TryAdd(entry.Sha1, new List<IFileInfo>());
-                s_resourceEntries[entry.Sha1].Add(fileInfo);
+                s_resourceEntries.TryAdd(entry.Sha1, (new List<CasFileInfo>(), false));
+                s_resourceEntries[entry.Sha1].Item1.Add(fileInfo);
+
+                if (!s_sizeMap.TryAdd(entry.Sha1, entry.Size))
+                {
+                    s_sizeMap[entry.Sha1] = Math.Max(s_sizeMap[entry.Sha1], entry.Size);
+                }
+                
+                retVal.TryAdd(entry.Sha1, new List<CasFileInfo>());
+                retVal[entry.Sha1].Add(fileInfo);
             }
         
             for (int i = 0; i < stream.PatchCount; i++)
             {
-                s_patchEntries.Add(stream.ReadPatchEntry());
+                var entry = stream.ReadPatchEntry();
+                s_patchEntries.Add(entry);
             }
         }
+
+        return retVal;
     }
 
     public static void CLearInstallChunks()
@@ -114,7 +155,7 @@ public static class ResourceManager
         
         if (FileSystemManager.HasFileInMemoryFs("Scripts/CasEncrypt.yaml"))
         {
-            // load casencrypt.yaml from memoryFs
+            // load CasEncrypt.yaml from memoryFs (used for decrypting data in cas files)
             using (TextReader stream = new StreamReader(new MemoryStream(FileSystemManager.GetFileFromMemoryFs("Scripts/CasEncrypt.yaml"))))
             {
                 byte[]? key = null;
@@ -147,43 +188,48 @@ public static class ResourceManager
 
     public static long GetSize(Sha1 sha1)
     {
-        if (!s_resourceEntries.TryGetValue(sha1, out List<IFileInfo>? fileInfos))
-        {
-            return -1;
-        }
-
-        return fileInfos.First(fi => fi.IsComplete()).GetSize();
+        return s_sizeMap.TryGetValue(sha1, out uint size) ? size : -1;
     }
 
     public static IEnumerable<IFileInfo>? GetPatchFileInfos(Sha1 sha1, Sha1 deltaSha1, Sha1 baseSha1)
     {
-        if (s_resourceEntries.TryGetValue(sha1, out List<IFileInfo>? _))
+        if (!s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos))
+        {
+            return null;
+        }
+
+        if (fileInfos.Item2)
         {
             return null;
         }
         
-        List<IFileInfo> baseInfos = s_resourceEntries[baseSha1];
-        List<IFileInfo> deltaEntry = s_resourceEntries[deltaSha1];
+        List<CasFileInfo> baseInfos = s_resourceEntries[baseSha1].Item1;
+        List<CasFileInfo> deltaInfos = s_resourceEntries[deltaSha1].Item1;
 
         for (int j = 0; j < baseInfos.Count; j++)
         {
-            PatchFileInfo fileInfo = new(deltaEntry[j], baseInfos[j]);
-                    
-            s_resourceEntries.TryAdd(sha1, new List<IFileInfo>());
-            s_resourceEntries[sha1].Add(fileInfo);
+            CasFileInfo fileInfo = new(deltaInfos[j].GetBase(), baseInfos[j].GetBase());
+            
+            s_resourceEntries.TryAdd(sha1, (new List<CasFileInfo>(), true));
+            s_resourceEntries[sha1].Item1.Add(fileInfo);
         }
 
-        return s_resourceEntries[sha1];
+        return s_resourceEntries[sha1].Item1;
     }
 
     public static IEnumerable<IFileInfo>? GetFileInfos(Sha1 sha1)
     {
-        if (!s_resourceEntries.TryGetValue(sha1, out List<IFileInfo>? fileInfos))
+        if (!s_resourceEntries.TryGetValue(sha1, out (List<CasFileInfo>, bool) fileInfos))
         {
             return null;
         }
 
-        s_resourceEntries.Remove(sha1);
-        return fileInfos;
+        if (fileInfos.Item2)
+        {
+            return null;
+        }
+
+        fileInfos.Item2 = true;
+        return fileInfos.Item1;
     }
 }

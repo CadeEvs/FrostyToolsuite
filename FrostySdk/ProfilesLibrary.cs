@@ -15,7 +15,6 @@ public static class ProfilesLibrary
     public static string ProfileName => s_effectiveProfile?.Name ?? string.Empty;
     public static string DisplayName => s_effectiveProfile?.DisplayName ?? string.Empty;
     public static string InternalName => s_effectiveProfile?.InternalName?? string.Empty;
-    public static string Deobfuscator => s_effectiveProfile?.Deobfuscator ?? string.Empty;
     public static string TypeInfoSignature => s_effectiveProfile?.TypeInfoSignature ?? string.Empty;
     public static bool HasStrippedTypeNames => s_effectiveProfile?.HasStrippedTypeNames ?? false;
     public static int DataVersion => s_effectiveProfile?.DataVersion ?? -1;

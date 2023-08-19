@@ -11,6 +11,7 @@ using CommunityToolkit.Mvvm.Input;
 using Frosty.Sdk;
 using FrostyEditor.Utils;
 using FrostyEditor.Views;
+using FrostyEditor.Views.Windows;
 
 namespace FrostyEditor.ViewModels.Windows;
 
@@ -61,21 +62,17 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task AddProfile()
     {
-        TopLevel? topLevel = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-            ?.MainWindow;
+        IReadOnlyList<IStorageFile>? files = await FileService.OpenFilesAsync(new FilePickerOpenOptions
+        {
+            Title = "Select Game Executable",
+            AllowMultiple = false
+        });
 
-        if (topLevel is null)
+        if (files is null)
         {
             return;
         }
         
-        // Start async operation to open the dialog.
-        IReadOnlyList<IStorageFile> files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Select Game",
-            AllowMultiple = false
-        });
-
         foreach (IStorageFile file in files)
         {
             string key = Path.GetFileNameWithoutExtension(file.Name);
@@ -86,32 +83,36 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void CloseWindow()
+    private void SelectProfile()
     {
         if (SelectedProfile is not null && Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
         {
             Window? window = desktopLifetime.MainWindow;
 
-            MainWindowViewModel mainWindowViewModel = new(SelectedProfile.Key, SelectedProfile.Path);
-            MainWindow mainWindow = new()
+            ProfileTaskWindowViewModel viewModel = new();
+            
+            desktopLifetime.MainWindow = new ProfileTaskWindow
             {
-                DataContext = mainWindowViewModel
-            };
-
-            mainWindow.Closing += (_, _) =>
-            {
-                mainWindowViewModel.CloseLayout();
+                DataContext = viewModel
             };
             
-            desktopLifetime.MainWindow = mainWindow;
-            
-            desktopLifetime.Exit += (_, _) =>
+            desktopLifetime.MainWindow.Loaded += async (_, _) =>
             {
-                mainWindowViewModel.CloseLayout();
+                await viewModel.Setup(SelectedProfile.Key, SelectedProfile.Path);
             };
             
             desktopLifetime.MainWindow.Show();
+            
             window?.Close();
+        }
+    }
+    
+    [RelayCommand]
+    private void Cancel()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+        {
+            desktopLifetime.MainWindow?.Close();
         }
     }
 }

@@ -8,7 +8,6 @@ public class Profile
     public string DisplayName { get; set; } = string.Empty;
 
     public string InternalName { get; set; } = string.Empty;
-    public string Deobfuscator { get; set; } = string.Empty;
 
     public string TypeInfoSignature { get; set; } = string.Empty;
     public bool HasStrippedTypeNames { get; set; }

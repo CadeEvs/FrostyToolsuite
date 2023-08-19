@@ -2,7 +2,6 @@
   "Name": "starwarssquadrons",
   "DisplayName": "STAR WARS™: Squadrons",
   "InternalName": "starwarsiii",
-  "Deobfuscator": "Signature",
   "TypeInfoSignature": "",
   "DataVersion": 20201001,
   "HasStrippedTypeNames": false,

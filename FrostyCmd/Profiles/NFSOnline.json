@@ -2,7 +2,6 @@
   "Name": "NFSOL",
   "DisplayName": "Need for Speed™ ONLINE",
   "InternalName": "nfsedge",
-  "Deobfuscator": "Legacy",
   "TypeInfoSignature": "",
   "DataVersion": 20160000,
   "FrostbiteVersion": "2014.4.11",
