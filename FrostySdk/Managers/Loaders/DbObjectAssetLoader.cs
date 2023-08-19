@@ -19,7 +19,7 @@ public class DbObjectAssetLoader : IAssetLoader
         foreach (SuperBundleInfo sbInfo in FileSystemManager.EnumerateSuperBundles())
         {
             bool isPatched = true;
-            string tocPath = FileSystemManager.ResolvePath(false, $"{sbInfo.Name}.toc");
+            string tocPath = FileSystemManager.ResolvePath(true, $"{sbInfo.Name}.toc");
             if (string.IsNullOrEmpty(tocPath))
             {
                 isPatched = false;
