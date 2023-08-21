@@ -14,8 +14,31 @@
           <RowDefinition Height="2*"/>
           <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
+
+    <TreeDataGrid Grid.Row="0" Source="{Binding FolderSource}">
       
-      <TreeDataGrid Grid.Row="0" Source="{Binding FolderSource}"/>
+      <TreeDataGrid.Resources>
+        <DataTemplate x:Key="FolderNameCell"
+                      DataType="models:FolderTreeNodeModel">
+          <StackPanel Orientation="Horizontal">
+            
+            <Image Margin="0 0 6 0"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center">
+              <Image.Source>
+                <MultiBinding Converter="{x:Static vm:DataExplorerViewModel.FolderIconConverter}">
+                  <Binding Path="IsExpanded"/>
+                </MultiBinding>
+              </Image.Source>
+            </Image>
+            
+            <TextBlock Text="{Binding Name}"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+        </DataTemplate> 
+      </TreeDataGrid.Resources>
+      
+    </TreeDataGrid>
       
       <TreeDataGrid Grid.Row="1" Source="{Binding AssetsSource}"/>
       
