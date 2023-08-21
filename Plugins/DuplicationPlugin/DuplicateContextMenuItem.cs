@@ -489,19 +489,12 @@ namespace DuplicationPlugin
                 ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
 
                 // Duplicate the chunk
-                Guid chunkGuid = App.AssetManager.AddChunk(new NativeReader(texture.Data).ReadToEnd(), null, texture);
-                ChunkAssetEntry newChunkEntry = App.AssetManager.GetChunkEntry(chunkGuid);
+                ChunkAssetEntry newChunkEntry = DuplicateChunk(chunkEntry);
 
                 // Duplicate the res
-                ResAssetEntry newResEntry = App.AssetManager.AddRes(newName, ResourceType.Texture, resEntry.ResMeta, new NativeReader(App.AssetManager.GetRes(resEntry)).ReadToEnd());
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName.ToLower(), ResourceType.Texture);
                 ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
                 Texture newTexture = App.AssetManager.GetResAs<Texture>(newResEntry);
-                newTexture.ChunkId = chunkGuid;
-                newTexture.AssetNameHash = (uint)Utils.HashString(newResEntry.Name, true);
-
-                // Add the new chunk/res entries to the original bundles
-                newResEntry.AddedBundles.AddRange(resEntry.EnumerateBundles());
-                newChunkEntry.AddedBundles.AddRange(chunkEntry.EnumerateBundles());
 
                 // Link the newly duplicates ebx, chunk, and res entries together
                 newResEntry.LinkAsset(newChunkEntry);
