@@ -78,16 +78,23 @@ namespace Frosty.Core.Windows
         
         private void IterateSubKeys(RegistryKey subKey, ref int totalCount)
         {
-            foreach (string subKeyName in subKey.GetSubKeyNames())
+            try
             {
-                try
+                foreach (string subKeyName in subKey.GetSubKeyNames())
                 {
-                    IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount);
+                    try
+                    {
+                        IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount);
+                    }
+                    catch (System.Security.SecurityException)
+                    {
+                        // do nothing
+                    }
                 }
-                catch (System.Security.SecurityException)
-                {
-                    // do nothing
-                }
+            }
+            catch (System.IO.IOException)
+            {
+                return;
             }
 
             foreach (string subKeyValue in subKey.GetValueNames())
