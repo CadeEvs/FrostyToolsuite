@@ -20,4 +20,10 @@
       <ProjectReference Include="..\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="ThirdParty\liblinoodle.so">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

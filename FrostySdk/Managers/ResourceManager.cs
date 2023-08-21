@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Runtime.InteropServices;
 using Frosty.Sdk.Interfaces;
 using Frosty.Sdk.IO;
 using Frosty.Sdk.Managers.CatResources;
@@ -180,6 +180,25 @@ public static class ResourceManager
                     }
                 }
             }
+        }
+        
+        foreach (string libOodle in Directory.EnumerateFiles(FileSystemManager.BasePath, "oo2core_*"))
+        {
+            Directory.CreateDirectory("ThirdParty");
+
+            string ext = Path.GetExtension(libOodle);
+            string path = $"ThirdParty/oo2core{ext}";
+            File.Delete(path);
+            File.CreateSymbolicLink(path, libOodle);
+            
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && ext == ".dll")
+            {
+                const string oodleHack = "ThirdParty/oo2core.so";
+                File.Delete(oodleHack);
+                File.CreateSymbolicLink(oodleHack, "ThirdParty/liblinoodle.so");
+            }
+            
+            break;
         }
         
         IsInitialized = true;
