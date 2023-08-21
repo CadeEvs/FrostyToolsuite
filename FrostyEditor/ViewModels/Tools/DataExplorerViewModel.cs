@@ -52,20 +52,6 @@ public partial class DataExplorerViewModel : Tool
             Columns =
             {
                 new HierarchicalExpanderColumn<FolderTreeNodeModel>(
-                    /*new TextColumn<FolderTreeNodeModel,string>(
-                        "Name",
-                        x => x.Name,
-                        new GridLength(1, GridUnitType.Star),
-                        options: new TextColumnOptions<FolderTreeNodeModel>
-                        {
-                            CanUserResizeColumn = false,
-                            CanUserSortColumn = false,
-                            CompareAscending = FolderTreeNodeModel.SortAscending(x => x.Name),
-                            CompareDescending = FolderTreeNodeModel.SortDescending(x => x.Name),
-                        }),
-                    x => x.Children,
-                    x => x.HasChildren,
-                    x => x.IsExpanded),*/
                     new TemplateColumn<FolderTreeNodeModel>(
                         "Name",
                         "FolderNameCell",
