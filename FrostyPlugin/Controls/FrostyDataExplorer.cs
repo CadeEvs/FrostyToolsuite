@@ -325,6 +325,8 @@ namespace Frosty.Core.Controls
 
         public ItemDoubleClickCommand DoubleClickCommand { get; private set; }
 
+        public ICommand FindOpenedAssetCommand => new RelayCommand(FindOpenedAsset);
+
         private GridView detailView;
         private PlainView tileView;
 
@@ -393,6 +395,11 @@ namespace Frosty.Core.Controls
 
             if (IsVisible && bookmarkContext != null)
                 BookmarkDb.CurrentContext = bookmarkContext;
+        }
+
+        public void FindOpenedAsset(object obj)
+        {
+            SelectAsset(App.EditorWindow.GetOpenedAssetEntry());
         }
 
         private void UpdateViewType()
