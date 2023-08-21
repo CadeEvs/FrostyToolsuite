@@ -492,9 +492,11 @@ namespace DuplicationPlugin
                 ChunkAssetEntry newChunkEntry = DuplicateChunk(chunkEntry);
 
                 // Duplicate the res
-                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName.ToLower(), ResourceType.Texture);
+                ResAssetEntry newResEntry = DuplicateRes(resEntry, newName, ResourceType.Texture);
                 ((dynamic)newAsset.RootObject).Resource = newResEntry.ResRid;
                 Texture newTexture = App.AssetManager.GetResAs<Texture>(newResEntry);
+                newTexture.ChunkId = newChunkEntry.Id;
+                newTexture.AssetNameHash = (uint)Utils.HashString(newResEntry.Name, true);
 
                 // Link the newly duplicates ebx, chunk, and res entries together
                 newResEntry.LinkAsset(newChunkEntry);
