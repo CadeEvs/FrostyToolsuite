@@ -13,10 +13,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ApplicationDefinition Include="Assets\FolderCollapsed.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <AvaloniaResource Include="Assets\FolderCollapsed.png" />
     <AvaloniaResource Include="Assets\FolderExpanded.png" />
   </ItemGroup>
