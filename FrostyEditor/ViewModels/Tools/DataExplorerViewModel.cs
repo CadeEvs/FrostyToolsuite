@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Selection;
+using Avalonia.Data.Converters;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Dock.Model.Mvvm.Controls;
 using FrostyEditor.Models;
@@ -11,13 +15,35 @@ namespace FrostyEditor.ViewModels.Tools;
 
 public partial class DataExplorerViewModel : Tool
 {
+    public static IMultiValueConverter FolderIconConverter
+    {
+        get
+        {
+            if (s_folderIconConverter is null)
+            {
+                using (var folderCollapsedStream = AssetLoader.Open(new Uri("avares://FrostyEditor/Assets/FolderCollapsed.png")))
+                using (var folderExpandStream = AssetLoader.Open(new Uri("avares://FrostyEditor/Assets/FolderExpanded.png")))
+                {
+                    var folderCollapsedIcon = new Bitmap(folderCollapsedStream);
+                    var folderExpandIcon = new Bitmap(folderExpandStream);
+
+                    s_folderIconConverter = new FolderIconConvert(folderExpandIcon, folderCollapsedIcon);
+                }
+            }
+
+            return s_folderIconConverter;
+        }
+    }
+
+    public HierarchicalTreeDataGridSource<FolderTreeNodeModel> FolderSource { get; }
+
+    private static FolderIconConvert? s_folderIconConverter;
+
     [ObservableProperty]
     private string m_test = "Explorer";
 
     [ObservableProperty]
     private FlatTreeDataGridSource<AssetModel> m_assetsSource;
-    
-    public HierarchicalTreeDataGridSource<FolderTreeNodeModel> FolderSource { get; }
 
     public DataExplorerViewModel()
     {
@@ -26,11 +52,12 @@ public partial class DataExplorerViewModel : Tool
             Columns =
             {
                 new HierarchicalExpanderColumn<FolderTreeNodeModel>(
-                    new TextColumn<FolderTreeNodeModel,string>(
+                    new TemplateColumn<FolderTreeNodeModel>(
                         "Name",
-                        x => x.Name,
+                        "FolderNameCell",
+                        null,
                         new GridLength(1, GridUnitType.Star),
-                        options: new TextColumnOptions<FolderTreeNodeModel>
+                        options: new()
                         {
                             CanUserResizeColumn = false,
                             CanUserSortColumn = false,
@@ -82,5 +109,27 @@ public partial class DataExplorerViewModel : Tool
         }
 
         AssetsSource.Items = b.Assets;
+    }
+
+    private class FolderIconConvert : IMultiValueConverter
+    {
+        private readonly Bitmap m_folderExpanded;
+        private readonly Bitmap m_folderCollapsed;
+        public FolderIconConvert(Bitmap folderExpanded, Bitmap folderCollapsed)
+        {
+            m_folderExpanded = folderExpanded;
+            m_folderCollapsed = folderCollapsed;
+        }
+
+        public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (values.Count == 1 &&
+                values[0] is bool isExpanded)
+            {
+                return isExpanded ? m_folderExpanded : m_folderCollapsed;
+            }
+
+            return null;
+        }
     }
 }

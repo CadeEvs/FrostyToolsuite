@@ -8,6 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Assets\FolderCollapsed.png" />
+    <None Remove="Assets\FolderExpanded.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\FolderCollapsed.png" />
+    <AvaloniaResource Include="Assets\FolderExpanded.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.0.0" />
     <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0" />
     <PackageReference Include="Avalonia.Desktop" Version="11.0.0" />
