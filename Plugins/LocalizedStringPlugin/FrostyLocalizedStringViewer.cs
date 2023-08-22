@@ -599,7 +599,7 @@ namespace LocalizedStringPlugin
                         }
                     }
 
-                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create), false, true))
+                    using (StreamWriter writer = new StreamWriter(sfd.FileName))
                     {
                         foreach (string StringData in StringInfo.Values)
                         {

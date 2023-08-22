@@ -23,6 +23,6 @@ using System.Windows;
 
 [assembly: PluginDisplayName("Localized String Editor")]
 [assembly: PluginAuthor("Mophead")]
-[assembly: PluginVersion("1.0.2.2")]
+[assembly: PluginVersion("1.0.2.3")]
 
 [assembly: RegisterMenuExtension(typeof(LocalizedStringViewerMenuExtension))]
