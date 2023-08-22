@@ -8,6 +8,7 @@ using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -599,7 +600,7 @@ namespace LocalizedStringPlugin
                         }
                     }
 
-                    using (NativeWriter writer = new NativeWriter(new FileStream(sfd.FileName, FileMode.Create), false, true))
+                    using (StreamWriter writer = new StreamWriter(sfd.FileName))
                     {
                         foreach (string StringData in StringInfo.Values)
                         {
