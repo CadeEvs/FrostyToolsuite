@@ -20,6 +20,7 @@ using FrostySdk.Ebx;
 using Frosty.Core.Controls.Editors;
 using Frosty.Core.Converters;
 using FrostySdk;
+using Frosty.Core.Windows;
 
 namespace Frosty.Core.Controls
 {
@@ -1229,6 +1230,14 @@ namespace Frosty.Core.Controls
                 };
                 mi.Click += CopyGuidMenuItem_Click;
                 cm.Items.Add(mi);
+
+                mi = new MenuItem
+                {
+                    Header = "Change Type",
+                };
+
+                mi.Click += ChangeTypeMenuItem_Click;
+                cm.Items.Add(mi);
             }
 
             if (item.IsArrayChild)
@@ -1268,6 +1277,85 @@ namespace Frosty.Core.Controls
             }
 
             Clipboard.SetText(guidToCopy);
+        }
+
+        /// <summary>
+        /// Changes the PointerRef's internal value type while keeping values from the old type
+        /// </summary>
+        private void ChangeTypeMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            FrostyPropertyGridItemData pgItem = (FrostyPropertyGridItemData)DataContext;
+
+            PointerRef origObject = ((PointerRef)pgItem.Value);
+            if (origObject.Type != PointerRefType.Internal)
+            {
+                return;
+            }
+
+            Type baseType = pgItem.GetCustomAttribute<EbxFieldMetaAttribute>().BaseType;
+
+            // Don't bother if this can only be one type
+            Type[] validTypes = TypeLibrary.GetTypes(baseType);
+            if (validTypes.Count() == 1)
+            {
+                return;
+            }
+
+            ClassSelector classSelector = new ClassSelector(validTypes, false);
+
+            if (classSelector.ShowDialog() is true)
+            {
+                Type selectedClass = classSelector.SelectedClass;
+                object newObj = TypeLibrary.CreateObject(selectedClass.Name);
+
+                object resolvedValue = origObject.Internal;
+
+                // Store original property values
+                Dictionary<string, object> propertyMap = new Dictionary<string, object>();
+                foreach (PropertyDescriptor desc in TypeDescriptor.GetProperties(resolvedValue))
+                {
+                    // Don't copy the object's Id unless the user has changed it
+                    if (desc.Name == "__Id" && (desc.GetValue(resolvedValue).ToString() == resolvedValue.GetType().Name))
+                    {
+                        continue;
+                    }
+
+                    propertyMap.Add(desc.Name, desc.GetValue(resolvedValue));
+                }
+
+                if (newObj != null)
+                {
+                    dynamic internalObj = origObject.Internal;
+                    AssetClassGuid newObjGuid = internalObj.GetInstanceGuid();
+
+                    PointerRef newPr = new PointerRef(newObj);
+                    ((dynamic)newPr.Internal).SetInstanceGuid(newObjGuid);
+                    if (TypeLibrary.IsSubClassOf(newPr.Internal, "DataBusPeer"))
+                    {
+                        byte[] b = newObjGuid.ExportedGuid.ToByteArray();
+                        uint value = (uint)((b[2] << 16) | (b[1] << 8) | b[0]);
+                        newPr.Internal.GetType().GetProperty("Flags", BindingFlags.Public | BindingFlags.Instance).SetValue(newPr.Internal, value);
+                    }
+
+                    // Copy over values from the old type
+                    foreach (PropertyDescriptor desc in TypeDescriptor.GetProperties(newPr.Internal))
+                    {
+                        if (propertyMap.TryGetValue(desc.Name, out object propMapValue))
+                        {
+                            if (propMapValue is null)
+                            {
+                                continue;
+                            }
+
+                            desc.SetValue(newPr.Internal, propMapValue);
+                        }
+                    }
+
+                    GetPropertyGrid().Asset.AddObject(newPr.Internal);
+
+                    pgItem.Value = newPr;
+                }
+            }
         }
 
         /// <summary>
