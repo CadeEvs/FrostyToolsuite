@@ -399,10 +399,14 @@ namespace FrostyEditor
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
             foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "*.fbmod", SearchOption.AllDirectories))
             {
-                if(Path.GetFileName(modPath).Contains("EditorMod"))
+                if (Path.GetFileName(modPath).Contains("EditorMod"))
+                {
                     File.Delete(modPath);
+                }
                 else
+                {
                     modPaths.Add(Path.GetFileName(modPath));
+                }
             }
             
             Random r = new Random();
@@ -425,13 +429,15 @@ namespace FrostyEditor
                 {
                     try
                     {
-                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                        {
                             executionAction.PreLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
+                        }
 
                         task.Update("Exporting Mod");
                         ExportMod(editorSettings, $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}", true);
                         modPaths.Add(editorModName);
-                        App.Logger.Log("Editor temporary Mod saved to {0}", $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}");
+                        App.Logger.Log($"Editor Mod Saved As {editorModName}");
 
                         // allow cancelling in case of a big mod (will cancel after processing the mod)
                         // @todo: add cancellation to different stages of mod exportation, to allow cancelling
@@ -439,30 +445,40 @@ namespace FrostyEditor
 
                         cancelToken.Token.ThrowIfCancellationRequested();
 
-                        // Remove mods.json
-                        task.Update("Removing mods.json");
+                        // Delete mods.json
+                        task.Update("Deleting mods.json");
+
                         string gamePatchPath = "Patch";
                         if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
-                            gamePatchPath = "Update\\Patch\\Data";
-                        else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfn and bfv dont have a patch directory
-                            gamePatchPath = "Data";
-                        if (File.Exists(App.FileSystem.BasePath + $"\\ModData\\{App.SelectedPack}\\{gamePatchPath}\\mods.json"))
                         {
-                            File.Delete(App.FileSystem.BasePath + $"\\ModData\\{App.SelectedPack}\\{gamePatchPath}\\mods.json");
-                            App.Logger.Log("Removed mods.json");
+                            gamePatchPath = Path.Combine("Update", "Patch", "Data");
                         }
-                        task.Update("");
+                        else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                        {
+                            gamePatchPath = "Data"; //bfn and bfv dont have a patch directory
+                        }
+
+                        string modsJsonPath = Path.Combine(App.FileSystem.BasePath, "ModData", App.SelectedPack, gamePatchPath, "mods.json");
+                        if (File.Exists(modsJsonPath))
+                        {
+                            File.Delete(modsJsonPath);
+                        }
+
                         executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), modPaths.ToArray());
 
-                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                        {
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
+                        }
                     }
                     catch (OperationCanceledException)
                     {
                         // swollow
 
-                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                        {
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+                        }
                     }
 
                 }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
