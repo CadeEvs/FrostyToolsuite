@@ -410,7 +410,7 @@ namespace FrostyEditor
             }
             
             Random r = new Random();
-            string editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
+            string editorModName = $"EditorMod_{r.Next(1000, 9999):D4}.fbmod";
             
             // create temporary editor mod
             ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor"};
@@ -435,13 +435,9 @@ namespace FrostyEditor
                         }
 
                         task.Update("Exporting Mod");
-                        ExportMod(editorSettings, $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}", true);
+                        ExportMod(editorSettings, $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}", true, cancelToken.Token);
                         modPaths.Add(editorModName);
                         App.Logger.Log($"Editor Mod Saved As {editorModName}");
-
-                        // allow cancelling in case of a big mod (will cancel after processing the mod)
-                        // @todo: add cancellation to different stages of mod exportation, to allow cancelling
-                        //        at any stage of a large mod
 
                         cancelToken.Token.ThrowIfCancellationRequested();
 
@@ -504,9 +500,9 @@ namespace FrostyEditor
             FrostyMessageBox.Show("This feature is currently unimplemented", "Frosty Editor");
         }
 
-        public void ExportMod(ModSettings modSettings, string filename, bool bSilent)
+        public void ExportMod(ModSettings modSettings, string filename, bool bSilent, CancellationToken cancelToken)
         {
-            m_project.WriteToMod(filename, modSettings, bSilent);
+            m_project.WriteToMod(filename, modSettings, bSilent, cancelToken);
             if (!bSilent)
                 App.Logger.Log("Mod saved to {0}", filename);
         }
