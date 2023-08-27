@@ -1967,7 +1967,14 @@ namespace Frosty.ModSupport
                         casEntry.FileInfo.size = info.Data.Length;
                     }
 
-                    casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                    {
+                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, false, casIndex);
+                    }
+                    else
+                    {
+                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
+                    }
                 }
 
                 currentCasStream.Write(info.Data, 0, info.Data.Length);
