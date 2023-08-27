@@ -320,7 +320,10 @@ namespace Frosty.ModSupport
 
                             long startPos = writer.Position;
 
-                            writer.Write(0x9D798ED5, Endian.Big);
+                            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5) //bfv changed the bundle magic for some reason
+                                writer.Write(0x9D798ED5, Endian.Big);
+                            else
+                                writer.Write(0x8C6E84DD, Endian.Big);
                             writer.Write(bundleObj.GetValue<DbObject>("ebx").Count + bundleObj.GetValue<DbObject>("res").Count + bundleObj.GetValue<DbObject>("chunks").Count, Endian.Big);
                             writer.Write(bundleObj.GetValue<DbObject>("ebx").Count, Endian.Big);
                             writer.Write(bundleObj.GetValue<DbObject>("res").Count, Endian.Big);
