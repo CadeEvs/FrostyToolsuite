@@ -834,7 +834,7 @@ namespace MeshSetPlugin
                     if (boneWeights[j] > 0.0f)
                     {
                         int subIndex = boneIndices[j];
-                        if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
+                        if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield5 && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsBattlefrontII && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville && ProfilesLibrary.DataVersion != (int)ProfileVersion.StarWarsSquadrons)
                             subIndex = boneList[subIndex];
 
                         // account for proc bones
