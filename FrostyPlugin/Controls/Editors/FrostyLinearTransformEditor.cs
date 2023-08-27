@@ -128,7 +128,6 @@ namespace Frosty.Core.Controls.Editors
             trns.Translate.y = obj.Translation.y;
             trns.Translate.z = obj.Translation.z;
 
-            // convert rotation to yaw, pitch, roll...
             trns.Rotation.x = obj.Rotation.x;
             trns.Rotation.y = obj.Rotation.y;
             trns.Rotation.z = obj.Rotation.z;
