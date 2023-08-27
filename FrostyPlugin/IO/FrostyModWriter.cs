@@ -7,6 +7,7 @@ using FrostySdk.Managers;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 namespace Frosty.Core.IO
 {
@@ -250,7 +251,7 @@ namespace Frosty.Core.IO
             overrideSettings = inOverrideSettings;
         }
 
-        public void WriteProject(FrostyProject project, bool editorLaunch)
+        public void WriteProject(FrostyProject project, bool editorLaunch, CancellationToken cancelToken)
         {
             Write(FrostyMod.Magic);
             Write(FrostyMod.Version);
@@ -345,6 +346,8 @@ namespace Frosty.Core.IO
                         AddResource(new EbxResource(entry, manifest));
                     }
                 }
+
+                cancelToken.ThrowIfCancellationRequested();
             }
 
             // res
@@ -371,6 +374,8 @@ namespace Frosty.Core.IO
                         AddResource(new ResResource(entry, manifest));
                     }
                 }
+
+                cancelToken.ThrowIfCancellationRequested();
             }
 
             // chunks
@@ -380,17 +385,27 @@ namespace Frosty.Core.IO
                 // directly, but instead as part of an ebx or res modification
 
                 if (entry.IsDirectlyModified)
+                {
                     AddResource(new ChunkResource(entry, manifest));
+                }
+
+                cancelToken.ThrowIfCancellationRequested();
             }
 
             // legacy custom action handler
             ILegacyCustomActionHandler tmpHandler = new LegacyCustomActionHandler();
             tmpHandler.SaveToMod(this);
 
+            cancelToken.ThrowIfCancellationRequested();
+
             // write resources
             Write(resources.Count);
             foreach (EditorModResource resource in resources)
+            {
                 resource.Write(this);
+
+                cancelToken.ThrowIfCancellationRequested();
+            }
 
             // write manifest + data
             long manifestOffset = Position;
