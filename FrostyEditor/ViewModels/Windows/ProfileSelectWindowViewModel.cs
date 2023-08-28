@@ -9,11 +9,9 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Frosty.Sdk;
-using Frosty.Sdk.Profiles;
 using FrostyEditor.Utils;
 using FrostyEditor.Views;
 using FrostyEditor.Views.Windows;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FrostyEditor.ViewModels.Windows;
 
