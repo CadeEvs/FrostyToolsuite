@@ -154,23 +154,23 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
             Window? window = desktopLifetime.MainWindow;
 
             ProfileTaskWindowViewModel viewModel = new();
-
+            
             desktopLifetime.MainWindow = new ProfileTaskWindow
             {
                 DataContext = viewModel
             };
-
+            
             desktopLifetime.MainWindow.Loaded += async (_, _) =>
             {
                 await viewModel.Setup(SelectedProfile.Key, SelectedProfile.Path);
             };
-
+            
             desktopLifetime.MainWindow.Show();
-
+            
             window?.Close();
         }
     }
-
+    
     [RelayCommand]
     private void Cancel()
     {
