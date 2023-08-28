@@ -10,7 +10,7 @@
         Title="{StaticResource ID_PROFILE_TITLE}"
         x:DataType="vm:ProfileSelectWindowViewModel"
         x:CompileBindings="True"
-		UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
+	UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
         WindowState="Normal" WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
@@ -18,9 +18,9 @@
         BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
-		ExtendClientAreaTitleBarHeightHint="-1"
-        id:DockProperties.IsDragEnabled="True" id:DockProperties.IsDropEnabled="True"
-		>
+	ExtendClientAreaTitleBarHeightHint="-1"
+        id:DockProperties.IsDragEnabled="True" id:DockProperties.IsDropEnabled="True">
+
     <Design.DataContext>
         <vm:ProfileSelectWindowViewModel />
     </Design.DataContext>
