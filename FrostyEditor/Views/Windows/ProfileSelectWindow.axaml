@@ -32,24 +32,24 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 		
-		<ExperimentalAcrylicBorder Grid.Row="0">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder Grid.Row="0">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
 
-		<StackPanel Grid.Row="0" Margin="2" HorizontalAlignment="Left" Orientation="Horizontal">
-			<!--TODO: Frosty Icon-->
-			<Image Source="" Height="30" Margin="10" VerticalAlignment="Center"/>
-			<!--<TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="10" VerticalAlignment="Center"/>-->
-			<TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="10" VerticalAlignment="Center"/>
-		</StackPanel>
+            <StackPanel Grid.Row="0" Margin="2" HorizontalAlignment="Left" Orientation="Horizontal">
+                <!--TODO: Frosty Icon-->
+                <Image Source="" Height="30" Margin="10" VerticalAlignment="Center"/>
+                <!--<TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="10" VerticalAlignment="Center"/>-->
+                <TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="10" VerticalAlignment="Center"/>
+            </StackPanel>
 		
-		<ExperimentalAcrylicBorder Grid.Row="1" IsHitTestVisible="False">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial TintColor="#222222" MaterialOpacity="0.85" TintOpacity="1" />
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder Grid.Row="1" IsHitTestVisible="False">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial TintColor="#222222" MaterialOpacity="0.85" TintOpacity="1" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
 		
         <Grid Grid.Row="1">
             <ListBox Background="Transparent" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
@@ -64,11 +64,11 @@
             </ListBox>
         </Grid>
 		
-		<ExperimentalAcrylicBorder Grid.Row="2">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+        <ExperimentalAcrylicBorder Grid.Row="2">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
 		
         <Grid Grid.Row="2" Margin="2">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
