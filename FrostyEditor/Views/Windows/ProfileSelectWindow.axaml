@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Windows"
         mc:Ignorable="d"
-		Width="1000" Height="600"
+        Width="1000" Height="600"
         x:Class="FrostyEditor.Views.Windows.ProfileSelectWindow"
         Title="{StaticResource ID_PROFILE_TITLE}"
         x:DataType="vm:ProfileSelectWindowViewModel"
