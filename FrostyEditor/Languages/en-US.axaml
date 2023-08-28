@@ -7,8 +7,10 @@
     <system:String x:Key="ID_MENU_HELP">Help</system:String>
     
     <!-- ProfileSelectWindow -->
+	<system:String x:Key="ID_PROFILE_TITLE">Frosty Editor - Select Profile</system:String>
     <system:String x:Key="ID_PROFILE_SELECT">Select</system:String>
     <system:String x:Key="ID_PROFILE_ADD">Add</system:String>
+	<system:String x:Key="ID_PROFILE_DELETE">Delete</system:String>
     <system:String x:Key="ID_PROFILE_CANCEL">Cancel</system:String>
     
 </ResourceDictionary>

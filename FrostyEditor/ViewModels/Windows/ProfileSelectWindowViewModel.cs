@@ -43,13 +43,19 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     {
         // init ProfilesLibrary to load all profile json files
         ProfilesLibrary.Initialize();
-        
+
+        RefreshProfileList();
+    }
+
+    public void RefreshProfileList()
+    {
+        Profiles.Clear();
         foreach (string profile in Config.GameProfiles)
         {
             ProfileConfig config = new(profile);
             if (File.Exists(config.FileName))
             {
-                Profiles.Add(config);   
+                Profiles.Add(config);
             }
             else
             {
@@ -59,12 +65,28 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         Config.Save(App.ConfigPath);
     }
 
+    public static FilePickerFileType ImageExe { get; } = new("Executable")
+    {
+        Patterns = new[] { "*.exe" },
+        // https://developer.apple.com/documentation/uniformtypeidentifiers/uttype/3551492-exe
+        AppleUniformTypeIdentifiers = new[] { "exe" },
+        // https://www.iana.org/assignments/media-types/application/vnd.microsoft.portable-executable
+        MimeTypes = new[] { "vnd.microsoft.portable-executable" }
+    };
+
     [RelayCommand]
     private async Task AddProfile()
     {
         IReadOnlyList<IStorageFile>? files = await FileService.OpenFilesAsync(new FilePickerOpenOptions
         {
             Title = "Select Game Executable",
+            FileTypeFilter = new[]
+            {
+                ImageExe
+#if DEBUG
+                , FilePickerFileTypes.All
+#endif
+            },
             AllowMultiple = false
         });
 
@@ -76,10 +98,52 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         foreach (IStorageFile file in files)
         {
             string key = Path.GetFileNameWithoutExtension(file.Name);
-            Config.AddGame(key, Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty);
-            Profiles.Add(new ProfileConfig(key));
+            
+            // Check if profile exists
+            if (!ProfilesLibrary.HasProfile(key))
+            {
+                // TODO: Add MessageBox
+                //FrostyMessageBox.Show($"There was an error when trying to load {key} using specified profile.", "Frosty Toolsuite");
+                continue;
+            }
+
+            // Make sure config doesn't already exist
+            bool isProfileExist = false;
+            foreach (string profile in Config.GameProfiles)
+            {
+                if (key == profile)
+                {
+                    // TODO: Add MessageBox
+                    //FrostyMessageBox.Show($"{key} already has a configuration.");
+                    isProfileExist = true;
+                    break;
+                }
+            }
+
+            if (ProfilesLibrary.HasAntiCheat)
+            {
+                // TODO: Add MessageBox
+                //FrostyMessageBox.Show($"{key} contains EasyAntiCheat. We will not support nor assist anyone who attempts to bypass it.");
+            }
+
+            if (!isProfileExist)
+            {
+                Config.AddGame(key, Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty);
+                Profiles.Add(new ProfileConfig(key));
+            }
         }
         Config.Save(App.ConfigPath);
+    }
+
+    [RelayCommand]
+    private void DeleteProfile()
+    {
+        if (SelectedProfile is not null)
+        {
+            Config.RemoveGame(SelectedProfile.Key);
+            Config.Save(App.ConfigPath);
+        }
+        RefreshProfileList();
     }
 
     [RelayCommand]
@@ -90,23 +154,23 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
             Window? window = desktopLifetime.MainWindow;
 
             ProfileTaskWindowViewModel viewModel = new();
-            
+
             desktopLifetime.MainWindow = new ProfileTaskWindow
             {
                 DataContext = viewModel
             };
-            
+
             desktopLifetime.MainWindow.Loaded += async (_, _) =>
             {
                 await viewModel.Setup(SelectedProfile.Key, SelectedProfile.Path);
             };
-            
+
             desktopLifetime.MainWindow.Show();
-            
+
             window?.Close();
         }
     }
-    
+
     [RelayCommand]
     private void Cancel()
     {

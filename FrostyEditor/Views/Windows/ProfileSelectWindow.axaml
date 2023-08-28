@@ -3,9 +3,10 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Windows"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d"
+		Width="1000" Height="600"
         x:Class="FrostyEditor.Views.Windows.ProfileSelectWindow"
-        Title="ProfileSelectWindow"
+        Title="{StaticResource ID_PROFILE_TITLE}"
         x:DataType="vm:ProfileSelectWindowViewModel"
         x:CompileBindings="True">
     <Design.DataContext>
@@ -24,7 +25,7 @@
                         <StackPanel>
                             <TextBlock Text="{Binding Name}"/>
                             <TextBlock Text="{Binding Path}"/>
-                        </StackPanel>
+					</StackPanel>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
@@ -33,6 +34,7 @@
         <Grid Grid.Row="1">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Content="{StaticResource ID_PROFILE_ADD}" Command="{Binding AddProfileCommand}"/>
+				<Button Content="{StaticResource ID_PROFILE_DELETE}" Command="{Binding DeleteProfileCommand}"/>
                 <Button Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding SelectProfileCommand}"/>
             </StackPanel>
             <Button Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CancelCommand}"/>
