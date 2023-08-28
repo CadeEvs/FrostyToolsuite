@@ -211,14 +211,11 @@ public static class Config
     /// </summary>
     /// <param name="profile">The profile name.</param>
     /// <param name="gamePath">The path to the game.</param>
-    public static void AddGame(string profile, string gamePath)
+    public static bool AddGame(string profile, string gamePath)
     {
         s_current ??= new InternalConfig();
-        
-        if (!s_current.Games.ContainsKey(profile))
-        {
-            s_current.Games.Add(profile, new GameOptions(gamePath));
-        }
+
+        return s_current.Games.TryAdd(profile, new GameOptions(gamePath));
     }
 
     /// <summary>

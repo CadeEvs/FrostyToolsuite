@@ -9,9 +9,11 @@ using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Frosty.Sdk;
+using Frosty.Sdk.Profiles;
 using FrostyEditor.Utils;
 using FrostyEditor.Views;
 using FrostyEditor.Views.Windows;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace FrostyEditor.ViewModels.Windows;
 
@@ -44,11 +46,6 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         // init ProfilesLibrary to load all profile json files
         ProfilesLibrary.Initialize();
 
-        RefreshProfileList();
-    }
-
-    public void RefreshProfileList()
-    {
         Profiles.Clear();
         foreach (string profile in Config.GameProfiles)
         {
@@ -68,25 +65,9 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     [RelayCommand]
     private async Task AddProfile()
     {
-        FilePickerFileType Exe = new("Executable")
-        {
-            Patterns = new[] { "*.exe" },
-            // https://developer.apple.com/documentation/uniformtypeidentifiers/uttype/3551492-exe
-            AppleUniformTypeIdentifiers = new[] { "exe" },
-            // https://www.iana.org/assignments/media-types/application/vnd.microsoft.portable-executable
-            MimeTypes = new[] { "vnd.microsoft.portable-executable" }
-        };
-
         IReadOnlyList<IStorageFile>? files = await FileService.OpenFilesAsync(new FilePickerOpenOptions
         {
             Title = "Select Game Executable",
-            FileTypeFilter = new[]
-            {
-                Exe
-#if DEBUG
-                , FilePickerFileTypes.All
-#endif
-            },
             AllowMultiple = false
         });
 
@@ -107,28 +88,8 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
                 continue;
             }
 
-            // Make sure config doesn't already exist
-            bool isProfileExist = false;
-            foreach (string profile in Config.GameProfiles)
+            if (Config.AddGame(key, Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty))
             {
-                if (key == profile)
-                {
-                    // TODO: Add MessageBox
-                    //FrostyMessageBox.Show($"{key} already has a configuration.");
-                    isProfileExist = true;
-                    break;
-                }
-            }
-
-            if (ProfilesLibrary.HasAntiCheat)
-            {
-                // TODO: Add MessageBox
-                //FrostyMessageBox.Show($"{key} contains EasyAntiCheat. We will not support nor assist anyone who attempts to bypass it.");
-            }
-
-            if (!isProfileExist)
-            {
-                Config.AddGame(key, Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty);
                 Profiles.Add(new ProfileConfig(key));
             }
         }
@@ -140,10 +101,11 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     {
         if (SelectedProfile is not null)
         {
-            Config.RemoveGame(SelectedProfile.Key);
+            ProfileConfig config = new(SelectedProfile.Key);
+            Config.RemoveGame(config.Key);
+            Profiles.Remove(config);
             Config.Save(App.ConfigPath);
         }
-        RefreshProfileList();
     }
 
     [RelayCommand]
