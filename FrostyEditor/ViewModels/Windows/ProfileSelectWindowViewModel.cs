@@ -109,7 +109,10 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
 
             // Make sure config doesn't already exist
             bool isProfileExist = false;
-            foreach (string profile in Config.GameProfiles)
+            if (Config.AddGame(key, Path.GetDirectoryName(file.Path.LocalPath) ?? string.Empty))
+            {
+                Profiles.Add(new ProfileConfig(key));   
+            }
             {
                 if (key == profile)
                 {
