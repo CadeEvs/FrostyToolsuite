@@ -65,24 +65,24 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         Config.Save(App.ConfigPath);
     }
 
-    public static FilePickerFileType ImageExe { get; } = new("Executable")
-    {
-        Patterns = new[] { "*.exe" },
-        // https://developer.apple.com/documentation/uniformtypeidentifiers/uttype/3551492-exe
-        AppleUniformTypeIdentifiers = new[] { "exe" },
-        // https://www.iana.org/assignments/media-types/application/vnd.microsoft.portable-executable
-        MimeTypes = new[] { "vnd.microsoft.portable-executable" }
-    };
-
     [RelayCommand]
     private async Task AddProfile()
     {
+        FilePickerFileType Exe = new("Executable")
+        {
+            Patterns = new[] { "*.exe" },
+            // https://developer.apple.com/documentation/uniformtypeidentifiers/uttype/3551492-exe
+            AppleUniformTypeIdentifiers = new[] { "exe" },
+            // https://www.iana.org/assignments/media-types/application/vnd.microsoft.portable-executable
+            MimeTypes = new[] { "vnd.microsoft.portable-executable" }
+        };
+
         IReadOnlyList<IStorageFile>? files = await FileService.OpenFilesAsync(new FilePickerOpenOptions
         {
             Title = "Select Game Executable",
             FileTypeFilter = new[]
             {
-                ImageExe
+                Exe
 #if DEBUG
                 , FilePickerFileTypes.All
 #endif
