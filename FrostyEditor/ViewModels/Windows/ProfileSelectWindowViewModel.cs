@@ -99,9 +99,8 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     {
         if (SelectedProfile is not null)
         {
-            ProfileConfig config = new(SelectedProfile.Key);
-            Config.RemoveGame(config.Key);
-            Profiles.Remove(config);
+            Config.RemoveGame(SelectedProfile.Key);
+            Profiles.Remove(SelectedProfile);
             Config.Save(App.ConfigPath);
         }
     }
