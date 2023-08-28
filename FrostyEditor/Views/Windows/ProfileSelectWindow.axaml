@@ -27,7 +27,7 @@
 	
     <Grid Background="Transparent">
         <Grid.RowDefinitions>
-			<RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
