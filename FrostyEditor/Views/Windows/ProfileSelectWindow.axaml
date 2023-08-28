@@ -3,23 +3,56 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Windows"
+        xmlns:id="using:Dock.Avalonia"
         mc:Ignorable="d"
         Width="1000" Height="600"
         x:Class="FrostyEditor.Views.Windows.ProfileSelectWindow"
         Title="{StaticResource ID_PROFILE_TITLE}"
         x:DataType="vm:ProfileSelectWindowViewModel"
-        x:CompileBindings="True">
+        x:CompileBindings="True"
+		UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
+        WindowState="Normal" WindowStartupLocation="CenterScreen"
+        Background="{x:Null}"
+        TransparencyLevelHint="AcrylicBlur"
+        Foreground="{DynamicResource DockThemeForegroundBrush}"
+        BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+		ExtendClientAreaTitleBarHeightHint="-1"
+        id:DockProperties.IsDragEnabled="True" id:DockProperties.IsDropEnabled="True"
+		>
     <Design.DataContext>
         <vm:ProfileSelectWindowViewModel />
     </Design.DataContext>
+	
     <Grid Background="Transparent">
         <Grid.RowDefinitions>
+			<RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        
-        <Grid Grid.Row="0">
-            <ListBox ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
+		
+		<ExperimentalAcrylicBorder Grid.Row="0">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+			</ExperimentalAcrylicBorder.Material>
+		</ExperimentalAcrylicBorder>
+
+		<StackPanel Grid.Row="0" Margin="2" HorizontalAlignment="Left" Orientation="Horizontal">
+			<!--TODO: Frosty Icon-->
+			<Image Source="" Height="30" Margin="10" VerticalAlignment="Center"/>
+			<!--<TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="10" VerticalAlignment="Center"/>-->
+			<TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="10" VerticalAlignment="Center"/>
+		</StackPanel>
+		
+		<ExperimentalAcrylicBorder Grid.Row="1" IsHitTestVisible="False">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial TintColor="#222222" MaterialOpacity="0.85" TintOpacity="1" />
+			</ExperimentalAcrylicBorder.Material>
+		</ExperimentalAcrylicBorder>
+		
+        <Grid Grid.Row="1">
+            <ListBox Background="Transparent" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
@@ -30,8 +63,14 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
-        
-        <Grid Grid.Row="1" Margin="2">
+		
+		<ExperimentalAcrylicBorder Grid.Row="2">
+			<ExperimentalAcrylicBorder.Material>
+				<ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+			</ExperimentalAcrylicBorder.Material>
+		</ExperimentalAcrylicBorder>
+		
+        <Grid Grid.Row="2" Margin="2">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
                 <Button Margin="2" Content="{StaticResource ID_PROFILE_ADD}" Command="{Binding AddProfileCommand}"/>
                 <Button Margin="2" Content="{StaticResource ID_PROFILE_DELETE}" Command="{Binding DeleteProfileCommand}"/>
