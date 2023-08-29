@@ -30,4 +30,4 @@ Todo
 If you want to contribute to Frosty you can just fork this branch and make a pull request with your changes.
 Before you do that please check the [CodingStandards.cs](https://github.com/CadeEvs/FrostyToolsuite/blob/2.0.0/CodingStandards.cs) to check if your code follows those.
 In the [Projects tab](https://github.com/users/CadeEvs/projects/1) you can see what needs to be done, ideas of what can be done and stuff that is currently getting worked on or is already done.
-If you decide to work on something it would be great if you could say that in the [#developer](https://discord.com/channels/333086156478480384/840965412106928188) channel on the discord server.
+If you decide to work on something it would be great if you could say that in the [#developer](https://discord.gg/BXJSBzgc) channel on the discord server.
