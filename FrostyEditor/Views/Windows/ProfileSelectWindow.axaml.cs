@@ -1,9 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Markup.Xaml;
-using System;
-using System.Runtime.InteropServices;
 
 namespace FrostyEditor.Views.Windows;
 
