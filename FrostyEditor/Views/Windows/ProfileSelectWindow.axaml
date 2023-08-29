@@ -9,7 +9,7 @@
         Title="{StaticResource ID_PROFILE_TITLE}"
         x:DataType="vm:ProfileSelectWindowViewModel"
         x:CompileBindings="True"
-	    UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
+        UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
         WindowState="Normal" WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
@@ -17,9 +17,9 @@
         BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
-	    ExtendClientAreaTitleBarHeightHint="-1"
-		CanResize="False">
-
+        ExtendClientAreaTitleBarHeightHint="-1"
+        CanResize="False"
+        >
     <Design.DataContext>
         <vm:ProfileSelectWindowViewModel />
     </Design.DataContext>
@@ -31,48 +31,49 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-		<ExperimentalAcrylicBorder IsHitTestVisible="False">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-					TintColor="Black"
-					TintOpacity="1"
-					FallbackColor="{DynamicResource AcrylicFallbackColor}"
-					MaterialOpacity="0.6"/>
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder IsHitTestVisible="False">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial BackgroundSource="Digger
+                        TintColor="Black"
+			TintOpacity="1"
+			FallbackColor="{DynamicResource AcrylicFallbackColor}"
+			MaterialOpacity="0.6"/>
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
 
         <StackPanel Background="{x:Null}" Grid.Row="0" Margin="3" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal" IsHitTestVisible="False">
-			<Image Source="{SvgImage ../../Assets/FrostyLogo.svg}" Width="30" Height="30" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-			<TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-			<TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.8"/>
+	    <Image Source="{SvgImage ../../Assets/FrostyLogo.svg}" Width="30" Height="30" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+	    <TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+	    <TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.8"/>
         </StackPanel>
 
 		<ExperimentalAcrylicBorder Grid.Row="1">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                TintColor="Black"
-                TintOpacity="1"
-                FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                MaterialOpacity="0.6" />
+		    <ExperimentalAcrylicBorder.Material>
+		        <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                            TintColor="Black"
+                            TintOpacity="1"
+                            FallbackColor="{DynamicResource AcrylicFallbackColor}"
+                            MaterialOpacity="0.6" />
 			</ExperimentalAcrylicBorder.Material>
 		</ExperimentalAcrylicBorder>
 		
         <Grid Grid.Row="1" Margin="2, 0, 2, 0">
-			<ExperimentalAcrylicBorder>
-				<ExperimentalAcrylicBorder.Material>
-					<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-					TintColor="#222222"
-					TintOpacity="1"
-					FallbackColor="{DynamicResource AcrylicFallbackColor}"
-					MaterialOpacity="0.6" />
-				</ExperimentalAcrylicBorder.Material>
-			</ExperimentalAcrylicBorder>
+	    <ExperimentalAcrylicBorder>
+		<ExperimentalAcrylicBorder.Material>
+		    <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+		        TintColor="#222222"
+			TintOpacity="1"
+			FallbackColor="{DynamicResource AcrylicFallbackColor}"
+			MaterialOpacity="0.6" />
+		/ExperimentalAcrylicBorder.Material>
+	    </ExperimentalAcrylicBorder>
 			
             <ListBox Background="Transparent" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel>
-							<Image Source="{Binding Icon}" Width="100" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+			    <!-- Not Finish -->
+			    <Image Source="{Binding Icon}" Width="100" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                             <TextBlock Text="{Binding Name}"/>
                             <TextBlock Text="{Binding Path}"/>
                         </StackPanel>
@@ -83,11 +84,11 @@
 		
         <ExperimentalAcrylicBorder Grid.Row="2">
             <ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-	                TintColor="Black"
-	                TintOpacity="1"
-	                FallbackColor="{DynamicResource AcrylicFallbackColor}"
-	                MaterialOpacity="0.55" />
+		<ExperimentalAcrylicMaterial BackgroundSource="Digger"
+	            TintColor="Black"
+	            TintOpacity="1"
+	            FallbackColor="{DynamicResource AcrylicFallbackColor}"
+	            MaterialOpacity="0.55" />
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
 		
