@@ -2,8 +2,8 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:system="clr-namespace:System;assembly=System.Runtime">
 	
-	<!-- General -->
-	<system:String x:Key="ID_GENERAL_APP_NAME">Frosty Editor</system:String>
+    <!-- General -->
+    <system:String x:Key="ID_GENERAL_APP_NAME">Frosty Editor</system:String>
 	
     <!-- MenuItems -->
     <system:String x:Key="ID_MENU_FILE">File</system:String>
