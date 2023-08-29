@@ -22,6 +22,7 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         public string Name { get; set; }
         public string Key { get; set; }
         public string Path { get; set; }
+        public object? Icon { get; set; }
 
         // if they would ever actually release non windows version we would need to change the extension here
         public string FileName => System.IO.Path.Combine(Path, $"{Key}.exe");
@@ -31,6 +32,39 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
             Key = inKey;
             Path = Config.Get("GamePath", string.Empty, ConfigScope.Game, Key);
             Name = ProfilesLibrary.GetDisplayName(Key) ?? Key;
+            Icon = BitmapAssetValueConverter.Instance.Convert($"avares://FrostyEditor/Assets/Profiles/Icons/{ProfilesLibrary.GetInternalName(inKey)}.png");
+            // TODO: Add image for these png, they are placeholder now
+            // Assets/Profiles/Icons/
+            //     anthem.png
+            //     bf1.png
+            //     bf4.png
+            //     bf2042.png
+            //     bfh.png
+            //     bfv.png
+            //     deadspace.png
+            //     dragonage.png
+            //     fifa17.png
+            //     fifa18.png
+            //     fifa19.png
+            //     fifa20.png
+            //     fifa21.png
+            //     fifa22.png
+            //     fifa23.png
+            //     madden19.png
+            //     madden20.png
+            //     madden21.png
+            //     madden22.png
+            //     madden23.png
+            //     masseffect.png
+            //     mirrorsedge.png
+            //     nfs14.png
+            //     nfs16.png
+            //     nfs17.png
+            //     nfsedge.png
+            //     nfsheat.png
+            //     nfsunbound.png
+            //     starwars.png
+            //     starwarsiii.png
         }
     }
 

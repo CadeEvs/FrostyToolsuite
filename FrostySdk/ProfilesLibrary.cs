@@ -108,4 +108,9 @@ public static class ProfilesLibrary
     {
         return s_profiles.Find(a => a.Name.Equals(profileKey, StringComparison.OrdinalIgnoreCase))?.DisplayName;
     }
+
+    public static string? GetInternalName(string profileKey)
+    {
+        return s_profiles.Find(a => a.Name.Equals(profileKey, StringComparison.OrdinalIgnoreCase))?.InternalName;
+    }
 }
