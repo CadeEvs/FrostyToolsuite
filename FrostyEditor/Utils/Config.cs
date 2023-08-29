@@ -208,10 +208,10 @@ public static class Config
 
     /// <summary>
     /// Adds a <see cref="GameOptions"/> to the active <see cref="Config"/>.
-    /// True if the game was added successfully.
     /// </summary>
     /// <param name="profile">The profile name.</param>
     /// <param name="gamePath">The path to the game.</param>
+    /// <returns>True if the game was added successfully.</returns>
     public static bool AddGame(string profile, string gamePath)
     {
         s_current ??= new InternalConfig();
