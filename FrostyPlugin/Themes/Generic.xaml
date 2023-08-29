@@ -1207,9 +1207,9 @@
 
     <Style TargetType="{x:Type editors:FrostyRotationControl}" BasedOn="{StaticResource {x:Type editors:FrostyVectorControl}}">
         <Setter Property="ControlType" Value="Vec3"/>
-        <Setter Property="XLabel" Value="Y"/>
-        <Setter Property="YLabel" Value="P"/>
-        <Setter Property="ZLabel" Value="R"/>
+        <Setter Property="XLabel" Value="X"/>
+        <Setter Property="YLabel" Value="Y"/>
+        <Setter Property="ZLabel" Value="Z"/>
     </Style>
 
     <!-- FrostyAssetListView -->
