@@ -6,13 +6,23 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdk", "FrostySdk\Fros
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyModSupport", "FrostyModSupport\FrostyModSupport.csproj", "{FA870B91-F40B-4B94-9DAB-D8A12F772E0E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator", "FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj", "{D3E71AB3-3E6A-416B-8EDE-0EB25C071A48}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator.Example", "FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.Example\FrostyTypeSdkGenerator.Example.csproj", "{4ADD34F4-906E-48BE-AACE-29A26C6E9D4E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdkTest", "FrostySdkTest\FrostySdkTest.csproj", "{0D68BF68-5166-4995-BBAF-4D0257A9DB38}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyEditor", "FrostyEditor\FrostyEditor.csproj", "{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{1E32C01C-7858-4510-80C2-C6A705DC8926}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+		NOTICE.md = NOTICE.md
+		LICENSE = LICENSE
+		CodingStandards.cs = CodingStandards.cs
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "FrostyTypeSdkGenerator", "FrostyTypeSdkGenerator", "{0E902CC4-FFE0-4614-8C37-4256C3D3F13D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator", "FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj", "{8679D294-9AA1-49A1-A769-AEFCF1C6CAA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyTypeSdkGenerator.Example", "FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.Example\FrostyTypeSdkGenerator.Example.csproj", "{447CC684-05A6-49FE-821D-A0BF0602614C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,5 +58,17 @@ Global
 		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{691E26AC-EF5E-4138-B18B-F1E75AEB6C8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8679D294-9AA1-49A1-A769-AEFCF1C6CAA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8679D294-9AA1-49A1-A769-AEFCF1C6CAA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8679D294-9AA1-49A1-A769-AEFCF1C6CAA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8679D294-9AA1-49A1-A769-AEFCF1C6CAA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{447CC684-05A6-49FE-821D-A0BF0602614C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{447CC684-05A6-49FE-821D-A0BF0602614C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{447CC684-05A6-49FE-821D-A0BF0602614C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{447CC684-05A6-49FE-821D-A0BF0602614C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8679D294-9AA1-49A1-A769-AEFCF1C6CAA9} = {0E902CC4-FFE0-4614-8C37-4256C3D3F13D}
+		{447CC684-05A6-49FE-821D-A0BF0602614C} = {0E902CC4-FFE0-4614-8C37-4256C3D3F13D}
 	EndGlobalSection
 EndGlobal
