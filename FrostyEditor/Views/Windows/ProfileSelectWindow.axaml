@@ -3,61 +3,53 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Windows"
+        xmlns:id="using:Dock.Avalonia"
         mc:Ignorable="d"
         Width="1000" Height="600"
         x:Class="FrostyEditor.Views.Windows.ProfileSelectWindow"
         Title="{StaticResource ID_PROFILE_TITLE}"
         x:DataType="vm:ProfileSelectWindowViewModel"
         x:CompileBindings="True"
-		UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
+	UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
         WindowState="Normal" WindowStartupLocation="CenterScreen"
         Background="{x:Null}"
         TransparencyLevelHint="AcrylicBlur"
         Foreground="{DynamicResource DockThemeForegroundBrush}"
         BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
-		ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="PreferSystemChrome"
-        ExtendClientAreaTitleBarHeightHint="-1"
-		>
+	ExtendClientAreaTitleBarHeightHint="-1"
+        id:DockProperties.IsDragEnabled="True" id:DockProperties.IsDropEnabled="True">
+
     <Design.DataContext>
         <vm:ProfileSelectWindowViewModel />
     </Design.DataContext>
 	
     <Grid Background="Transparent">
         <Grid.RowDefinitions>
-			<RowDefinition Height="50"/>
+            <RowDefinition Height="50"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-
-		<Grid Grid.Row="0" IsHitTestVisible="False">
-		    <ExperimentalAcrylicBorder IsHitTestVisible="False">
-			    <ExperimentalAcrylicBorder.Material>
-					<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                        TintColor="Black"
-                        TintOpacity="1"
-                        FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                        MaterialOpacity="0.55"/>
-			    </ExperimentalAcrylicBorder.Material>
-		    </ExperimentalAcrylicBorder>
-			
-		    <StackPanel Background="{x:Null}" Margin="2" HorizontalAlignment="Left" Orientation="Horizontal">
-			    <Image Source="{SvgImage ../../Themes/Svg/FrostyLogo.svg}" Width="30" Height="30" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-				<!--<Path Height="30" Width="30" Margin="10" VerticalAlignment="Center" Stretch="Uniform" UseLayoutRounding="False" Data="M 66.669922 4.7421875 L 53.285156 18.126953 L 57.832031 35.804688 L 43.941406 28.482422 L 44.699219 43.380859 L 31.0625 30.501953 L 13.132812 35.046875 L 17.929688 54.494141 L 35.355469 58.533203 L 22.476562 67.119141 L 34.849609 74.443359 L 17.425781 79.494141 L 13.384766 97.171875 L 32.830078 102.98047 L 44.699219 90.353516 L 45.457031 105.75781 L 57.578125 99.193359 L 53.791016 117.62695 L 67.427734 129.49609 L 80.306641 115.10156 L 76.771484 98.181641 L 90.662109 104.74805 L 90.408203 91.869141 L 104.04492 104.24414 L 121.4707 99.697266 L 116.92578 80.503906 L 98.490234 75.201172 L 111.11719 67.119141 L 98.742188 59.796875 L 117.42969 54.746094 L 121.97656 37.068359 L 102.7832 30.753906 L 89.904297 43.634766 L 89.146484 27.976562 L 76.519531 34.542969 L 80.560547 17.117188 L 66.669922 4.7421875 z M 66.658203 25.910156 L 73.65625 37.314453 L 66.580078 62.201172 L 60.175781 37.300781 L 66.658203 25.910156 z M 31.072266 45.349609 L 44.464844 45.794922 L 63.214844 65.169922 L 38.125 58.027344 L 31.072266 45.349609 z M 88.75 46.509766 L 102.76758 47.3125 L 95.892578 58.384766 L 70.892578 64.455078 L 88.75 46.509766 z M 63.035156 68.830078 L 45.177734 87.3125 L 30.714844 87.3125 L 37.677734 75.349609 L 63.035156 68.830078 z M 71.160156 69.277344 L 95.982422 76.242188 L 103.48242 88.294922 L 89.822266 88.5625 L 71.160156 69.277344 z M 66.785156 71.419922 L 73.839844 96.330078 L 66.607422 108.02734 L 59.910156 95.974609 L 66.785156 71.419922 z"/>-->
-			    <TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-			    <TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.8"/>
-		    </StackPanel>
-		</Grid>
 		
-		<ExperimentalAcrylicBorder Grid.Row="1">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                    TintColor="#222222"
-                    TintOpacity="1"
-                    FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                    MaterialOpacity="0.55" />
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+            <ExperimentalAcrylicBorder Grid.Row="0">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
+
+            <StackPanel Grid.Row="0" Margin="2" HorizontalAlignment="Left" Orientation="Horizontal">
+                <!--TODO: Frosty Icon-->
+                <Image Source="" Height="30" Margin="10" VerticalAlignment="Center"/>
+                <!--<TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="10" VerticalAlignment="Center"/>-->
+                <TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="10" VerticalAlignment="Center"/>
+            </StackPanel>
+		
+            <ExperimentalAcrylicBorder Grid.Row="1" IsHitTestVisible="False">
+                <ExperimentalAcrylicBorder.Material>
+                    <ExperimentalAcrylicMaterial TintColor="#222222" MaterialOpacity="0.85" TintOpacity="1" />
+                </ExperimentalAcrylicBorder.Material>
+            </ExperimentalAcrylicBorder>
 		
         <Grid Grid.Row="1">
             <ListBox Background="Transparent" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
@@ -72,15 +64,11 @@
             </ListBox>
         </Grid>
 		
-		<ExperimentalAcrylicBorder Grid.Row="2">
-			<ExperimentalAcrylicBorder.Material>
-				<ExperimentalAcrylicMaterial BackgroundSource="Digger"
-                    TintColor="Black"
-                    TintOpacity="1"
-                    FallbackColor="{DynamicResource AcrylicFallbackColor}"
-                    MaterialOpacity="0.55" />
-			</ExperimentalAcrylicBorder.Material>
-		</ExperimentalAcrylicBorder>
+        <ExperimentalAcrylicBorder Grid.Row="2">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial TintColor="Black" MaterialOpacity="0.85" TintOpacity="1" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
 		
         <Grid Grid.Row="2" Margin="2">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
