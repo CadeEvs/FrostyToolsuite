@@ -42,7 +42,7 @@
 		</ExperimentalAcrylicBorder>
 
         <StackPanel Background="{x:Null}" Grid.Row="0" Margin="3" HorizontalAlignment="Left" VerticalAlignment="Center" Orientation="Horizontal" IsHitTestVisible="False">
-			<Image Source="{SvgImage ../../Themes/Svg/FrostyLogo.svg}" Width="30" Height="30" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+			<Image Source="{SvgImage ../../Assets/FrostyLogo.svg}" Width="30" Height="30" Margin="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 			<TextBlock Text="{StaticResource ID_GENERAL_APP_NAME}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center"/>
 			<TextBlock Text="{StaticResource ID_PROFILE_TITLE}" Margin="5" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0.8"/>
         </StackPanel>

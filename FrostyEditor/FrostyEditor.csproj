@@ -10,12 +10,13 @@
   <ItemGroup>
     <None Remove="Assets\FolderCollapsed.png" />
     <None Remove="Assets\FolderExpanded.png" />
+    <None Remove="Assets\FrostyLogo.svg" />
   </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\FolderCollapsed.png" />
     <AvaloniaResource Include="Assets\FolderExpanded.png" />
-	<AvaloniaResource Include="Themes\Svg\FrostyLogo.svg" />
+	<AvaloniaResource Include="Assets\FrostyLogo.svg" />
   </ItemGroup>
 
   <ItemGroup>
@@ -142,6 +143,11 @@
     <None Update="Profiles\SWS.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\Profiles\Icons\" />
+    <Folder Include="Assets\Profiles\Banners\" />
   </ItemGroup>
 
 </Project>
