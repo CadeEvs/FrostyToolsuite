@@ -34,5 +34,9 @@ jobs:
       run: |
         cd FrostyModSupport
         dotnet build --no-restore
+    - name: Build FrostyEditor
+      run: |
+        cd FrostyEditor
+        dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
