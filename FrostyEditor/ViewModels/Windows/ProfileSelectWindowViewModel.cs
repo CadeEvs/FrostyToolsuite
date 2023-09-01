@@ -23,6 +23,7 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
         public string Key { get; set; }
         public string Path { get; set; }
         public object? Icon { get; set; }
+        public object? Banner { get; set; }
 
         // if they would ever actually release non windows version we would need to change the extension here
         public string FileName => System.IO.Path.Combine(Path, $"{Key}.exe");
@@ -33,6 +34,7 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
             Path = Config.Get("GamePath", string.Empty, ConfigScope.Game, Key);
             Name = ProfilesLibrary.GetDisplayName(Key) ?? Key;
             Icon = BitmapAssetValueConverter.Instance.Convert($"avares://FrostyEditor/Assets/Profiles/Icons/{ProfilesLibrary.GetInternalName(inKey)}.png");
+            Banner = BitmapAssetValueConverter.Instance.Convert($"avares://FrostyEditor/Assets/Profiles/Banners/{ProfilesLibrary.GetInternalName(inKey)}.png");
             // TODO: Add image for these png, they are placeholder now
             // Assets/Profiles/Icons/
             //     anthem.png

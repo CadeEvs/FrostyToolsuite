@@ -54,6 +54,41 @@
 		<None Remove="Assets\Profiles\Icons\starwars.png" />
 		<None Remove="Assets\Profiles\Icons\starwarsii.png" />
 		<None Remove="Assets\Profiles\Icons\starwarsiii.png" />
+
+		<None Remove="Assets\Profiles\Banners\anthem.png" />
+		<None Remove="Assets\Profiles\Banners\bf1.png" />
+		<None Remove="Assets\Profiles\Banners\bf4.png" />
+		<None Remove="Assets\Profiles\Banners\bfh.png" />
+		<None Remove="Assets\Profiles\Banners\bfv.png" />
+		<None Remove="Assets\Profiles\Banners\bf2042.png" />
+		<None Remove="Assets\Profiles\Banners\deadspace.png" />
+		<None Remove="Assets\Profiles\Banners\dragonage.png" />
+		<None Remove="Assets\Profiles\Banners\fifa17.png" />
+		<None Remove="Assets\Profiles\Banners\fifa18.png" />
+		<None Remove="Assets\Profiles\Banners\fifa19.png" />
+		<None Remove="Assets\Profiles\Banners\fifa20.png" />
+		<None Remove="Assets\Profiles\Banners\fifa21.png" />
+		<None Remove="Assets\Profiles\Banners\fifa22.png" />
+		<None Remove="Assets\Profiles\Banners\fifa23.png" />
+		<None Remove="Assets\Profiles\Banners\madden19.png" />
+		<None Remove="Assets\Profiles\Banners\madden20.png" />
+		<None Remove="Assets\Profiles\Banners\madden21.png" />
+		<None Remove="Assets\Profiles\Banners\madden22.png" />
+		<None Remove="Assets\Profiles\Banners\madden23.png" />
+		<None Remove="Assets\Profiles\Banners\masseffect.png" />
+		<None Remove="Assets\Profiles\Banners\mirrorsedge.png" />
+		<None Remove="Assets\Profiles\Banners\nfs14.png" />
+		<None Remove="Assets\Profiles\Banners\nfs16.png" />
+		<None Remove="Assets\Profiles\Banners\nfs17.png" />
+		<None Remove="Assets\Profiles\Banners\nfsedge.png" />
+		<None Remove="Assets\Profiles\Banners\nfsheat.png" />
+		<None Remove="Assets\Profiles\Banners\nfsunbound.png" />
+		<None Remove="Assets\Profiles\Banners\pvz1.png" />
+		<None Remove="Assets\Profiles\Banners\pvz2.png" />
+		<None Remove="Assets\Profiles\Banners\pvz3.png" />
+		<None Remove="Assets\Profiles\Banners\starwars.png" />
+		<None Remove="Assets\Profiles\Banners\starwarsii.png" />
+		<None Remove="Assets\Profiles\Banners\starwarsiii.png" />
     </ItemGroup>
 
 	<ItemGroup>
@@ -91,6 +126,41 @@
 		<AvaloniaResource Include="Assets\Profiles\Icons\starwars.png" />
 		<AvaloniaResource Include="Assets\Profiles\Icons\starwarsii.png" />
 		<AvaloniaResource Include="Assets\Profiles\Icons\starwarsiii.png" />
+
+		<AvaloniaResource Include="Assets\Profiles\Banners\anthem.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\bf1.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\bf4.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\bfh.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\bfv.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\bf2042.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\deadspace.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\dragonage.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa17.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa18.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa19.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa20.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa21.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa22.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\fifa23.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\madden19.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\madden20.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\madden21.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\madden22.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\madden23.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\masseffect.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\mirrorsedge.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\nfs14.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\nfs16.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\nfs17.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\nfsedge.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\nfsheat.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\nfsunbound.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\pvz1.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\pvz2.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\pvz3.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\starwars.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\starwarsii.png" />
+		<AvaloniaResource Include="Assets\Profiles\Banners\starwarsiii.png" />
 	</ItemGroup>
 
 	<ItemGroup>
