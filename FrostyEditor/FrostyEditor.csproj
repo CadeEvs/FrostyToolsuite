@@ -6,6 +6,7 @@
     <IsPackable>False</IsPackable>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,10 @@
     <AvaloniaResource Include="Assets\*" />
     <AvaloniaResource Include="Assets\Profiles\Icons\*" />
     <AvaloniaResource Include="Assets\Profiles\Banners\*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\AppIcon.ico" />
   </ItemGroup>
 
   <ItemGroup>

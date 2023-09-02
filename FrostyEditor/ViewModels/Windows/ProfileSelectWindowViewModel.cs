@@ -105,6 +105,14 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
                 Config.RemoveGame(profile);
             }
         }
+
+        private bool enable = false;
+        public bool Enable
+        {
+            get => enable;
+            set => this.RaiseAndSetIfChanged(ref enable, value);
+        }
+
         Config.Save(App.ConfigPath);
     }
 
@@ -182,6 +190,15 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
     private void Cancel()
     {
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+        {
+            desktopLifetime.MainWindow?.Close();
+        }
+    }
+
+    [RelayCommand]
+    private void EnableSelectButton()
+    {
+        if (SelectedProfile is not null)
         {
             desktopLifetime.MainWindow?.Close();
         }

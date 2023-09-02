@@ -12,7 +12,6 @@ public partial class ProfileSelectWindow : Window
 #if DEBUG
         this.AttachDevTools();
 #endif
-        PointerPressed += (_, e) => BeginMoveDrag(e);
     }
 
     private void InitializeComponent()
