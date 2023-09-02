@@ -10,11 +10,15 @@
 
   <ItemGroup>
     <None Remove="Assets\*" />
+    <None Remove="Assets\Profiles\Icons\*" />
+    <None Remove="Assets\Profiles\Banners\*" />
     <None Update="Profiles\*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />
+    <AvaloniaResource Include="Assets\Profiles\Icons\*" />
+    <AvaloniaResource Include="Assets\Profiles\Banners\*" />
   </ItemGroup>
 
   <ItemGroup>
