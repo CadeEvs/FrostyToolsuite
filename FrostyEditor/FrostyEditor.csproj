@@ -1,41 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
-		<OutputType>WinExe</OutputType>
-		<IsPackable>False</IsPackable>
-		<ImplicitUsings>disable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <IsPackable>False</IsPackable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<None Remove="Assets\*" />
-		<None Update="Profiles\*.json" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>
+  <ItemGroup>
+    <None Remove="Assets\*" />
+    <None Update="Profiles\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<AvaloniaResource Include="Assets\*" />
-	</ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\*" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Avalonia" Version="11.0.0" />
-		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0" />
-		<PackageReference Include="Avalonia.Desktop" Version="11.0.0" />
-		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.0" />
-		<PackageReference Include="Avalonia.Svg" Version="11.0.0.1" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0" />
-		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-		<PackageReference Include="Dock.Avalonia" Version="11.0.0" />
-		<PackageReference Include="Dock.Model" Version="11.0.0" />
-		<PackageReference Include="Dock.Model.Mvvm" Version="11.0.0" />
-		<PackageReference Include="Dock.Serializer" Version="11.0.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.6.0" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="4.6.0" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.0.0" />
+    <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.0" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.0" />
+    <PackageReference Include="Avalonia.Svg" Version="11.0.0.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+    <PackageReference Include="Dock.Avalonia" Version="11.0.0" />
+    <PackageReference Include="Dock.Model" Version="11.0.0" />
+    <PackageReference Include="Dock.Model.Mvvm" Version="11.0.0" />
+    <PackageReference Include="Dock.Serializer" Version="11.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.6.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="4.6.0" />
+  </ItemGroup>
 
-	<ItemGroup>
-		<ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
+  </ItemGroup>
 
 </Project>
