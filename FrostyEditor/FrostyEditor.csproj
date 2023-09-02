@@ -1,297 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <OutputType>WinExe</OutputType>
-    <IsPackable>False</IsPackable>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Assets\FolderCollapsed.png" />
-    <None Remove="Assets\FolderExpanded.png" />
-    <None Remove="Assets\FrostyLogo.svg" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <AvaloniaResource Include="Assets\FolderCollapsed.png" />
-    <AvaloniaResource Include="Assets\FolderExpanded.png" />
-	<AvaloniaResource Include="Assets\FrostyLogo.svg" />
-  </ItemGroup>
-
-    <ItemGroup>
-		<None Remove="Assets\Profiles\Icons\anthem.png" />
-		<None Remove="Assets\Profiles\Icons\bf1.png" />
-		<None Remove="Assets\Profiles\Icons\bf4.png" />
-		<None Remove="Assets\Profiles\Icons\bfh.png" />
-		<None Remove="Assets\Profiles\Icons\bfv.png" />
-		<None Remove="Assets\Profiles\Icons\bf2042.png" />
-		<None Remove="Assets\Profiles\Icons\deadspace.png" />
-		<None Remove="Assets\Profiles\Icons\dragonage.png" />
-		<None Remove="Assets\Profiles\Icons\fifa17.png" />
-		<None Remove="Assets\Profiles\Icons\fifa18.png" />
-		<None Remove="Assets\Profiles\Icons\fifa19.png" />
-		<None Remove="Assets\Profiles\Icons\fifa20.png" />
-		<None Remove="Assets\Profiles\Icons\fifa21.png" />
-		<None Remove="Assets\Profiles\Icons\fifa22.png" />
-		<None Remove="Assets\Profiles\Icons\fifa23.png" />
-		<None Remove="Assets\Profiles\Icons\madden19.png" />
-		<None Remove="Assets\Profiles\Icons\madden20.png" />
-		<None Remove="Assets\Profiles\Icons\madden21.png" />
-		<None Remove="Assets\Profiles\Icons\madden22.png" />
-		<None Remove="Assets\Profiles\Icons\madden23.png" />
-		<None Remove="Assets\Profiles\Icons\masseffect.png" />
-		<None Remove="Assets\Profiles\Icons\mirrorsedge.png" />
-		<None Remove="Assets\Profiles\Icons\nfs14.png" />
-		<None Remove="Assets\Profiles\Icons\nfs16.png" />
-		<None Remove="Assets\Profiles\Icons\nfs17.png" />
-		<None Remove="Assets\Profiles\Icons\nfsedge.png" />
-		<None Remove="Assets\Profiles\Icons\nfsheat.png" />
-		<None Remove="Assets\Profiles\Icons\nfsunbound.png" />
-		<None Remove="Assets\Profiles\Icons\pvz1.png" />
-		<None Remove="Assets\Profiles\Icons\pvz2.png" />
-		<None Remove="Assets\Profiles\Icons\pvz3.png" />
-		<None Remove="Assets\Profiles\Icons\starwars.png" />
-		<None Remove="Assets\Profiles\Icons\starwarsii.png" />
-		<None Remove="Assets\Profiles\Icons\starwarsiii.png" />
-
-		<None Remove="Assets\Profiles\Banners\anthem.png" />
-		<None Remove="Assets\Profiles\Banners\bf1.png" />
-		<None Remove="Assets\Profiles\Banners\bf4.png" />
-		<None Remove="Assets\Profiles\Banners\bfh.png" />
-		<None Remove="Assets\Profiles\Banners\bfv.png" />
-		<None Remove="Assets\Profiles\Banners\bf2042.png" />
-		<None Remove="Assets\Profiles\Banners\deadspace.png" />
-		<None Remove="Assets\Profiles\Banners\dragonage.png" />
-		<None Remove="Assets\Profiles\Banners\fifa17.png" />
-		<None Remove="Assets\Profiles\Banners\fifa18.png" />
-		<None Remove="Assets\Profiles\Banners\fifa19.png" />
-		<None Remove="Assets\Profiles\Banners\fifa20.png" />
-		<None Remove="Assets\Profiles\Banners\fifa21.png" />
-		<None Remove="Assets\Profiles\Banners\fifa22.png" />
-		<None Remove="Assets\Profiles\Banners\fifa23.png" />
-		<None Remove="Assets\Profiles\Banners\madden19.png" />
-		<None Remove="Assets\Profiles\Banners\madden20.png" />
-		<None Remove="Assets\Profiles\Banners\madden21.png" />
-		<None Remove="Assets\Profiles\Banners\madden22.png" />
-		<None Remove="Assets\Profiles\Banners\madden23.png" />
-		<None Remove="Assets\Profiles\Banners\masseffect.png" />
-		<None Remove="Assets\Profiles\Banners\mirrorsedge.png" />
-		<None Remove="Assets\Profiles\Banners\nfs14.png" />
-		<None Remove="Assets\Profiles\Banners\nfs16.png" />
-		<None Remove="Assets\Profiles\Banners\nfs17.png" />
-		<None Remove="Assets\Profiles\Banners\nfsedge.png" />
-		<None Remove="Assets\Profiles\Banners\nfsheat.png" />
-		<None Remove="Assets\Profiles\Banners\nfsunbound.png" />
-		<None Remove="Assets\Profiles\Banners\pvz1.png" />
-		<None Remove="Assets\Profiles\Banners\pvz2.png" />
-		<None Remove="Assets\Profiles\Banners\pvz3.png" />
-		<None Remove="Assets\Profiles\Banners\starwars.png" />
-		<None Remove="Assets\Profiles\Banners\starwarsii.png" />
-		<None Remove="Assets\Profiles\Banners\starwarsiii.png" />
-    </ItemGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<OutputType>WinExe</OutputType>
+		<IsPackable>False</IsPackable>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
 	<ItemGroup>
-		<AvaloniaResource Include="Assets\Profiles\Icons\anthem.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\bf1.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\bf4.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\bfh.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\bfv.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\bf2042.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\deadspace.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\dragonage.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa17.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa18.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa19.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa20.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa21.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa22.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\fifa23.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\madden19.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\madden20.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\madden21.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\madden22.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\madden23.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\masseffect.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\mirrorsedge.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\nfs14.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\nfs16.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\nfs17.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\nfsedge.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\nfsheat.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\nfsunbound.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\pvz1.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\pvz2.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\pvz3.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\starwars.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\starwarsii.png" />
-		<AvaloniaResource Include="Assets\Profiles\Icons\starwarsiii.png" />
-
-		<AvaloniaResource Include="Assets\Profiles\Banners\anthem.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\bf1.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\bf4.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\bfh.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\bfv.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\bf2042.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\deadspace.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\dragonage.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa17.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa18.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa19.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa20.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa21.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa22.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\fifa23.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\madden19.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\madden20.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\madden21.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\madden22.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\madden23.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\masseffect.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\mirrorsedge.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\nfs14.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\nfs16.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\nfs17.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\nfsedge.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\nfsheat.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\nfsunbound.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\pvz1.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\pvz2.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\pvz3.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\starwars.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\starwarsii.png" />
-		<AvaloniaResource Include="Assets\Profiles\Banners\starwarsiii.png" />
+		<None Remove="Assets\*" />
+		<None Update="Profiles\*.json" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
 
 	<ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.0.0" />
-    <PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.0" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.0" />
-    <PackageReference Include="Avalonia.Svg" Version="11.0.0.1" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0" />
-    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
-    <PackageReference Include="Dock.Avalonia" Version="11.0.0" />
-    <PackageReference Include="Dock.Model" Version="11.0.0" />
-    <PackageReference Include="Dock.Model.Mvvm" Version="11.0.0" />
-    <PackageReference Include="Dock.Serializer" Version="11.0.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.6.0" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="4.6.0" />
-  </ItemGroup>
+		<AvaloniaResource Include="Assets\*" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.0.0" />
+		<PackageReference Include="Avalonia.Controls.TreeDataGrid" Version="11.0.0" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.0.0" />
+		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.0" />
+		<PackageReference Include="Avalonia.Svg" Version="11.0.0.1" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.0" />
+		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.1" />
+		<PackageReference Include="Dock.Avalonia" Version="11.0.0" />
+		<PackageReference Include="Dock.Model" Version="11.0.0" />
+		<PackageReference Include="Dock.Model.Mvvm" Version="11.0.0" />
+		<PackageReference Include="Dock.Serializer" Version="11.0.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.6.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.6.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Scripting.Common" Version="4.6.0" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Update="Profiles\Anthem.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Battlefield1.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Battlefield4.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\BattlefieldHardline.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\BattlefieldV.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\BF2042.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\DeadSpace.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\DragonAgeInquisition.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa17.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa18.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa19.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa20.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa21.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa22.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Fifa23.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Madden19.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Madden20.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Madden21.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Madden22.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Madden23.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Mea.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Mec.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\Nfs.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\NFSHeat.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\NFSOnline.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\NFSPayback.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\NfsRivals.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\NFSUnbound.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\PvZ.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\PvZ2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\PvZ3.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\SWBF1.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\SWBF2.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Profiles\SWS.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\Profiles\Icons\" />
-    <Folder Include="Assets\Profiles\Banners\" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
+	</ItemGroup>
 
 </Project>
