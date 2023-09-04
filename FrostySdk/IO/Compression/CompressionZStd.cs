@@ -7,24 +7,22 @@ namespace Frosty.Sdk.IO.Compression;
 
 public partial class CompressionZStd : ICompressionFormat
 {
-    private const string ZStdLibName = "zstd";
+    public string Identifier => "ZStandard";
+    private const string NativeLibName = "zstd";
     private static IntPtr s_DictContext = IntPtr.Zero;
     
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_decompress(IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr compressedSize);
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_createDCtx();
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_decompress_usingDict(IntPtr dctx, IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr srcSize, IntPtr dict, IntPtr dictSize);
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_decompressDCtx(IntPtr dctx, IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr srcSize);
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_compress(IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr srcSize);
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_getErrorName(IntPtr code);
-    [LibraryImport(ZStdLibName)] private static partial IntPtr ZSTD_isError(IntPtr code);
-    
-    public string Identifier => "ZStandard";
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_decompress(IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr compressedSize);
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_createDCtx();
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_decompress_usingDict(IntPtr dctx, IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr srcSize, IntPtr dict, IntPtr dictSize);
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_decompressDCtx(IntPtr dctx, IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr srcSize);
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_compress(IntPtr dst, IntPtr dstCapacity, IntPtr src, IntPtr srcSize);
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_getErrorName(IntPtr code);
+    [LibraryImport(NativeLibName)] internal static partial IntPtr ZSTD_isError(IntPtr code);
 
     /// <summary>
     /// Checks if the specified code is a valid ZStd error.
     /// </summary>
-    /// 
-    private static unsafe void GetError(IntPtr code)
+    private unsafe static void GetError(IntPtr code)
     {
         if (ZSTD_isError(code) != IntPtr.Zero)
         {

@@ -1,4 +1,3 @@
-using System;
 using Frosty.Sdk.Utils;
 
 namespace Frosty.Sdk.IO.Compression;
