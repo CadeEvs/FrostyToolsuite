@@ -18,7 +18,6 @@ using Frosty.Core;
 using Frosty.Core.Windows;
 using Frosty.Core.Screens;
 using System.Runtime.InteropServices;
-using TexturePlugin.Windows;
 
 namespace TexturePlugin
 {
@@ -279,7 +278,7 @@ namespace TexturePlugin
                 EbxAssetEntry assetEntry = AssetEntry as EbxAssetEntry;
                 ulong resRid = ((dynamic)RootObject).Resource;
 
-                bool failed = false;
+                bool bFailed = false;
                 string errorMsg = "";
 
                 FrostyTaskWindow.Show("Importing Texture", "", (task) =>
@@ -296,23 +295,11 @@ namespace TexturePlugin
                     }
                     else
                     {
-                        SharpDX.DXGI.Format pxFmt = SharpDX.DXGI.Format.Unknown;
-                        Application.Current.Dispatcher.Invoke((Action)delegate
-                        {
-                            ImportTextureWindow importWindow = new ImportTextureWindow(textureIsSRGB);
-                            if (importWindow.ShowDialog() is false)
-                            {
-                                App.Logger.Log("Cancelled import");
-                                return;
-                            }
-
-                            pxFmt = importWindow.GetSelectedPixelFormat();
-                        });
                         // convert other image types
                         TextureImportOptions options = new TextureImportOptions
                         {
                             type = textureAsset.Type,
-                            format = pxFmt,//TextureUtils.ToShaderFormat(textureAsset.PixelFormat, (textureAsset.Flags & TextureFlags.SrgbGamma) != 0),
+                            format = TextureUtils.ToShaderFormat(textureAsset.PixelFormat, (textureAsset.Flags & TextureFlags.SrgbGamma) != 0),
                             generateMipmaps = textureAsset.MipCount > 1,
                             mipmapsFilter = 0,
                             resizeTexture = false,
@@ -380,10 +367,10 @@ namespace TexturePlugin
                             if (type != textureAsset.Type)
                             {
                                 errorMsg = $"Imported texture must match original texture type. Original texture type is {textureAsset.Type}. Imported texture type is {type}";
-                                failed = true;
+                                bFailed = true;
                             }
 
-                            if (!failed)
+                            if (!bFailed)
                             {
                                 if (textureAsset.Type == TextureType.TT_2dArray)
                                 {
@@ -398,13 +385,13 @@ namespace TexturePlugin
                                     // @todo: additional validation
                                 }
 
-                                if (!failed && textureIsSRGB)
+                                if (!bFailed && textureIsSRGB)
                                 {
                                     // dont allow changing of SRGB to non SRGB
                                     if (!header.HasExtendedHeader || !header.ExtendedHeader.dxgiFormat.ToString().ToLower().Contains("srgb"))
                                     {
                                         errorMsg = string.Format("Format must be SRGB variant");
-                                        failed = true;
+                                        bFailed = true;
                                     }
                                 }
                             }
@@ -417,11 +404,11 @@ namespace TexturePlugin
                                 if (header.dwWidth % 4 != 0 || header.dwHeight % 4 != 0)
                                 {
                                     errorMsg = "Texture width/height must be divisible by 4 for compressed formats requiring mip maps";
-                                    failed = true;
+                                    bFailed = true;
                                 }
                             }
 
-                            if (!failed)
+                            if (!bFailed)
                             {
                                 ResAssetEntry resEntry = App.AssetManager.GetResEntry(resRid);
                                 ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(textureAsset.ChunkId);
@@ -518,7 +505,7 @@ namespace TexturePlugin
                         else
                         {
                             errorMsg = string.Format("Invalid DDS format");
-                            failed = true;
+                            bFailed = true;
                         }
                     }
 
@@ -526,7 +513,7 @@ namespace TexturePlugin
                 });
 
                 string message = "Texture " + ofd.FileName + " failed to import: " + errorMsg;
-                if (!failed)
+                if (!bFailed)
                 {
                     TextureScreen screen = renderer.Screen as TextureScreen;
                     screen.TextureAsset = textureAsset;
