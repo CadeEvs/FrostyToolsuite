@@ -250,10 +250,10 @@ namespace Frosty.ModSupport
 
                                                     foreach (DbObject ebx in bundle.GetValue<DbObject>("ebx"))
                                                     {
-                                                        int idx = modBundle.Modify.Ebx.FindIndex((string a) => a.Equals(ebx.GetValue<string>("name")));
-                                                        if (idx != -1)
+                                                        string name = ebx.GetValue<string>("name");
+                                                        if (modBundle.Modify.Ebx.Contains(name))
                                                         {
-                                                            EbxAssetEntry entry = parent.modifiedEbx[modBundle.Modify.Ebx[idx]];
+                                                            EbxAssetEntry entry = parent.modifiedEbx[name];
 
                                                             // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
                                                             if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
@@ -293,10 +293,10 @@ namespace Frosty.ModSupport
                                                     }
                                                     foreach (DbObject res in bundle.GetValue<DbObject>("res"))
                                                     {
-                                                        int idx = modBundle.Modify.Res.FindIndex((string a) => a.Equals(res.GetValue<string>("name")));
-                                                        if (idx != -1)
+                                                        string name = res.GetValue<string>("name");
+                                                        if (modBundle.Modify.Res.Contains(name))
                                                         {
-                                                            ResAssetEntry entry = parent.modifiedRes[modBundle.Modify.Res[idx]];
+                                                            ResAssetEntry entry = parent.modifiedRes[name];
 
                                                             // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
                                                             if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
@@ -342,10 +342,10 @@ namespace Frosty.ModSupport
                                                     }
                                                     foreach (DbObject chunk in bundle.GetValue<DbObject>("chunks"))
                                                     {
-                                                        int idx = modBundle.Modify.Chunks.FindIndex((Guid a) => a == chunk.GetValue<Guid>("id"));
-                                                        if (idx != -1)
+                                                        Guid id = chunk.GetValue<Guid>("id");
+                                                        if (modBundle.Modify.Chunks.Contains(id))
                                                         {
-                                                            ChunkAssetEntry entry = parent.modifiedChunks[modBundle.Modify.Chunks[idx]];
+                                                            ChunkAssetEntry entry = parent.modifiedChunks[id];
 
                                                             // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
                                                             if (casWriter == null || casWriter.Length + parent.archiveData[entry.Sha1].Data.Length > 1073741824)
@@ -658,10 +658,9 @@ namespace Frosty.ModSupport
                                                 if (parent.modifiedBundles.ContainsKey(chunksBundleHash))
                                                 {
                                                     ModBundleInfo bundleInfo = parent.modifiedBundles[chunksBundleHash];
-                                                    int idx = bundleInfo.Modify.Chunks.FindIndex((Guid g) => g == guid);
-                                                    if (idx != -1)
+                                                    if (bundleInfo.Modify.Chunks.Contains(guid))
                                                     {
-                                                        ChunkAssetEntry entry = parent.modifiedChunks[bundleInfo.Modify.Chunks[idx]];
+                                                        ChunkAssetEntry entry = parent.modifiedChunks[guid];
                                                         byte[] data = null;
 
                                                         //if (entry.ExtraData != null)

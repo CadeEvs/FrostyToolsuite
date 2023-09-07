@@ -546,7 +546,7 @@ namespace SoundEditorPlugin
             if (tracksListBox.SelectedItem == null)
                 return;
 
-            FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import Sound", "Audio Files (*.mp3; *.wav)|*.mp3; *.wav", "Sound");
+            FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import Sound", "Audio Files (*.mp3; *.wav; *.ealayer3)|*.mp3; *.wav; *.ealayer3", "Sound");
             if (ofd.ShowDialog())
             {
                 try
@@ -568,7 +568,7 @@ namespace SoundEditorPlugin
         {
             //WaveFormat waveFormat = null;
             MemoryStream ms = new MemoryStream();
-
+            byte[] resultBuf;
             if (ofd.FileName.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
             {
                 // force stereo for .wav files if needed
@@ -587,6 +587,7 @@ namespace SoundEditorPlugin
                         WaveFileWriter.WriteWavFileToStream(ms, reader);
                     }
                 }
+                resultBuf = CreatePcm16BigSound(ms);
             }
             else if (ofd.FileName.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
             {
@@ -595,52 +596,15 @@ namespace SoundEditorPlugin
                     //waveFormat = reader.WaveFormat;
                     WaveFileWriter.WriteWavFileToStream(ms, reader);
                 }
+                resultBuf = CreatePcm16BigSound(ms);
             }
-
-            byte[] resultBuf;
-            using (var reader = new StreamMediaFoundationReader(ms))
+            else if (ofd.FileName.EndsWith(".ealayer3"))
             {
-                int totalSamples = 0;
-                using (var writer = new NativeWriter(new MemoryStream()))
-                {
-                    writer.Write(0x4800000c, Endian.Big);
-                    writer.Write((byte)0x12); // codec, Pcm16Big
-                    writer.Write((byte)((reader.WaveFormat.Channels - 1) << 2));
-                    writer.Write((ushort)(reader.WaveFormat.SampleRate), Endian.Big);
-
-                    long pos = writer.Position;
-                    writer.Write(0x40000000, Endian.Big);
-
-                    while (reader.Position < reader.Length)
-                    {
-                        int bufLength = 0x2600 * 2 * reader.WaveFormat.Channels;
-                        if (totalSamples + 0x2600 > 0x00ffffff)
-                            break;
-
-                        byte[] buf = new byte[bufLength];
-
-                        int actualRead = reader.Read(buf, 0, bufLength);
-                        if (actualRead == 0)
-                            break;
-
-                        writer.Write((actualRead + 8) | 0x44000000, Endian.Big);
-                        writer.Write(((actualRead / reader.WaveFormat.Channels) / 2), Endian.Big);
-
-                        for (int i = 0; i < actualRead / 2; i++)
-                        {
-                            short s = BitConverter.ToInt16(buf, i * 2);
-                            writer.Write(s, Endian.Big);
-                        }
-
-                        totalSamples += ((actualRead / reader.WaveFormat.Channels) / 2);
-                    }
-
-                    writer.Write(0x45000004, Endian.Big);
-                    writer.Position = pos;
-                    writer.Write(totalSamples | 0x40000000, Endian.Big);
-
-                    resultBuf = writer.ToByteArray();
-                }
+                resultBuf = File.ReadAllBytes(ofd.FileName);
+            }
+            else
+            {
+                throw new FileFormatException();
             }
 
             int index = 0;
@@ -748,6 +712,57 @@ namespace SoundEditorPlugin
                 foreach (var track in tracks)
                     TracksList.Add(track);
             });
+        }
+
+        private static byte[] CreatePcm16BigSound(MemoryStream ms)
+        {
+            byte[] resultBuf;
+            using (var reader = new StreamMediaFoundationReader(ms))
+            {
+                int totalSamples = 0;
+                using (var writer = new NativeWriter(new MemoryStream()))
+                {
+                    writer.Write(0x4800000c, Endian.Big);
+                    writer.Write((byte)0x12); // codec, Pcm16Big
+                    writer.Write((byte)((reader.WaveFormat.Channels - 1) << 2));
+                    writer.Write((ushort)(reader.WaveFormat.SampleRate), Endian.Big);
+
+                    long pos = writer.Position;
+                    writer.Write(0x40000000, Endian.Big);
+
+                    while (reader.Position < reader.Length)
+                    {
+                        int bufLength = 0x2600 * 2 * reader.WaveFormat.Channels;
+                        if (totalSamples + 0x2600 > 0x00ffffff)
+                            break;
+
+                        byte[] buf = new byte[bufLength];
+
+                        int actualRead = reader.Read(buf, 0, bufLength);
+                        if (actualRead == 0)
+                            break;
+
+                        writer.Write((actualRead + 8) | 0x44000000, Endian.Big);
+                        writer.Write(((actualRead / reader.WaveFormat.Channels) / 2), Endian.Big);
+
+                        for (int i = 0; i < actualRead / 2; i++)
+                        {
+                            short s = BitConverter.ToInt16(buf, i * 2);
+                            writer.Write(s, Endian.Big);
+                        }
+
+                        totalSamples += ((actualRead / reader.WaveFormat.Channels) / 2);
+                    }
+
+                    writer.Write(0x45000004, Endian.Big);
+                    writer.Position = pos;
+                    writer.Write(totalSamples | 0x40000000, Endian.Big);
+
+                    resultBuf = writer.ToByteArray();
+                }
+            }
+
+            return resultBuf;
         }
     }
 }

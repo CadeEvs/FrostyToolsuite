@@ -14,7 +14,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,32 +30,29 @@ namespace Frosty.ModSupport
         {
             public class ModBundleAction
             {
-                public List<string> Ebx = new List<string>();
-                public List<string> Res = new List<string>();
-                public List<Guid> Chunks = new List<Guid>();
+                public HashSet<string> Ebx = new HashSet<string>();
+                public HashSet<string> Res = new HashSet<string>();
+                public HashSet<Guid> Chunks = new HashSet<Guid>();
 
                 public void AddEbx(string name)
                 {
                     lock (Ebx)
                     {
-                        if (!Ebx.Contains(name))
-                            Ebx.Add(name);
+                        Ebx.Add(name);
                     }
                 }
                 public void AddRes(string name)
                 {
                     lock (Res)
                     {
-                        if (!Res.Contains(name))
-                            Res.Add(name);
+                        Res.Add(name);
                     }
                 }
                 public void AddChunk(Guid guid)
                 {
                     lock (Chunks)
                     {
-                        if (!Chunks.Contains(guid))
-                            Chunks.Add(guid);
+                        Chunks.Add(guid);
                     }
                 }
             }
@@ -75,14 +71,14 @@ namespace Frosty.ModSupport
             public string Catalog { get; }
             public bool HasEntries => dataRefs.Count != 0;
 
-            private List<Sha1> dataRefs = new List<Sha1>();
+            private HashSet<Sha1> dataRefs = new HashSet<Sha1>();
             private Dictionary<Sha1, List<CasFileEntry>> fileInfos = new Dictionary<Sha1, List<CasFileEntry>>();
 
             public CasDataEntry(string inCatalog, params Sha1[] sha1)
             {
                 Catalog = inCatalog;
                 if (sha1.Length != 0)
-                    dataRefs.AddRange(sha1);
+                    dataRefs.UnionWith(sha1);
             }
 
             public void Add(Sha1 sha1, ChunkAssetEntry entry = null, ManifestFileInfo file = null)
@@ -107,10 +103,9 @@ namespace Frosty.ModSupport
 
             public IEnumerable<CasFileEntry> EnumerateFileInfos(Sha1 sha1)
             {
-                int index = dataRefs.IndexOf(sha1);
-                if (index == -1)
+                if (!dataRefs.Contains(sha1))
                     yield break;
-                if (index >= fileInfos.Count)
+                if (!fileInfos.ContainsKey(sha1))
                     yield break;
                 foreach (CasFileEntry fi in fileInfos[sha1])
                     yield return fi;
@@ -139,10 +134,6 @@ namespace Frosty.ModSupport
                 return entries.Count;
             }
         }
-        private class FrostySymLinkException : Exception
-        {
-            public override string Message => "One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).";
-        }
 
         [JsonObject(NamingStrategyType = typeof(SnakeCaseNamingStrategy))]
         private class ModInfo
@@ -156,15 +147,28 @@ namespace Frosty.ModSupport
 
             public override bool Equals(object obj)
             {
-                ModInfo modInfo = obj as ModInfo;
-
-                if (Name == modInfo.Name 
-                    && Version == modInfo.Version 
-                    && Category == modInfo.Category
-                    && FileName == modInfo.FileName)
-                    return true;
+                if (obj is ModInfo other)
+                {
+                    return Equals(other);
+                }
 
                 return false;
+            }
+
+            public bool Equals(ModInfo other)
+            {
+                return Name == other.Name && Version == other.Version && Category == other.Category;
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    int hashCode = (Name != null ? Name.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ (Version != null ? Version.GetHashCode() : 0);
+                    hashCode = (hashCode * 397) ^ (Category != null ? Category.GetHashCode() : 0);
+                    return hashCode;
+                }
             }
         }
 
@@ -182,9 +186,6 @@ namespace Frosty.ModSupport
             }
         };
 
-        [DllImport("kernel32.dll")]
-        static extern bool CreateSymbolicLink(string lpSymlinkFileName, string lpTargetFileName, int dwFlags);
-
         private FileSystem fs;
         private ResourceManager rm;
         private AssetManager am;
@@ -193,7 +194,7 @@ namespace Frosty.ModSupport
         private List<string> addedSuperBundles = new List<string>();
 
         private ConcurrentDictionary<int, ModBundleInfo> modifiedBundles = new ConcurrentDictionary<int, ModBundleInfo>();
-        private ConcurrentDictionary<int, List<string>> addedBundles = new ConcurrentDictionary<int, List<string>>();
+        private ConcurrentDictionary<int, HashSet<string>> addedBundles = new ConcurrentDictionary<int, HashSet<string>>();
 
         private ConcurrentDictionary<string, EbxAssetEntry> modifiedEbx = new ConcurrentDictionary<string, EbxAssetEntry>();
         private ConcurrentDictionary<string, ResAssetEntry> modifiedRes = new ConcurrentDictionary<string, ResAssetEntry>();
@@ -210,7 +211,7 @@ namespace Frosty.ModSupport
 
         public ILogger Logger { get => logger; set => logger = value; }
 
-        private Dictionary<int, Dictionary<uint, CatResourceEntry>> LoadCatalog(FileSystem fs, string filename, out int catFileHash)
+        private Dictionary<int, Dictionary<uint, CatResourceEntry>> LoadCatalog(string filename, out int catFileHash)
         {
             catFileHash = 0;
             string fullPath = fs.ResolvePath(filename);
@@ -254,7 +255,7 @@ namespace Frosty.ModSupport
         private void ProcessModResources(IResourceContainer fmod)
         {
             // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
-            if (App.WhitelistedBundles.Count != 0 && !App.WhitelistedBundles.Contains(chunksBundleHash))
+            if (App.WhitelistedBundles.Count != 0)
             {
                 App.WhitelistedBundles.Add(chunksBundleHash);
             }
@@ -263,16 +264,15 @@ namespace Frosty.ModSupport
             Parallel.ForEach(fmod.Resources, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, resource =>
             {
                 // pull existing bundles from asset manager
-                List<int> bundles = new List<int>();
+                HashSet<int> bundles = new HashSet<int>();
 
                 if (resource.Type == ModResourceType.Bundle)
                 {
                     BundleEntry bEntry = new BundleEntry();
                     resource.FillAssetEntry(bEntry);
 
-                    addedBundles.TryAdd(bEntry.SuperBundleId, new List<string>());
+                    addedBundles.TryAdd(bEntry.SuperBundleId, new HashSet<string>());
                     addedBundles[bEntry.SuperBundleId].Add(bEntry.Name);
-
                 }
                 else if (resource.Type == ModResourceType.Ebx)
                 {
@@ -280,13 +280,11 @@ namespace Frosty.ModSupport
                     {
                         if (resource.HasHandler)
                         {
-                            EbxAssetEntry entry = null;
-                            HandlerExtraData extraData = null;
+                            HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedEbx.ContainsKey(resource.Name))
+                            if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry entry))
                             {
-                                entry = modifiedEbx[resource.Name];
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
                             else
@@ -318,14 +316,12 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (modifiedEbx.ContainsKey(resource.Name))
+                            if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry existingEntry))
                             {
-                                EbxAssetEntry existingEntry = modifiedEbx[resource.Name];
-
                                 if (existingEntry.ExtraData != null)
                                     return;
                                 if (existingEntry.Sha1 == resource.Sha1)
-                                    return;
+                                    goto label_add_bundles;
 
                                 if (!archiveData.ContainsKey(existingEntry.Sha1))
                                 {
@@ -377,13 +373,11 @@ namespace Frosty.ModSupport
                     {
                         if (resource.HasHandler)
                         {
-                            ResAssetEntry entry = null;
-                            HandlerExtraData extraData = null;
+                            HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedRes.ContainsKey(resource.Name))
+                            if (modifiedRes.TryGetValue(resource.Name, out ResAssetEntry entry))
                             {
-                                entry = modifiedRes[resource.Name];
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
                             else
@@ -415,14 +409,12 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (modifiedRes.ContainsKey(resource.Name))
+                            if (modifiedRes.TryGetValue(resource.Name, out ResAssetEntry existingEntry))
                             {
-                                ResAssetEntry existingEntry = modifiedRes[resource.Name];
-
                                 if (existingEntry.ExtraData != null)
                                     return;
                                 if (existingEntry.Sha1 == resource.Sha1)
-                                    return;
+                                    goto label_add_bundles;
 
                                 if (!archiveData.ContainsKey(existingEntry.Sha1))
                                 {
@@ -478,13 +470,11 @@ namespace Frosty.ModSupport
                     {
                         if (resource.HasHandler)
                         {
-                            ChunkAssetEntry entry = null;
-                            HandlerExtraData extraData = null;
+                            HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedChunks.ContainsKey(guid))
+                            if (modifiedChunks.TryGetValue(guid, out ChunkAssetEntry entry))
                             {
-                                entry = modifiedChunks[guid];
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
                             else
@@ -525,11 +515,12 @@ namespace Frosty.ModSupport
                         }
                         else
                         {
-                            if (modifiedChunks.ContainsKey(guid))
+                            if (modifiedChunks.TryGetValue(guid, out ChunkAssetEntry existingEntry))
                             {
-                                ChunkAssetEntry existingEntry = modifiedChunks[guid];
-                                if (existingEntry.Sha1 == resource.Sha1)
+                                if (existingEntry.ExtraData != null)
                                     return;
+                                if (existingEntry.Sha1 == resource.Sha1)
+                                    goto label_add_bundles;
 
                                 if (!archiveData.ContainsKey(existingEntry.Sha1))
                                 {
@@ -668,7 +659,8 @@ namespace Frosty.ModSupport
                         case ModResourceType.Chunk: modBundle.Modify.AddChunk(new Guid(resource.Name)); break;
                     }
                 }
-
+                
+                label_add_bundles:
                 // add bundle actions (these are stored in the mod)
                 foreach (int bundleHash in resource.AddedBundles)
                 {
@@ -762,7 +754,7 @@ namespace Frosty.ModSupport
 
                     int hash = Fnv1a.HashString(superBundle.ToLower());
                     if (!addedBundles.ContainsKey(hash))
-                        addedBundles.TryAdd(hash, new List<string>());
+                        addedBundles.TryAdd(hash, new HashSet<string>());
 
                     addedBundles[hash].Add(name);
                 }
@@ -1049,8 +1041,8 @@ namespace Frosty.ModSupport
                 }
             }
 
-            cancelToken.ThrowIfCancellationRequested();
-
+            Stopwatch watch = new Stopwatch();
+            
             cancelToken.ThrowIfCancellationRequested();
             Logger.Log("Loading Mods");
 
@@ -1078,11 +1070,11 @@ namespace Frosty.ModSupport
                 {
                     foreach (string catalogName in fs.Catalogs)
                     {
-                        Dictionary<int, Dictionary<uint, CatResourceEntry>> entries = LoadCatalog(fs, "native_data/" + catalogName + "/cas.cat", out int hash);
+                        Dictionary<int, Dictionary<uint, CatResourceEntry>> entries = LoadCatalog("native_data/" + catalogName + "/cas.cat", out int hash);
                         if (entries != null)
                             resources.Add(hash, entries);
 
-                        entries = LoadCatalog(fs, "native_patch/" + catalogName + "/cas.cat", out hash);
+                        entries = LoadCatalog("native_patch/" + catalogName + "/cas.cat", out hash);
                         if (entries != null)
                             resources.Add(hash, entries);
                     }
@@ -1102,6 +1094,7 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Loading Mods");
                 App.Logger.Log("Loading Mods");
+                watch.Start();
 
                 // Get Full Modlist
                 List<FrostyMod> modList = new List<FrostyMod>();
@@ -1134,9 +1127,14 @@ namespace Frosty.ModSupport
                     }
                     ReportProgress(currentMod++, modList.Count);
                 }
-
+                
+                watch.Stop();
+                App.Logger.Log($"Loaded Mods in {watch.Elapsed.Seconds} s");
+                
                 Logger.Log("Applying Handlers");
                 App.Logger.Log("Applying Handlers");
+                
+                watch.Restart();
 
                 // apply handlers
                 RuntimeResources runtimeResources = new RuntimeResources();
@@ -1162,6 +1160,9 @@ namespace Frosty.ModSupport
 
                 // process any new resources added during custom handler modification
                 ProcessModResources(runtimeResources);
+                
+                watch.Stop();
+                App.Logger.Log($"Applied Handlers in {watch.Elapsed.Seconds} s");
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Cleaning Up ModData");
@@ -1311,6 +1312,7 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Applying Mods");
                 App.Logger.Log("Applying Mods");
+                watch.Restart();
 
                 cmdArgs.Clear();
 
@@ -1465,7 +1467,7 @@ namespace Frosty.ModSupport
                         foreach (string bundleName in addedBundles[hash])
                             fs.AddManifestBundle(new ManifestBundleInfo() { hash = Fnv1.HashString(bundleName) });
                     }
-
+                    
                     Dictionary<string, List<ModBundleInfo>> tasks = new Dictionary<string, List<ModBundleInfo>>();
                     foreach (ModBundleInfo bundle in modifiedBundles.Values)
                     {
@@ -1622,6 +1624,9 @@ namespace Frosty.ModSupport
                     }
                 }
 
+                watch.Stop();
+                App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds} s");
+                
                 cancelToken.ThrowIfCancellationRequested();
                 if (cmdArgs.Count > 0)
                 {
@@ -1634,6 +1639,8 @@ namespace Frosty.ModSupport
                 Logger.Log("Writing Archive Data");
                 App.Logger.Log("Writing Archive Data");
 
+                watch.Restart();
+                
                 int totalEntries = casData.GetEntryCount();
                 int currentEntry = 0;
                 ReportProgress(currentEntry, totalEntries);
@@ -1677,6 +1684,9 @@ namespace Frosty.ModSupport
                     ReportProgress(currentEntry++, totalEntries);
                 }
 
+                watch.Stop();
+                App.Logger.Log($"Wrote Archive data in {watch.Elapsed.Seconds} s");
+                
                 cancelToken.ThrowIfCancellationRequested();
 
                 Logger.Log("Writing Manifest");
@@ -1822,7 +1832,7 @@ namespace Frosty.ModSupport
                 if (File.Exists(steamAppIdPath))
                 {
                     string steamAppId = File.ReadAllLines(steamAppIdPath).First();
-                    string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}";
+                    string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}".Trim();
                     string url = Uri.EscapeDataString(arguments);
                     App.Logger.Log($"Launch: {arguments}");
                     App.Logger.Log($"Encoded: {url}");
@@ -1967,7 +1977,14 @@ namespace Frosty.ModSupport
                         casEntry.FileInfo.size = info.Data.Length;
                     }
 
-                    casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                    {
+                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, false, casIndex);
+                    }
+                    else
+                    {
+                        casEntry.FileInfo.file = new ManifestFileRef(casEntry.FileInfo.file.CatalogIndex, true, casIndex);
+                    }
                 }
 
                 currentCasStream.Write(info.Data, 0, info.Data.Length);

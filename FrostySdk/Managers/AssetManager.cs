@@ -890,6 +890,14 @@ namespace FrostySdk.Managers
             bundles.RemoveAll(b => b.Added);
         }
 
+        public void RevertBundle(BundleEntry entry)
+        {
+            if (entry.Added)
+            {
+                bundles.Remove(entry);
+            }
+        }
+
         public void RevertAsset(AssetEntry entry, bool dataOnly = false, bool suppressOnModify = true)
         {
             if (!entry.IsModified)

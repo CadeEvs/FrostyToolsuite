@@ -399,14 +399,18 @@ namespace FrostyEditor
             DirectoryInfo modDirectory = new DirectoryInfo($"Mods/{ProfilesLibrary.ProfileName}");
             foreach (string modPath in Directory.EnumerateFiles($"Mods/{ProfilesLibrary.ProfileName}/", "*.fbmod", SearchOption.AllDirectories))
             {
-                if(Path.GetFileName(modPath).Contains("EditorMod"))
+                if (Path.GetFileName(modPath).Contains("EditorMod"))
+                {
                     File.Delete(modPath);
+                }
                 else
+                {
                     modPaths.Add(Path.GetFileName(modPath));
+                }
             }
             
             Random r = new Random();
-            string editorModName = $"EditorMod_{r.Next(1000, 9999).ToString("D4")}.fbmod";
+            string editorModName = $"EditorMod_{r.Next(1000, 9999):D4}.fbmod";
             
             // create temporary editor mod
             ModSettings editorSettings = new ModSettings { Title = editorModName, Author = "Frosty Editor", Version = App.Version, Category = "Editor"};
@@ -425,44 +429,52 @@ namespace FrostyEditor
                 {
                     try
                     {
-                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                        {
                             executionAction.PreLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
+                        }
 
                         task.Update("Exporting Mod");
-                        ExportMod(editorSettings, $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}", true);
+                        ExportMod(editorSettings, $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}", true, cancelToken.Token);
                         modPaths.Add(editorModName);
-                        App.Logger.Log("Editor temporary Mod saved to {0}", $"Mods/{ProfilesLibrary.ProfileName}/{editorModName}");
-
-                        // allow cancelling in case of a big mod (will cancel after processing the mod)
-                        // @todo: add cancellation to different stages of mod exportation, to allow cancelling
-                        //        at any stage of a large mod
+                        App.Logger.Log($"Editor Mod Saved As {editorModName}");
 
                         cancelToken.Token.ThrowIfCancellationRequested();
 
-                        // Remove mods.json
-                        task.Update("Removing mods.json");
+                        // Delete mods.json
+                        task.Update("Deleting mods.json");
+
                         string gamePatchPath = "Patch";
                         if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
-                            gamePatchPath = "Update\\Patch\\Data";
-                        else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfn and bfv dont have a patch directory
-                            gamePatchPath = "Data";
-                        if (File.Exists(App.FileSystem.BasePath + $"\\ModData\\{App.SelectedPack}\\{gamePatchPath}\\mods.json"))
                         {
-                            File.Delete(App.FileSystem.BasePath + $"\\ModData\\{App.SelectedPack}\\{gamePatchPath}\\mods.json");
-                            App.Logger.Log("Removed mods.json");
+                            gamePatchPath = Path.Combine("Update", "Patch", "Data");
                         }
-                        task.Update("");
+                        else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                        {
+                            gamePatchPath = "Data"; //bfn and bfv dont have a patch directory
+                        }
+
+                        string modsJsonPath = Path.Combine(App.FileSystem.BasePath, "ModData", App.SelectedPack, gamePatchPath, "mods.json");
+                        if (File.Exists(modsJsonPath))
+                        {
+                            File.Delete(modsJsonPath);
+                        }
+
                         executor.Run(App.FileSystem, cancelToken.Token, task.TaskLogger, $"Mods/{ProfilesLibrary.ProfileName}/", App.SelectedPack, additionalArgs.Trim(), modPaths.ToArray());
 
-                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                        {
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
+                        }
                     }
                     catch (OperationCanceledException)
                     {
                         // swollow
 
-                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                        {
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+                        }
                     }
 
                 }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
@@ -488,9 +500,9 @@ namespace FrostyEditor
             FrostyMessageBox.Show("This feature is currently unimplemented", "Frosty Editor");
         }
 
-        public void ExportMod(ModSettings modSettings, string filename, bool bSilent)
+        public void ExportMod(ModSettings modSettings, string filename, bool bSilent, CancellationToken cancelToken)
         {
-            m_project.WriteToMod(filename, modSettings, bSilent);
+            m_project.WriteToMod(filename, modSettings, bSilent, cancelToken);
             if (!bSilent)
                 App.Logger.Log("Mod saved to {0}", filename);
         }

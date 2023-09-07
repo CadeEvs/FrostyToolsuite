@@ -93,8 +93,8 @@ namespace Frosty.Core.Controls.Editors
                 trns.Scale.y = scale.Y;
                 trns.Scale.z = scale.Z;
 
-                trns.Rotation.x = -euler.Y;
-                trns.Rotation.y = euler.X;
+                trns.Rotation.x = euler.X;
+                trns.Rotation.y = euler.Y;
                 trns.Rotation.z = euler.Z;
             }
             else

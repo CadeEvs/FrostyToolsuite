@@ -107,7 +107,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Battlefield™ 4");
-                writer.Write((int)(int)ProfileVersion.Battlefield4);
+                writer.Write((int)ProfileVersion.Battlefield4);
                 writer.WriteObfuscatedString("bf4");
                 writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -135,7 +135,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Battlefield™ Hardline");
-                writer.Write((int)(int)ProfileVersion.Battlefield4);
+                writer.Write((int)ProfileVersion.Battlefield4);
                 writer.WriteObfuscatedString("bfh");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -163,7 +163,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Need for Speed™ Rivals");
-                writer.Write((int)(int)ProfileVersion.NeedForSpeedRivals);
+                writer.Write((int)ProfileVersion.NeedForSpeedRivals);
                 writer.WriteObfuscatedString("nfs14");
                 writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -191,7 +191,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Dragon Age™: Inquisition");
-                writer.Write((int)(int)ProfileVersion.DragonAgeInquisition);
+                writer.Write((int)ProfileVersion.DragonAgeInquisition);
                 writer.WriteObfuscatedString("dragonage");
                 writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -219,7 +219,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Need for Speed™");
-                writer.Write((int)(int)ProfileVersion.NeedForSpeed);
+                writer.Write((int)ProfileVersion.NeedForSpeed);
                 writer.WriteObfuscatedString("nfs16");
                 writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -247,7 +247,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("STAR WARS™ Battlefront™");
-                writer.Write((int)(int)ProfileVersion.StarWarsBattlefront);
+                writer.Write((int)ProfileVersion.StarWarsBattlefront);
                 writer.WriteObfuscatedString("starwars");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -275,7 +275,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Plants vs Zombies™ Garden Warfare");
-                writer.Write((int)(int)ProfileVersion.PlantsVsZombiesGardenWarfare);
+                writer.Write((int)ProfileVersion.PlantsVsZombiesGardenWarfare);
                 writer.WriteObfuscatedString("pvz1");
                 writer.WriteObfuscatedString(typeof(PVZDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -303,7 +303,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Plants vs Zombies™ Garden Warfare 2");
-                writer.Write((int)(int)ProfileVersion.PlantsVsZombiesGardenWarfare2);
+                writer.Write((int)ProfileVersion.PlantsVsZombiesGardenWarfare2);
                 writer.WriteObfuscatedString("pvz2");
                 writer.WriteObfuscatedString(typeof(PVZDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("LegacyAssetLoader"));
@@ -331,7 +331,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Mirror's Edge™ Catalyst");
-                writer.Write((int)(int)ProfileVersion.MirrorsEdgeCatalyst);
+                writer.Write((int)ProfileVersion.MirrorsEdgeCatalyst);
                 writer.WriteObfuscatedString("mirrorsedge");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -359,7 +359,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("FIFA 17");
-                writer.Write((int)(int)ProfileVersion.Fifa17);
+                writer.Write((int)ProfileVersion.Fifa17);
                 writer.WriteObfuscatedString("fifa17");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -387,7 +387,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Battlefield™ 1");
-                writer.Write((int)(int)ProfileVersion.Battlefield1);
+                writer.Write((int)ProfileVersion.Battlefield1);
                 writer.WriteObfuscatedString("bf1");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -415,7 +415,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Mass Effect: Andromeda");
-                writer.Write((int)(int)ProfileVersion.MassEffectAndromeda);
+                writer.Write((int)ProfileVersion.MassEffectAndromeda);
                 writer.WriteObfuscatedString("masseffect");
                 writer.WriteObfuscatedString(typeof(MEADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -443,7 +443,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("FIFA 18");
-                writer.Write((int)(int)ProfileVersion.Fifa18);
+                writer.Write((int)ProfileVersion.Fifa18);
                 writer.WriteObfuscatedString("fifa18");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -499,7 +499,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("STAR WARS™ Battlefront™ II");
-                writer.Write((int)(int)ProfileVersion.StarWarsBattlefrontII);
+                writer.Write((int)ProfileVersion.StarWarsBattlefrontII);
                 writer.WriteObfuscatedString("starwarsii");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
@@ -585,7 +585,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Madden NFL 19™");
-                writer.Write((int)(int)ProfileVersion.Madden19);
+                writer.Write((int)ProfileVersion.Madden19);
                 writer.WriteObfuscatedString("madden19");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("StandardAssetLoader"));
@@ -613,7 +613,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("FIFA 19");
-                writer.Write((int)(int)ProfileVersion.Fifa19);
+                writer.Write((int)ProfileVersion.Fifa19);
                 writer.WriteObfuscatedString("fifa19");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("FifaAssetLoader"));
@@ -641,7 +641,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Battlefield™ V");
-                writer.Write((int)(int)ProfileVersion.Battlefield5);
+                writer.Write((int)ProfileVersion.Battlefield5);
                 writer.WriteObfuscatedString("bfv");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
@@ -692,7 +692,7 @@ namespace FrostyCmd
                 writer.Write(0); // ignored res types
 
                 // Flags (MustAddChunks, EbxVersion, RequiresKey)
-                ProfileFlags pf = new ProfileFlags(0, 4, 0, 1);
+                ProfileFlags pf = new ProfileFlags(0, 4, 0);
                 pf.Write(writer);
 
                 blobs.Add(key, writer.ToByteArray());
@@ -705,7 +705,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Battlefield™ V");
-                writer.Write((int)(int)ProfileVersion.Battlefield5);
+                writer.Write((int)ProfileVersion.Battlefield5);
                 writer.WriteObfuscatedString("bfv");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
@@ -741,7 +741,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Need for Speed™ ONLINE");
-                writer.Write((int)(int)ProfileVersion.NeedForSpeedEdge);
+                writer.Write((int)ProfileVersion.NeedForSpeedEdge);
                 writer.WriteObfuscatedString("nfsedge");
                 writer.WriteObfuscatedString(typeof(DADeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("EdgeAssetLoader"));
@@ -769,7 +769,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Anthem™");
-                writer.Write((int)(int)ProfileVersion.Anthem);
+                writer.Write((int)ProfileVersion.Anthem);
                 writer.WriteObfuscatedString("anthem");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("AnthemAssetLoader"));
@@ -797,7 +797,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Madden NFL 20™");
-                writer.Write((int)(int)ProfileVersion.Madden20);
+                writer.Write((int)ProfileVersion.Madden20);
                 writer.WriteObfuscatedString("madden20");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("FifaAssetLoader"));
@@ -825,7 +825,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Plants vs Zombies: Battle for Neighborville™");
-                writer.Write((int)(int)ProfileVersion.PlantsVsZombiesBattleforNeighborville);
+                writer.Write((int)ProfileVersion.PlantsVsZombiesBattleforNeighborville);
                 writer.WriteObfuscatedString("PVZ3");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("PVZAssetLoader"));
@@ -853,7 +853,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("FIFA 20");
-                writer.Write((int)(int)ProfileVersion.Fifa20);
+                writer.Write((int)ProfileVersion.Fifa20);
                 writer.WriteObfuscatedString("fifa20");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("FifaAssetLoader"));
@@ -881,7 +881,7 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("Need for Speed™ Heat");
-                writer.Write((int)(int)ProfileVersion.NeedForSpeedHeat);
+                writer.Write((int)ProfileVersion.NeedForSpeedHeat);
                 writer.WriteObfuscatedString("NFSHEAT");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("PVZAssetLoader"));
@@ -913,48 +913,49 @@ namespace FrostyCmd
             using (NativeWriter writer = new NativeWriter(new MemoryStream()))
             {
                 writer.WriteObfuscatedString("STAR WARS™: Squadrons");
-                writer.Write((int)(int)ProfileVersion.StarWarsSquadrons);
-                writer.WriteObfuscatedString("starwarsiii");
+                writer.Write((int)ProfileVersion.StarWarsSquadrons);
+                writer.WriteObfuscatedString("sws");
                 writer.WriteObfuscatedString(typeof(NullDeobfuscator).Name);
                 writer.WriteObfuscatedString(AssetManager.GetLoaderName("ManifestAssetLoader"));
                 writer.Write(CreateSources("Patch;false", "Update;true", "Data;false"));
                 writer.WriteObfuscatedString("SWSSDK");
                 writer.Write(CreateBanner("SWS"));
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_N");
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_SRM");
-                writer.WriteObfuscatedString("Shaders/Systems/Debug_D");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_DefaultWhite_C");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_DefaultNormal_N");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_Default_Midgray");
+                writer.WriteObfuscatedString("Game/Shaders/Textures/T_Default_Midgray");
 
                 string[] sharedBundleNames = new string[]
                 {
-                    "win32/gameplay/blueprintbundles/vehiclescommonbundle",
-                    "win32/gameplay/blueprintbundles/charactercommonmpbundle",
-                    "win32/gameplay/weapons/bundling/weaponsbundlecommon",
-                    "win32/animations/commonanimationbundle",
-                    "win32/ui/static",
+                    "win32/game/ui/systems/uiassetsbundle_stategroups",
+                    "win32/game/gameplay/starships/starships_sharedbundle",
+                    "win32/game/levels/lobby/bundles/sharedbundlelobbylooseassets",
+                    "win32/game/gameplay/bundles/sharedbundles/starships/sharedbundlestarshipscine",
+                    "win32/game/gameplay/bundles/sharedbundles/pilots/sharedbundlepilots",
                     "win32/default_settings",
-                    "win32/gameconfigurations/warsaw",
+                    "win32/ui/static",
                     "win32/systems/frostbitestartupdata",
                     "win32/loadingscreens_bundle",
-                    "win32/webbrowser/webbrowserbundle",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_simplifiedchinese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_worstcase",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_arabicsa",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_brazilianportuguese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_korean",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_traditionalchinese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_polish",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_russian",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_japanese",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_italian",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_spanishMex",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_spanish",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_german",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_french",
-                    "win32/ui/Fonts/fontassets/fontconfiguration_languageformat_english",
-                    "win32/sound/music/loadingmusicplayer:5c5a6f4f-8d55-a023-fbef-f4bf6c067209",
-                    "win32/twinkle/ui/twinklevideos",
-                    "win32/sparta/offline/spartabundles"
+                    "win32/game/incomgameconfiguration",
+                    "win32/game/gameplay/bundles/sharedbundles/starships/sharedbundlestarshipsgarage",
+                    "win32/game/gameplay/bundles/sharedbundles/flairs/sharedbundleflairs",
+                    "win32/game/gameplay/starships/starships_sp_sharedbundle",
+                    "win32/sound/music/mav01_loadingmusic_title_and_frontend:89dce4fb-ac26-4be0-9f57-8969eaff7f28",
+                    "win32/game/ui/frontend/webbrowser/webbrowserresourcebundle",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_english",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_french",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_german",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_spanish",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_spanishmex",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_italian",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_japanese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_russian",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_polish",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_traditionalchinese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_korean",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_brazilianportuguese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_simplifiedchinese",
+                    "win32/game/ui/assets/fonts/wsuiimfontconfiguration_languageformat_worstcase",
                 };
 
                 writer.Write(sharedBundleNames.Length);
@@ -1000,7 +1001,7 @@ namespace FrostyCmd
             CreatePVZ3Profile();
             CreateNFSHeatProfile();
             CreateBFHProfile();
-            //CreateSWSProfile();
+            CreateSWSProfile();
 
 #if FROSTY_DEVELOPER
 
