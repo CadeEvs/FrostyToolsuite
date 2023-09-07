@@ -9,6 +9,7 @@ using FrostySdk.Resources;
 using Frosty.Core.Handlers;
 using Frosty.Core.Mod;
 using Frosty.Core.IO;
+using System.Threading;
 
 namespace Frosty.Core
 {
@@ -444,10 +445,12 @@ namespace Frosty.Core
             return modSettings;
         }
 
-        public void WriteToMod(string filename, ModSettings overrideSettings, bool editorLaunch)
+        public void WriteToMod(string filename, ModSettings overrideSettings, bool editorLaunch, CancellationToken cancelToken)
         {
             using (FrostyModWriter writer = new FrostyModWriter(new FileStream(filename, FileMode.Create), overrideSettings))
-                writer.WriteProject(this, editorLaunch);
+            {
+                writer.WriteProject(this, editorLaunch, cancelToken);
+            }
         }
 
         public static void SaveLinkedAssets(AssetEntry entry, NativeWriter writer)
