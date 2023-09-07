@@ -4,9 +4,14 @@ using Frosty.Core.Controls.Editors;
 using FrostySdk;
 using FrostySdk.Ebx;
 using FrostySdk.IO;
+using FrostySdk.Managers;
+using Microsoft.CSharp.RuntimeBinder;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Media;
 
 namespace ConnectionPlugin.Editors
 {
@@ -71,31 +76,109 @@ namespace ConnectionPlugin.Editors
             (sp.Children[4] as TextBlock).Text = GetEntity(propConnection.Target);
             (sp.Children[2] as TextBlock).Text = Sanitize(propConnection.Source, propConnection.SourceField);
             (sp.Children[6] as TextBlock).Text = Sanitize(propConnection.Target, propConnection.TargetField);
+            // This has to be in a try block because earlier games don't have property connection flags
+            try
+            {
+                TextBlock realmTextBox = (sp.Children[7] as TextBlock);
+                GetRealmText(propConnection.Flags & 0x7, realmTextBox);
+            }
+            catch (RuntimeBinderException) { }
+        }
+
+        protected void GetRealmText(uint realm, TextBlock textBlock)
+        {
+            textBlock.Inlines.Clear();
+            switch(realm)
+            {
+                case 1: // ClientAndServer
+                    textBlock.Inlines.Add(new Run("N") { Foreground = Brushes.SlateGray });
+                    textBlock.Inlines.Add(new Run("C") { Foreground = Brushes.Yellow });
+                    textBlock.Inlines.Add(new Run("S") { Foreground = Brushes.Yellow });
+                    break;
+                case 2: // Client
+                    textBlock.Inlines.Add(new Run("N") { Foreground = Brushes.SlateGray });
+                    textBlock.Inlines.Add(new Run("C") { Foreground = Brushes.Yellow });
+                    textBlock.Inlines.Add(new Run("S") { Foreground = Brushes.SlateGray });
+                    break;
+                case 3: // Server
+                    textBlock.Inlines.Add(new Run("N") { Foreground = Brushes.SlateGray });
+                    textBlock.Inlines.Add(new Run("C") { Foreground = Brushes.SlateGray });
+                    textBlock.Inlines.Add(new Run("S") { Foreground = Brushes.Yellow });
+                    break;
+                case 4: // NetworkedClient
+                    textBlock.Inlines.Add(new Run("N") { Foreground = Brushes.Yellow });
+                    textBlock.Inlines.Add(new Run("C") { Foreground = Brushes.Yellow });
+                    textBlock.Inlines.Add(new Run("S") { Foreground = Brushes.SlateGray });
+                    break;
+                case 5: // NetworkedClientAndServer
+                    textBlock.Inlines.Add(new Run("N") { Foreground = Brushes.Yellow });
+                    textBlock.Inlines.Add(new Run("C") { Foreground = Brushes.Yellow });
+                    textBlock.Inlines.Add(new Run("S") { Foreground = Brushes.Yellow });
+                    break;
+                default: // Invalid or unknown
+                    textBlock.Inlines.Add(new Run("N") { Foreground = Brushes.Red });
+                    textBlock.Inlines.Add(new Run("C") { Foreground = Brushes.Red });
+                    textBlock.Inlines.Add(new Run("S") { Foreground = Brushes.Red });
+                    break;
+            }
+        }
+
+        protected object ResolvePointer(PointerRef pr, out EbxAssetEntry externalAssetEntry)
+        {
+            externalAssetEntry = null;
+
+            if (pr.Type is PointerRefType.Internal)
+            {
+                return pr.Internal;
+            }
+            else if (pr.Type is PointerRefType.External)
+            {
+                EbxImportReference ebxRef = pr.External;
+
+                externalAssetEntry = App.AssetManager.GetEbxEntry(ebxRef.FileGuid);
+
+                if(externalAssetEntry == null)
+                {
+                    return null;
+                }
+
+                if(ebxRef.ClassGuid == Guid.Empty)
+                {
+                    return externalAssetEntry;
+                }
+
+                return App.AssetManager.GetEbx(externalAssetEntry).GetObject(ebxRef.ClassGuid);
+            }
+
+            return null;
         }
 
         protected virtual string GetEntity(PointerRef pr)
         {
-            string val = "";
             if (pr.Type == PointerRefType.Null)
-                return "(null)";
-            else if (pr.Type == PointerRefType.External)
             {
-                EbxAsset asset = GetParentEditor().GetDependentObject(pr.External.FileGuid);
-                val = App.AssetManager.GetEbxEntry(pr.External.FileGuid).Filename + "/" + asset.GetObject(pr.External.ClassGuid).GetType().Name;
+                return "(null)";
             }
-            else if (pr.Type == PointerRefType.Internal)
-                val = ((dynamic)pr.Internal).__Id;
 
-            if (val.EndsWith("EntityData") || val.EndsWith("ObjectData"))
-                return val.Remove(val.Length - 10);
-            else if (val.EndsWith("ComponentData"))
-                return val.Remove(val.Length - 13);
-            else if (val.EndsWith("DescriptorData"))
-                return val.Remove(val.Length - 14);
-            else if (val.EndsWith("Data"))
-                return val.Remove(val.Length - 4);
+            object resolvedValue = ResolvePointer(pr, out EbxAssetEntry externalAssetEntry);
 
-            return val;
+            if (resolvedValue == null)
+            {
+                return "(null)";
+            }
+
+            string objId = ((dynamic)resolvedValue).__Id;
+
+            foreach (string clutterName in ClutterNames)
+            {
+                if (objId.EndsWith(clutterName))
+                {
+                    objId = objId.Remove(objId.Length - clutterName.Length);
+                    break;
+                }
+            }
+
+            return pr.Type is PointerRefType.External ? $"{externalAssetEntry.Filename}/{objId}" : objId;
         }
 
         protected virtual string Sanitize(PointerRef pr, string value)
@@ -106,7 +189,7 @@ namespace ConnectionPlugin.Editors
             if (value == "00000000")
                 retVal = "Self";
 
-            if (pr.Type == FrostySdk.IO.PointerRefType.Internal && TypeLibrary.IsSubClassOf(pr.Internal, "InterfaceDescriptorData"))
+            if (pr.Type == PointerRefType.Internal && TypeLibrary.IsSubClassOf(pr.Internal, "InterfaceDescriptorData"))
             {
                 dynamic interfaceDesc = pr.Internal;
                 foreach (dynamic field in interfaceDesc.Fields)
@@ -142,6 +225,15 @@ namespace ConnectionPlugin.Editors
             }
             return retVal;
         }
+
+        private readonly string[] ClutterNames =
+        {
+            "EntityData",
+            "ObjectData",
+            "ComponentData",
+            "DescriptorData",
+            "Data",
+        };
 
         private FrostyAssetEditor GetParentEditor()
         {
