@@ -527,7 +527,7 @@ namespace DuplicationPlugin
                 }
                 else
                 {
-                    using (EbxBaseWriter writer = EbxBaseWriter.CreateWriter(new MemoryStream(), EbxWriteFlags.DoNotSort | EbxWriteFlags.IncludeTransient))
+                    using (EbxBaseWriter writer = EbxBaseWriter.CreateWriter(new MemoryStream(), EbxWriteFlags.DoNotSort))
                     {
                         writer.WriteAsset(asset);
                         byte[] buf = writer.ToByteArray();
