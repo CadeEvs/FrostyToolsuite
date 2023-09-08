@@ -20,7 +20,7 @@ namespace Frosty.Core
         public static ILogger Logger;
         public static HashSet<int> WhitelistedBundles = new HashSet<int>();
 
-        public static readonly int Version = 2;
+        public static readonly int Version = 1;
 
         public static string ProfileSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty/" + ProfilesLibrary.ProfileName;
         public static string GlobalSettingsPath => Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/Frosty";
