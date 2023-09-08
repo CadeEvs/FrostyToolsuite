@@ -319,7 +319,7 @@ namespace Frosty.ModSupport
                             if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry existingEntry))
                             {
                                 if (existingEntry.ExtraData != null)
-                                    return;
+                                    goto label_add_bundles;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
@@ -412,7 +412,7 @@ namespace Frosty.ModSupport
                             if (modifiedRes.TryGetValue(resource.Name, out ResAssetEntry existingEntry))
                             {
                                 if (existingEntry.ExtraData != null)
-                                    return;
+                                    goto label_add_bundles;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
@@ -518,7 +518,7 @@ namespace Frosty.ModSupport
                             if (modifiedChunks.TryGetValue(guid, out ChunkAssetEntry existingEntry))
                             {
                                 if (existingEntry.ExtraData != null)
-                                    return;
+                                    goto label_add_bundles;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
