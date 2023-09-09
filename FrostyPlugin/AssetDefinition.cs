@@ -96,8 +96,8 @@ namespace Frosty.Core
         /// <param name="exportTypes">A list of <see cref="AssetExportType"/> to be populated.</param>
         public virtual void GetSupportedExportTypes(List<AssetExportType> exportTypes)
         {
-            exportTypes.Add(new AssetExportType("xml", "XML File"));
             exportTypes.Add(new AssetExportType("bin", "Binary File"));
+            exportTypes.Add(new AssetExportType("xml", "XML File"));
         }
 
         /// <summary>
