@@ -125,37 +125,25 @@ namespace Frosty.Core.Controls.Editors
                     else if (type == typeof(ushort)) ushort.Parse(strValue);
                     else if (type == typeof(int))
                     {
-                        try
+                        if (int.TryParse(strValue, out int _) || TrySolve(strValue, out double _))
                         {
-                            if (int.TryParse(strValue, out int _) || TrySolve(strValue, out double _))
-                            {
-                                return new ValidationResult(true, null);
-                            }
-                            else
-                            {
-                                return new ValidationResult(false, null);
-                            }
+                            return new ValidationResult(true, null);
                         }
-                        catch (OverflowException) { return new ValidationResult(false, null); }
-                        catch (Exception) { }
-                        return new ValidationResult(true, null);
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
                     }
                     else if (type == typeof(uint))
                     {
-                        try
+                        if (uint.TryParse(strValue, out uint _) || TrySolve(strValue, out double _))
                         {
-                            if (uint.TryParse(strValue, out uint _) || TrySolve(strValue, out double _))
-                            {
-                                return new ValidationResult(true, null);
-                            }
-                            else
-                            {
-                                return new ValidationResult(false, null);
-                            }
+                            return new ValidationResult(true, null);
                         }
-                        catch (OverflowException) { return new ValidationResult(false, null); }
-                        catch (Exception) { }
-                        return new ValidationResult(true, null);
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
                     }
                     else if (type == typeof(long)) long.Parse(strValue);
                     else if (type == typeof(ulong)) ulong.Parse(strValue);
