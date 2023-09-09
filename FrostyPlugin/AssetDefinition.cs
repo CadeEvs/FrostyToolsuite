@@ -196,7 +196,7 @@ namespace Frosty.Core
         {
             if (App.PluginManager.GetCustomHandler(entry.Type) != null)
             {
-                // @todo: throw some kind of error
+                App.Logger.LogError("Cannot Export asset with handler to .bin");
                 return;
             }
 
