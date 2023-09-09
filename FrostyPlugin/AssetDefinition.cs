@@ -222,7 +222,7 @@ namespace Frosty.Core
         {
             if (App.PluginManager.GetCustomHandler(entry.Type) != null)
             {
-                App.Logger.LogError("Cannot Export asset with handler to .bin");
+                App.Logger.LogError("Cannot Import asset with handler to .bin");
                 return;
             }
 
