@@ -1009,7 +1009,7 @@ namespace FrostyEditor
             FrostyOpenFileDialog ofd = new FrostyOpenFileDialog("Import Asset", filterString, assetDefinition.GetType().Name);
             if (ofd.ShowDialog())
             {
-                if (assetDefinition.Import(entry, ofd.FileName, filters[ofd.FilterIndex - 1].Extension))
+                if (assetDefinition.Import(entry, ofd.FileName, filters[ofd.FilterIndex - 1]))
                 {
                     dataExplorer.RefreshItems();
                     App.Logger.Log("Imported {0} into {1}", ofd.FileName, entry.Name);

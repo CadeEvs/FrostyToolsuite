@@ -1,6 +1,7 @@
 ﻿using Frosty.Core.Attributes;
 using Frosty.Core.Controls;
 using FrostySdk;
+using FrostySdk.Ebx;
 using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
@@ -106,6 +107,7 @@ namespace Frosty.Core
         /// <param name="importTypes">A list of <see cref="AssetImportType"/> to be populated.</param>
         public virtual void GetSupportedImportTypes(List<AssetImportType> importTypes)
         {
+            importTypes.Add(new AssetImportType("bin", "Binary File (Data Only)"));
             importTypes.Add(new AssetImportType("bin", "Binary File"));
         }
 
@@ -169,13 +171,13 @@ namespace Frosty.Core
         /// </summary>
         /// <param name="entry">The <see cref="AssetEntry"/> to import the data to.</param>
         /// <param name="path">A string representing the path and filename to import from.</param>
-        /// <param name="filterType">A string representing the chosen filter type to import as.</param>
+        /// <param name="filterType">The chosen <see cref="AssetImportType"/> to import as.</param>
         /// <returns>True if import was successful, False otherwise.</returns>
-        public virtual bool Import(EbxAssetEntry entry, string path, string filterType)
+        public virtual bool Import(EbxAssetEntry entry, string path, AssetImportType filterType)
         {
-            if (filterType == "bin")
+            if (filterType.Extension == "bin")
             {
-                ImportFromBin(entry, path);
+                ImportFromBin(entry, path, filterType.Description.Contains("Data Only"));
                 return true;
             }
             return false;
@@ -216,7 +218,7 @@ namespace Frosty.Core
         }
 
         // imports the asset from a raw ebx bin
-        private void ImportFromBin(EbxAssetEntry entry, string path)
+        private void ImportFromBin(EbxAssetEntry entry, string path, bool dataOnly = true)
         {
             if (App.PluginManager.GetCustomHandler(entry.Type) != null)
             {
@@ -226,8 +228,19 @@ namespace Frosty.Core
 
             using (EbxReader reader = EbxReader.CreateReader(new FileStream(path, FileMode.Open, FileAccess.Read), App.FileSystem, true))
             {
-                var asset = reader.ReadAsset<EbxAsset>();
-                App.AssetManager.ModifyEbx(entry.Name, asset);
+                EbxAsset newAsset = reader.ReadAsset<EbxAsset>();
+
+                if (dataOnly)
+                {
+                    // use guids from original asset
+                    EbxAsset origAsset = App.AssetManager.GetEbx(entry);
+                    dynamic rootObj = newAsset.RootObject;
+
+                    newAsset.SetFileGuid(origAsset.FileGuid);
+                    rootObj.SetInstanceGuid(new AssetClassGuid(origAsset.RootInstanceGuid, -1));
+                }
+
+                App.AssetManager.ModifyEbx(entry.Name, newAsset);
             }
         }
     }
