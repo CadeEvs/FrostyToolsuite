@@ -143,15 +143,18 @@ namespace Frosty.ModSupport
 
                                 bool isModified = false;
 
-                                DbObject baseToc = null;
-                                using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
-                                    baseToc = reader.ReadDbObject();
-
-                                // update chunk list with base chunks
                                 DbObject chunkList = new DbObject(false);
-                                foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
-                                    chunkList.Add(chunk);
-
+                                if (!string.IsNullOrEmpty(basePath))
+                                {
+                                    DbObject baseToc = null;
+                                    using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
+                                        baseToc = reader.ReadDbObject();
+                                    
+                                    // update chunk list with base chunks
+                                    foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
+                                        chunkList.Add(chunk);
+                                }
+                                
                                 // update chunk list with patch chunks
                                 foreach (DbObject chunk in toc.GetValue<DbObject>("chunks"))
                                 {
@@ -265,51 +268,55 @@ namespace Frosty.ModSupport
                                         toc.AddValue("cas", true);
                                     }
 
-                                    DbObject baseToc = null;
-                                    using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
-                                        baseToc = reader.ReadDbObject();
-
                                     // iterate thru base toc looking for chunks
                                     DbObject chunkList = toc.GetValue<DbObject>("chunks");
-                                    foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
+                                    if (!string.IsNullOrEmpty(basePath))
                                     {
-                                        Guid id = chunk.GetValue<Guid>("id");
-                                        if (chunkBundle.Modify.Chunks.Contains(id))
+                                        DbObject baseToc = null;
+                                        using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
+                                            baseToc = reader.ReadDbObject();
+
+                                        foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
                                         {
-                                            DbObject chunkToEdit = chunk;
-                                            bool bFound = false;
-
-                                            foreach (DbObject patchChunk in toc.GetValue<DbObject>("chunks"))
+                                            Guid id = chunk.GetValue<Guid>("id");
+                                            if (chunkBundle.Modify.Chunks.Contains(id))
                                             {
-                                                Guid patchId = patchChunk.GetValue<Guid>("id");
-                                                if (patchId == id)
+                                                DbObject chunkToEdit = chunk;
+                                                bool bFound = false;
+
+                                                foreach (DbObject patchChunk in toc.GetValue<DbObject>("chunks"))
                                                 {
-                                                    chunkToEdit = patchChunk;
-                                                    bFound = true;
-                                                    break;
+                                                    Guid patchId = patchChunk.GetValue<Guid>("id");
+                                                    if (patchId == id)
+                                                    {
+                                                        chunkToEdit = patchChunk;
+                                                        bFound = true;
+                                                        break;
+                                                    }
+                                                }
+
+                                                if (!bFound)
+                                                    chunkList.Insert(0, chunkToEdit);
+
+                                                ChunkAssetEntry entry = parent.modifiedChunks[id];
+                                                chunkToEdit.SetValue("sha1", entry.Sha1);
+                                                chunkToEdit.RemoveValue("base");
+                                                chunkToEdit.SetValue("delta", true);
+
+                                                if (entry.IsTocChunk)
+                                                {
+                                                    if (!casRefs.Contains(entry.Sha1))
+                                                    {
+                                                        casRefs.Add(entry.Sha1);
+                                                        chunkEntries.Add(entry);
+                                                    }
                                                 }
                                             }
 
-                                            if (!bFound)
-                                                chunkList.Insert(0, chunkToEdit);
-
-                                            ChunkAssetEntry entry = parent.modifiedChunks[id];
-                                            chunkToEdit.SetValue("sha1", entry.Sha1);
-                                            chunkToEdit.RemoveValue("base");
-                                            chunkToEdit.SetValue("delta", true);
-
-                                            if (entry.IsTocChunk)
-                                            {
-                                                if (!casRefs.Contains(entry.Sha1))
-                                                {
-                                                    casRefs.Add(entry.Sha1);
-                                                    chunkEntries.Add(entry);
-                                                }
-                                            }
+                                            tocChanged = true;
                                         }
-
-                                        tocChanged = true;
                                     }
+
 
                                     // @hack: to ensure new chunks are only added to the chunks bundles
                                     if (superBundle.Contains("chunks"))
