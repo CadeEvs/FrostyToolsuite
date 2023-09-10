@@ -1,4 +1,23 @@
-﻿v1.0.6.2
+﻿v1.0.6.3 (Beta 1)
+--------
+- Fixed crashing issues (#260, #261)
+- Fixed small UI inconsistencies (#265, #267, #268)
+- Fixed launching issues on Steam
+- Fixed bundle adding for manifest games
+- Fixed issue where editor mods didnt get removed (#274)
+- Improved performance of the EbxWriter
+- Changed Rotations from YPR to XYZ (#304)
+- Added option to manage ModData from the ModManager (#271)
+- Added whitelist option for bundles (#275)
+- Added rename and duplicate pack options to the ModManager (#280)
+
+Plugin Changes
+- Fixed crashing issue when exporting certain textures
+- Added importing support for composite meshes (#262)
+- Added support for more types to the duplication and bundle editor plugins (#276, #277)
+- Added importing support for raw ealayer3 audio
+
+v1.0.6.2
 --------
 - Fixed memory issue and writing of cat files
 - Fixed issue with bundle editing in older games

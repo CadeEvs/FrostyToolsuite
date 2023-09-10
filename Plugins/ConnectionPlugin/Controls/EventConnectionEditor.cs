@@ -30,6 +30,9 @@ namespace ConnectionPlugin.Editors
             (sp.Children[4] as TextBlock).Text = GetEntity(eventConnection.Target);
             (sp.Children[2] as TextBlock).Text = Sanitize(eventConnection.Source, eventConnection.SourceEvent.Name);
             (sp.Children[6] as TextBlock).Text = Sanitize(eventConnection.Target, eventConnection.TargetEvent.Name);
+
+            TextBlock realmTextBlock = (sp.Children[7] as TextBlock);
+            GetRealmText((uint)eventConnection.TargetType, realmTextBlock);
         }
 
         protected override string Sanitize(PointerRef pr, string value)

@@ -27,13 +27,16 @@
                             <TextBlock Opacity="0.5" Text="."/>
                             <TextBlock Text="" TextTrimming="CharacterEllipsis"/>
                             <Viewbox Width="16" Height="14" Margin="4 0" VerticalAlignment="Center">
-                                <Path Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="None" Fill="{StaticResource FontColor}" Opacity="0.5" Data="
+                                <Path Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="None" Fill="#FF57D953" Opacity="1" Data="
                                       M20 6.9277344C19.871 6.9277344 19.741187 6.9519063 19.617188 7.0039062C19.243188 7.1579062 19 7.5237344 19 7.9277344L19 11.998047L4 11.998047C2.895 11.998047 2 12.893047 2 13.998047L2 15.998047C2 17.103047 2.895 17.998047 4 17.998047L19 17.998047L19 22.070312C19 22.474312 19.243187 22.840141 19.617188 22.994141C19.991187 23.150141 20.420031 23.063344 20.707031 22.777344L27.777344 15.705078C28.168344 15.314078 28.168344 14.683969 27.777344 14.292969L20.707031 7.2207031C20.516031 7.0297031 20.26 6.9277344 20 6.9277344 z
                                       "/>
                             </Viewbox>
                             <TextBlock Opacity="0.5" Text="" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Opacity="0.5" Text="."/>
                             <TextBlock Text="" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Margin="6, 0, 0, 0"
+                                       Text=""
+                                       FontWeight="Bold"/>
                         </StackPanel>
 
                     </Grid>
@@ -68,13 +71,16 @@
                             <TextBlock Opacity="0.5" Text="."/>
                             <TextBlock Text="" TextTrimming="CharacterEllipsis"/>
                             <Viewbox Width="16" Height="14" Margin="4 0" VerticalAlignment="Center">
-                                <Path Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="None" Fill="{StaticResource FontColor}" Opacity="0.5" Data="
+                                <Path Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="None" Fill="{StaticResource FontColor}" Opacity="1" Data="
                                       M20 6.9277344C19.871 6.9277344 19.741187 6.9519063 19.617188 7.0039062C19.243188 7.1579062 19 7.5237344 19 7.9277344L19 11.998047L4 11.998047C2.895 11.998047 2 12.893047 2 13.998047L2 15.998047C2 17.103047 2.895 17.998047 4 17.998047L19 17.998047L19 22.070312C19 22.474312 19.243187 22.840141 19.617188 22.994141C19.991187 23.150141 20.420031 23.063344 20.707031 22.777344L27.777344 15.705078C28.168344 15.314078 28.168344 14.683969 27.777344 14.292969L20.707031 7.2207031C20.516031 7.0297031 20.26 6.9277344 20 6.9277344 z
                                       "/>
                             </Viewbox>
                             <TextBlock Opacity="0.5" Text="" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Opacity="0.5" Text="."/>
                             <TextBlock Text="" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Margin="6, 0, 0, 0"
+                                       Text=""
+                                       FontWeight="Bold"/>
                         </StackPanel>
 
                     </Grid>
@@ -109,9 +115,14 @@
                             <TextBlock Opacity="0.5" Text="."/>
                             <TextBlock Text="" TextTrimming="CharacterEllipsis"/>
                             <Viewbox Width="16" Height="14" Margin="4 0" VerticalAlignment="Center">
-                                <Path Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="None" Fill="{StaticResource FontColor}" Opacity="0.5" Data="
+                                <Path Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Center" Stretch="None" Fill="#FF58B6EB" Opacity="1" Data="
                                       M20 6.9277344C19.871 6.9277344 19.741187 6.9519063 19.617188 7.0039062C19.243188 7.1579062 19 7.5237344 19 7.9277344L19 11.998047L4 11.998047C2.895 11.998047 2 12.893047 2 13.998047L2 15.998047C2 17.103047 2.895 17.998047 4 17.998047L19 17.998047L19 22.070312C19 22.474312 19.243187 22.840141 19.617188 22.994141C19.991187 23.150141 20.420031 23.063344 20.707031 22.777344L27.777344 15.705078C28.168344 15.314078 28.168344 14.683969 27.777344 14.292969L20.707031 7.2207031C20.516031 7.0297031 20.26 6.9277344 20 6.9277344 z
-                                      "/>
+                                      "
+                                      RenderTransformOrigin="0.5,0.5">
+                                    <Path.RenderTransform>
+                                        <ScaleTransform ScaleX="-1.0"/>
+                                    </Path.RenderTransform>
+                                </Path>
                             </Viewbox>
                             <TextBlock Opacity="0.5" Text="" TextTrimming="CharacterEllipsis"/>
                             <TextBlock Opacity="0.5" Text="."/>

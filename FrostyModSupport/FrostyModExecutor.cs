@@ -322,7 +322,7 @@ namespace Frosty.ModSupport
                             if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry existingEntry))
                             {
                                 if (existingEntry.ExtraData != null)
-                                    return;
+                                    goto label_add_bundles;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
@@ -415,7 +415,7 @@ namespace Frosty.ModSupport
                             if (modifiedRes.TryGetValue(resource.Name, out ResAssetEntry existingEntry))
                             {
                                 if (existingEntry.ExtraData != null)
-                                    return;
+                                    goto label_add_bundles;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
@@ -521,7 +521,7 @@ namespace Frosty.ModSupport
                             if (modifiedChunks.TryGetValue(guid, out ChunkAssetEntry existingEntry))
                             {
                                 if (existingEntry.ExtraData != null)
-                                    return;
+                                    goto label_add_bundles;
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
@@ -1045,7 +1045,8 @@ namespace Frosty.ModSupport
             }
 
             Stopwatch watch = new Stopwatch();
-            
+            watch.Start();
+
             cancelToken.ThrowIfCancellationRequested();
             Logger.Log("Loading Mods");
 
@@ -1097,7 +1098,6 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Loading Mods");
                 App.Logger.Log("Loading Mods");
-                watch.Start();
 
                 // Get Full Modlist
                 List<FrostyMod> modList = new List<FrostyMod>();
@@ -1131,13 +1131,8 @@ namespace Frosty.ModSupport
                     ReportProgress(currentMod++, modList.Count);
                 }
                 
-                watch.Stop();
-                App.Logger.Log($"Loaded Mods in {watch.Elapsed.Seconds} s");
-                
                 Logger.Log("Applying Handlers");
                 App.Logger.Log("Applying Handlers");
-                
-                watch.Restart();
 
                 // apply handlers
                 RuntimeResources runtimeResources = new RuntimeResources();
@@ -1158,14 +1153,10 @@ namespace Frosty.ModSupport
                             archiveData[entry.Sha1].RefCount++;
                     }
                     ReportProgress(currentResource++, assetEntries.Count);
-                    Logger.Log($"Applying Handlers ({currentResource}/{assetEntries.Count})");
                 });
 
                 // process any new resources added during custom handler modification
                 ProcessModResources(runtimeResources);
-                
-                watch.Stop();
-                App.Logger.Log($"Applied Handlers in {watch.Elapsed.Seconds} s");
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Cleaning Up ModData");
@@ -1315,7 +1306,6 @@ namespace Frosty.ModSupport
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Applying Mods");
                 App.Logger.Log("Applying Mods");
-                watch.Restart();
 
                 cmdArgs.Clear();
 
@@ -1626,9 +1616,6 @@ namespace Frosty.ModSupport
                         }
                     }
                 }
-
-                watch.Stop();
-                App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds} s");
                 
                 cancelToken.ThrowIfCancellationRequested();
                 if (cmdArgs.Count > 0)
@@ -1641,8 +1628,6 @@ namespace Frosty.ModSupport
 
                 Logger.Log("Writing Archive Data");
                 App.Logger.Log("Writing Archive Data");
-
-                watch.Restart();
                 
                 int totalEntries = casData.GetEntryCount();
                 int currentEntry = 0;
@@ -1686,9 +1671,6 @@ namespace Frosty.ModSupport
 
                     ReportProgress(currentEntry++, totalEntries);
                 }
-
-                watch.Stop();
-                App.Logger.Log($"Wrote Archive data in {watch.Elapsed.Seconds} s");
                 
                 cancelToken.ThrowIfCancellationRequested();
 
@@ -1793,6 +1775,10 @@ namespace Frosty.ModSupport
 
                 // create the frosty mod list file
                 File.WriteAllText(Path.Combine(modDataPath, patchPath, "mods.json"), JsonConvert.SerializeObject(GenerateModInfoList(modPaths, rootPath), Formatting.Indented));
+
+                // stopwatch
+                watch.Stop();
+                App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s");
             }
             else
             {
