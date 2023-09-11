@@ -23,7 +23,13 @@ namespace Frosty.Core.Attributes
         /// Initializes a new instance of the <see cref="RegisterMenuExtensionAttribute"/> class using the menu extension type.
         /// </summary>
         /// <param name="type">The type of the menu extension. This type must derive from <see cref="MenuExtension"/></param>
-        public RegisterMenuExtensionAttribute(Type type, PluginManagerType managerType = PluginManagerType.Editor)
+        public RegisterMenuExtensionAttribute(Type type)
+        {
+            MenuExtensionType = type;
+            ManagerType = PluginManagerType.Editor;
+        }
+
+        public RegisterMenuExtensionAttribute(Type type, PluginManagerType managerType)
         {
             MenuExtensionType = type;
             ManagerType = managerType;
