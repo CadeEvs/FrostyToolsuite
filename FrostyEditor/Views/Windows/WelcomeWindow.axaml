@@ -1,0 +1,49 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:FrostyEditor.ViewModels.Windows"
+		xmlns:ctrls="clr-namespace:FrostyEditor.Themes.UserControls;assembly=FrostyEditor"
+		xmlns:pages="clr-namespace:FrostyEditor.Pages.WelcomeWindow;assembly=FrostyEditor"
+        mc:Ignorable="d"
+        Width="1000" Height="600"
+        x:Class="FrostyEditor.Views.Windows.WelcomeWindow"
+		Icon="..\..\Assets\AppIcon.ico"
+        Title="{StaticResource ID_GENERAL_APP_NAME}"
+        x:DataType="vm:WelcomeWindowViewModel"
+        x:CompileBindings="True"
+        UseLayoutRounding="True" RenderOptions.BitmapInterpolationMode="HighQuality"
+        WindowState="Normal" WindowStartupLocation="CenterScreen"
+        Foreground="{DynamicResource DockThemeForegroundBrush}"
+		Background="{x:Null}"
+        BorderThickness="1" BorderBrush="{DynamicResource DockThemeBorderLowBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        >
+    <Design.DataContext>
+		<vm:WelcomeWindowViewModel />
+    </Design.DataContext>
+	
+	<Window.Styles>
+		<Style Selector="Window[WindowState=Maximized]">
+			<Setter Property="Padding" Value="6" />
+		</Style>
+	</Window.Styles>
+	
+	<Panel>
+		<Border IsHitTestVisible="False" Background="#111111"/>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+			</Grid.RowDefinitions>
+			<ctrls:TitleBar Grid.Row="0" Description="Welcome"/>
+			<TabControl Grid.Row="1" TabStripPlacement="Left">
+				<TabItem Header="Projects">
+					<pages:ProjectPage/>
+				</TabItem>
+			</TabControl>
+		</Grid>
+	</Panel>
+</Window>

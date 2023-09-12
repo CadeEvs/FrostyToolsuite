@@ -47,4 +47,16 @@
     <ProjectReference Include="..\FrostySdk\FrostySdk.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Pages\WelcomeWindow\ProjectPage.axaml.cs">
+      <DependentUpon>ProjectPage.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Themes\UserControls\TitleBar.axaml.cs">
+      <DependentUpon>TitleBar.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Windows\WelcomeWindow.axaml.cs">
+      <DependentUpon>WelcomeWindow.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

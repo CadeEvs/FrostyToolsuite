@@ -2,16 +2,13 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace FrostyEditor.Views.Windows;
+namespace FrostyEditor.Pages.WelcomeWindow;
 
-public partial class ProfileSelectWindow : Window
+public partial class ProjectPage : UserControl
 {
-    public ProfileSelectWindow()
+    public ProjectPage()
     {
         InitializeComponent();
-#if DEBUG
-        this.AttachDevTools();
-#endif
     }
 
     private void InitializeComponent()

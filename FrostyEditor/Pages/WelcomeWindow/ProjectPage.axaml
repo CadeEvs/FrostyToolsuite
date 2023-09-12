@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        x:Class="FrostyEditor.Pages.WelcomeWindow.ProjectPage"
+        >
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<Grid Grid.Row="0" Margin="4, 0, 4, 0" Background="#222222">
+			<ListBox Background="Transparent" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
+				<ListBox.ItemTemplate>
+					<DataTemplate>
+						<Grid Margin="2">
+							<Grid.RowDefinitions>
+								<RowDefinition Height="25"/>
+								<RowDefinition Height="25"/>
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="55"/>
+								<ColumnDefinition Width="*"/>
+							</Grid.ColumnDefinitions>
+
+							<Image Grid.Column="0" Grid.RowSpan="2" Margin="0, 0, 10, 0" Source="{Binding Icon}" Width="45" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							<TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding Name}" FontWeight="Bold"/>
+							<TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding Path}"/>
+							<Image Grid.ColumnSpan="2" Grid.RowSpan="2" Height="1000" Margin="-15" Source="{Binding Banner}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"/>
+						</Grid>
+					</DataTemplate>
+				</ListBox.ItemTemplate>
+			</ListBox>
+		</Grid>
+
+		<Grid Grid.Row="1" Margin="5">
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button Margin="2" Content="{StaticResource ID_PROFILE_ADD}" Command="{Binding AddProfileCommand}"/>
+				<Button Margin="2" Content="{StaticResource ID_PROFILE_DELETE}" Command="{Binding DeleteProfileCommand}"/>
+				<Button Margin="2" Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding SelectProfileCommand}"/>
+			</StackPanel>
+			<Button Margin="2" Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CancelCommand}"/>
+		</Grid>
+	</Grid>
+</UserControl>

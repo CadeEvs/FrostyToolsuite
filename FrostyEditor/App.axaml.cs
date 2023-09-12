@@ -34,12 +34,12 @@ public class App : Application
         {
             case IClassicDesktopStyleApplicationLifetime desktopLifetime:
             {
-                ProfileSelectWindow selectWindow = new()
+                WelcomeWindow welcomeWindow = new()
                 {
-                    DataContext = new ProfileSelectWindowViewModel()
+                    DataContext = new WelcomeWindowViewModel()
                 };
 
-                desktopLifetime.MainWindow = selectWindow;
+                desktopLifetime.MainWindow = welcomeWindow;
 
                 break;
             }

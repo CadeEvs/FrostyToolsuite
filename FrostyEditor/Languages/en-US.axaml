@@ -10,7 +10,7 @@
     <system:String x:Key="ID_MENU_TOOLS">Tools</system:String>
     <system:String x:Key="ID_MENU_HELP">Help</system:String>
     
-    <!-- ProfileSelectWindow -->
+    <!-- WelcomeWindow -->
     <system:String x:Key="ID_PROFILE_TITLE">Select Profile</system:String>
     <system:String x:Key="ID_PROFILE_SELECT">Select</system:String>
     <system:String x:Key="ID_PROFILE_ADD">Add</system:String>

@@ -15,7 +15,7 @@ using FrostyEditor.Views.Windows;
 
 namespace FrostyEditor.ViewModels.Windows;
 
-public partial class ProfileSelectWindowViewModel : ObservableObject
+public partial class WelcomeWindowViewModel : ObservableObject
 {
     public class ProfileConfig
     {
@@ -87,7 +87,7 @@ public partial class ProfileSelectWindowViewModel : ObservableObject
 
     public ObservableCollection<ProfileConfig> Profiles { get; set; } = new();
 
-    public ProfileSelectWindowViewModel()
+    public WelcomeWindowViewModel()
     {
         // init ProfilesLibrary to load all profile json files
         ProfilesLibrary.Initialize();
