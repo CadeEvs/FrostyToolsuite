@@ -4,9 +4,9 @@ using Avalonia.Markup.Xaml;
 
 namespace FrostyEditor.Pages.WelcomeWindow;
 
-public partial class ProjectPage : UserControl
+public partial class ProfilesPage : UserControl
 {
-    public ProjectPage()
+    public ProfilesPage()
     {
         InitializeComponent();
     }

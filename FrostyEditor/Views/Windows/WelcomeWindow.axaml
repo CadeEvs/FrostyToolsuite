@@ -33,15 +33,35 @@
 	
 	<Panel>
 		<Border IsHitTestVisible="False" Background="#111111"/>
-		<Grid>
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="*"/>
-			</Grid.RowDefinitions>
-			<ctrls:TitleBar Grid.Row="0" Description="Welcome"/>
-			<TabControl Grid.Row="1" TabStripPlacement="Left">
-				<TabItem Header="Projects">
-					<pages:ProjectPage/>
+		<Grid RowDefinitions="Auto, *">
+			<ctrls:TitleBar Grid.Row="0" Description="{StaticResource ID_WELCOME_TITLE}"/>
+			<TabControl Grid.Row="1" TabStripPlacement="Left" SelectedIndex="1">
+				<TabItem IsEnabled="False">
+					<TabItem.Header>
+						<Grid Margin="-5, 0, 0, 0" RowDefinitions="15, 15" ColumnDefinitions="25, *">
+							<Image Grid.RowSpan="2" Grid.Column="0" Source="{SvgImage ../../Assets/FrostyLogo.svg}" Margin="5, 5, 10, 5" Width="25" Height="25" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+							<TextBlock Grid.Row="0" Grid.Column="1" Text="{StaticResource ID_GENERAL_APP_NAME}" HorizontalAlignment="Left" FontWeight="Bold" Foreground="White" FontSize="12"/>
+							<TextBlock Grid.Row="1" Grid.Column="1" Text="TODO: App Version" HorizontalAlignment="Left" FontWeight="Bold" FontSize="12"/>
+						</Grid>
+					</TabItem.Header>
+				</TabItem>
+				<TabItem>
+					<TabItem.Header>
+						<TextBlock HorizontalAlignment="Right" Text="{StaticResource ID_WELCOME_PROJECTS}" FontSize="20"/>
+					</TabItem.Header>
+					<Grid>
+						<Border IsHitTestVisible="False" Background="#222222" Margin="0, 0, -15, 0"/>
+						<pages:ProjectsPage/>
+					</Grid>
+				</TabItem>
+				<TabItem>
+					<TabItem.Header>
+						<TextBlock HorizontalAlignment="Right" Text="{StaticResource ID_WELCOME_PROFILES}" FontSize="20"/>
+					</TabItem.Header>
+					<Grid>
+						<Border IsHitTestVisible="False" Background="#222222" Margin="0, 0, -15, 0"/>
+						<pages:ProfilesPage/>
+					</Grid>
 				</TabItem>
 			</TabControl>
 		</Grid>

@@ -3,15 +3,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        x:Class="FrostyEditor.Pages.WelcomeWindow.ProjectPage"
+        x:Class="FrostyEditor.Pages.WelcomeWindow.ProfilesPage"
         >
-	<Grid>
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="Auto"/>
-		</Grid.RowDefinitions>
-
-		<Grid Grid.Row="0" Margin="4, 0, 4, 0" Background="#222222">
+	<Grid RowDefinitions="Auto, *">
+		
+		<Grid Grid.Row="0" Margin="5">
+			<TextBox Text="search" Width="250" HorizontalAlignment="Left"/>
+			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+				<Button Margin="2" Content="add" Command="{Binding AddProfileCommand}"/>
+				<Button Margin="2" Content="delete" Command="{Binding DeleteProfileCommand}"/>
+				<Button Margin="2" Content="select" Command="{Binding SelectProfileCommand}"/>
+			</StackPanel>
+		</Grid>
+		
+		<Grid Grid.Row="1" Margin="4, 0, 4, 0">
 			<ListBox Background="Transparent" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}">
 				<ListBox.ItemTemplate>
 					<DataTemplate>
@@ -35,13 +40,5 @@
 			</ListBox>
 		</Grid>
 
-		<Grid Grid.Row="1" Margin="5">
-			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-				<Button Margin="2" Content="{StaticResource ID_PROFILE_ADD}" Command="{Binding AddProfileCommand}"/>
-				<Button Margin="2" Content="{StaticResource ID_PROFILE_DELETE}" Command="{Binding DeleteProfileCommand}"/>
-				<Button Margin="2" Content="{StaticResource ID_PROFILE_SELECT}" Command="{Binding SelectProfileCommand}"/>
-			</StackPanel>
-			<Button Margin="2" Content="{StaticResource ID_PROFILE_CANCEL}" Command="{Binding CancelCommand}"/>
-		</Grid>
 	</Grid>
 </UserControl>

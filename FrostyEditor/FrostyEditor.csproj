@@ -48,8 +48,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Pages\WelcomeWindow\ProjectPage.axaml.cs">
-      <DependentUpon>ProjectPage.axaml</DependentUpon>
+    <Compile Update="Pages\WelcomeWindow\ProfilesPage.axaml.cs">
+      <DependentUpon>ProfilesPage.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Pages\WelcomeWindow\ProjectsPage.axaml.cs">
+      <DependentUpon>ProjectsPage.axaml</DependentUpon>
     </Compile>
     <Compile Update="Themes\UserControls\TitleBar.axaml.cs">
       <DependentUpon>TitleBar.axaml</DependentUpon>

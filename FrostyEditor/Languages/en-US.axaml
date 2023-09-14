@@ -11,10 +11,8 @@
     <system:String x:Key="ID_MENU_HELP">Help</system:String>
     
     <!-- WelcomeWindow -->
-    <system:String x:Key="ID_PROFILE_TITLE">Select Profile</system:String>
-    <system:String x:Key="ID_PROFILE_SELECT">Select</system:String>
-    <system:String x:Key="ID_PROFILE_ADD">Add</system:String>
-    <system:String x:Key="ID_PROFILE_DELETE">Delete</system:String>
-    <system:String x:Key="ID_PROFILE_CANCEL">Cancel</system:String>
+    <system:String x:Key="ID_WELCOME_TITLE">Welcome to Frosty Editor</system:String>
+	<system:String x:Key="ID_WELCOME_PROJECTS">Projects</system:String>
+	<system:String x:Key="ID_WELCOME_PROFILES">Profiles</system:String>
     
 </ResourceDictionary>
