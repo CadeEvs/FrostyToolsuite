@@ -157,7 +157,7 @@ namespace Frosty.ModSupport
 
             public bool Equals(ModInfo other)
             {
-                return Name == other.Name && Version == other.Version && Category == other.Category;
+                return Name == other.Name && Version == other.Version && Category == other.Category && FileName == other.FileName;
             }
 
             public override int GetHashCode()
