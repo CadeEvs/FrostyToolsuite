@@ -8,11 +8,10 @@
 	<Grid RowDefinitions="Auto, *">
 		
 		<Grid Grid.Row="0" Margin="5">
-			<TextBox Text="search" Width="250" HorizontalAlignment="Left"/>
+			<AutoCompleteBox Watermark="{StaticResource ID_WELCOME_SEARCH}" Width="250" HorizontalAlignment="Left"/>
 			<StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
-				<Button Margin="2" Content="add" Command="{Binding AddProfileCommand}"/>
-				<Button Margin="2" Content="delete" Command="{Binding DeleteProfileCommand}"/>
-				<Button Margin="2" Content="select" Command="{Binding SelectProfileCommand}"/>
+				<Button Margin="2" Content="{StaticResource ID_WELCOME_ADD}" Command="{Binding AddProfileCommand}"/>
+				<Button Margin="2" Content="{StaticResource ID_WELCOME_DELETE}" Command="{Binding DeleteProfileCommand}"/>
 			</StackPanel>
 		</Grid>
 		

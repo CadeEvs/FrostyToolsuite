@@ -14,5 +14,8 @@
     <system:String x:Key="ID_WELCOME_TITLE">Welcome to Frosty Editor</system:String>
 	<system:String x:Key="ID_WELCOME_PROJECTS">Projects</system:String>
 	<system:String x:Key="ID_WELCOME_PROFILES">Profiles</system:String>
+	<system:String x:Key="ID_WELCOME_SEARCH">Search</system:String>
+	<system:String x:Key="ID_WELCOME_ADD">Add</system:String>
+	<system:String x:Key="ID_WELCOME_DELETE">Delete</system:String>
     
 </ResourceDictionary>
