@@ -81,9 +81,12 @@ namespace BundleEditPlugin
             {
                 foreach (MeshSetLod lod in meshSetRes.Lods)
                 {
-                    ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(lod.ChunkId);
-                    chunkEntry.AddedBundles.Remove(App.AssetManager.GetBundleId(bentry));
-                    resEntry.LinkAsset(chunkEntry);
+                    if (lod.ChunkId != Guid.Empty)
+                    {
+                        ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(lod.ChunkId);
+                        chunkEntry.AddedBundles.Remove(App.AssetManager.GetBundleId(bentry));
+                        resEntry.LinkAsset(chunkEntry);
+                    }
                 }
             }
 
@@ -260,9 +263,12 @@ namespace BundleEditPlugin
             {
                 foreach (MeshSetLod lod in meshSetRes.Lods)
                 {
-                    ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(lod.ChunkId);
-                    chunkEntry.AddToBundle(App.AssetManager.GetBundleId(bentry));
-                    resEntry.LinkAsset(chunkEntry);
+                    if (lod.ChunkId != Guid.Empty)
+                    {
+                        ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(lod.ChunkId);
+                        chunkEntry.AddToBundle(App.AssetManager.GetBundleId(bentry));
+                        resEntry.LinkAsset(chunkEntry);
+                    }
                 }
             }
 
