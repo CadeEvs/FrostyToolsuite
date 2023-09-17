@@ -42,12 +42,13 @@ namespace Frosty.Core.Controls.Editors
             {
                 dynamic newVector = TypeLibrary.CreateObject("Vec3");
 
+                /* not needed, since we use xyz instead of ypr now?
                 if (X < -180.0f) X = -180.0f;
                 else if (X > 180.0f) X = 180.0f;
                 if (Y < -180.0f) Y = -180.0f;
                 else if (Y > 180.0f) Y = 180.0f;
                 if (Z < -180.0f) Z = -180.0f;
-                else if (Z > 180.0f) Z = 180.0f;
+                else if (Z > 180.0f) Z = 180.0f;*/
 
                 newVector.x = X;
                 newVector.y = Y;
@@ -139,7 +140,7 @@ namespace Frosty.Core.Controls.Editors
             // then convert...
 
             float val = (float)(Math.PI / 180.0);
-            Matrix m = Matrix.RotationYawPitchRoll(-obj.Rotation.x * val, obj.Rotation.y * val, obj.Rotation.z * val);
+            Matrix m = Matrix.RotationX(obj.Rotation.x * val) * Matrix.RotationY(obj.Rotation.y * val) * Matrix.RotationZ(obj.Rotation.z * val);
             m = m * Matrix.Scaling(obj.Scale.x, obj.Scale.y, obj.Scale.z);
 
             trns.trans.x = obj.Translation.x;
