@@ -32,6 +32,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Navigation;
+using System.Diagnostics;
 
 namespace FrostyEditor
 {
@@ -94,6 +95,7 @@ namespace FrostyEditor
             RoutedCommand addBookmarkCmd = new RoutedCommand();
             RoutedCommand removeBookmarkCmd = new RoutedCommand();
             RoutedCommand launchGameCmd = new RoutedCommand();
+            RoutedCommand prevLaunchGameCmd = new RoutedCommand();
             RoutedCommand focusAssetFilterCmd = new RoutedCommand();
 
             newCmd.InputGestures.Add(new KeyGesture(Key.N, ModifierKeys.Control));
@@ -116,7 +118,16 @@ namespace FrostyEditor
             if (ProfilesLibrary.EnableExecution)
             {
                 CommandBindings.Add(new CommandBinding(launchGameCmd, launchButton_Click));
+                CommandBindings.Add(new CommandBinding(launchGameCmd, prevLaunchButton_Click));
                 launchButton.IsEnabled = true;
+                if (Directory.Exists($"{App.FileSystem.BasePath}\\ModData\\Editor"))
+                {
+                    prevLaunchButton.IsEnabled = true;
+                }
+                else
+                {
+                    prevLaunchButton.IsEnabled = false;
+                }
             }
 
             InitGameSpecificMenus();
@@ -466,6 +477,8 @@ namespace FrostyEditor
                         {
                             executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
                         }
+
+                        prevLaunchButton.IsEnabled = true;
                     }
                     catch (OperationCanceledException)
                     {
@@ -491,6 +504,77 @@ namespace FrostyEditor
                 editorMod.Delete();
 
             launchButton.IsEnabled = true;
+
+            GC.Collect();
+        }
+
+        private void prevLaunchButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (!ProfilesLibrary.EnableExecution)
+                return;
+
+            if (!Directory.Exists($"{App.FileSystem.BasePath}\\ModData\\Editor"))
+            {
+                prevLaunchButton.IsEnabled = false;
+                return;
+            }
+
+            // setup ability to cancel the process
+            CancellationTokenSource cancelToken = new CancellationTokenSource();
+
+            prevLaunchButton.IsEnabled = false;
+
+            // apply mod
+            string additionalArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ";
+
+            // Set pack
+            App.SelectedPack = "Editor";
+            string modDirName = "ModData\\" + App.SelectedPack;
+            string modDataPath = App.FileSystem.BasePath + modDirName + "\\";
+
+            try
+            {
+                // run mod applying process
+                FrostyTaskWindow.Show("Launching", "", (task) =>
+                {
+                    try
+                    {
+                        string steamAppIdPath = $"{App.FileSystem.BasePath}steam_appid.txt";
+                        if (File.Exists(steamAppIdPath))
+                        {
+                            string steamAppId = File.ReadAllLines(steamAppIdPath).First();
+                            string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}".Trim();
+                            string url = Uri.EscapeDataString(arguments);
+                            App.Logger.Log($"Launch: {arguments}");
+                            App.Logger.Log($"Encoded: {url}");
+                            Process.Start($"steam://run/{steamAppId}//{url}/");
+                        }
+                        else
+                        {
+                            FrostyModExecutor.ExecuteProcess($"{App.FileSystem.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+                        }
+
+                        App.Logger.Log("Done");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // process was cancelled
+                        App.Logger.Log("Launch Cancelled");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Logger.Log("Error Launching Game: " + ex);
+                    }
+
+                }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
+            }
+            catch (OperationCanceledException)
+            {
+                // process was cancelled
+                App.Logger.Log("Launch Cancelled");
+            }
+
+            prevLaunchButton.IsEnabled = true;
 
             GC.Collect();
         }
