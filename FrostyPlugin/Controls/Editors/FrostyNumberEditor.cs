@@ -1,6 +1,7 @@
 ﻿using Frosty.Controls;
 using Frosty.Hash;
 using System;
+using System.Data;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,10 +28,52 @@ namespace Frosty.Core.Controls.Editors
                 if (strValue == "" || strValue == null)
                     strValue = "0";
 
-                if (valueType == typeof(sbyte)) return sbyte.Parse(strValue);
-                else if (valueType == typeof(byte)) return byte.Parse(strValue);
-                else if (valueType == typeof(short)) return short.Parse(strValue);
-                else if (valueType == typeof(ushort)) return ushort.Parse(strValue);
+                if (valueType == typeof(sbyte))
+                {
+                    if (sbyte.TryParse(strValue, out sbyte result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (sbyte)mathResult;
+                    }
+                }
+                else if (valueType == typeof(byte))
+                {
+                    if (byte.TryParse(strValue, out byte result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (byte)mathResult;
+                    }
+                }
+
+                else if (valueType == typeof(short))
+                {
+                    if (short.TryParse(strValue, out short result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (short)mathResult;
+                    }
+                }
+                else if (valueType == typeof(ushort))
+                {
+                    if (ushort.TryParse(strValue, out ushort result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (ushort)mathResult;
+                    }
+                }
+
                 else if (valueType == typeof(int))
                 {
                     int tmpValue = 0;
@@ -55,10 +98,51 @@ namespace Frosty.Core.Controls.Editors
                     }
                     return tmpValue;
                 }
-                else if (valueType == typeof(long)) return long.Parse(strValue);
-                else if (valueType == typeof(ulong)) return ulong.Parse(strValue);
-                else if (valueType == typeof(float)) return float.Parse(strValue);
-                else if (valueType == typeof(double)) return double.Parse(strValue);
+                else if (valueType == typeof(long))
+                {
+                    if (long.TryParse(strValue, out long result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (long)mathResult;
+                    }
+                }
+                else if (valueType == typeof(ulong))
+                {
+                    if (ulong.TryParse(strValue, out ulong result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (ulong)mathResult;
+                    }
+                }
+
+                else if (valueType == typeof(float))
+                {
+                    if (float.TryParse(strValue, out float result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return (float)mathResult;
+                    }
+                }
+                else if (valueType == typeof(double))
+                {
+                    if (double.TryParse(strValue, out double result))
+                    {
+                        return result;
+                    }
+                    else if (TrySolve(strValue, out double mathResult))
+                    {
+                        return mathResult;
+                    }
+                }
 
                 return 0;
             }
@@ -69,6 +153,10 @@ namespace Frosty.Core.Controls.Editors
                 {
                     value = value.Remove(0, 2);
                     return int.Parse(value, NumberStyles.HexNumber);
+                }
+                else if (TrySolve(value, out double mathResult))
+                {
+                    return (int)mathResult;
                 }
                 else
                 {
@@ -93,28 +181,120 @@ namespace Frosty.Core.Controls.Editors
                     if (strValue == "" || strValue == null)
                         return new ValidationResult(true, null);
 
-                    if (type == typeof(sbyte)) sbyte.Parse(strValue);
-                    else if (type == typeof(byte)) byte.Parse(strValue);
-                    else if (type == typeof(short)) short.Parse(strValue);
-                    else if (type == typeof(ushort)) ushort.Parse(strValue);
+                    if (type == typeof(sbyte))
+                    {
+                        if (sbyte.TryParse(strValue, out sbyte _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+                    else if (type == typeof(byte))
+                    {
+                        if (byte.TryParse(strValue, out byte _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+
+                    else if (type == typeof(short))
+                    {
+                        if (short.TryParse(strValue, out short _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+                    else if (type == typeof(ushort))
+                    {
+                        if (ushort.TryParse(strValue, out ushort _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+
                     else if (type == typeof(int))
                     {
-                        try { int.Parse(strValue); }
-                        catch (OverflowException) { return new ValidationResult(false, null); }
-                        catch (Exception) { }
-                        return new ValidationResult(true, null);
+                        if (int.TryParse(strValue, out int _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
                     }
                     else if (type == typeof(uint))
                     {
-                        try { uint.Parse(strValue); }
-                        catch (OverflowException) { return new ValidationResult(false, null); }
-                        catch (Exception) { }
-                        return new ValidationResult(true, null);
+                        if (uint.TryParse(strValue, out uint _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
                     }
-                    else if (type == typeof(long)) long.Parse(strValue);
-                    else if (type == typeof(ulong)) ulong.Parse(strValue);
-                    else if (type == typeof(float)) float.Parse(strValue);
-                    else if (type == typeof(double)) double.Parse(strValue);
+
+                    else if (type == typeof(long))
+                    {
+                        if (long.TryParse(strValue, out long _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+                    else if (type == typeof(ulong))
+                    {
+                        if (ulong.TryParse(strValue, out ulong _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+
+                    else if (type == typeof(float)) 
+                    {
+                        if (float.TryParse(strValue, out float _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
+                    else if (type == typeof(double))
+                    {
+                        if (double.TryParse(strValue, out double _) || TrySolve(strValue, out double _))
+                        {
+                            return new ValidationResult(true, null);
+                        }
+                        else
+                        {
+                            return new ValidationResult(false, null);
+                        }
+                    }
                 }
                 catch (Exception)
                 {
@@ -141,6 +321,21 @@ namespace Frosty.Core.Controls.Editors
             editor.VerticalContentAlignment = VerticalAlignment.Center;
             editor.Margin = new Thickness(-2, 0, 0, 0);
             editor.GotKeyboardFocus += (s, o) => { editor.SelectAll(); };
+            editor.AcceptsReturn = false;
+        }
+
+        private static bool TrySolve(string expression, out double result)
+        {
+            try
+            {
+                result = Convert.ToDouble(new DataTable().Compute(expression, null));
+                return true;
+            }
+            catch
+            {
+                result = double.NaN;
+                return false;
+            }
         }
     }
 }

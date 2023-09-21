@@ -1,4 +1,16 @@
-﻿v1.0.6.3 (Beta 1)
+﻿v1.0.6.3 (Beta 2)
+--------
+- Fixed crashing issues when launching
+- Added MenuExtension support to ModManager (#311)
+- Added ReadOnly Star Wars Squadrons profile (#301)
+- Added full Battlefield V profile (#301)
+- Added Math expressions in number textboxes (#291) 
+
+Plugin Changes
+- Fixed issue with mesh importing composite meshes
+- Fixed crashing issues when adding meshes to bundles (#313)
+
+v1.0.6.3 (Beta 1)
 --------
 - Fixed crashing issues (#260, #261)
 - Fixed small UI inconsistencies (#265, #267, #268)

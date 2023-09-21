@@ -265,7 +265,8 @@
             </Grid.RowDefinitions>
 
             <!-- Menu -->
-            <Menu Grid.Row="0">
+            <Menu x:Name="menu"
+                  Grid.Row="0">
                 <MenuItem Header="File"
                           Height="22">
                     <MenuItem Header="Pack">

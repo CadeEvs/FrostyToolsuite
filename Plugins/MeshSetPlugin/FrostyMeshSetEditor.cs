@@ -707,7 +707,7 @@ namespace MeshSetPlugin
                 {
                     FbxNode actor = FBXExportSubObject(scene, section, lod.VertexBufferSize, indexSize, reader);
                     if (flattenHierarchy)
-                        actor.Name = $"{section.Name}.lod{lodIdx}";
+                        actor.Name = $"{section.Name}:lod{lodIdx}";
                     meshNode.AddChild(actor);
 
                     if ((lod.Type == MeshType.MeshType_Skinned || lod.Type == MeshType.MeshType_Composite) && boneNodes.Count > 0)
@@ -1612,27 +1612,14 @@ namespace MeshSetPlugin
                 foreach (FbxNode child in scene.RootNode.Children)
                 {
                     string nodeName = child.Name.ToLower();
-                    int lodIndex = 0;
-                    string possibleLodIndex = nodeName.Substring(nodeName.LastIndexOf(".") + 4);
-                    // If the node doesn't contain a .0xx, it must be lod 0
-                    if (int.TryParse(possibleLodIndex, out lodIndex))
-                    {
-                        if (lodNodes[lodIndex] == null)
-                        {
-                            lodNodes[lodIndex] = new List<FbxNode>();
-                            lodCount++;
-                        }
-                        lodNodes[lodIndex].Add(child);
-                    }
-                    /*if (nodeName.Contains("lod"))
+                    if (nodeName.Contains("lod"))
                     {
                         if (nodeName.Contains(":"))
                         {
-                            // flat hierarchy, contains section:lod names
-                            nodeName = nodeName.Substring(nodeName.Length - 1);
-                            int lodIndex = -1;
+                            // flat hierarchy, contains section:lodX
+                            nodeName = nodeName.Substring(nodeName.LastIndexOf(':') + 4);
 
-                            if (int.TryParse(nodeName, out lodIndex))
+                            if (int.TryParse(nodeName, out int lodIndex))
                             {
                                 if (lodNodes[lodIndex] == null)
                                 {
@@ -1646,9 +1633,8 @@ namespace MeshSetPlugin
                         {
                             // standard hierarchy
                             nodeName = nodeName.Substring(nodeName.Length - 1);
-                            int lodIndex = -1;
 
-                            if (int.TryParse(nodeName, out lodIndex))
+                            if (int.TryParse(nodeName, out int lodIndex))
                             {
                                 if (lodNodes[lodIndex] == null)
                                 {
@@ -1658,7 +1644,7 @@ namespace MeshSetPlugin
                                 lodNodes[lodIndex].AddRange(child.Children);
                             }
                         }
-                    }*/
+                    }
                 }
 
                 if (lodCount < meshSet.Lods.Count)
@@ -1799,7 +1785,12 @@ namespace MeshSetPlugin
 
             foreach (var node in sectionNodes)
             {
-                string sectionName = node.Name.Substring(0, node.Name.LastIndexOf(".")); // remove .lodx from the name
+                string sectionName = node.Name;
+                if (sectionName.Contains(':'))
+                {
+                    // remove the lod portion of the name
+                    sectionName = sectionName.Remove(sectionName.IndexOf(':'));
+                }
 
                 int idx = meshSections.FindIndex((a) => a.Name == sectionName);
                 if (idx != -1 && sectionNodeMapping[idx] == null)

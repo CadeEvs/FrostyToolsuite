@@ -1363,16 +1363,19 @@ namespace Frosty.Core.Controls
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
-            if (e.Key == Key.Subtract || e.Key == Key.Add)
+            if (e.Key == Key.Subtract || e.Key == Key.Add || e.Key == Key.Multiply)
             {
-                // to stop +/- from expanding/collapsing
+                // to stop +/-/* from expanding/collapsing
                 e.Handled = true;
 
                 if (e.OriginalSource is TextBox tb)
                 {
-                    // to ensure that textboxes still respond to +/-
+                    // to ensure that textboxes still respond to +/-/*
                     int lastLocation = tb.SelectionStart;
-                    tb.Text = tb.Text.Insert(lastLocation, (e.Key == Key.Subtract) ? "-" : "+");
+                    tb.Text = tb.Text.Insert(lastLocation, 
+                        (e.Key == Key.Subtract) ? "-" :
+                        (e.Key == Key.Add) ? "+" :
+                        (e.Key == Key.Multiply) ? "*" : "");
                     tb.SelectionStart = lastLocation + 1;
                 }
             }
