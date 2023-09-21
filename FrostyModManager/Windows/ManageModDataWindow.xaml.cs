@@ -1,9 +1,13 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using Frosty.Controls;
 using Frosty.Core;
+using Frosty.Core.Windows;
 using Frosty.ModSupport;
 using FrostySdk;
 
@@ -123,8 +127,45 @@ namespace FrostyModManager
         /// </summary>
         private void launchModData_Click(object sender, RoutedEventArgs e)
         {
+            // setup ability to cancel the process
+            CancellationTokenSource cancelToken = new CancellationTokenSource();
+
             Pack selectedPack = ((Button)sender).DataContext as Pack;
-            FrostyModExecutor.ExecuteProcess($"{Path.GetDirectoryName(getModDataPath())}\\{ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{selectedPack.Path.Trim('\\')}\"");
+            string modDirName = "ModData\\" + selectedPack.Name;
+            string modDataPath = getModDataPath() + $"\\{selectedPack.Name}\\";
+
+            try
+            {
+                // run mod applying process
+                FrostyTaskWindow.Show("Launching", "", (task) =>
+                {
+                    try
+                    {
+                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                            executionAction.PreLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+
+                        FrostyModExecutor.LaunchGame(Config.Get<string>("GamePath", "", ConfigScope.Game, ProfilesLibrary.ProfileName) + "\\", modDirName, modDataPath, Config.Get<string>("CommandLineArgs", "", ConfigScope.Game) + " ");
+
+                        App.Logger.Log("Done");
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        // process was cancelled
+                        App.Logger.Log("Launch Cancelled");
+                    }
+                    catch (Exception ex)
+                    {
+                        App.Logger.Log("Error Launching Game: " + ex);
+                    }
+
+                }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
+            }
+            catch (OperationCanceledException)
+            {
+                // process was cancelled
+                App.Logger.Log("Launch Cancelled");
+            }
+
         }
     }
 }

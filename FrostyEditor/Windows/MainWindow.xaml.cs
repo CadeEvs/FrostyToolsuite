@@ -539,20 +539,10 @@ namespace FrostyEditor
                 {
                     try
                     {
-                        string steamAppIdPath = $"{App.FileSystem.BasePath}steam_appid.txt";
-                        if (File.Exists(steamAppIdPath))
-                        {
-                            string steamAppId = File.ReadAllLines(steamAppIdPath).First();
-                            string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}".Trim();
-                            string url = Uri.EscapeDataString(arguments);
-                            App.Logger.Log($"Launch: {arguments}");
-                            App.Logger.Log($"Encoded: {url}");
-                            Process.Start($"steam://run/{steamAppId}//{url}/");
-                        }
-                        else
-                        {
-                            FrostyModExecutor.ExecuteProcess($"{App.FileSystem.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
-                        }
+                        foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)
+                            executionAction.PreLaunchAction(task.TaskLogger, PluginManagerType.Editor, cancelToken.Token);
+
+                        FrostyModExecutor.LaunchGame(App.FileSystem.BasePath, modDirName, modDataPath, additionalArgs);
 
                         App.Logger.Log("Done");
                     }
