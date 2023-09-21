@@ -536,6 +536,7 @@ namespace FrostyEditor
                 // run mod applying process
                 FrostyTaskWindow.Show("Launching", "", (task) =>
                 {
+                    App.Logger.Log("Launching");
                     try
                     {
                         foreach (ExecutionAction executionAction in App.PluginManager.ExecutionActions)

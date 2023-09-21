@@ -138,6 +138,7 @@ namespace FrostyModManager
                 // run mod applying process
                 FrostyTaskWindow.Show("Launching", "", (task) =>
                 {
+                    App.Logger.Log("Launching");
                     try
                     {
                         foreach (var executionAction in App.PluginManager.ExecutionActions)
