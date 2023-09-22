@@ -30,6 +30,8 @@ ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
                                 <ColumnDefinition Width="16"/>
                                 <ColumnDefinition Width="4"/>
                                 <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="4"/>
+                                <ColumnDefinition Width="16"/>
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Column="0" Text="{Binding Name}" VerticalAlignment="Center"/>
@@ -41,6 +43,9 @@ ResizeMode="NoResize" WindowStartupLocation="CenterOwner">
                             </Button>
                             <Button x:Name="deleteModData" Grid.Column="5" Click="deleteModData_Click" ToolTip="Delete Folder">
                                 <Image Source="/FrostyModManager;component/Images/Remove.png"/>
+                            </Button>
+                            <Button x:Name="createShortcutToModData" Grid.Column="7" Click="createShortcutToModData_Click" ToolTip="Create shortcut to launch game with ModData">
+                                <Image Source="/FrostyModManager;component/Images/SaveAs.png"/>
                             </Button>
                         </Grid>
                     </DataTemplate>
