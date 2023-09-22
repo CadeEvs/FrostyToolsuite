@@ -241,8 +241,6 @@ namespace FrostyModManager
                     }
                 }
             }
-
-
         }
     }
 }
