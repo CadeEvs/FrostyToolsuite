@@ -35,7 +35,7 @@
 		<Border IsHitTestVisible="False" Background="#111111"/>
 		<Grid RowDefinitions="Auto, *">
 			<ctrls:TitleBar Grid.Row="0" Description="{StaticResource ID_WELCOME_TITLE}"/>
-			<TabControl Grid.Row="1" TabStripPlacement="Left" SelectedIndex="1">
+			<TabControl Grid.Row="1" TabStripPlacement="Left" SelectedIndex="1" Padding="0, 0, 0, 0">
 				<TabItem IsEnabled="False">
 					<TabItem.Header>
 						<Grid Margin="-5, 0, 0, 0" RowDefinitions="15, 15" ColumnDefinitions="25, *">
