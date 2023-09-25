@@ -249,7 +249,9 @@ namespace LevelEditorPlugin.Editors
                 viewport.SetPaused(false);
 
                 editingWorld = refObj;
-                currentLoadingState = null;
+                //currentLoadingState = null;
+
+                currentLoadingState.Task.Update("Initializing EntityWorld");
 
                 world.Initialize();
             });
