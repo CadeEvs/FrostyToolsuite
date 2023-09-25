@@ -27,6 +27,7 @@ using FrostySdk.Ebx;
 using LevelEditorPlugin.Entities;
 using Entity = LevelEditorPlugin.Entities.Entity;
 using Window = System.Windows.Window;
+using FrostyCore;
 
 namespace LevelEditorPlugin.Editors
 {
@@ -45,14 +46,14 @@ namespace LevelEditorPlugin.Editors
         private class SimulatedEntityWorld
         {
             public IEnumerable<Entities.Entity> Entities => simulatedEntities;
-            public Entities.ILogicEntity RootEntity => originalWorld.Entities.First() as Entities.ILogicEntity;
+            public Entities.ILogicEntity RootEntity => originalWorld.FinalEntities.First() as Entities.ILogicEntity;
             public long FrameCount => frameCount;
             public Dispatcher UiDispatcher => uiDispatcher;
             public Dispatcher SimulationDispatcher => simulationDispatcher;
 
             protected EntityWorld originalWorld;
-            protected List<Entities.Entity> simulatedEntities = new List<Entities.Entity>();
-            protected List<Entities.ReferenceObject> simulatedReferenceObjects = new List<Entities.ReferenceObject>();
+            protected HashSet<Entities.Entity> simulatedEntities = new HashSet<Entities.Entity>();
+            protected HashSet<Entities.ReferenceObject> simulatedReferenceObjects = new HashSet<Entities.ReferenceObject>();
             protected long frameCount;
 
             protected Thread simulationThread;
@@ -147,24 +148,29 @@ namespace LevelEditorPlugin.Editors
         }
 
         public bool IsSimulationRunning => simulation != null;
-        public IEnumerable<Entities.Entity> Entities
+        public List<Entities.Entity> Entities
         {
             get
             {
-                IEnumerable<Entities.Entity> allEntities = entities;
+                List<Entities.Entity> allEntities = entities.ToList();
                 if (IsSimulationRunning)
                 {
-                    return allEntities.Union(simulation.Entities);
+                    return (List<Entity>)allEntities.Union(simulation.Entities);
                 }
                 return allEntities;
             }
         }
+
+        public List<Entities.Entity> FinalEntities;
+        public Dictionary<Guid, int> entitiesIndexes = new Dictionary<Guid, int>();
+
         public long SimulationFrameCount => (IsSimulationRunning) ? simulation.FrameCount : -1;
         public Dispatcher UiDispatcher => (IsSimulationRunning) ? simulation.UiDispatcher : null;
         public Dispatcher SimulationDispatcher => (IsSimulationRunning) ? simulation.SimulationDispatcher : null;
 
-        protected List<Entities.Entity> entities = new List<Entities.Entity>();
-        protected List<Entities.ReferenceObject> referenceObjects = new List<Entities.ReferenceObject>();
+        protected HashSet<Entities.Entity> entities = new HashSet<Entities.Entity>();
+        protected HashSet<Entities.ReferenceObject> referenceObjects = new HashSet<Entities.ReferenceObject>();
+
 
         private SimulatedEntityWorld simulation;
         public event EventHandler OnSimulationUpdated;
@@ -175,12 +181,28 @@ namespace LevelEditorPlugin.Editors
 
         public void Initialize()
         {
-            foreach (Entity entity in Entities)
+            InitEntities();
+            foreach (Entity entity in FinalEntities)
             {
                 if (entity is Entities.ReferenceObject)
                 {
                     (entity as Entities.ReferenceObject).InitializeSchematics();
                 }
+            }
+        }
+
+        private void InitEntities()
+        {
+            FinalEntities = Entities;
+            entitiesIndexes.Clear();
+            for (int i = 0; i < FinalEntities.Count; i++)
+            {
+                if (entitiesIndexes.ContainsKey(FinalEntities[i].InstanceGuid))
+                { 
+                    continue;
+                    //entitiesIndexes[FinalEntities[i].InstanceGuid] = i
+                }
+                entitiesIndexes.Add(FinalEntities[i].InstanceGuid, i);
             }
         }
 
@@ -237,7 +259,12 @@ namespace LevelEditorPlugin.Editors
 
         public Entities.Entity FindEntity(Guid instanceGuid)
         {
-            return Entities.FirstOrDefault(e => e.InstanceGuid == instanceGuid);
+            if (entitiesIndexes.TryGetValue(instanceGuid, out int index))
+            {
+                return FinalEntities[index];
+            }
+            return null;
+            //return Entities.FirstOrDefault(e => e.InstanceGuid == instanceGuid);
         }
 
         public long GenerateDeterministicId(Entities.Entity entity)
