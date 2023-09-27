@@ -1092,11 +1092,6 @@ namespace FrostyModManager
                                             packManifest = JsonConvert.DeserializeObject<PackManifest>(reader.ReadToEnd());
                                         }
                                     }
-                                    else if (compressedFi.Extension == ".dll")
-                                    {
-                                        errors.Add(new ImportErrorInfo() { filename = Path.Combine(fi.Name, compressedFi.Filename), error = "File in archive is likely a plugin.", isWarning = true });
-                                        continue;
-                                    }
                                 }
                                 decompressor.CloseArchive();
                             }
