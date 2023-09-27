@@ -30,6 +30,7 @@ using System.IO.Compression;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using System.Media;
 
 namespace FrostyModManager
 {
@@ -980,13 +981,18 @@ namespace FrostyModManager
 
         private void FrostyWindow_Drop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop, true) == true)
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, true))
             {
                 string[] filenames = (string[])e.Data.GetData(DataFormats.FileDrop, true);
                 InstallMods(filenames);
 
                 ICollectionView view = CollectionViewSource.GetDefaultView(availableModsList.ItemsSource);
                 view.Refresh();
+            }
+            else if (e.Data.GetFormats().Any(f => f == "FileContents"))
+            {
+                SystemSounds.Hand.Play();
+                FrostyMessageBox.Show("Cannot import mod files that have not been extracted", "Frosty Mod Manager");
             }
         }
 
