@@ -12,8 +12,6 @@ using Frosty.Core.Windows;
 using Frosty.ModSupport;
 using FrostySdk;
 using IWshRuntimeLibrary;
-using Microsoft.SqlServer.Server;
-using Microsoft.Win32;
 
 namespace FrostyModManager
 {
