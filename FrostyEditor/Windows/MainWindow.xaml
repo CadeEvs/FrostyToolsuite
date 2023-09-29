@@ -298,22 +298,6 @@
                                                    Margin="4 0 0 0" />
                                     </StackPanel>
                                 </Button>
-                                <Button x:Name="prevLaunchButton"
-                                        Margin="4 0 0 0"
-                                        Click="prevLaunchButton_Click"
-                                        ToolTip="Launch with previously generated data"
-                                        IsEnabled="false">
-                                    <StackPanel Orientation="Horizontal"
-                                        Margin="4 0 4 0">
-                                        <Grid Grid.Column="0" Width="16">
-                                            <Image Source="../Images/Play.png"
-                                                Width="16" />
-                                            <Image Source="../Images/Recent.png"
-                                                Width="12"
-                                                Margin="8, 8, 0, 0"/>
-                                        </Grid>
-                                    </StackPanel>
-                                </Button>
                             </StackPanel>
                         </Border>
                         <!-- Filler -->
