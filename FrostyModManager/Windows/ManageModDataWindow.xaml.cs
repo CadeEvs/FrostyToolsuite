@@ -187,12 +187,12 @@ namespace FrostyModManager
             string steamAppIdPath = $"{basePath}steam_appid.txt";
             if (System.IO.File.Exists(steamAppIdPath))
             {
-                SaveFileDialog dialog = new SaveFileDialog();
-                dialog.FileName = $"{ProfilesLibrary.DisplayName}_{selectedPack.Name}"; // Default file name
-                dialog.Filter = "Steam Shortcut|*.url"; // Filter files by extension
-                dialog.InitialDirectory = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                FrostySaveFileDialog dialog = new FrostySaveFileDialog("Create Shortcut", "Steam Shortcut|*.url", "Shortcut", $"{ProfilesLibrary.DisplayName}_{selectedPack.Name}")
+                {
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+                };
 
-                if (dialog.ShowDialog() == true)
+                if (dialog.ShowDialog())
                 {
                     try
                     {
@@ -212,18 +212,22 @@ namespace FrostyModManager
                     }
                     catch (Exception ex)
                     {
+                        if (System.IO.File.Exists(dialog.FileName))
+                        {
+                            System.IO.File.Delete(dialog.FileName);
+                        }
                         FrostyExceptionBox.Show(ex, "Create Shortcut failed");
                     }
                 }
             }
             else
             {
-                SaveFileDialog dialog = new SaveFileDialog();
-                dialog.FileName = $"{ProfilesLibrary.DisplayName.Replace("™", "")}_{selectedPack.Name}"; // Default file name
-                dialog.Filter = "Shortcut|*.lnk"; // Filter files by extension
-                dialog.InitialDirectory = System.Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                FrostySaveFileDialog dialog = new FrostySaveFileDialog("Create Shortcut", "Shortcut|*.lnk", "Shortcut", $"{ProfilesLibrary.DisplayName.Replace("™", "")}_{selectedPack.Name}")
+                {
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+                };
 
-                if (dialog.ShowDialog() == true)
+                if (dialog.ShowDialog())
                 {
                     try
                     {
@@ -237,6 +241,10 @@ namespace FrostyModManager
                     }
                     catch (Exception ex)
                     {
+                        if (System.IO.File.Exists(dialog.FileName))
+                        {
+                            System.IO.File.Delete(dialog.FileName);
+                        }
                         FrostyExceptionBox.Show(ex, "Create Shortcut failed");
                     }
                 }
