@@ -1814,21 +1814,7 @@ namespace Frosty.ModSupport
 
             try
             {
-                string steamAppIdPath = $"{fs.BasePath}steam_appid.txt";
-                if (File.Exists(steamAppIdPath))
-                {
-                    string steamAppId = File.ReadAllLines(steamAppIdPath).First();
-                    string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}".Trim();
-                    string url = Uri.EscapeDataString(arguments);
-                    App.Logger.Log($"Launch: {arguments}");
-                    App.Logger.Log($"Encoded: {url}");
-                    Process.Start($"steam://run/{steamAppId}//{url}/");
-                }
-                else
-                {
-                    ExecuteProcess($"{fs.BasePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
-                }
-
+                LaunchGame(fs.BasePath, modDirName, modDataPath, additionalArgs);
             }
             catch (Exception ex)
             {
@@ -1839,6 +1825,24 @@ namespace Frosty.ModSupport
 
             GC.Collect();
             return 0;
+        }
+
+        public static void LaunchGame(string basePath, string modDirName, string modDataPath, string additionalArgs)
+        {
+            string steamAppIdPath = $"{basePath}steam_appid.txt";
+            if (File.Exists(steamAppIdPath))
+            {
+                string steamAppId = File.ReadAllLines(steamAppIdPath).First();
+                string arguments = $"-dataPath \"{modDirName.Replace('\\', '/')}\" {additionalArgs}".Trim();
+                string url = Uri.EscapeDataString(arguments);
+                App.Logger.Log($"Launch: {arguments}");
+                App.Logger.Log($"Encoded: {url}");
+                Process.Start($"steam://run/{steamAppId}//{url}/");
+            }
+            else
+            {
+                ExecuteProcess($"{basePath + ProfilesLibrary.ProfileName}.exe", $"-dataPath \"{modDataPath.Trim('\\')}\" {additionalArgs}");
+            }
         }
 
         private List<ModInfo> GenerateModInfoList(string[] modPaths, string rootPath)
