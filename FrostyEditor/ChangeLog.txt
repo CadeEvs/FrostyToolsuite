@@ -1,4 +1,28 @@
-﻿v1.0.6.3 (Beta 2)
+﻿v1.0.6.3
+- Improved performance of the EbxWriter
+- Improved import for collections (#317)
+- Added ReadOnly Star Wars Squadrons profile (#301)
+- Added full Battlefield V profile (#301)
+- Added option to manage ModData from the ModManager (#271, #314)
+- Added whitelist option for bundles (#275)
+- Added rename and duplicate pack options to the ModManager (#280)
+- Added MenuExtension support to ModManager (#311)
+- Added Math expressions in number textboxes (#291)
+- Fixed launching issues on Steam
+- Fixed bundle adding for manifest games
+- Fixed crashing issues (#260, #261)
+- Fixed small UI inconsistencies (#265, #267, #268)
+- Fixed issue where editor mods didnt get removed (#274)
+- Changed Rotations from YPR to XYZ (#304)
+
+Plugin Changes
+- Added support for more types to the duplication and bundle editor plugins (#276, #277)
+- Added importing support for composite meshes (#262)
+- Added importing support for raw ealayer3 audio
+- Fixed crashing issues when adding meshes to bundles (#313)
+- Fixed crashing issue when exporting certain textures
+
+v1.0.6.3 (Beta 2)
 --------
 - Fixed crashing issues when launching
 - Added MenuExtension support to ModManager (#311)
