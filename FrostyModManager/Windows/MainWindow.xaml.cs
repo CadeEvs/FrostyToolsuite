@@ -30,7 +30,7 @@ using System.IO.Compression;
 using System.Linq;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
-using System.Linq;
+using System.Media;
 
 namespace FrostyModManager
 {
@@ -981,13 +981,18 @@ namespace FrostyModManager
 
         private void FrostyWindow_Drop(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop, true) == true)
+            if (e.Data.GetDataPresent(DataFormats.FileDrop, true))
             {
                 string[] filenames = (string[])e.Data.GetData(DataFormats.FileDrop, true);
                 InstallMods(filenames);
 
                 ICollectionView view = CollectionViewSource.GetDefaultView(availableModsList.ItemsSource);
                 view.Refresh();
+            }
+            else if (e.Data.GetFormats().Any(f => f == "FileContents"))
+            {
+                SystemSounds.Hand.Play();
+                FrostyMessageBox.Show("Cannot import mod files that have not been extracted", "Frosty Mod Manager");
             }
         }
 
@@ -1000,6 +1005,8 @@ namespace FrostyModManager
 
             FrostyTaskWindow.Show("Installing Mods", "", (task) =>
             {
+                List<string> collections = new List<string>();
+
                 foreach (string filename in filenames)
                 {
                     FileInfo fi = new FileInfo(filename);
@@ -1010,7 +1017,6 @@ namespace FrostyModManager
                         if (IsCompressed(fi))
                         {
                             List<string> mods = new List<string>();
-                            List<string> collections = new List<string>();
                             List<int> format = new List<int>();
                             List<string> archives = new List<string>();
                             int fbpacks = 0;
@@ -1162,26 +1168,6 @@ namespace FrostyModManager
                                 {
                                     fi = new FileInfo(Path.Combine(modsDir.FullName, mods[i]));
                                     lastInstalledMod = AddMod(fi.FullName, format[i]);
-                                }
-                            }
-
-                            if (collections.Count > 0)
-                            {
-                                // now actually decompress files
-                                decompressor.OpenArchive(filename);
-                                foreach (CompressedFileInfo compressedFi in decompressor.EnumerateFiles())
-                                {
-                                    if (collections.Contains(compressedFi.Filename))
-                                    {
-                                        decompressor.DecompressToFile(Path.Combine(modsDir.FullName, compressedFi.Filename));
-                                    }
-                                }
-
-                                // and add them to the mod manager
-                                for (int i = 0; i < collections.Count; i++)
-                                {
-                                    fi = new FileInfo(Path.Combine(modsDir.FullName, collections[i]));
-                                    lastInstalledMod = AddCollection(fi.FullName, 0);
                                 }
                             }
                         }
@@ -1366,6 +1352,10 @@ namespace FrostyModManager
                                 lastInstalledMod = AddMod(fi.FullName, 0);
                             }
                         }
+                        else if (fi.Extension == ".fbcollection")
+                        {
+                            collections.Add(fi.Name);
+                        }
                         else
                         {
                             // dont allow any files without fbmod extension
@@ -1442,12 +1432,40 @@ namespace FrostyModManager
                             fi = new FileInfo(Path.Combine(modsDir.FullName, fi.Name));
                             lastInstalledMod = AddMod(fi.FullName, newFormat ? 1 : 0);
                         }
+
+                        if (collections.Count > 0)
+                        {
+                            if (filename.Contains(".zip"))
+                            {
+                                // now actually decompress files
+                                ZipDecompressor decompressor = new ZipDecompressor();
+                                decompressor.OpenArchive(filename);
+                                foreach (CompressedFileInfo compressedFi in decompressor.EnumerateFiles())
+                                {
+                                    if (collections.Contains(compressedFi.Filename))
+                                    {
+                                        decompressor.DecompressToFile(Path.Combine(modsDir.FullName, compressedFi.Filename));
+                                    }
+                                }
+                            }
+                            else if (filename.Contains(".fbcollection"))
+                            {
+                                File.Copy(fi.FullName, Path.Combine(modsDir.FullName, fi.Name));
+                            }
+                        }
                     }
                     catch (FrostyModLoadException e)
                     {
                         errors.Add(new ImportErrorInfo { error = e.Message, filename = fi.Name });
                         File.Delete(fi.FullName);
                     }
+                }
+
+                // add collections to the mod manager
+                for (int i = 0; i < collections.Count; i++)
+                {
+                    FileInfo fi = new FileInfo(Path.Combine(modsDir.FullName, collections[i]));
+                    lastInstalledMod = AddCollection(fi.FullName, 0);
                 }
             });
 
