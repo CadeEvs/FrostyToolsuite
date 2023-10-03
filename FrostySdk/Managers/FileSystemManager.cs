@@ -36,7 +36,7 @@ public static class FileSystemManager
     private static readonly List<string> s_casFiles = new();
     
     private static Type? s_deobfuscator;
-    private static readonly Dictionary<string, byte[]> s_memoryFs = new();
+    private static readonly Dictionary<string, Block<byte>> s_memoryFs = new();
 
     public static bool Initialize(string basePath)
     {
@@ -199,7 +199,7 @@ public static class FileSystemManager
     }
     
     public static bool HasFileInMemoryFs(string name) => s_memoryFs.ContainsKey(name);
-    public static byte[] GetFileFromMemoryFs(string name) => s_memoryFs[name];
+    public static Block<byte> GetFileFromMemoryFs(string name) => s_memoryFs[name];
 
     private static void AddSource(string path, bool iterateSubPaths)
     {
@@ -279,7 +279,7 @@ public static class FileSystemManager
             DbObjectDict file = fileStub.AsDict().AsDict("$file");
             string fileName = file.AsString("name");
 
-            s_memoryFs.TryAdd(fileName, file.AsBlob("payload"));
+            s_memoryFs.TryAdd(fileName, new Block<byte>(file.AsBlob("payload")));
         }
         return true;
     }

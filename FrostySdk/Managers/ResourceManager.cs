@@ -156,7 +156,7 @@ public static class ResourceManager
         if (FileSystemManager.HasFileInMemoryFs("Scripts/CasEncrypt.yaml"))
         {
             // load CasEncrypt.yaml from memoryFs (used for decrypting data in cas files)
-            using (TextReader stream = new StreamReader(new MemoryStream(FileSystemManager.GetFileFromMemoryFs("Scripts/CasEncrypt.yaml"))))
+            using (TextReader stream = new StreamReader(FileSystemManager.GetFileFromMemoryFs("Scripts/CasEncrypt.yaml").ToStream()))
             {
                 byte[]? key = null;
                 while (stream.Peek() != -1)

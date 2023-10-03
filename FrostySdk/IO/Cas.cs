@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Frosty.Sdk.IO.Compression;
+using System;
 using System.Diagnostics;
 using System.IO;
 using Frosty.Sdk.Managers;
