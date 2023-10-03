@@ -109,6 +109,7 @@ namespace ChunkResEditorPlugin
         private const string PART_ResExportMenuItem = "PART_ResExportMenuItem";
         private const string PART_ResImportMenuItem = "PART_ResImportMenuItem";
         private const string PART_RevertMenuItem = "PART_RevertMenuItem";
+        private const string PART_LogIDMenuItem = "PART_LogIDMenuItem";
         private const string PART_ChunkFilter = "PART_ChunkFilter";
         private const string PART_ChunkModified = "PART_ChunkModified";
 
@@ -150,6 +151,9 @@ namespace ChunkResEditorPlugin
 
             mi = GetTemplateChild(PART_RevertMenuItem) as MenuItem;
             mi.Click += ResRevertMenuItem_Click;
+
+            mi = GetTemplateChild(PART_LogIDMenuItem) as MenuItem;
+            mi.Click += ResLogIDMenuItem_Click;
 
             Loaded += FrostyChunkResEditor_Loaded;
             chunksListBox.SelectionChanged += ChunksListBox_SelectionChanged;
@@ -341,6 +345,13 @@ namespace ChunkResEditorPlugin
                 });
                 logger?.Log("Resource saved to {0}", sfd.FileName);
             }
+        }
+
+        private void ResLogIDMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ResAssetEntry selectedAsset = resExplorer.SelectedAsset as ResAssetEntry;
+
+            logger?.Log("Resource ID for {0}: {1}", selectedAsset.Filename, selectedAsset.ResRid.ToString("x").ToUpper());
         }
 
         public void ImportChunk()

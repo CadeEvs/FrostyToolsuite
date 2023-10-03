@@ -150,6 +150,11 @@
                                                     <Image Source="/FrostyEditor;component/Images/Revert.png" Opacity="0.5"/>
                                                 </MenuItem.Icon>
                                             </MenuItem>
+                                            <MenuItem x:Name="PART_LogIDMenuItem" Header="Log ID">
+                                                <MenuItem.Icon>
+                                                    <Image Source="/FrostyEditor;component/Images/Properties.png" Opacity="0.5"/>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
                                         </ContextMenu>
                                     </core:FrostyDataExplorer.AssetContextMenu>
                                 </core:FrostyDataExplorer>
