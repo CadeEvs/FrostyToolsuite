@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Frosty.Sdk.Managers;
+using Frosty.Sdk.Utils;
 
 namespace Frosty.Sdk.IO.Ebx;
 
@@ -43,9 +44,9 @@ public static class EbxSharedTypeDescriptors
         return s_fieldDescriptors[index];
     }
     
-    private static void Read(byte[] file)
+    private static void Read(Block<byte> file)
     {
-        using (DataStream stream = new(new MemoryStream(file)))
+        using (DataStream stream = new(file.ToStream()))
         {
             EbxVersion magic = (EbxVersion)stream.ReadUInt32();
 

@@ -8,22 +8,34 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <DefineConstants>TRACE;FROSTY_DEVELOPER;EBX_TYPE_SDK_DEBUG</DefineConstants>
-    </PropertyGroup>
-
     <ItemGroup>
-      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+        <PackageReference Include="ImpromptuNinjas.ZStd" Version="1.4.5.5" />
+        <PackageReference Include="K4os.Compression.LZ4" Version="1.3.5" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.0.1" />
+        <PackageReference Include="Zlib.Bindings" Version="1.10.1" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj" />
+        <ProjectReference Include="..\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator\FrostyTypeSdkGenerator.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="ThirdParty\liblinoodle.so">
+      <None Remove="ThirdParty\libzstd.dll" />
+      <Content Include="ThirdParty\libzstd.dll">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+      </Content>
+      <None Remove="ThirdParty\libzstd.so" />
+      <Content Include="ThirdParty\libzstd.so">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ThirdParty\libzlib.so" />
+      <Content Include="ThirdParty\libzlib.so">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ThirdParty\libzlib.dll" />
+      <Content Include="ThirdParty\libzlib.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
