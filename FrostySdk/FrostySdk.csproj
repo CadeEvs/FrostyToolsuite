@@ -28,6 +28,14 @@
       <Content Include="ThirdParty\libzstd.so">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
+      <None Remove="ThirdParty\libzlib.so" />
+      <Content Include="ThirdParty\libzlib.so">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+      <None Remove="ThirdParty\libzlib.dll" />
+      <Content Include="ThirdParty\libzlib.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
