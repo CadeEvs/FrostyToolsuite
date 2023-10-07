@@ -2023,11 +2023,18 @@ namespace FrostyModManager
             Plugin selectedPlugin = (Plugin)LoadedPluginsList.SelectedItem;
 
             // retrieve the selected plugin's load exception, execute ToString on it, and add the result to the clipboard
-            Clipboard.SetText(string.Format("[{0}]\n{1}", new string[]
+            try
             {
-                DateTime.Now.ToString(),
-                selectedPlugin.LoadException.ToString()
-            }));
+                Clipboard.SetText(string.Format("[{0}]\n{1}", new string[]
+                {
+                    DateTime.Now.ToString(),
+                    selectedPlugin.LoadException.ToString()
+                }));
+            }
+            catch
+            {
+                App.Logger.LogError("Could not copy to clipboard. Please retry");
+            }
         }
 
         private void LoadMenuExtensions()

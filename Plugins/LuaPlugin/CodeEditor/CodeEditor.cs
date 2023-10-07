@@ -400,6 +400,15 @@ namespace LuaPlugin.CodeEditor
                 // Cut selection
                 int imin = SelectionStart.Index <= SelectionEnd.Index ? SelectionStart.Index : SelectionEnd.Index;
                 int imax = SelectionStart.Index <= SelectionEnd.Index ? SelectionEnd.Index : SelectionStart.Index;
+
+                try
+                {
+                    Clipboard.SetText(Text.Substring(imin, imax - imin));
+                }
+                catch
+                {
+                    App.Logger.LogError("Could not copy to clipboard. Please retry");
+                }
                 Clipboard.SetText(Text.Substring(imin, imax - imin));
                 ModifyText(imin, imax, "");
                 CaretBlink = true;
@@ -412,7 +421,15 @@ namespace LuaPlugin.CodeEditor
                 // Copy selection
                 int imin = SelectionStart.Index <= SelectionEnd.Index ? SelectionStart.Index : SelectionEnd.Index;
                 int imax = SelectionStart.Index <= SelectionEnd.Index ? SelectionEnd.Index : SelectionStart.Index;
-                Clipboard.SetText(Text.Substring(imin, imax - imin));
+
+                try
+                {
+                    Clipboard.SetText(Text.Substring(imin, imax - imin));
+                }
+                catch
+                {
+                    App.Logger.LogError("Could not copy to clipboard. Please retry");
+                }
                 CaretBlink = true;
                 InvalidateVisual();
             }
