@@ -81,7 +81,14 @@ namespace DelayLoadBundlePlugin
             if (selectedItem == null)
                 return;
 
-            Clipboard.SetText(selectedItem.Hash.ToString());
+            try
+            {
+                Clipboard.SetText(selectedItem.Hash.ToString());
+            }
+            catch
+            {
+                App.Logger.LogError("Could not copy to clipboard. Please retry");
+            }
         }
 
         GridViewColumnHeader lastSortHeader;

@@ -1266,8 +1266,14 @@ namespace Frosty.Core.Controls
                 dynamic obj = pointerRef.Internal;
                 guidToCopy = obj.GetInstanceGuid().ToString();
             }
-
-            Clipboard.SetText(guidToCopy);
+            try
+            {
+                Clipboard.SetText(guidToCopy);
+            }
+            catch
+            {
+                App.Logger.LogError("Could not copy to clipboard. Please retry");
+            }
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Frosty.Core;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -49,7 +50,14 @@ namespace BiowareLocalizationPlugin.Controls
                     sb.AppendLine(selected.ToString());
                 }
 
-                Clipboard.SetText(sb.ToString());
+                try
+                {
+                    Clipboard.SetText(sb.ToString());
+                }
+                catch
+                {
+                    App.Logger.LogError("Could not copy to clipboard. Please retry");
+                }
             }
         }
     }
