@@ -89,7 +89,7 @@ namespace DuplicationPlugin
 
                 // Add new bundle
                 BundleEntry oldBundle = App.AssetManager.GetBundleEntry(newEntry.AddedBundles[0]);
-                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.BlueprintBundle, oldBundle.SuperBundleId);
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII ? newName : newName.ToLower()), BundleType.BlueprintBundle, oldBundle.SuperBundleId);
 
                 newEntry.AddedBundles.Clear();
                 newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
@@ -111,7 +111,7 @@ namespace DuplicationPlugin
 
                 // Add new bundle
                 BundleEntry oldBundle = App.AssetManager.GetBundleEntry(newEntry.AddedBundles[0]);
-                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + newName.ToLower(), BundleType.SubLevel, oldBundle.SuperBundleId);
+                BundleEntry newBundle = App.AssetManager.AddBundle("win32/" + (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII ? newName : newName.ToLower()), BundleType.SubLevel, oldBundle.SuperBundleId);
 
                 newEntry.AddedBundles.Clear();
                 newEntry.AddedBundles.Add(App.AssetManager.GetBundleId(newBundle));
@@ -280,7 +280,7 @@ namespace DuplicationPlugin
             {
                 //2017 battlefront meshes always have lowercase names. This doesn't apply to all games, but its still safer to do so
                 newName = newName.ToLower();
-                
+
                 // Duplicate the ebx
                 EbxAssetEntry newEntry = base.DuplicateAsset(entry, newName, createNew, newType);
                 EbxAsset newAsset = App.AssetManager.GetEbx(newEntry);
