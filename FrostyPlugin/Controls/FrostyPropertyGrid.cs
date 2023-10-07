@@ -1229,6 +1229,31 @@ namespace Frosty.Core.Controls
                 };
                 mi.Click += CopyGuidMenuItem_Click;
                 cm.Items.Add(mi);
+
+                mi = new MenuItem
+                {
+                    Header = "Paste Shallow",
+                    Icon = new Image
+                    {
+                        Source = StringToBitmapSourceConverter.PasteSource
+                    }
+                };
+                mi.Click += PasteShallowMenuItem_Click;
+                BindingOperations.SetBinding(mi, IsEnabledProperty, new Binding("HasPointerRef") { Source = FrostyClipboard.Current });
+                cm.Items.Add(mi);
+
+
+                mi = new MenuItem
+                {
+                    Header = "Paste Reference",
+                    Icon = new Image
+                    {
+                        Source = StringToBitmapSourceConverter.PasteSource
+                    }
+                };
+                mi.Click += PastePrMenuItem_Click;
+                BindingOperations.SetBinding(mi, IsEnabledProperty, new Binding("HasPointerRef") { Source = FrostyClipboard.Current });
+                cm.Items.Add(mi);
             }
 
             if (item.IsArrayChild)
@@ -1308,6 +1333,64 @@ namespace Frosty.Core.Controls
             }
         }
 
+        /// <summary>
+        /// Tries to paste a shallow copy of clipboard data
+        /// </summary>
+        private void PasteShallowMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (FrostyClipboard.Current.HasData)
+            {
+                FrostyPropertyGridItemData item = (FrostyPropertyGridItemData)DataContext;
+                if (item.IsEnabled && !item.IsReadOnly)
+                {
+                    if (FrostyClipboard.Current.IsType(item.Value.GetType()))
+                    {
+                        FrostyPropertyGrid pg = GetPropertyGrid();
+
+                        if (pg.Asset != null)
+                        {
+                            // property grid is displaying an asset
+                            item.Value = FrostyClipboard.Current.GetData(pg.Asset, App.AssetManager.GetEbxEntry(pg.Asset.FileGuid), type: FrostyClipboard.PasteType.Shallow);
+                        }
+                        else
+                        {
+                            // property grid is displaying a custom EBX class
+                            item.Value = FrostyClipboard.Current.GetData();
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tries to paste a PR copy of clipboard data
+        /// </summary>
+        private void PastePrMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (FrostyClipboard.Current.HasData)
+            {
+                FrostyPropertyGridItemData item = (FrostyPropertyGridItemData)DataContext;
+                if (item.IsEnabled && !item.IsReadOnly)
+                {
+                    if (FrostyClipboard.Current.IsType(item.Value.GetType()))
+                    {
+                        FrostyPropertyGrid pg = GetPropertyGrid();
+
+                        if (pg.Asset != null)
+                        {
+                            // property grid is displaying an asset
+                            item.Value = FrostyClipboard.Current.GetData(pg.Asset, App.AssetManager.GetEbxEntry(pg.Asset.FileGuid), FrostyClipboard.PasteType.PR);
+                            //item.Value = FrostyClipboard.Current.Data;
+                        }
+                        else
+                        {
+                            // property grid is displaying a custom EBX class
+                            item.Value = FrostyClipboard.Current.GetData();
+                        }
+                    }
+                }
+            }
+        }
         private FrostyPropertyGrid GetPropertyGrid()
         {
             DependencyObject parent = VisualTreeHelper.GetParent(this);
