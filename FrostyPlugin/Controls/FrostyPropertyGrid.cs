@@ -641,6 +641,27 @@ namespace Frosty.Core.Controls
             return retVal;
         }
 
+        public bool CheckPointerRef(PointerRef pr, string guid)
+        {
+            if (pr.Type == PointerRefType.Internal)
+            {
+                AssetClassGuid instGuid = ((dynamic)pr.Internal).GetInstanceGuid();
+                string instGuidString = instGuid.ToString();
+
+                if (instGuidString.Equals(guid))
+                    return false;
+            }
+            else if (pr.Type == PointerRefType.External)
+            {
+                string fileGuidString = pr.External.FileGuid.ToString();
+                string classGuidString = pr.External.ClassGuid.ToString();
+
+                if (classGuidString.Equals(guid) || fileGuidString.Equals(guid))
+                    return false;
+            }
+            return true;
+        }
+
         public bool FilterGuid(string guid, List<object> refObjects, bool doNotHideSubObjects = false)
         {
             if (_value is PointerRef pRef)
@@ -659,25 +680,19 @@ namespace Frosty.Core.Controls
             bool retVal = true;
             foreach (var item in Children)
             {
-                item.IsHidden = !doNotHideSubObjects;
+                bool isConnection = new List<string>() { "PropertyConnection", "EventConnection", "LinkConnection" }.Contains(item.Value.GetType().Name);
+                item.IsHidden = isConnection ? true : !doNotHideSubObjects;
+                if (isConnection)
+                {
+                    foreach (PointerRef connectionPr in new List<dynamic> { (PointerRef)((dynamic)item.Value).Source, (PointerRef)((dynamic)item.Value).Target })
+                    {
+                        if (!CheckPointerRef(connectionPr, guid))
+                            item.IsHidden = false;
+                    }
+                }
                 if (item.Value is PointerRef pr)
                 {
-                    if (pr.Type == PointerRefType.Internal)
-                    {
-                        AssetClassGuid instGuid = ((dynamic)pr.Internal).GetInstanceGuid();
-                        string instGuidString = instGuid.ToString();
-
-                        if (instGuidString.Equals(guid))
-                            item.IsHidden = false;
-                    }
-                    else if (pr.Type == PointerRefType.External)
-                    {
-                        string fileGuidString = pr.External.FileGuid.ToString();
-                        string classGuidString = pr.External.ClassGuid.ToString();
-
-                        if (classGuidString.Equals(guid) || fileGuidString.Equals(guid))
-                            item.IsHidden = false;
-                    }
+                    item.IsHidden = CheckPointerRef(pr, guid);
                 }
                 if (item.Value is AssetClassGuid acg)
                 {
@@ -687,10 +702,65 @@ namespace Frosty.Core.Controls
                         item.IsHidden = false;
                 }
 
-                if (!item.FilterGuid(guid, refObjects, !item.IsHidden) || !item.IsHidden)
+                if ((isConnection && retVal && !item.IsHidden) || (!isConnection && !item.FilterGuid(guid, refObjects, !item.IsHidden) || !item.IsHidden))
                     retVal = false;
             }
 
+            if (!retVal)
+            {
+                IsHidden = false;
+            }
+            return retVal;
+        }
+
+        public bool FilterAsset(string asset, List<object> refObjects, bool doNotHideSubObjects = false)
+        {
+            if (_value is PointerRef pRef)
+            {
+                if (pRef.Type == PointerRefType.Internal)
+                {
+                    if (GetCustomAttribute<IsReferenceAttribute>() == null)
+                    {
+                        if (refObjects.Contains(pRef.Internal))
+                            return true;
+                        refObjects.Add(pRef.Internal);
+                    }
+                }
+            }
+
+            bool retVal = true;
+
+            foreach (var item in Children)
+            {
+                if (new List<string>() { "PropertyConnection", "EventConnection", "LinkConnection" }.Contains(item.Value.GetType().Name))
+                {
+                    item.IsHidden = true;
+                    foreach (PointerRef pr in new List<dynamic> { (PointerRef)((dynamic)item.Value).Source, (PointerRef)((dynamic)item.Value).Target })
+                    {
+                        if (pr.Type == PointerRefType.External)
+                        {
+                            if (App.AssetManager.GetEbxEntry(pr.External.FileGuid).Name == asset)
+                                item.IsHidden = false;
+                        }
+                    }
+                    if (retVal && !item.IsHidden)
+                        retVal = false;
+                }
+                else
+                {
+                    item.IsHidden = !doNotHideSubObjects;
+                    if (item.Value is PointerRef pr)
+                    {
+                        if (pr.Type == PointerRefType.External)
+                        {
+                            if (App.AssetManager.GetEbxEntry(pr.External.FileGuid) != null && App.AssetManager.GetEbxEntry(pr.External.FileGuid).Name == asset)
+                                item.IsHidden = false;
+                        }
+                    }
+                    if (!item.FilterAsset(asset, refObjects, !item.IsHidden) || !item.IsHidden)
+                        retVal = false;
+                }
+            }
             if (!retVal)
             {
                 IsHidden = false;
@@ -1232,6 +1302,18 @@ namespace Frosty.Core.Controls
 
                 mi = new MenuItem
                 {
+                    Header = "Filter Guid",
+                    Icon = new Image
+                    {
+                        Source = StringToBitmapSourceConverter.CopySource
+                    }
+                };
+                mi.Click += FilterByObjsGuidMenuItem_Click;
+                cm.Items.Add(mi);
+                
+
+                mi = new MenuItem
+                {
                     Header = "Paste Shallow",
                     Icon = new Image
                     {
@@ -1291,8 +1373,39 @@ namespace Frosty.Core.Controls
                 dynamic obj = pointerRef.Internal;
                 guidToCopy = obj.GetInstanceGuid().ToString();
             }
+            try
+            {
+                Clipboard.SetText(guidToCopy);
+            }
+            catch
+            {
+                App.Logger.LogError("Could not copy to clipboard. Please retry");
+            }
+        }
+        
+        /// <summary>
+         /// Copies the PointerRef's guid to the filter bar
+         /// </summary>
+        private void FilterByObjsGuidMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            FrostyPropertyGridItemData item = (FrostyPropertyGridItemData)DataContext;
 
-            Clipboard.SetText(guidToCopy);
+            string guidToCopy = "";
+
+            PointerRef pointerRef = (PointerRef)item.Value;
+            if (pointerRef.Type == PointerRefType.Null)
+                guidToCopy = "";
+            else if (pointerRef.Type == PointerRefType.External)
+                guidToCopy = pointerRef.External.ClassGuid.ToString();
+            else
+            {
+                dynamic obj = pointerRef.Internal;
+                guidToCopy = obj.GetInstanceGuid().ToString();
+            }
+            FrostyPropertyGrid pg = GetPropertyGrid();
+            pg.filterBox.WatermarkText = "";
+            pg.filterBox.Text = "guid:" + guidToCopy;
+            pg.FilterTextInBox();
         }
 
         /// <summary>
@@ -1610,7 +1723,7 @@ namespace Frosty.Core.Controls
         private BaseTypeOverride additionalData;
 
         private TreeView tv;
-        private FrostyWatermarkTextBox filterBox;
+        public FrostyWatermarkTextBox filterBox;
         private Border filterInProgressBorder;
         private ProgressBar filterProgressBar;
         private ObservableCollection<FrostyPropertyGridItemData> items;
@@ -1670,6 +1783,11 @@ namespace Frosty.Core.Controls
         }
 
         private async void FilterBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            FilterTextInBox();
+        }
+
+        public async void FilterTextInBox()
         {            
             string filterText = filterBox.Text;
             if (filterText == FilterText)
@@ -1692,6 +1810,14 @@ namespace Frosty.Core.Controls
                     foreach (var item in items)
                     {
                         if (item.FilterGuid(guidValue.ToLower(), refObjects))
+                            item.IsHidden = true;
+                    }
+                }
+                else if (filterText.StartsWith("asset:") && App.AssetManager.GetEbxEntry(filterText.Substring(6)) != null)
+                {
+                    foreach (var item in items)
+                    {
+                        if (item.FilterAsset(filterText.Substring(6), refObjects))
                             item.IsHidden = true;
                     }
                 }

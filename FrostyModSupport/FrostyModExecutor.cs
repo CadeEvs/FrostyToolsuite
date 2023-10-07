@@ -283,7 +283,7 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry entry))
+                            if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry entry) && entry.ExtraData != null)
                             {
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
@@ -301,13 +301,19 @@ namespace Frosty.ModSupport
 
                                 // add in existing bundles
                                 var ebxEntry = am.GetEbxEntry(resource.Name);
-                                foreach (int bid in ebxEntry.Bundles)
+                                if (ebxEntry != null)
                                 {
-                                    bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    foreach (int bid in ebxEntry.Bundles)
+                                    {
+                                        bundles.Add(HashBundle(am.GetBundleEntry(bid)));
+                                    }
                                 }
 
                                 entry.ExtraData = extraData;
-                                modifiedEbx.TryAdd(resource.Name, entry);
+                                if (modifiedEbx.ContainsKey(resource.Name))
+                                    modifiedEbx[resource.Name] = entry;
+                                else
+                                    modifiedEbx.TryAdd(resource.Name, entry);
                             }
 
                             // merge new and old data together

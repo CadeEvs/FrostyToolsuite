@@ -22,6 +22,8 @@ namespace DifficultyWeaponTableDataPlugin.Handlers
         // data from one mod with another, or does it merge the two together.
         public HandlerUsage Usage => HandlerUsage.Merge;
 
+        public bool ModifiesAddedAssets => false;
+
         // A mod is comprised of a series of base resources, embedded, ebx, res, and chunks. Embedded are used internally
         // for the icon and images of a mod. Ebx/Res/Chunks are the core resources used for applying data to the game.
         // When you create a custom handler, you need to provide your own resources for your custom handled data. This
