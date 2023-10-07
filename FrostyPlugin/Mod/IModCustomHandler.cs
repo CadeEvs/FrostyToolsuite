@@ -16,6 +16,11 @@ namespace Frosty.Core.Mod
         HandlerUsage Usage { get; }
 
         /// <summary>
+        /// Allows custom handlers to be used on duplicated assets which will make them mergable in FMM.
+        /// </summary>
+        bool ModifiesAddedAssets { get; }
+
+        /// <summary>
         /// Handles the loading and merging of the custom data.
         /// </summary>
         /// <param name="existing">The existing object data that has been loaded from previous mods.</param>
