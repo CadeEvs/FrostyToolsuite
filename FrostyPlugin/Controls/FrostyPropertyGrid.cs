@@ -641,6 +641,27 @@ namespace Frosty.Core.Controls
             return retVal;
         }
 
+        public bool CheckPointerRef(PointerRef pr, string guid)
+        {
+            if (pr.Type == PointerRefType.Internal)
+            {
+                AssetClassGuid instGuid = ((dynamic)pr.Internal).GetInstanceGuid();
+                string instGuidString = instGuid.ToString();
+
+                if (instGuidString.Equals(guid))
+                    return false;
+            }
+            else if (pr.Type == PointerRefType.External)
+            {
+                string fileGuidString = pr.External.FileGuid.ToString();
+                string classGuidString = pr.External.ClassGuid.ToString();
+
+                if (classGuidString.Equals(guid) || fileGuidString.Equals(guid))
+                    return false;
+            }
+            return true;
+        }
+
         public bool FilterGuid(string guid, List<object> refObjects, bool doNotHideSubObjects = false)
         {
             if (_value is PointerRef pRef)
@@ -659,25 +680,19 @@ namespace Frosty.Core.Controls
             bool retVal = true;
             foreach (var item in Children)
             {
-                item.IsHidden = !doNotHideSubObjects;
+                bool isConnection = new List<string>() { "PropertyConnection", "EventConnection", "LinkConnection" }.Contains(item.Value.GetType().Name);
+                item.IsHidden = isConnection ? true : !doNotHideSubObjects;
+                if (isConnection)
+                {
+                    foreach (PointerRef connectionPr in new List<dynamic> { (PointerRef)((dynamic)item.Value).Source, (PointerRef)((dynamic)item.Value).Target })
+                    {
+                        if (!CheckPointerRef(connectionPr, guid))
+                            item.IsHidden = false;
+                    }
+                }
                 if (item.Value is PointerRef pr)
                 {
-                    if (pr.Type == PointerRefType.Internal)
-                    {
-                        AssetClassGuid instGuid = ((dynamic)pr.Internal).GetInstanceGuid();
-                        string instGuidString = instGuid.ToString();
-
-                        if (instGuidString.Equals(guid))
-                            item.IsHidden = false;
-                    }
-                    else if (pr.Type == PointerRefType.External)
-                    {
-                        string fileGuidString = pr.External.FileGuid.ToString();
-                        string classGuidString = pr.External.ClassGuid.ToString();
-
-                        if (classGuidString.Equals(guid) || fileGuidString.Equals(guid))
-                            item.IsHidden = false;
-                    }
+                    item.IsHidden = CheckPointerRef(pr, guid);
                 }
                 if (item.Value is AssetClassGuid acg)
                 {
@@ -687,7 +702,7 @@ namespace Frosty.Core.Controls
                         item.IsHidden = false;
                 }
 
-                if (!item.FilterGuid(guid, refObjects, !item.IsHidden) || !item.IsHidden)
+                if ((isConnection && retVal && !item.IsHidden) || (!isConnection && !item.FilterGuid(guid, refObjects, !item.IsHidden) || !item.IsHidden))
                     retVal = false;
             }
 
