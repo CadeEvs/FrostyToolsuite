@@ -1671,7 +1671,24 @@ namespace Frosty.Core.Controls
             {
                 List<object> refObjects = new List<object>();
 
-                if (filterText.StartsWith("guid:"))
+                Guid outGuid;
+                if (filterText.Length == 36 && Guid.TryParse(filterText, out outGuid))
+                {
+                    foreach (var item in items)
+                    {
+                        if (item.FilterGuid(filterText.ToLower(), refObjects))
+                            item.IsHidden = true;
+                    }
+                }
+                else if (filterText.Contains("/") && App.AssetManager.GetEbxEntry(filterText) != null)
+                {
+                    foreach (var item in items)
+                    {
+                        if (item.FilterAsset(filterText, refObjects))
+                            item.IsHidden = true;
+                    }
+                }
+                else if (filterText.StartsWith("guid:"))
                 {
                     string[] arr = filterText.Split(new char[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
                     string guidValue = (arr.Length > 1) ? arr[1] : "0";
