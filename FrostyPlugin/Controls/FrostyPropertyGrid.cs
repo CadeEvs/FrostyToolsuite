@@ -661,6 +661,7 @@ namespace Frosty.Core.Controls
             }
             return true;
         }
+        List<string> connections = new List<string>() { "PropertyConnection", "EventConnection", "LinkConnection" };
 
         public bool FilterGuid(string guid, List<object> refObjects, bool doNotHideSubObjects = false)
         {
@@ -678,34 +679,68 @@ namespace Frosty.Core.Controls
             }
 
             bool retVal = true;
+
             foreach (var item in Children)
             {
-                bool isConnection = new List<string>() { "PropertyConnection", "EventConnection", "LinkConnection" }.Contains(item.Value.GetType().Name);
-                item.IsHidden = isConnection ? true : !doNotHideSubObjects;
-                if (isConnection)
+                if (connections.Contains(item.Value.GetType().Name))
                 {
-                    foreach (PointerRef connectionPr in new List<dynamic> { (PointerRef)((dynamic)item.Value).Source, (PointerRef)((dynamic)item.Value).Target })
+                    item.IsHidden = true;
+                    foreach (PointerRef pr in new List<dynamic> { (PointerRef)((dynamic)item.Value).Source, (PointerRef)((dynamic)item.Value).Target })
                     {
-                        if (!CheckPointerRef(connectionPr, guid))
+                        if (pr.Type == PointerRefType.Internal)
+                        {
+                            AssetClassGuid instGuid = ((dynamic)pr.Internal).GetInstanceGuid();
+                            string instGuidString = instGuid.ToString();
+
+                            if (instGuidString.Equals(guid))
+                                item.IsHidden = false;
+                        }
+                        else if (pr.Type == PointerRefType.External)
+                        {
+                            string fileGuidString = pr.External.FileGuid.ToString();
+                            string classGuidString = pr.External.ClassGuid.ToString();
+
+                            if (classGuidString.Equals(guid) || fileGuidString.Equals(guid))
+                                item.IsHidden = false;
+                        }
+                    }
+                    if (retVal && !item.IsHidden)
+                        retVal = false;
+                }
+                else
+                {
+                    item.IsHidden = !doNotHideSubObjects;
+                    if (item.Value is PointerRef pr)
+                    {
+                        if (pr.Type == PointerRefType.Internal)
+                        {
+                            AssetClassGuid instGuid = ((dynamic)pr.Internal).GetInstanceGuid();
+                            string instGuidString = instGuid.ToString();
+
+                            if (instGuidString.Equals(guid))
+                                item.IsHidden = false;
+                        }
+                        else if (pr.Type == PointerRefType.External)
+                        {
+                            string fileGuidString = pr.External.FileGuid.ToString();
+                            string classGuidString = pr.External.ClassGuid.ToString();
+
+                            if (classGuidString.Equals(guid) || fileGuidString.Equals(guid))
+                                item.IsHidden = false;
+                        }
+                    }
+                    if (item.Value is AssetClassGuid acg)
+                    {
+                        string exportedGuidString = acg.ExportedGuid.ToString();
+
+                        if (exportedGuidString.Equals(guid))
                             item.IsHidden = false;
                     }
-                }
-                if (item.Value is PointerRef pr)
-                {
-                    item.IsHidden = CheckPointerRef(pr, guid);
-                }
-                if (item.Value is AssetClassGuid acg)
-                {
-                    string exportedGuidString = acg.ExportedGuid.ToString();
 
-                    if (exportedGuidString.Equals(guid))
-                        item.IsHidden = false;
+                    if (!item.FilterGuid(guid, refObjects, !item.IsHidden) || !item.IsHidden)
+                        retVal = false;
                 }
-
-                if ((isConnection && retVal && !item.IsHidden) || (!isConnection && !item.FilterGuid(guid, refObjects, !item.IsHidden) || !item.IsHidden))
-                    retVal = false;
             }
-
             if (!retVal)
             {
                 IsHidden = false;
