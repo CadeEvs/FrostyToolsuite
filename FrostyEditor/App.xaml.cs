@@ -191,17 +191,25 @@ namespace FrostyEditor
                     {
                         defaultConfig = new FrostyConfiguration(prof);
                     }
-                    catch (System.IO.FileNotFoundException)
+                    catch (FileNotFoundException)
                     {
+                        defaultConfig = null;
                         Config.RemoveGame(prof); // couldn't find the exe, so remove it from the profile list
+                        Config.Remove("DefaultProfile");
+                        Config.Save();
+                    }
+                    catch 
+                    {
+                        defaultConfig = null;
+                        Config.Remove("DefaultProfile");
                         Config.Save();
                     }
                 }
-                else
-                {
-                    Config.Add("UseDefaultProfile", false);
-                    Config.Save();
-                }
+//                else
+//                {
+//                    Config.Add("UseDefaultProfile", false);
+//                    Config.Save();
+//                }
             }
 
             //check args to see if it is loading a project
@@ -236,17 +244,21 @@ namespace FrostyEditor
 
             if (defaultConfig != null)
             {
-                // load profile
-                if (!ProfilesLibrary.Initialize(defaultConfig.ProfileName))
+                try
                 {
-                    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
-                    return;
+                    // load profile
+                    if (!ProfilesLibrary.Initialize(defaultConfig.ProfileName))
+                    {
+                        FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Editor");
+                        return;
+                    }
+
+                    this.StartupUri = new System.Uri("/FrostyEditor;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
+
+                    App.InitDiscordRPC();
+                    App.UpdateDiscordRPC("Loading...");
                 }
-
-                this.StartupUri = new System.Uri("/FrostyEditor;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
-
-                App.InitDiscordRPC();
-                App.UpdateDiscordRPC("Loading...");
+                catch { }
             }
         }
 

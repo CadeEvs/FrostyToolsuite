@@ -129,18 +129,26 @@ namespace FrostyModManager
                     {
                         defaultConfig = new FrostyConfiguration(prof);
                     }
-                    catch (System.IO.FileNotFoundException)
+                    catch (FileNotFoundException)
                     {
+                        defaultConfig = null;
                         Config.RemoveGame(prof); // couldn't find the exe, so remove it from the profile list
+                        Config.Remove("DefaultProfile");
+                        Config.Save();
+                    }
+                    catch
+                    {
+                        defaultConfig = null;
+                        Config.Remove("DefaultProfile");
                         Config.Save();
                     }
                 }
-                else
-                {
-                    Config.Add("UseDefaultProfile", false);
-                    Config.Save();
-                }
-            }
+//                else
+//                {
+//                    Config.Add("UseDefaultProfile", false);
+//                    Config.Save();
+//                }
+            } 
             //foreach (FrostyConfiguration name in configs)
             //{
             //    if (name.ProfileName == defaultConfigname)
@@ -152,14 +160,18 @@ namespace FrostyModManager
             // Launches the Frosty Mod Manager is there is a Default Config
             if (defaultConfig != null)
             {
-                // load profile
-                if (!ProfilesLibrary.Initialize(defaultConfig.ProfileName))
+                try
                 {
-                    FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Mod Manager");
-                    return;
-                }
+                    // load profile
+                    if (!ProfilesLibrary.Initialize(defaultConfig.ProfileName))
+                    {
+                        FrostyMessageBox.Show("There was an error when trying to load game using specified profile.", "Frosty Mod Manager");
+                        return;
+                    }
 
-                StartupUri = new Uri("/FrostyModManager;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
+                    StartupUri = new Uri("/FrostyModManager;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
+                }
+                catch { }
             }
             //if (defaultConfig != null)
             //{
