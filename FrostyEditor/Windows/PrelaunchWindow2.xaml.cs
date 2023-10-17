@@ -9,10 +9,6 @@ using FrostySdk;
 using Microsoft.Win32;
 using Frosty.Controls;
 using Frosty.Core;
-using Frosty.Core.Windows;
-using System.Threading;
-using FrostySdk.Interfaces;
-using System.Linq;
 
 namespace FrostyEditor.Windows
 {
@@ -143,79 +139,32 @@ namespace FrostyEditor.Windows
 
         private void ScanForGamesButton_Click(object sender, RoutedEventArgs e)
         {
-            // setup ability to cancel
-            CancellationTokenSource cancelToken = new CancellationTokenSource();
-
-            try
+            using (RegistryKey lmKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node"))
             {
-                FrostyTaskWindow.Show("Scanning for games", "", (task) =>
-                {
-                    try
-                    {
-                        using (RegistryKey lmKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\WOW6432Node"))
-                        {
-                            cancelToken.Token.ThrowIfCancellationRequested();
-                            int totalCount = 0;
-                            IterateSubKeys(lmKey, ref totalCount, cancelToken.Token, task.TaskLogger, null);
-                        }
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        App.Logger.Log("Scan Game Cancelled");
-                    }
-                    
+                int totalCount = 0;
 
-                }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
-            }
-            catch (OperationCanceledException)
-            {
-                App.Logger.Log("Scan Game Cancelled");
+                IterateSubKeys(lmKey, ref totalCount);
             }
 
             ConfigList.Items.Refresh();
         }
 
-        private void IterateSubKeys(RegistryKey subKey, ref int totalCount, CancellationToken cancelToken, ILogger inLogger, int? subKeyCount)
+        private void IterateSubKeys(RegistryKey subKey, ref int totalCount)
         {
-            int index = 0;
-            bool isFirstLoop = false;
-            if (subKeyCount == null)
-            {
-                subKeyCount = subKey.GetSubKeyNames().Length;
-                isFirstLoop = true;
-            }
-
             foreach (string subKeyName in subKey.GetSubKeyNames())
             {
-                cancelToken.ThrowIfCancellationRequested();
                 try
                 {
-                    if (isFirstLoop == true)
-                    {
-                        index++;
-                        inLogger.Log("progress:" + (float)index / (float)subKeyCount * 100d);
-                        Thread.Sleep(1);
-                    }
-                    inLogger.Log("Checking: " + subKeyName);
-
-                    if (subKeyName == "Microsoft")
-                    {
-                        continue;
-                    }
-
-                    IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount, cancelToken, inLogger, subKeyCount);
+                    IterateSubKeys(subKey.OpenSubKey(subKeyName), ref totalCount);
                 }
                 catch (System.Exception)
                 {
                     continue;
                 }
             }
-            cancelToken.ThrowIfCancellationRequested();
 
             foreach (string subKeyValue in subKey.GetValueNames())
             {
-                cancelToken.ThrowIfCancellationRequested();
-
                 if (subKeyValue.IndexOf("Install Dir", StringComparison.OrdinalIgnoreCase) != -1)
                 {
                     string installDir = subKey.GetValue("Install Dir") as string;
@@ -224,12 +173,8 @@ namespace FrostyEditor.Windows
                     if (!Directory.Exists(installDir))
                         continue;
 
-                    cancelToken.ThrowIfCancellationRequested(); 
-
                     foreach (string filename in Directory.EnumerateFiles(installDir, "*.exe"))
                     {
-                        cancelToken.ThrowIfCancellationRequested();
-
                         FileInfo fi = new FileInfo(filename);
                         string nameWithoutExt = fi.Name.Replace(fi.Extension, "");
 
