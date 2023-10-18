@@ -171,7 +171,12 @@ namespace FrostyModManager
 
                     StartupUri = new Uri("/FrostyModManager;component/Windows/SplashWindow.xaml", System.UriKind.Relative);
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Config.Remove("DefaultProfile");
+                    Config.Save();
+                    throw ex;
+                }
             }
             //if (defaultConfig != null)
             //{

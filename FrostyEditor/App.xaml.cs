@@ -258,7 +258,12 @@ namespace FrostyEditor
                     App.InitDiscordRPC();
                     App.UpdateDiscordRPC("Loading...");
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Config.Remove("DefaultProfile");
+                    Config.Save();
+                    throw ex;
+                }
             }
         }
 
