@@ -143,11 +143,6 @@ namespace FrostyModManager
                         Config.Save();
                     }
                 }
-//                else
-//                {
-//                    Config.Add("UseDefaultProfile", false);
-//                    Config.Save();
-//                }
             } 
             //foreach (FrostyConfiguration name in configs)
             //{
