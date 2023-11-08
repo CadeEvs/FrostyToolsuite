@@ -261,7 +261,7 @@ namespace Frosty.ModSupport
             }
 
 
-            Parallel.ForEach(fmod.Resources, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, resource =>
+            Parallel.ForEach(fmod.Resources, resource =>
             {
                 // pull existing bundles from asset manager
                 HashSet<int> bundles = new HashSet<int>();
@@ -272,7 +272,8 @@ namespace Frosty.ModSupport
                     resource.FillAssetEntry(bEntry);
 
                     addedBundles.TryAdd(bEntry.SuperBundleId, new HashSet<string>());
-                    addedBundles[bEntry.SuperBundleId].Add(bEntry.Name);
+                    lock (addedBundles[bEntry.SuperBundleId])
+                        addedBundles[bEntry.SuperBundleId].Add(bEntry.Name);
                 }
                 else if (resource.Type == ModResourceType.Ebx)
                 {
