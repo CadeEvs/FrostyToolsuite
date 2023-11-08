@@ -205,11 +205,6 @@ namespace FrostyEditor
                         Config.Save();
                     }
                 }
-//                else
-//                {
-//                    Config.Add("UseDefaultProfile", false);
-//                    Config.Save();
-//                }
             }
 
             //check args to see if it is loading a project
