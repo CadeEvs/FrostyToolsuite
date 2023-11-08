@@ -272,8 +272,12 @@ namespace Frosty.ModSupport
                     resource.FillAssetEntry(bEntry);
 
                     addedBundles.TryAdd(bEntry.SuperBundleId, new HashSet<string>());
-                    lock (addedBundles[bEntry.SuperBundleId])
-                        addedBundles[bEntry.SuperBundleId].Add(bEntry.Name);
+
+                    HashSet<string> addedBundlesSet = addedBundles[bEntry.SuperBundleId];
+                    lock (addedBundlesSet)
+                    {
+                        addedBundlesSet.Add(bEntry.Name);
+                    }
                 }
                 else if (resource.Type == ModResourceType.Ebx)
                 {
