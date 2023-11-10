@@ -2320,7 +2320,7 @@ namespace Frosty.ModSupport
             FileInfo modFi = new FileInfo(dest);
 
             // copy file if it doesn't exist
-            if (baseFi.Exists && !modFi.Exists)
+            if (baseFi.Exists && !modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc)
             {
                 File.Copy(baseFi.FullName, modFi.FullName, true);
             }
