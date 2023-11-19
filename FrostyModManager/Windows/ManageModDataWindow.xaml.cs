@@ -203,6 +203,7 @@ namespace FrostyModManager
                         {
                             writer.WriteLine("Prop3=19,0");
                             writer.WriteLine("[InternetShortcut]");
+                            writer.WriteLine("IDList=");
                             writer.WriteLine("IconIndex=0");
                             writer.WriteLine($"URL=steam://run/{steamAppId}//{url}/");
                             writer.WriteLine($"IconFile={basePath + ProfilesLibrary.ProfileName}.exe");
