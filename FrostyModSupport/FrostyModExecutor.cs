@@ -1680,7 +1680,7 @@ namespace Frosty.ModSupport
                 App.Logger.Log("Writing Manifest");
 
                 // finally copy in the left over patch data
-                CopyInitfsIfRequired(Path.Combine(fs.BasePath, patchPath, "initfs_win32"), Path.Combine(modDataPath, patchPath, "initfs_win32"));
+                CopyFileIfRequired(Path.Combine(fs.BasePath, patchPath, "initfs_win32"), Path.Combine(modDataPath, patchPath, "initfs_win32"), false);
 
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                 {
@@ -1772,7 +1772,7 @@ namespace Frosty.ModSupport
                 {
                     // copy from old data to new data
                     CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modDataPath + "Data/chunkmanifest");
-                    CopyInitfsIfRequired(Path.Combine(fs.BasePath, "Data", "initfs_Win32"), Path.Combine(modDataPath, "Data", "initfs_Win32"));
+                    CopyFileIfRequired(Path.Combine(fs.BasePath, "Data", "initfs_Win32"), Path.Combine(modDataPath, "Data", "initfs_Win32"), false);
                 }
 
                 // create the frosty mod list file
@@ -2302,27 +2302,26 @@ namespace Frosty.ModSupport
             }
         }
 
-        private void CopyFileIfRequired(string source, string dest)
+        private void CopyFileIfRequired(string source, string dest, bool checkLength = true)
         {
             FileInfo baseFi = new FileInfo(source);
             FileInfo modFi = new FileInfo(dest);
-            if (baseFi.Exists)
+
+            if (baseFi.Exists && checkLength)
+            {
+                // copy file if it doesn't exist, recently modified, or has different fill size
+                if (!modFi.Exists || (modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || baseFi.Length != modFi.Length))
+                {
+                    File.Copy(baseFi.FullName, modFi.FullName, true);
+                }
+            }
+            else
             {
                 // copy file if it doesn't exist, or recently modified
-                if (!modFi.Exists || (modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || baseFi.Length != modFi.Length))
+                if (baseFi.Exists && !modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc)
+                {
                     File.Copy(baseFi.FullName, modFi.FullName, true);
-            }
-        }
-
-        private void CopyInitfsIfRequired(string source, string dest)
-        {
-            FileInfo baseFi = new FileInfo(source);
-            FileInfo modFi = new FileInfo(dest);
-
-            // copy file if it doesn't exist
-            if (baseFi.Exists && !modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc)
-            {
-                File.Copy(baseFi.FullName, modFi.FullName, true);
+                }
             }
         }
     }
