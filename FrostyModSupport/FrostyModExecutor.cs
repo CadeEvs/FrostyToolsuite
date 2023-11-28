@@ -2309,7 +2309,7 @@ namespace Frosty.ModSupport
 
             if (baseFi.Exists && checkLength)
             {
-                // copy file if it doesn't exist, recently modified, or has different fill size
+                // copy file if it doesn't exist, recently modified, or has different file size
                 if (!modFi.Exists || (modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || baseFi.Length != modFi.Length))
                 {
                     File.Copy(baseFi.FullName, modFi.FullName, true);
