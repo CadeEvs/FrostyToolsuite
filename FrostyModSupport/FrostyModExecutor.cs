@@ -1680,7 +1680,7 @@ namespace Frosty.ModSupport
                 App.Logger.Log("Writing Manifest");
 
                 // finally copy in the left over patch data
-                CopyFileIfRequired(fs.BasePath + patchPath + "/initfs_win32", modDataPath + patchPath + "/initfs_win32");
+                CopyFileIfRequired(Path.Combine(fs.BasePath, patchPath, "initfs_win32"), Path.Combine(modDataPath, patchPath, "initfs_win32"), false);
 
                 if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                 {
@@ -1772,7 +1772,7 @@ namespace Frosty.ModSupport
                 {
                     // copy from old data to new data
                     CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modDataPath + "Data/chunkmanifest");
-                    CopyFileIfRequired(fs.BasePath + "Data/initfs_Win32", modDataPath + "Data/initfs_Win32");
+                    CopyFileIfRequired(Path.Combine(fs.BasePath, "Data", "initfs_Win32"), Path.Combine(modDataPath, "Data", "initfs_Win32"), false);
                 }
 
                 // create the frosty mod list file
@@ -1780,7 +1780,14 @@ namespace Frosty.ModSupport
 
                 // stopwatch
                 watch.Stop();
-                App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s");
+                if (watch.Elapsed.Minutes > 0)
+                {
+                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s");
+                }
+                else
+                {
+                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds}s");
+                }
             }
             else
             {
@@ -2295,15 +2302,15 @@ namespace Frosty.ModSupport
             }
         }
 
-        private void CopyFileIfRequired(string source, string dest)
+        private void CopyFileIfRequired(string source, string dest, bool checkLength = true)
         {
             FileInfo baseFi = new FileInfo(source);
             FileInfo modFi = new FileInfo(dest);
-            if (baseFi.Exists)
+
+            // copy file if base file exists and recently modified. if checkLength, also check if different file size
+            if (baseFi.Exists && (baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || (checkLength && (baseFi.Length != modFi.Length))))
             {
-                // copy file if it doesn't exist, or recently modified
-                if (!modFi.Exists || (modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || baseFi.Length != modFi.Length))
-                    File.Copy(baseFi.FullName, modFi.FullName, true);
+                File.Copy(baseFi.FullName, modFi.FullName, true);
             }
         }
     }
