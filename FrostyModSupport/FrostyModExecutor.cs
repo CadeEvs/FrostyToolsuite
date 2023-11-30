@@ -2307,21 +2307,10 @@ namespace Frosty.ModSupport
             FileInfo baseFi = new FileInfo(source);
             FileInfo modFi = new FileInfo(dest);
 
-            if (baseFi.Exists && checkLength)
+            // copy file if base file exists and recently modified. if checkLength, also check if different file size
+            if (baseFi.Exists && (baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || (checkLength && (baseFi.Length != modFi.Length))))
             {
-                // copy file if it doesn't exist, recently modified, or has different file size
-                if (!modFi.Exists || (modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc || baseFi.Length != modFi.Length))
-                {
-                    File.Copy(baseFi.FullName, modFi.FullName, true);
-                }
-            }
-            else
-            {
-                // copy file if it doesn't exist, or recently modified
-                if (baseFi.Exists && !modFi.Exists && baseFi.LastWriteTimeUtc > modFi.LastWriteTimeUtc)
-                {
-                    File.Copy(baseFi.FullName, modFi.FullName, true);
-                }
+                File.Copy(baseFi.FullName, modFi.FullName, true);
             }
         }
     }
