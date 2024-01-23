@@ -288,7 +288,7 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry entry) && entry.ExtraData != null)
+                            if (modifiedEbx.TryGetValue(resource.Name, out EbxAssetEntry entry) && entry?.ExtraData != null)
                             {
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
@@ -381,7 +381,7 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedRes.TryGetValue(resource.Name, out ResAssetEntry entry))
+                            if (modifiedRes.TryGetValue(resource.Name, out ResAssetEntry entry) && entry?.ExtraData != null)
                             {
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
@@ -478,7 +478,7 @@ namespace Frosty.ModSupport
                             HandlerExtraData extraData;
                             byte[] data = fmod.GetResourceData(resource);
 
-                            if (modifiedChunks.TryGetValue(guid, out ChunkAssetEntry entry))
+                            if (modifiedChunks.TryGetValue(guid, out ChunkAssetEntry entry) && entry?.ExtraData != null)
                             {
                                 extraData = (HandlerExtraData)entry.ExtraData;
                             }
