@@ -373,7 +373,7 @@ namespace AtlasTexturePlugin
                         ChunkAssetEntry chunkEntry = App.AssetManager.GetChunkEntry(texture.ChunkId);
 
                         // revert any modifications
-                        App.AssetManager.RevertAsset(assetEntry, dataOnly: true);
+                        //App.AssetManager.RevertAsset(assetEntry, dataOnly: true);
 
                         // modify chunk (for now)
                         App.AssetManager.ModifyChunk(chunkEntry.Id, data);
