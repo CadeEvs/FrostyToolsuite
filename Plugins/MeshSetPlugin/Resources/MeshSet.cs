@@ -1594,7 +1594,7 @@ namespace MeshSetPlugin.Resources
         }
 
         private TangentSpaceCompressionType m_tangentSpaceCompressionType;
-        public AxisAlignedBox m_boundingBox;
+        private AxisAlignedBox m_boundingBox;
         private string m_fullname;
         private string m_name;
         private uint m_nameHash;

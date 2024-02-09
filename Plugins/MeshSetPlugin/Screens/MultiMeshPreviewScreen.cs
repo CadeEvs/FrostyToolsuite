@@ -376,6 +376,7 @@ namespace MeshSetPlugin.Screens
 
             foreach (MeshAndPreviewContainer mesh in renderMeshes)
             {
+                mesh.Preview.UpdateBounds(mesh.Mesh); //update bb before we calc anything, means we can reset the view when a mesh is imported!
                 BoundingBox bb = mesh.Preview.Bounds;
                 bb.Minimum = (bb.Minimum + mesh.Transform.TranslationVector) * new Vector3(-1, 1, 1);
                 bb.Maximum = (bb.Maximum + mesh.Transform.TranslationVector) * new Vector3(-1, 1, 1);

@@ -164,7 +164,6 @@ namespace MeshSetPlugin
         [EbxFieldMeta(EbxFieldType.Struct, "", EbxFieldType.Inherited)]
         public MeshAssetBoundingBox BoundingBox { get; set; } = new MeshAssetBoundingBox();
 
-
         [Category("Mesh")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         public List<PreviewMeshLodData> Lods { get; set; } = new List<PreviewMeshLodData>();
@@ -3877,7 +3876,7 @@ namespace MeshSetPlugin
 
             foreach (MeshSetLod lod in meshSet.Lods)
             {
-                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName};
+                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
                 foreach (MeshSetSection section in lod.Sections)
                 {
                     if (lod.IsSectionRenderable(section) && section.PrimitiveCount > 0)
@@ -4487,6 +4486,7 @@ namespace MeshSetPlugin
                     // update UI
                     screen.ClearMeshes(clearAll: true);
                     screen.AddMesh(meshSet, GetVariation(selectedPreviewIndex), Matrix.Identity /*Matrix.Scaling(1,1,-1)*/, LoadPose(AssetEntry.Filename, asset));
+                    screen.CenterView();
 
                     UpdateMeshSettings();
                     UpdateControls();
