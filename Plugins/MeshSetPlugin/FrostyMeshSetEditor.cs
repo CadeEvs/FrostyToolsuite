@@ -151,6 +151,7 @@ namespace MeshSetPlugin
         [IsReadOnly]
         [EbxFieldMeta(EbxFieldType.CString)]
         public CString Name { get; set; }
+
         [EbxFieldMeta(EbxFieldType.Struct)]
         public List<PreviewMeshSectionData> Sections { get; set; } = new List<PreviewMeshSectionData>();
     }
@@ -160,8 +161,26 @@ namespace MeshSetPlugin
     public class MeshSetMeshSettings
     {
         [Category("Mesh")]
+        [EbxFieldMeta(EbxFieldType.Struct, "", EbxFieldType.Inherited)]
+        public MeshAssetBoundingBox BoundingBox { get; set; } = new MeshAssetBoundingBox();
+
+
+        [Category("Mesh")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         public List<PreviewMeshLodData> Lods { get; set; } = new List<PreviewMeshLodData>();
+    }
+
+    [DisplayName("BoundingBox")]
+    [EbxClassMeta(EbxFieldType.Struct)]
+    public class MeshAssetBoundingBox
+    {
+        [IsReadOnly]
+        [EbxFieldMeta(EbxFieldType.Struct, "", EbxFieldType.Inherited)]
+        public Vec3 Minimum { get; set; }
+
+        [IsReadOnly]
+        [EbxFieldMeta(EbxFieldType.Struct, "", EbxFieldType.Inherited)]
+        public Vec3 Maximum { get; set; }
     }
 
     [DisplayName("Preview Settings")]
@@ -3135,6 +3154,17 @@ namespace MeshSetPlugin
                     numIndices++;
                 }
 
+                //generate AABB for vertices
+                List<Vector3> vertexPositions = new List<Vector3>();
+                foreach (DbObject vertex in vertices)
+                {
+                    Vector4 tmp = vertex.GetValue<Vector4>("Pos");
+                    Vector4 position = Vector3.Transform(new Vector3(tmp.X, tmp.Y, tmp.Z), sectionMatrix);
+                    vertexPositions.Add(new Vector3(position.X, position.Y, position.Z));
+
+                }
+                meshSet.BoundingBox = AABBFromPoints(vertexPositions).Item1;
+
                 // generate part bounding box
                 /*if(meshSet.Type == MeshType.MeshType_Composite)
                 {
@@ -3841,11 +3871,13 @@ namespace MeshSetPlugin
         private void UpdateMeshSettings()
         {
             meshSettings = new MeshSetMeshSettings();
+            meshSettings.BoundingBox.Minimum = meshSet.BoundingBox.min;
+            meshSettings.BoundingBox.Maximum = meshSet.BoundingBox.max;
             dynamic materials = ((dynamic)RootObject).Materials;
 
             foreach (MeshSetLod lod in meshSet.Lods)
             {
-                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName };
+                PreviewMeshLodData lodData = new PreviewMeshLodData() { Name = lod.ShortName};
                 foreach (MeshSetSection section in lod.Sections)
                 {
                     if (lod.IsSectionRenderable(section) && section.PrimitiveCount > 0)

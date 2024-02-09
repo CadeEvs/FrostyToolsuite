@@ -1531,7 +1531,7 @@ namespace MeshSetPlugin.Resources
                 }
             }
         }
-        public AxisAlignedBox BoundingBox => m_boundingBox;
+        public AxisAlignedBox BoundingBox { get => m_boundingBox; set => m_boundingBox = value; }
         public List<MeshSetLod> Lods => m_lods;
         public MeshType Type { get => m_meshType; set => m_meshType = value; }
         public MeshSetLayoutFlags Flags => m_flags;
@@ -1594,7 +1594,7 @@ namespace MeshSetPlugin.Resources
         }
 
         private TangentSpaceCompressionType m_tangentSpaceCompressionType;
-        private AxisAlignedBox m_boundingBox;
+        public AxisAlignedBox m_boundingBox;
         private string m_fullname;
         private string m_name;
         private uint m_nameHash;
