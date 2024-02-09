@@ -4486,7 +4486,6 @@ namespace MeshSetPlugin
                     // update UI
                     screen.ClearMeshes(clearAll: true);
                     screen.AddMesh(meshSet, GetVariation(selectedPreviewIndex), Matrix.Identity /*Matrix.Scaling(1,1,-1)*/, LoadPose(AssetEntry.Filename, asset));
-                    screen.CenterView();
 
                     UpdateMeshSettings();
                     UpdateControls();
