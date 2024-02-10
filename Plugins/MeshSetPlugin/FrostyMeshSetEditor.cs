@@ -1583,6 +1583,8 @@ namespace MeshSetPlugin
         private ResAssetEntry resEntry;
         private ILogger logger;
         private FrostyMeshImportSettings settings;
+        private BoundingBox boundingBox;
+        private BoundingBox previousBbox;
 
         public FBXImporter(ILogger inLogger)
         {
@@ -1671,6 +1673,7 @@ namespace MeshSetPlugin
                 meshSet.ClearPartData();
                 List<BoundingBox> partBbox = new List<BoundingBox>();
                 List<LinearTransform> transforms = new List<LinearTransform>();
+                AxisAlignedBox AABBToWrite = new AxisAlignedBox();
                 // process each lod
                 for (int i = 0; i < meshSet.Lods.Count; i++)
                 {
@@ -1681,6 +1684,9 @@ namespace MeshSetPlugin
                 {
                     meshSet.SetParts(ToAxisAlignedBoundingBoxes(partBbox), transforms);
                 }
+
+                AABBToWrite = ToAxisAlignedBoundingBox(boundingBox);
+                meshSet.BoundingBox = AABBToWrite;
             }
 
             meshSet.FullName = resEntry.Name;
@@ -1708,6 +1714,26 @@ namespace MeshSetPlugin
                 
                 retVal.Add(new AxisAlignedBox(){min = min, max =  max});
             }
+
+            return retVal;
+        }
+
+        private AxisAlignedBox ToAxisAlignedBoundingBox(BoundingBox inBoundingBox)
+        {
+            AxisAlignedBox retVal = new AxisAlignedBox();
+
+            Vec3 min = new Vec3();
+            min.x = inBoundingBox.Minimum.X;
+            min.y = inBoundingBox.Minimum.Y;
+            min.z = inBoundingBox.Minimum.Z;
+
+            Vec3 max = new Vec3();
+            max.x = inBoundingBox.Maximum.X;
+            max.y = inBoundingBox.Maximum.Y;
+            max.z = inBoundingBox.Maximum.Z;
+
+            retVal.min = min; 
+            retVal.max = max;
 
             return retVal;
         }
@@ -1853,6 +1879,9 @@ namespace MeshSetPlugin
                 List<uint> indices = new List<uint>();
 
                 ProcessSection(new FbxNode[] { node }, meshLod, sectionIndex, vertices, indices, vertexBufferSize, ref totalIndices);
+                boundingBox = BoundingBox.Merge(previousBbox, boundingBox);
+                previousBbox = boundingBox;
+
 
                 sectionsVertices.Add(vertices.ToArray());
                 sectionsIndices.Add(indices);
@@ -1874,6 +1903,8 @@ namespace MeshSetPlugin
                     List<uint> indices = new List<uint>();
 
                     ProcessSection(allNodes.ToArray(), meshLod, sectionIndex, vertices, indices, vertexBufferSize, ref totalIndices);
+                    boundingBox = BoundingBox.Merge(previousBbox, boundingBox);
+                    previousBbox = boundingBox;
 
                     sectionsVertices.Add(vertices.ToArray());
                     sectionsIndices.Add(indices);
@@ -1902,6 +1933,8 @@ namespace MeshSetPlugin
                     List<uint> indices = new List<uint>();
 
                     ProcessSection(allNodes.ToArray(), meshLod, sectionIndex, vertices, indices, vertexBufferSize, ref totalIndices);
+                    boundingBox = BoundingBox.Merge(previousBbox, boundingBox);
+                    previousBbox = boundingBox;
 
                     sectionsVertices.Add(vertices.ToArray());
                     sectionsIndices.Add(indices);
@@ -3162,7 +3195,8 @@ namespace MeshSetPlugin
                     vertexPositions.Add(new Vector3(position.X, position.Y, position.Z));
 
                 }
-                meshSet.BoundingBox = AABBFromPoints(vertexPositions).Item1;
+                boundingBox = AABBFromPoints(vertexPositions).Item2;
+                //meshSet.BoundingBox = AABBFromPoints(vertexPositions).Item1;
 
                 // generate part bounding box
                 /*if(meshSet.Type == MeshType.MeshType_Composite)
