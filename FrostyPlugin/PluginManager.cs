@@ -425,7 +425,7 @@ namespace Frosty.Core
 
             foreach (var tmpAttr in assembly.GetCustomAttributes())
             {
-                if (m_managerType == PluginManagerType.ModManager && !(tmpAttr is RegisterCustomHandlerAttribute) && !(tmpAttr is RegisterExecutionAction) && !(tmpAttr is RegisterOptionsExtensionAttribute) && !(tmpAttr is RegisterMenuExtensionAttribute))
+                if (m_managerType == PluginManagerType.ModManager && !(tmpAttr is RegisterCustomHandlerAttribute) && !(tmpAttr is RegisterExecutionAction) && !(tmpAttr is RegisterOptionsExtensionAttribute) && !(tmpAttr is RegisterMenuExtensionAttribute) && !(tmpAttr is RegisterStartupActionAttribute))
                     continue;
 
                 if (loadType == PluginLoadType.Startup)
