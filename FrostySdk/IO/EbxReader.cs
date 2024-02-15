@@ -237,9 +237,29 @@ namespace FrostySdk.IO
         {
         }
 
+        /// <summary>
+        /// Enumerates over exported objects in an EbxAsset until an object with the specified guid is found
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns>An object with a matching Exported Guid. Null if none found</returns>
         public dynamic GetObject(Guid guid)
         {
             foreach (dynamic obj in ExportedObjects)
+            {
+                if (obj.GetInstanceGuid() == guid)
+                    return obj;
+            }
+            return null;
+        }
+        
+        /// <summary>
+        /// Enumerates over all objects in an EbxAsset until an object with the specified guid is found
+        /// </summary>
+        /// <param name="guid"></param>
+        /// <returns>An object with a matching AssetClassGuid. Null if none found</returns>
+        public dynamic GetObject(AssetClassGuid guid)
+        {
+            foreach (dynamic obj in Objects)
             {
                 if (obj.GetInstanceGuid() == guid)
                     return obj;
