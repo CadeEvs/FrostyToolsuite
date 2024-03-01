@@ -4,10 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.5.33318.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostyEditor", "FrostyEditor.csproj", "{355B078B-45A5-472D-9CCD-688D8E30BAED}"
-	ProjectSection(ProjectDependencies) = postProject
-		{5FDD1243-084E-42DC-99BB-394A169D988F} = {5FDD1243-084E-42DC-99BB-394A169D988F}
-		{29189DBC-1D9C-4760-960E-805B60211401} = {29189DBC-1D9C-4760-960E-805B60211401}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FrostySdk", "..\FrostySdk\FrostySdk.csproj", "{93FB4A0C-DF89-4169-80B5-C4E2277FF7A0}"
 EndProject
