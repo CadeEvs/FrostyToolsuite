@@ -214,15 +214,16 @@ namespace FrostyEditor.Windows
 
         private void minimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            this.WindowState = WindowState.Minimized;
-            foreach(Window window in this.OwnedWindows)
+            try
             {
-                try
+                this.WindowState = WindowState.Minimized;
+                this.Owner.WindowState = WindowState.Minimized;
+                foreach (Window window in this.OwnedWindows)
                 {
                     window.WindowState = WindowState.Minimized;
                 }
-                catch { }
             }
+            catch { }
         }
     }
 }
