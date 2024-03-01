@@ -26,7 +26,7 @@
                         </Grid.RowDefinitions>
 
                         <Image x:Name="bannerImage" Grid.RowSpan="2"/>
-
+                        
                         <Grid Grid.Row="0">
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="5" >
                                 <Path Data="{Binding Source={StaticResource Icon}, Path=Data}" Width="92" Stretch="Uniform" Fill="{StaticResource FontColor}" >
@@ -35,7 +35,7 @@
                                     </Path.Effect>
                                 </Path>
                                 <Grid>
-                                    <!--<TextBlock Text="Frosty Editor" Foreground="{StaticResource FontColor}" Margin="10,0,0,0" FontFamily="OCR A Extended" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center">
+                                <!--<TextBlock Text="Frosty Editor" Foreground="{StaticResource FontColor}" Margin="10,0,0,0" FontFamily="OCR A Extended" FontSize="24" VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock.Effect>
                                         <DropShadowEffect Opacity="0.8" Direction="0" ShadowDepth="2" />
                                     </TextBlock.Effect>

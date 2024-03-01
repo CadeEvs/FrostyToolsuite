@@ -125,6 +125,7 @@
                         </Button.Template>
                     </Button>
                 </Grid>
+                
                 <Button x:Name="minimizeButton" 
                     Width="46" 
                     Height="32" 
@@ -183,6 +184,7 @@
                         </Style>
                     </Button.Style>
                 </Button>
+                
             </Grid>
         </Border>
     </Grid>
