@@ -105,7 +105,7 @@
                                 <Trigger Property="IsMouseOver" Value="False">
                                     <Setter Property="Background">
                                         <Setter.Value>
-                                            <SolidColorBrush Color="#323232" Opacity="0.25"/>
+                                            <SolidColorBrush Color="#323232" Opacity="0.5"/>
                                         </Setter.Value>
                                     </Setter>
                                 </Trigger>
