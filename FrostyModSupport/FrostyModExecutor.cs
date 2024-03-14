@@ -1797,7 +1797,7 @@ namespace Frosty.ModSupport
             cancelToken.ThrowIfCancellationRequested();
 
             // DAI and NFS dont require bcrypt
-            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeed && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals)
+            if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeed && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals && ProfilesLibrary.DataVersion != (int)ProfileVersion.PlantsVsZombiesGardenWarfare2)
             {
                 // delete old useless bcrypt
                 if (File.Exists(fs.BasePath + "bcrypt.dll"))
@@ -1807,6 +1807,10 @@ namespace Frosty.ModSupport
                 CopyFileIfRequired("ThirdParty/CryptBase.dll", fs.BasePath + "CryptBase.dll");
             }
             CopyFileIfRequired(fs.BasePath + "user.cfg", modDataPath + "user.cfg");
+
+            // GW2 will crash if bcrypt exists
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 && File.Exists(fs.BasePath + "CryptBase.dll"))
+                File.Delete(fs.BasePath + "CryptBase.dll");
 
             // FIFA games require a fifaconfig workaround
             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20)
