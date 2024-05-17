@@ -230,7 +230,7 @@ namespace Frosty.ModSupport
                         }
 
                         DbObject chunkMeta = bundleObj.GetValue<DbObject>("chunkMeta");
-
+                        
                         if (bundle.Add.Chunks.Count > 0 && chunkMeta == null)
                         {
                             chunkMeta = DbObject.CreateList();
