@@ -502,8 +502,8 @@ namespace Frosty.ModSupport
 
                                                         // update all relevant offsets
                                                         writer.Position = 0x18;
-                                                        writer.Write((uint)(stringsOffset-4), Endian.Big);
-                                                        writer.Write((uint)(metaOffset-4), Endian.Big);
+                                                        writer.Write((uint)(stringsOffset - 4), Endian.Big);
+                                                        writer.Write((uint)(metaOffset - 4), Endian.Big);
                                                         writer.Write((uint)(metaSize), Endian.Big);
 
                                                         writer.Position = 0;
@@ -671,7 +671,7 @@ namespace Frosty.ModSupport
                                                         //    entry = (ChunkAssetEntry)extraData.Handler.Modify(entry, baseData, null, null, extraData.Data, out data);
                                                         //}
                                                         //else
-                                                            data = parent.archiveData[entry.Sha1].Data;
+                                                        data = parent.archiveData[entry.Sha1].Data;
 
                                                         // get next cas (if one hasnt been obtained or the current one will exceed 1gb)
                                                         if (casWriter == null || casWriter.Length + data.Length > 1073741824)

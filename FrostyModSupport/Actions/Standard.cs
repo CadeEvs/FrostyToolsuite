@@ -149,12 +149,12 @@ namespace Frosty.ModSupport
                                     DbObject baseToc = null;
                                     using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
                                         baseToc = reader.ReadDbObject();
-                                    
+
                                     // update chunk list with base chunks
                                     foreach (DbObject chunk in baseToc.GetValue<DbObject>("chunks"))
                                         chunkList.Add(chunk);
                                 }
-                                
+
                                 // update chunk list with patch chunks
                                 foreach (DbObject chunk in toc.GetValue<DbObject>("chunks"))
                                 {
@@ -560,7 +560,7 @@ namespace Frosty.ModSupport
                                                     }
                                                 }
 
-                                                AssetInfo info = new AssetInfo {Name = ebx.GetValue<string>("name")};
+                                                AssetInfo info = new AssetInfo { Name = ebx.GetValue<string>("name") };
                                                 info.NameHash = Fnv1.HashString(info.Name);
                                                 info.Removed = !bFound;
                                                 info.Modified = bModified;
@@ -1267,7 +1267,7 @@ namespace Frosty.ModSupport
                                             ebxBundleSize -= ebx.GetValue<long>("size");
                                             continue;
                                         }
-                                        
+
                                         if (modBundle.Modify.Ebx.Contains(name))
                                         {
                                             EbxAssetEntry ebxEntry = parent.modifiedEbx[name];
@@ -1336,7 +1336,7 @@ namespace Frosty.ModSupport
                                             resBundleSize -= res.GetValue<long>("size");
                                             continue;
                                         }
-                                        
+
                                         if (modBundle.Modify.Res.Contains(name))
                                         {
                                             ResAssetEntry resEntry = parent.modifiedRes[name];
@@ -1413,7 +1413,7 @@ namespace Frosty.ModSupport
                                                 chunkBundleSize -= chunk.GetValue<long>("bundledSize");
                                                 continue;
                                             }
-                                            
+
                                             if (modBundle.Modify.Chunks.Contains(id))
                                             {
                                                 ChunkAssetEntry chunkEntry = parent.modifiedChunks[id];

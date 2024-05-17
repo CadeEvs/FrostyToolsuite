@@ -664,8 +664,8 @@ namespace Frosty.ModSupport
                         case ModResourceType.Chunk: modBundle.Modify.AddChunk(new Guid(resource.Name)); break;
                     }
                 }
-                
-                label_add_bundles:
+
+            label_add_bundles:
                 // add bundle actions (these are stored in the mod)
                 foreach (int bundleHash in resource.AddedBundles)
                 {
@@ -1052,749 +1052,740 @@ namespace Frosty.ModSupport
             cancelToken.ThrowIfCancellationRequested();
             Logger.Log("Loading Mods");
 
-            bool needsModding = false;
-            if (!File.Exists(Path.Combine(modDataPath, patchPath, "mods.json")))
-                needsModding = true;
-            else
+            if (File.Exists(Path.Combine(modDataPath, patchPath, "mods.json")))
             {
                 List<ModInfo> oldModInfoList = JsonConvert.DeserializeObject<List<ModInfo>>(File.ReadAllText(Path.Combine(modDataPath, patchPath, "mods.json")));
                 List<ModInfo> currentModInfoList = GenerateModInfoList(modPaths, rootPath);
 
                 // check if the mod data needs recreating
                 // ie. mod change or patch
-                if (!IsSamePatch(modDataPath + patchPath) || !oldModInfoList.SequenceEqual(currentModInfoList))
-                    needsModding = true;
+                if (IsSamePatch(modDataPath + patchPath) && oldModInfoList.SequenceEqual(currentModInfoList))
+                    goto labal_Launch;
             }
 
             cancelToken.ThrowIfCancellationRequested();
-            if (needsModding)
+            Logger.Log("Initializing Resources");
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
             {
-                cancelToken.ThrowIfCancellationRequested();
-                Logger.Log("Initializing Resources");
-
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                foreach (string catalogName in fs.Catalogs)
                 {
-                    foreach (string catalogName in fs.Catalogs)
-                    {
-                        Dictionary<int, Dictionary<uint, CatResourceEntry>> entries = LoadCatalog("native_data/" + catalogName + "/cas.cat", out int hash);
-                        if (entries != null)
-                            resources.Add(hash, entries);
+                    Dictionary<int, Dictionary<uint, CatResourceEntry>> entries = LoadCatalog("native_data/" + catalogName + "/cas.cat", out int hash);
+                    if (entries != null)
+                        resources.Add(hash, entries);
 
-                        entries = LoadCatalog("native_patch/" + catalogName + "/cas.cat", out hash);
-                        if (entries != null)
-                            resources.Add(hash, entries);
-                    }
+                    entries = LoadCatalog("native_patch/" + catalogName + "/cas.cat", out hash);
+                    if (entries != null)
+                        resources.Add(hash, entries);
                 }
+            }
 
-                rm = new ResourceManager(fs);
-                rm.SetLogger(logger);
-                rm.Initialize();
+            rm = new ResourceManager(fs);
+            rm.SetLogger(logger);
+            rm.Initialize();
 
-                cancelToken.ThrowIfCancellationRequested();
-                Logger.Log("Loading " + ProfilesLibrary.CacheName + ".cache");
+            cancelToken.ThrowIfCancellationRequested();
+            Logger.Log("Loading " + ProfilesLibrary.CacheName + ".cache");
 
-                am = new AssetManager(fs, rm);
-                am.SetLogger(logger);
-                am.Initialize(additionalStartup: false);
+            am = new AssetManager(fs, rm);
+            am.SetLogger(logger);
+            am.Initialize(additionalStartup: false);
 
-                cancelToken.ThrowIfCancellationRequested();
-                Logger.Log("Loading Mods");
-                App.Logger.Log("Loading Mods");
+            cancelToken.ThrowIfCancellationRequested();
+            Logger.Log("Loading Mods");
+            App.Logger.Log("Loading Mods");
 
-                // Get Full Modlist
-                List<FrostyMod> modList = new List<FrostyMod>();
-                foreach (string path in modPaths)
+            // Get Full Modlist
+            List<FrostyMod> modList = new List<FrostyMod>();
+            foreach (string path in modPaths)
+            {
+                FileInfo fi = new FileInfo(Path.Combine(rootPath, path));
+
+                if (fi.Extension == ".fbmod")
+                    modList.Add(new FrostyMod(fi.FullName));
+
+                else if (fi.Extension == ".fbcollection")
                 {
-                    FileInfo fi = new FileInfo(Path.Combine(rootPath, path));
-
-                    if (fi.Extension == ".fbmod")
-                        modList.Add(new FrostyMod(fi.FullName));
-
-                    else if (fi.Extension == ".fbcollection")
-                    {
-                        foreach (FrostyMod mod in new FrostyModCollection(fi.FullName).Mods)
-                            modList.Add(mod);
-                    }
+                    foreach (FrostyMod mod in new FrostyModCollection(fi.FullName).Mods)
+                        modList.Add(mod);
                 }
+            }
 
-                // Load Mod Resources
-                int currentMod = 0;
-                foreach (FrostyMod mod in modList)
+            // Load Mod Resources
+            int currentMod = 0;
+            foreach (FrostyMod mod in modList)
+            {
+                Logger.Log($"Loading Mods ({mod.ModDetails?.Title ?? mod.Filename.Replace(".fbmod", "")})");
+                if (mod.NewFormat)
                 {
-                    Logger.Log($"Loading Mods ({mod.ModDetails?.Title ?? mod.Filename.Replace(".fbmod", "")})");
-                    if (mod.NewFormat)
+                    ProcessModResources(mod);
+                }
+                else
+                {
+                    ProcessLegacyModResources(mod.Path);
+                }
+                ReportProgress(currentMod++, modList.Count);
+            }
+
+            Logger.Log("Applying Handlers");
+            App.Logger.Log("Applying Handlers");
+
+            // apply handlers
+            RuntimeResources runtimeResources = new RuntimeResources();
+
+            List<AssetEntry> assetEntries = new List<AssetEntry>();
+            assetEntries.AddRange(modifiedEbx.Values);
+            assetEntries.AddRange(modifiedRes.Values);
+            assetEntries.AddRange(modifiedChunks.Values);
+
+            int currentResource = 0;
+            Parallel.ForEach(assetEntries, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, entry =>
+            {
+                if (entry.ExtraData is HandlerExtraData handlerExtaData)
+                {
+                    handlerExtaData.Handler.Modify(entry, am, runtimeResources, handlerExtaData.Data, out byte[] data);
+
+                    if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
+                        archiveData[entry.Sha1].RefCount++;
+                }
+                ReportProgress(currentResource++, assetEntries.Count);
+            });
+
+            // process any new resources added during custom handler modification
+            ProcessModResources(runtimeResources);
+
+            cancelToken.ThrowIfCancellationRequested();
+            Logger.Log("Cleaning Up ModData");
+            App.Logger.Log("Cleaning Up ModData");
+
+            List<SymLinkStruct> cmdArgs = new List<SymLinkStruct>();
+            bool newInstallation = false;
+
+            fs.ResetManifest();
+            if (!DeleteSelectFiles(modDataPath + patchPath))
+            {
+                if (!Directory.Exists(modDataPath))
+                {
+                    newInstallation = true;
+                    Logger.Log("Creating ModData");
+
+                    // create mod path
+                    Directory.CreateDirectory(modDataPath);
+
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
                     {
-                        ProcessModResources(mod);
+                        if (!Directory.Exists(modDataPath + "Data"))
+                            Directory.CreateDirectory(modDataPath + "Data");
+                        cmdArgs.Add(new SymLinkStruct(modDataPath + "Data/Win32", fs.BasePath + "Data/Win32", true));
+                    }
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfv doesnt have a patch directory so we need to rebuild the data folder structure instead
+                    {
+                        if (!Directory.Exists(modDataPath + "Data"))
+                            Directory.CreateDirectory(modDataPath + "Data");
+
+                        foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
+                        {
+                            FileInfo casFi = new FileInfo(casFilename);
+                            string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+                            string tempPath = Path.Combine(destPath, casFi.Name);
+
+                            if (!Directory.Exists(destPath))
+                                Directory.CreateDirectory(destPath);
+
+                            cmdArgs.Add(new SymLinkStruct(tempPath, casFi.FullName, false));
+                        }
                     }
                     else
                     {
-                        ProcessLegacyModResources(mod.Path);
+                        // data path
+                        cmdArgs.Add(new SymLinkStruct(modDataPath + "Data", fs.BasePath + "Data", true));
                     }
-                    ReportProgress(currentMod++, modList.Count);
-                }
-                
-                Logger.Log("Applying Handlers");
-                App.Logger.Log("Applying Handlers");
 
-                // apply handlers
-                RuntimeResources runtimeResources = new RuntimeResources();
-
-                List<AssetEntry> assetEntries = new List<AssetEntry>();
-                assetEntries.AddRange(modifiedEbx.Values);
-                assetEntries.AddRange(modifiedRes.Values);
-                assetEntries.AddRange(modifiedChunks.Values);
-
-                int currentResource = 0;
-                Parallel.ForEach(assetEntries, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, entry =>
-                {
-                    if (entry.ExtraData is HandlerExtraData handlerExtaData)
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
                     {
-                        handlerExtaData.Handler.Modify(entry, am, runtimeResources, handlerExtaData.Data, out byte[] data);
+                        // create update dir if it does not exist
+                        if (!Directory.Exists(modDataPath + "Update"))
+                            Directory.CreateDirectory(modDataPath + "Update");
 
-                        if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
-                            archiveData[entry.Sha1].RefCount++;
+                        // update paths
+                        foreach (string path in Directory.EnumerateDirectories(fs.BasePath + "Update"))
+                        {
+                            DirectoryInfo di = new DirectoryInfo(path);
+
+                            // ignore the patch directory
+                            if (di.Name.ToLower() != "patch")
+                                cmdArgs.Add(new SymLinkStruct(modDataPath + "Update/" + di.Name, di.FullName, true));
+                        }
                     }
-                    ReportProgress(currentResource++, assetEntries.Count);
-                });
-
-                // process any new resources added during custom handler modification
-                ProcessModResources(runtimeResources);
-
-                cancelToken.ThrowIfCancellationRequested();
-                Logger.Log("Cleaning Up ModData");
-                App.Logger.Log("Cleaning Up ModData");
-
-                List<SymLinkStruct> cmdArgs = new List<SymLinkStruct>();
-                bool newInstallation = false;
-
-                fs.ResetManifest();
-                if (!DeleteSelectFiles(modDataPath + patchPath))
-                {
-                    if (!Directory.Exists(modDataPath))
+                    else if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17)
                     {
-                        newInstallation = true;
-                        Logger.Log("Creating ModData");
+                        // update path
+                        cmdArgs.Add(new SymLinkStruct(modDataPath + "Update", fs.BasePath + "Update", true));
+                    }
 
-                        // create mod path
-                        Directory.CreateDirectory(modDataPath);
-
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII)
-                        {
-                            if (!Directory.Exists(modDataPath + "Data"))
-                                Directory.CreateDirectory(modDataPath + "Data");
-                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Data/Win32", fs.BasePath + "Data/Win32", true));
-                        }
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //bfv doesnt have a patch directory so we need to rebuild the data folder structure instead
-                        {
-                            if (!Directory.Exists(modDataPath + "Data"))
-                                Directory.CreateDirectory(modDataPath + "Data");
-
-                            foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
-                            {
-                                FileInfo casFi = new FileInfo(casFilename);
-                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
-                                string tempPath = Path.Combine(destPath, casFi.Name);
-
-                                if (!Directory.Exists(destPath))
-                                    Directory.CreateDirectory(destPath);
-
-                                cmdArgs.Add(new SymLinkStruct(tempPath, casFi.FullName, false));
-                            }
-                        }
-                        else
-                        {
-                            // data path
-                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Data", fs.BasePath + "Data", true));
-                        }
-
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
-                        {
-                            // create update dir if it does not exist
-                            if (!Directory.Exists(modDataPath + "Update"))
-                                Directory.CreateDirectory(modDataPath + "Update");
-
-                            // update paths
-                            foreach (string path in Directory.EnumerateDirectories(fs.BasePath + "Update"))
-                            {
-                                DirectoryInfo di = new DirectoryInfo(path);
-
-                                // ignore the patch directory
-                                if (di.Name.ToLower() != "patch")
-                                    cmdArgs.Add(new SymLinkStruct(modDataPath + "Update/" + di.Name, di.FullName, true));
-                            }
-                        }
-                        else if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa17)
-                        {
-                            // update path
-                            cmdArgs.Add(new SymLinkStruct(modDataPath + "Update", fs.BasePath + "Update", true));
-                        }
-
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
 #if FROSTY_DEVELOPER
-                                    || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
+                                || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
 #endif
-                                )
+                            )
+                    {
+                        foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
                         {
-                            foreach (string casFilename in Directory.EnumerateFiles(fs.BasePath + patchPath, "*.cas", SearchOption.AllDirectories))
-                            {
-                                FileInfo casFi = new FileInfo(casFilename);
-                                string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
-                                string tempPath = Path.Combine(destPath, casFi.Name);
+                            FileInfo casFi = new FileInfo(casFilename);
+                            string destPath = casFi.Directory.FullName.ToLower().Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+                            string tempPath = Path.Combine(destPath, casFi.Name);
 
-                                if (!Directory.Exists(destPath))
-                                    Directory.CreateDirectory(destPath);
+                            if (!Directory.Exists(destPath))
+                                Directory.CreateDirectory(destPath);
 
-                                cmdArgs.Add(new SymLinkStruct(tempPath, casFi.FullName, false));
-                            }
+                            cmdArgs.Add(new SymLinkStruct(tempPath, casFi.FullName, false));
                         }
                     }
                 }
+            }
 
-                // add cas files to link
-                foreach (string catalog in fs.Catalogs)
+            // add cas files to link
+            foreach (string catalog in fs.Catalogs)
+            {
+                string path = fs.ResolvePath("native_patch/" + catalog + "/cas.cat");
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //again, no patch directory. fun.
                 {
-                    string path = fs.ResolvePath("native_patch/" + catalog + "/cas.cat");
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //again, no patch directory. fun.
-                    {
-                        path = fs.ResolvePath("native_data/" + catalog + "/cas.cat");
-                    }
-                    if (!File.Exists(path))
-                        continue;
-
-                    FileInfo catInfo = new FileInfo(path);
-                    string destPath = catInfo.Directory.FullName.Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
-
-                    if (!Directory.Exists(destPath))
-                        Directory.CreateDirectory(destPath);
-
-                    foreach (FileInfo fi in catInfo.Directory.GetFiles())
-                    {
-                        string tempPath = Path.Combine(destPath, fi.Name);
-                        if (fi.Extension == ".cas")
-                        {
-                            if (File.Exists(tempPath))
-                                continue;
-                            cmdArgs.Add(new SymLinkStruct(tempPath, fi.FullName, false));
-                        }
-                        else if (fi.Extension == ".cat")
-                            fi.CopyTo(tempPath, false);
-                    }
+                    path = fs.ResolvePath("native_data/" + catalog + "/cas.cat");
                 }
+                if (!File.Exists(path))
+                    continue;
 
-                if (cmdArgs.Count > 0)
+                FileInfo catInfo = new FileInfo(path);
+                string destPath = catInfo.Directory.FullName.Replace("\\" + patchPath.ToLower(), "\\" + modDirName.ToLower() + "\\" + patchPath.ToLower());
+
+                if (!Directory.Exists(destPath))
+                    Directory.CreateDirectory(destPath);
+
+                foreach (FileInfo fi in catInfo.Directory.GetFiles())
                 {
-                    string reason = "New patch detected.";
-                    if (newInstallation)
-                        reason = "New installation detected.";
+                    string tempPath = Path.Combine(destPath, fi.Name);
+                    if (fi.Extension == ".cas")
+                    {
+                        if (File.Exists(tempPath))
+                            continue;
+                        cmdArgs.Add(new SymLinkStruct(tempPath, fi.FullName, false));
+                    }
+                    else if (fi.Extension == ".cat")
+                        fi.CopyTo(tempPath, false);
+                }
+            }
 
-                    FrostyMessageBox.Show(reason + "\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
+            if (cmdArgs.Count > 0)
+            {
+                string reason = "New patch detected.";
+                if (newInstallation)
+                    reason = "New installation detected.";
+
+                FrostyMessageBox.Show(reason + "\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
+                if (!RunSymbolicLinkProcess(cmdArgs))
+                {
+                    FrostyMessageBox.Show("Frosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Editor");
                     if (!RunSymbolicLinkProcess(cmdArgs))
                     {
-                        FrostyMessageBox.Show("Frosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Editor");
-                        if (!RunSymbolicLinkProcess(cmdArgs))
-                        {
-                            Directory.Delete(modDataPath, true);
-                            FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
-                            return -1;
-                        }
+                        Directory.Delete(modDataPath, true);
+                        FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
+                        return -1;
                     }
                 }
+            }
 
-                // set max threads to processor amount (stop hitching)
-                ThreadPool.GetMaxThreads(out int workerThreads, out int completionPortThreads);
-                ThreadPool.SetMaxThreads(Environment.ProcessorCount, completionPortThreads);
+            // set max threads to processor amount (stop hitching)
+            ThreadPool.GetMaxThreads(out int workerThreads, out int completionPortThreads);
+            ThreadPool.SetMaxThreads(Environment.ProcessorCount, completionPortThreads);
 
-                // modify tocs and sbs
-                cancelToken.ThrowIfCancellationRequested();
-                Logger.Log("Applying Mods");
-                App.Logger.Log("Applying Mods");
+            // modify tocs and sbs
+            cancelToken.ThrowIfCancellationRequested();
+            Logger.Log("Applying Mods");
+            App.Logger.Log("Applying Mods");
 
-                cmdArgs.Clear();
+            cmdArgs.Clear();
 
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedHeat
 #if FROSTY_DEVELOPER
-                        || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
+                    || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesBattleforNeighborville
 #endif
-                        )
+                    )
+            {
+                HeatBundleAction.CasFiles.Clear();
+                foreach (string catalog in fs.Catalogs)
                 {
-                    HeatBundleAction.CasFiles.Clear();
-                    foreach (string catalog in fs.Catalogs)
+                    int casIndex = 1;
+                    string path = fs.BasePath + "Patch\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
+
+                    while (File.Exists(path))
                     {
-                        int casIndex = 1;
-                        string path = fs.BasePath + "Patch\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
-
-                        while (File.Exists(path))
-                        {
-                            casIndex++;
-                            path = fs.BasePath + "Patch\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
-                        }
-
-                        HeatBundleAction.CasFiles.Add(catalog, casIndex);
+                        casIndex++;
+                        path = fs.BasePath + "Patch\\" + catalog + "\\cas_" + casIndex.ToString("D2") + ".cas";
                     }
 
-                    List<HeatBundleAction> actions = new List<HeatBundleAction>();
-                    ManualResetEvent doneEvent = new ManualResetEvent(false);
+                    HeatBundleAction.CasFiles.Add(catalog, casIndex);
+                }
 
-                    // @todo: Added bundles
+                List<HeatBundleAction> actions = new List<HeatBundleAction>();
+                ManualResetEvent doneEvent = new ManualResetEvent(false);
 
-                    int totalTasks = 0;
-                    foreach (string superBundle in fs.SuperBundles)
+                // @todo: Added bundles
+
+                int totalTasks = 0;
+                foreach (string superBundle in fs.SuperBundles)
+                {
+                    if (fs.ResolvePath(superBundle + ".toc") == "")
+                        continue;
+
+                    HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this);
+                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
+                    actions.Add(action);
+                    numTasks++;
+                    totalTasks++;
+                }
+
+                while (numTasks != 0)
+                {
+                    // show progress
+                    cancelToken.ThrowIfCancellationRequested();
+                    ReportProgress(totalTasks - numTasks, totalTasks);
+                    Thread.Sleep(1);
+                }
+
+                foreach (HeatBundleAction completedAction in actions)
+                {
+                    if (completedAction.HasErrored)
                     {
-                        if (fs.ResolvePath(superBundle + ".toc") == "")
-                            continue;
-
-                        HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
+                        // if any of the threads caused an exception, throw it to the global handler
+                        // as the game data is now in an inconsistent state
+                        throw completedAction.Exception;
                     }
 
-                    while (numTasks != 0)
+                    if (!completedAction.TocModified)
                     {
-                        // show progress
-                        cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
-                        Thread.Sleep(1);
+                        string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".toc");
+                        FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".toc");
+
+                        if (!Directory.Exists(sbFi.DirectoryName))
+                            Directory.CreateDirectory(sbFi.DirectoryName);
+
+                        cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
                     }
-
-                    foreach (HeatBundleAction completedAction in actions)
+                    if (!completedAction.SbModified)
                     {
-                        if (completedAction.HasErrored)
-                        {
-                            // if any of the threads caused an exception, throw it to the global handler
-                            // as the game data is now in an inconsistent state
-                            throw completedAction.Exception;
-                        }
+                        string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".sb");
+                        FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".sb");
 
-                        if (!completedAction.TocModified)
-                        {
-                            string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".toc");
-                            FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".toc");
+                        if (!Directory.Exists(sbFi.DirectoryName))
+                            Directory.CreateDirectory(sbFi.DirectoryName);
 
-                            if (!Directory.Exists(sbFi.DirectoryName))
-                                Directory.CreateDirectory(sbFi.DirectoryName);
-
-                            cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
-                        }
-                        if (!completedAction.SbModified)
-                        {
-                            string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".sb");
-                            FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".sb");
-
-                            if (!Directory.Exists(sbFi.DirectoryName))
-                                Directory.CreateDirectory(sbFi.DirectoryName);
-
-                            cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
-                        }
+                        cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
                     }
                 }
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20)
+            }
+            else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden20 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa20)
+            {
+                DbObject layout = null;
+                using (DbReader reader = new DbReader(new FileStream(fs.BasePath + patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+                    layout = reader.ReadDbObject();
+
+                FifaBundleAction.CasFileCount = fs.CasFileCount;
+                List<FifaBundleAction> actions = new List<FifaBundleAction>();
+                ManualResetEvent doneEvent = new ManualResetEvent(false);
+
+                // @todo: Added bundles
+
+                int totalTasks = 0;
+                foreach (CatalogInfo ci in fs.EnumerateCatalogInfos())
                 {
-                    DbObject layout = null;
-                    using (DbReader reader = new DbReader(new FileStream(fs.BasePath + patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
-                        layout = reader.ReadDbObject();
+                    FifaBundleAction action = new FifaBundleAction(ci, doneEvent, this, cancelToken);
+                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
+                    actions.Add(action);
+                    numTasks++;
+                    totalTasks++;
+                }
 
-                    FifaBundleAction.CasFileCount = fs.CasFileCount;
-                    List<FifaBundleAction> actions = new List<FifaBundleAction>();
-                    ManualResetEvent doneEvent = new ManualResetEvent(false);
+                while (numTasks != 0)
+                {
+                    // show progress
+                    cancelToken.ThrowIfCancellationRequested();
+                    ReportProgress(totalTasks - numTasks, totalTasks);
+                    Thread.Sleep(1);
+                }
 
-                    // @todo: Added bundles
-
-                    int totalTasks = 0;
-                    foreach (CatalogInfo ci in fs.EnumerateCatalogInfos())
+                foreach (FifaBundleAction completedAction in actions)
+                {
+                    if (completedAction.HasErrored)
                     {
-                        FifaBundleAction action = new FifaBundleAction(ci, doneEvent, this, cancelToken);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
+                        // if any of the threads caused an exception, throw it to the global handler
+                        // as the game data is now in an inconsistent state
+                        throw completedAction.Exception;
                     }
 
-                    while (numTasks != 0)
+                    if (completedAction.CasFiles.Count > 0)
                     {
-                        // show progress
-                        cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
-                        Thread.Sleep(1);
-                    }
-
-                    foreach (FifaBundleAction completedAction in actions)
-                    {
-                        if (completedAction.HasErrored)
+                        DbObject installManifest = layout.GetValue<DbObject>("installManifest");
+                        foreach (DbObject installChunk in installManifest.GetValue<DbObject>("installChunks"))
                         {
-                            // if any of the threads caused an exception, throw it to the global handler
-                            // as the game data is now in an inconsistent state
-                            throw completedAction.Exception;
-                        }
-
-                        if (completedAction.CasFiles.Count > 0)
-                        {
-                            DbObject installManifest = layout.GetValue<DbObject>("installManifest");
-                            foreach (DbObject installChunk in installManifest.GetValue<DbObject>("installChunks"))
+                            if (completedAction.CatalogInfo.Name.Equals("win32/" + installChunk.GetValue<string>("name")))
                             {
-                                if (completedAction.CatalogInfo.Name.Equals("win32/" + installChunk.GetValue<string>("name")))
+                                foreach (int idx in completedAction.CasFiles.Keys)
                                 {
-                                    foreach (int idx in completedAction.CasFiles.Keys)
-                                    {
-                                        DbObject casFileEntry = DbObject.CreateObject();
-                                        casFileEntry.SetValue("id", idx);
-                                        casFileEntry.SetValue("path", completedAction.CasFiles[idx]);
-                                        installChunk.GetValue<DbObject>("files").Add(casFileEntry);
-                                    }
-                                    break;
+                                    DbObject casFileEntry = DbObject.CreateObject();
+                                    casFileEntry.SetValue("id", idx);
+                                    casFileEntry.SetValue("path", completedAction.CasFiles[idx]);
+                                    installChunk.GetValue<DbObject>("files").Add(casFileEntry);
                                 }
+                                break;
                             }
                         }
                     }
-
-                    // write out layout.toc with additional cas entries where required
-                    using (DbWriter writer = new DbWriter(new FileStream(modDataPath + patchPath + "/layout.toc", FileMode.Create), true))
-                        writer.Write(layout);
                 }
-                else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+
+                // write out layout.toc with additional cas entries where required
+                using (DbWriter writer = new DbWriter(new FileStream(modDataPath + patchPath + "/layout.toc", FileMode.Create), true))
+                    writer.Write(layout);
+            }
+            else if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+            {
+                ConcurrentBag<ManifestBundleAction> actions = new ConcurrentBag<ManifestBundleAction>();
+
+                if (addedBundles.Count != 0)
                 {
-                    ConcurrentBag<ManifestBundleAction> actions = new ConcurrentBag<ManifestBundleAction>();
+                    int hash = Fnv1a.HashString("<none>");
+                    foreach (string bundleName in addedBundles[hash])
+                        fs.AddManifestBundle(new ManifestBundleInfo() { hash = Fnv1.HashString(bundleName) });
+                }
 
-                    if (addedBundles.Count != 0)
+                Dictionary<string, List<ModBundleInfo>> tasks = new Dictionary<string, List<ModBundleInfo>>();
+                foreach (ModBundleInfo bundle in modifiedBundles.Values)
+                {
+                    if (bundle.Name.Equals(chunksBundleHash))
+                        continue;
+
+                    ManifestBundleInfo manifestBundle = fs.GetManifestBundle(bundle.Name);
+                    string catalog;
+                    if (manifestBundle.files.Count == 0)
                     {
-                        int hash = Fnv1a.HashString("<none>");
-                        foreach (string bundleName in addedBundles[hash])
-                            fs.AddManifestBundle(new ManifestBundleInfo() { hash = Fnv1.HashString(bundleName) });
+                        catalog = fs.GetCatalog(new ManifestFileRef(1, false, 0));
                     }
-                    
-                    Dictionary<string, List<ModBundleInfo>> tasks = new Dictionary<string, List<ModBundleInfo>>();
-                    foreach (ModBundleInfo bundle in modifiedBundles.Values)
+                    else
                     {
-                        if (bundle.Name.Equals(chunksBundleHash))
-                            continue;
-
-                        ManifestBundleInfo manifestBundle = fs.GetManifestBundle(bundle.Name);
-                        string catalog;
-                        if (manifestBundle.files.Count == 0)
-                        {
-                            catalog = fs.GetCatalog(new ManifestFileRef(1, false, 0));
-                        }
-                        else
-                        {
-                            catalog = fs.GetCatalog(manifestBundle.files[0].file);
-                        }
-
-                        if (!tasks.ContainsKey(catalog))
-                            tasks.Add(catalog, new List<ModBundleInfo>());
-
-                        tasks[catalog].Add(bundle);
+                        catalog = fs.GetCatalog(manifestBundle.files[0].file);
                     }
 
-                    ReportProgress(0, tasks.Count);
-                    Parallel.ForEach(tasks.Values, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, task =>
-                    {
-                        actions.Add(new ManifestBundleAction(task, this, cancelToken));
-                        ReportProgress(actions.Count, tasks.Count);
-                    });
+                    if (!tasks.ContainsKey(catalog))
+                        tasks.Add(catalog, new List<ModBundleInfo>());
 
-                    foreach (ManifestBundleAction action in actions)
-                    {
-                        if (action.Exception != null)
-                        {
-                            // if any of the threads caused an exception, throw it to the global handler
-                            // as the game data is now in an inconsistent state
-                            throw action.Exception;
-                        }
+                    tasks[catalog].Add(bundle);
+                }
 
-                        if (action.DataRefs.Count > 0)
-                        {
-                            // add refs to be added to cas (and manifest)
-                            for (int i = 0; i < action.DataRefs.Count; i++)
-                                casData.Add(fs.GetCatalog(action.FileInfos[i].FileInfo.file), action.DataRefs[i], action.FileInfos[i].Entry, action.FileInfos[i].FileInfo);
-                        }
+                ReportProgress(0, tasks.Count);
+                Parallel.ForEach(tasks.Values, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, task =>
+                {
+                    actions.Add(new ManifestBundleAction(task, this, cancelToken));
+                    ReportProgress(actions.Count, tasks.Count);
+                });
+
+                foreach (ManifestBundleAction action in actions)
+                {
+                    if (action.Exception != null)
+                    {
+                        // if any of the threads caused an exception, throw it to the global handler
+                        // as the game data is now in an inconsistent state
+                        throw action.Exception;
                     }
 
-                    // now process manifest chunk changes
-                    if (modifiedBundles.ContainsKey(chunksBundleHash))
+                    if (action.DataRefs.Count > 0)
                     {
-                        foreach (Guid id in modifiedBundles[chunksBundleHash].Modify.Chunks)
-                        {
-                            ChunkAssetEntry entry = modifiedChunks[id];
-                            ManifestChunkInfo ci = fs.GetManifestChunk(entry.Id);
+                        // add refs to be added to cas (and manifest)
+                        for (int i = 0; i < action.DataRefs.Count; i++)
+                            casData.Add(fs.GetCatalog(action.FileInfos[i].FileInfo.file), action.DataRefs[i], action.FileInfos[i].Entry, action.FileInfos[i].FileInfo);
+                    }
+                }
 
-                            if (ci != null)
+                // now process manifest chunk changes
+                if (modifiedBundles.ContainsKey(chunksBundleHash))
+                {
+                    foreach (Guid id in modifiedBundles[chunksBundleHash].Modify.Chunks)
+                    {
+                        ChunkAssetEntry entry = modifiedChunks[id];
+                        ManifestChunkInfo ci = fs.GetManifestChunk(entry.Id);
+
+                        if (ci != null)
+                        {
+                            if (entry.TocChunkSpecialHack)
                             {
-                                if (entry.TocChunkSpecialHack)
-                                {
-                                    // change to using the first catalog
-                                    ci.file.file = new ManifestFileRef(0, false, 0);
-                                }
-
-                                casData.Add(fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
+                                // change to using the first catalog
+                                ci.file.file = new ManifestFileRef(0, false, 0);
                             }
-                        }
-                        foreach (Guid id in modifiedBundles[chunksBundleHash].Add.Chunks)
-                        {
-                            ChunkAssetEntry entry = modifiedChunks[id];
-
-                            ManifestChunkInfo ci = new ManifestChunkInfo
-                            {
-                                guid = entry.Id,
-                                file = new ManifestFileInfo { file = new ManifestFileRef(0, false, 0), isChunk = true }
-                            };
-                            fs.AddManifestChunk(ci);
 
                             casData.Add(fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
                         }
                     }
-                }
-                else
-                {
-                    List<SuperBundleAction> actions = new List<SuperBundleAction>();
-                    ManualResetEvent doneEvent = new ManualResetEvent(false);
-
-                    int totalTasks = 0;
-                    foreach (string superBundle in fs.SuperBundles)
+                    foreach (Guid id in modifiedBundles[chunksBundleHash].Add.Chunks)
                     {
-                        if (fs.ResolvePath(superBundle + ".toc") == "")
-                            continue;
+                        ChunkAssetEntry entry = modifiedChunks[id];
 
-                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
-                    }
-
-                    foreach (string superBundle in addedSuperBundles)
-                    {
-                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
-                    }
-
-                    while (numTasks != 0)
-                    {
-                        // show progress
-                        cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
-                        Thread.Sleep(1);
-                    }
-
-                    foreach (SuperBundleAction completedAction in actions)
-                    {
-                        if (completedAction.HasErrored)
+                        ManifestChunkInfo ci = new ManifestChunkInfo
                         {
-                            // if any of the threads caused an exception, throw it to the global handler
-                            // as the game data is now in an inconsistent state
-                            throw completedAction.Exception;
-                        }
+                            guid = entry.Id,
+                            file = new ManifestFileInfo { file = new ManifestFileRef(0, false, 0), isChunk = true }
+                        };
+                        fs.AddManifestChunk(ci);
 
-                        if (!completedAction.TocModified)
-                        {
-                            string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".toc");
-                            FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".toc");
-
-                            if (!Directory.Exists(sbFi.DirectoryName))
-                                Directory.CreateDirectory(sbFi.DirectoryName);
-
-                            cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
-                        }
-
-                        if (!completedAction.SbModified)
-                        {
-                            string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".sb");
-                            FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".sb");
-
-                            if (!Directory.Exists(sbFi.DirectoryName))
-                                Directory.CreateDirectory(sbFi.DirectoryName);
-
-                            cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
-                        }
-
-                        if (completedAction.CasRefs.Count != 0)
-                        {
-                            string catalogPath = fs.GetCatalogFromSuperBundle(completedAction.SuperBundle);
-                            for (int i = 0; i < completedAction.CasRefs.Count; i++)
-                                casData.Add(catalogPath, completedAction.CasRefs[i]);
-                        }
+                        casData.Add(fs.GetCatalog(ci.file.file), entry.Sha1, entry, ci.file);
                     }
-                }
-                
-                cancelToken.ThrowIfCancellationRequested();
-                if (cmdArgs.Count > 0)
-                {
-                    RunSymbolicLinkProcess(cmdArgs);
-                }
-
-                // reset threadpool
-                ThreadPool.SetMaxThreads(workerThreads, completionPortThreads);
-
-                Logger.Log("Writing Archive Data");
-                App.Logger.Log("Writing Archive Data");
-                
-                int totalEntries = casData.GetEntryCount();
-                int currentEntry = 0;
-                ReportProgress(currentEntry, totalEntries);
-
-                // write out cas and modify cats
-                foreach (CasDataEntry entry in casData.EnumerateEntries())
-                {
-                    if (!entry.HasEntries)
-                        continue;
-
-                    cancelToken.ThrowIfCancellationRequested();
-                    if (!File.Exists(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat"))
-                    {
-                        if (!File.Exists(fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat"))
-                            continue;
-
-                        using (NativeReader reader = new NativeReader(new FileStream(fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat", FileMode.Open, FileAccess.Read)))
-                        {
-                            FileInfo fi = new FileInfo(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat");
-                            if (!fi.Directory.Exists)
-                                Directory.CreateDirectory(fi.Directory.FullName);
-
-                            using (NativeWriter writer = new NativeWriter(new FileStream(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat", FileMode.Create)))
-                            {
-                                writer.Write(reader.ReadBytes(0x23C));
-                                writer.Write(0x00);
-                                writer.Write(0x00);
-                                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
-                                {
-                                    writer.Write(0x00);
-                                    writer.Write(0x00);
-                                    writer.Write(-1);
-                                    writer.Write(-1);
-                                }
-                            }
-                        }
-                    }
-
-                    WriteArchiveData(modDataPath + patchPath + "\\" + entry.Catalog, entry);
-
-                    ReportProgress(currentEntry++, totalEntries);
-                }
-                
-                cancelToken.ThrowIfCancellationRequested();
-
-                Logger.Log("Writing Manifest");
-                App.Logger.Log("Writing Manifest");
-
-                // finally copy in the left over patch data
-                CopyFileIfRequired(Path.Combine(fs.BasePath, patchPath, "initfs_win32"), Path.Combine(modDataPath, patchPath, "initfs_win32"), false);
-
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
-                {
-                    // modify layout.toc for any new superbundles added
-                    DbObject layout = null;
-                    using (DbReader reader = new DbReader(new FileStream(fs.BasePath + patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
-                        layout = reader.ReadDbObject();
-
-                    foreach (string path in Directory.EnumerateFiles(modDataPath + patchPath, "*.sb", SearchOption.AllDirectories))
-                    {
-                        // remove path, and extension and replace \ with /
-                        string sbName = path.Replace(modDataPath + patchPath + "\\", "").Replace("\\", "/").Replace(".sb", "");
-                        foreach (DbObject entry in layout.GetValue<DbObject>("superBundles"))
-                        {
-                            if (entry.GetValue<string>("name").Equals(sbName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                entry.RemoveValue("same");
-                                entry.SetValue("delta", true);
-                            }
-                        }
-                    }
-
-                    using (DbWriter writer = new DbWriter(new FileStream(modDataPath + patchPath + "/layout.toc", FileMode.Create), true))
-                        writer.Write(layout);
-                }
-                else if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20)
-                {
-                    DbObject layout = null;
-                    using (DbReader reader = new DbReader(new FileStream(fs.ResolvePath("layout.toc"), FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
-                        layout = reader.ReadDbObject();
-
-                    // write out new manifest
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
-                    {
-                        DbObject manifest = layout.GetValue<DbObject>("manifest");
-                        ManifestFileRef fileRef = (ManifestFileRef)manifest.GetValue<int>("file");
-
-                        byte[] tmpBuf = fs.WriteManifest();
-                        string catalog = fs.GetCatalog(fileRef);
-
-                        // find the next available cas
-                        int casIndex = 1;
-                        while (File.Exists(modDataPath + patchPath + "/" + (string.Format("{0}\\cas_{1}.cas", catalog, casIndex.ToString("D2")))))
-                            casIndex++;
-
-                        Sha1 sha1 = Utils.GenerateSha1(tmpBuf);
-
-                        archiveData.TryAdd(sha1, new ArchiveInfo() { Data = tmpBuf });
-                        WriteArchiveData(modDataPath + patchPath + "/" + catalog, new CasDataEntry("", sha1));
-
-                        manifest.SetValue("size", tmpBuf.Length);
-                        manifest.SetValue("offset", 0);
-                        manifest.SetValue("sha1", sha1);
-                        if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //more patch directory shenanigans
-                            manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, false, casIndex));
-                        else
-                            manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, true, casIndex));
-                    }
-
-                    // add any new superbundles
-                    if (addedSuperBundles.Count > 0)
-                    {
-                        foreach (string superBundle in addedSuperBundles)
-                        {
-                            DbObject sbobj = new DbObject();
-                            sbobj.SetValue("name", superBundle);
-                            layout.GetValue<DbObject>("superBundles").Add(sbobj);
-
-                            DbObject chunk = (DbObject)layout.GetValue<DbObject>("installManifest").GetValue<DbObject>("installChunks")[1];
-                            chunk.GetValue<DbObject>("superbundles").Add(superBundle);
-                        }
-                    }
-
-                    string layoutLocation = modDataPath + patchPath + "/layout.toc";
-                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
-                        layoutLocation = modDataPath + "Data/layout.toc";
-
-                    using (DbWriter writer = new DbWriter(new FileStream(layoutLocation, FileMode.Create), true))
-                        writer.Write(layout);
-                }
-
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
-                {
-                    // copy additional files
-                    CopyFileIfRequired(fs.BasePath + patchPath + "/../package.mft", modDataPath + patchPath + "/../package.mft");
-                }
-
-                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
-                {
-                    // copy from old data to new data
-                    CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modDataPath + "Data/chunkmanifest");
-                    CopyFileIfRequired(Path.Combine(fs.BasePath, "Data", "initfs_Win32"), Path.Combine(modDataPath, "Data", "initfs_Win32"), false);
-                }
-
-                // create the frosty mod list file
-                File.WriteAllText(Path.Combine(modDataPath, patchPath, "mods.json"), JsonConvert.SerializeObject(GenerateModInfoList(modPaths, rootPath), Formatting.Indented));
-
-                // stopwatch
-                watch.Stop();
-                if (watch.Elapsed.Minutes > 0)
-                {
-                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s");
-                }
-                else
-                {
-                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds}s");
                 }
             }
             else
             {
-                App.Logger.Log("Launching with previously generated data.");
+                List<SuperBundleAction> actions = new List<SuperBundleAction>();
+                ManualResetEvent doneEvent = new ManualResetEvent(false);
+
+                int totalTasks = 0;
+                foreach (string superBundle in fs.SuperBundles)
+                {
+                    if (fs.ResolvePath(superBundle + ".toc") == "")
+                        continue;
+
+                    SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
+                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
+                    actions.Add(action);
+                    numTasks++;
+                    totalTasks++;
+                }
+
+                foreach (string superBundle in addedSuperBundles)
+                {
+                    SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
+                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
+                    actions.Add(action);
+                    numTasks++;
+                    totalTasks++;
+                }
+
+                while (numTasks != 0)
+                {
+                    // show progress
+                    cancelToken.ThrowIfCancellationRequested();
+                    ReportProgress(totalTasks - numTasks, totalTasks);
+                    Thread.Sleep(1);
+                }
+
+                foreach (SuperBundleAction completedAction in actions)
+                {
+                    if (completedAction.HasErrored)
+                    {
+                        // if any of the threads caused an exception, throw it to the global handler
+                        // as the game data is now in an inconsistent state
+                        throw completedAction.Exception;
+                    }
+
+                    if (!completedAction.TocModified)
+                    {
+                        string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".toc");
+                        FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".toc");
+
+                        if (!Directory.Exists(sbFi.DirectoryName))
+                            Directory.CreateDirectory(sbFi.DirectoryName);
+
+                        cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
+                    }
+
+                    if (!completedAction.SbModified)
+                    {
+                        string srcPath = fs.ResolvePath(completedAction.SuperBundle + ".sb");
+                        FileInfo sbFi = new FileInfo(modDataPath + patchPath + "/" + completedAction.SuperBundle + ".sb");
+
+                        if (!Directory.Exists(sbFi.DirectoryName))
+                            Directory.CreateDirectory(sbFi.DirectoryName);
+
+                        cmdArgs.Add(new SymLinkStruct(sbFi.FullName, srcPath, false));
+                    }
+
+                    if (completedAction.CasRefs.Count != 0)
+                    {
+                        string catalogPath = fs.GetCatalogFromSuperBundle(completedAction.SuperBundle);
+                        for (int i = 0; i < completedAction.CasRefs.Count; i++)
+                            casData.Add(catalogPath, completedAction.CasRefs[i]);
+                    }
+                }
             }
 
             cancelToken.ThrowIfCancellationRequested();
+            if (cmdArgs.Count > 0)
+            {
+                RunSymbolicLinkProcess(cmdArgs);
+            }
+
+            // reset threadpool
+            ThreadPool.SetMaxThreads(workerThreads, completionPortThreads);
+
+            Logger.Log("Writing Archive Data");
+            App.Logger.Log("Writing Archive Data");
+
+            int totalEntries = casData.GetEntryCount();
+            int currentEntry = 0;
+            ReportProgress(currentEntry, totalEntries);
+
+            // write out cas and modify cats
+            foreach (CasDataEntry entry in casData.EnumerateEntries())
+            {
+                if (!entry.HasEntries)
+                    continue;
+
+                cancelToken.ThrowIfCancellationRequested();
+                if (!File.Exists(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat"))
+                {
+                    if (!File.Exists(fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat"))
+                        continue;
+
+                    using (NativeReader reader = new NativeReader(new FileStream(fs.BasePath + "data\\" + entry.Catalog + "\\cas.cat", FileMode.Open, FileAccess.Read)))
+                    {
+                        FileInfo fi = new FileInfo(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat");
+                        if (!fi.Directory.Exists)
+                            Directory.CreateDirectory(fi.Directory.FullName);
+
+                        using (NativeWriter writer = new NativeWriter(new FileStream(modDataPath + patchPath + "\\" + entry.Catalog + "\\cas.cat", FileMode.Create)))
+                        {
+                            writer.Write(reader.ReadBytes(0x23C));
+                            writer.Write(0x00);
+                            writer.Write(0x00);
+                            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedPayback || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19 || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                            {
+                                writer.Write(0x00);
+                                writer.Write(0x00);
+                                writer.Write(-1);
+                                writer.Write(-1);
+                            }
+                        }
+                    }
+                }
+
+                WriteArchiveData(modDataPath + patchPath + "\\" + entry.Catalog, entry);
+
+                ReportProgress(currentEntry++, totalEntries);
+            }
+
+            cancelToken.ThrowIfCancellationRequested();
+
+            Logger.Log("Writing Manifest");
+            App.Logger.Log("Writing Manifest");
+
+            // finally copy in the left over patch data
+            CopyFileIfRequired(Path.Combine(fs.BasePath, patchPath, "initfs_win32"), Path.Combine(modDataPath, patchPath, "initfs_win32"), false);
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
+            {
+                // modify layout.toc for any new superbundles added
+                DbObject layout = null;
+                using (DbReader reader = new DbReader(new FileStream(fs.BasePath + patchPath + "/layout.toc", FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+                    layout = reader.ReadDbObject();
+
+                foreach (string path in Directory.EnumerateFiles(modDataPath + patchPath, "*.sb", SearchOption.AllDirectories))
+                {
+                    // remove path, and extension and replace \ with /
+                    string sbName = path.Replace(modDataPath + patchPath + "\\", "").Replace("\\", "/").Replace(".sb", "");
+                    foreach (DbObject entry in layout.GetValue<DbObject>("superBundles"))
+                    {
+                        if (entry.GetValue<string>("name").Equals(sbName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            entry.RemoveValue("same");
+                            entry.SetValue("delta", true);
+                        }
+                    }
+                }
+
+                using (DbWriter writer = new DbWriter(new FileStream(modDataPath + patchPath + "/layout.toc", FileMode.Create), true))
+                    writer.Write(layout);
+            }
+            else if (ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa19 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Madden20 && ProfilesLibrary.DataVersion != (int)ProfileVersion.Fifa20)
+            {
+                DbObject layout = null;
+                using (DbReader reader = new DbReader(new FileStream(fs.ResolvePath("layout.toc"), FileMode.Open, FileAccess.Read), fs.CreateDeobfuscator()))
+                    layout = reader.ReadDbObject();
+
+                // write out new manifest
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                {
+                    DbObject manifest = layout.GetValue<DbObject>("manifest");
+                    ManifestFileRef fileRef = (ManifestFileRef)manifest.GetValue<int>("file");
+
+                    byte[] tmpBuf = fs.WriteManifest();
+                    string catalog = fs.GetCatalog(fileRef);
+
+                    // find the next available cas
+                    int casIndex = 1;
+                    while (File.Exists(modDataPath + patchPath + "/" + (string.Format("{0}\\cas_{1}.cas", catalog, casIndex.ToString("D2")))))
+                        casIndex++;
+
+                    Sha1 sha1 = Utils.GenerateSha1(tmpBuf);
+
+                    archiveData.TryAdd(sha1, new ArchiveInfo() { Data = tmpBuf });
+                    WriteArchiveData(modDataPath + patchPath + "/" + catalog, new CasDataEntry("", sha1));
+
+                    manifest.SetValue("size", tmpBuf.Length);
+                    manifest.SetValue("offset", 0);
+                    manifest.SetValue("sha1", sha1);
+                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5) //more patch directory shenanigans
+                        manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, false, casIndex));
+                    else
+                        manifest.SetValue("file", (int)new ManifestFileRef(fileRef.CatalogIndex, true, casIndex));
+                }
+
+                // add any new superbundles
+                if (addedSuperBundles.Count > 0)
+                {
+                    foreach (string superBundle in addedSuperBundles)
+                    {
+                        DbObject sbobj = new DbObject();
+                        sbobj.SetValue("name", superBundle);
+                        layout.GetValue<DbObject>("superBundles").Add(sbobj);
+
+                        DbObject chunk = (DbObject)layout.GetValue<DbObject>("installManifest").GetValue<DbObject>("installChunks")[1];
+                        chunk.GetValue<DbObject>("superbundles").Add(superBundle);
+                    }
+                }
+
+                string layoutLocation = modDataPath + patchPath + "/layout.toc";
+                if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+                    layoutLocation = modDataPath + "Data/layout.toc";
+
+                using (DbWriter writer = new DbWriter(new FileStream(layoutLocation, FileMode.Create), true))
+                    writer.Write(layout);
+            }
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa17 || ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield4 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeed || ProfilesLibrary.DataVersion == (int)ProfileVersion.PlantsVsZombiesGardenWarfare2 || ProfilesLibrary.DataVersion == (int)ProfileVersion.NeedForSpeedRivals)
+            {
+                // copy additional files
+                CopyFileIfRequired(fs.BasePath + patchPath + "/../package.mft", modDataPath + patchPath + "/../package.mft");
+            }
+
+            if (ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Battlefield5)
+            {
+                // copy from old data to new data
+                CopyFileIfRequired(fs.BasePath + "Data/chunkmanifest", modDataPath + "Data/chunkmanifest");
+                CopyFileIfRequired(Path.Combine(fs.BasePath, "Data", "initfs_Win32"), Path.Combine(modDataPath, "Data", "initfs_Win32"), false);
+            }
+
+            // create the frosty mod list file
+            File.WriteAllText(Path.Combine(modDataPath, patchPath, "mods.json"), JsonConvert.SerializeObject(GenerateModInfoList(modPaths, rootPath), Formatting.Indented));
+
+            // stopwatch
+            watch.Stop();
+            if (watch.Elapsed.Minutes > 0)
+            {
+                App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s");
+            }
+            else
+            {
+                App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds}s");
+            }
+
+            cancelToken.ThrowIfCancellationRequested();
+
+        labal_Launch:
 
             // DAI and NFS dont require bcrypt
             if (ProfilesLibrary.DataVersion != (int)ProfileVersion.DragonAgeInquisition && ProfilesLibrary.DataVersion != (int)ProfileVersion.Battlefield4 && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeed && ProfilesLibrary.DataVersion != (int)ProfileVersion.NeedForSpeedRivals)
