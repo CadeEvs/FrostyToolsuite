@@ -136,6 +136,12 @@ namespace Frosty.Core.Windows
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
 
         [Category("General")]
+        [DisplayName("Max Degree Of Parallelism")]
+        [Description("Change the maximum parallelism of written super bundles when applying mods.\r\n\r\nToo high or too low will both reduce performance, default 2.")]
+        [EbxFieldMeta(EbxFieldType.Int32)]
+        public int MaxDegreeOfParallelism { get; set; } = 2;
+
+        [Category("General")]
         [DisplayName("Command Line Arguments")]
         [Description("Command line arguments to run on launch.")]
         [EbxFieldMeta(EbxFieldType.Boolean)]
@@ -165,6 +171,8 @@ namespace Frosty.Core.Windows
             List<string> sizes = new List<string>() { "1GB", "512MB", "256MB" };
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
+
+            MaxDegreeOfParallelism = Config.Get<int>("MaxDegreeOfParallelism", 2);
 
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
@@ -204,6 +212,8 @@ namespace Frosty.Core.Windows
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
+
+            Config.Add("MaxDegreeOfParallelism", MaxDegreeOfParallelism);
 
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
 
@@ -386,6 +396,12 @@ namespace Frosty.Core.Windows
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
 
+        [Category("General")]
+        [DisplayName("Max Degree Of Parallelism")]
+        [Description("Change the maximum parallelism of written super bundles when applying mods.\r\n\r\nToo high or too low will both reduce performance, default 2.")]
+        [EbxFieldMeta(EbxFieldType.Int32)]
+        public int MaxDegreeOfParallelism { get; set; } = 2;
+
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
         //[Description("Automatically collapse mod categories in the Available Mods list on startup.")]
@@ -414,6 +430,8 @@ namespace Frosty.Core.Windows
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
+            MaxDegreeOfParallelism = Config.Get<int>("MaxDegreeOfParallelism", 2);
+
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
         }
@@ -433,6 +451,8 @@ namespace Frosty.Core.Windows
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
+
+            Config.Add("MaxDegreeOfParallelism", MaxDegreeOfParallelism);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
