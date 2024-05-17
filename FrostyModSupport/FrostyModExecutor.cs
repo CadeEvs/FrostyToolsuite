@@ -211,6 +211,8 @@ namespace Frosty.ModSupport
 
         public ILogger Logger { get => logger; set => logger = value; }
 
+        public int maxDegreeOfParallelism = Config.Get("MaxDegreeOfParallelism", 2);
+
         private Dictionary<int, Dictionary<uint, CatResourceEntry>> LoadCatalog(string filename, out int catFileHash)
         {
             catFileHash = 0;
@@ -261,7 +263,7 @@ namespace Frosty.ModSupport
             }
 
 
-            Parallel.ForEach(fmod.Resources, resource =>
+            Parallel.ForEach(fmod.Resources, new ParallelOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism }, resource =>
             {
                 // pull existing bundles from asset manager
                 HashSet<int> bundles = new HashSet<int>();
@@ -1142,7 +1144,7 @@ namespace Frosty.ModSupport
             assetEntries.AddRange(modifiedChunks.Values);
 
             int currentResource = 0;
-            Parallel.ForEach(assetEntries, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, entry =>
+            Parallel.ForEach(assetEntries, new ParallelOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism }, entry =>
             {
                 if (entry.ExtraData is HandlerExtraData handlerExtaData)
                 {
@@ -1297,10 +1299,6 @@ namespace Frosty.ModSupport
                 }
             }
 
-            // set max threads to processor amount (stop hitching)
-            ThreadPool.GetMaxThreads(out int workerThreads, out int completionPortThreads);
-            ThreadPool.SetMaxThreads(Environment.ProcessorCount, completionPortThreads);
-
             // modify tocs and sbs
             cancelToken.ThrowIfCancellationRequested();
             Logger.Log("Applying Mods");
@@ -1341,19 +1339,20 @@ namespace Frosty.ModSupport
                         continue;
 
                     HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this);
-                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                     actions.Add(action);
                     numTasks++;
                     totalTasks++;
                 }
 
-                while (numTasks != 0)
+                ReportProgress(0, totalTasks);
+                Parallel.ForEach(actions, new ParallelOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism }, action =>
                 {
+                    // Run action
+                    action.ThreadPoolCallback(null);
                     // show progress
                     cancelToken.ThrowIfCancellationRequested();
                     ReportProgress(totalTasks - numTasks, totalTasks);
-                    Thread.Sleep(1);
-                }
+                });
 
                 foreach (HeatBundleAction completedAction in actions)
                 {
@@ -1402,19 +1401,20 @@ namespace Frosty.ModSupport
                 foreach (CatalogInfo ci in fs.EnumerateCatalogInfos())
                 {
                     FifaBundleAction action = new FifaBundleAction(ci, doneEvent, this, cancelToken);
-                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                     actions.Add(action);
                     numTasks++;
                     totalTasks++;
                 }
 
-                while (numTasks != 0)
+                ReportProgress(0, totalTasks);
+                Parallel.ForEach(actions, new ParallelOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism }, action =>
                 {
+                    // Run action
+                    action.ThreadPoolCallback(null);
                     // show progress
                     cancelToken.ThrowIfCancellationRequested();
                     ReportProgress(totalTasks - numTasks, totalTasks);
-                    Thread.Sleep(1);
-                }
+                });
 
                 foreach (FifaBundleAction completedAction in actions)
                 {
@@ -1484,7 +1484,7 @@ namespace Frosty.ModSupport
                 }
 
                 ReportProgress(0, tasks.Count);
-                Parallel.ForEach(tasks.Values, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, task =>
+                Parallel.ForEach(tasks.Values, new ParallelOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism }, task =>
                 {
                     actions.Add(new ManifestBundleAction(task, this, cancelToken));
                     ReportProgress(actions.Count, tasks.Count);
@@ -1553,7 +1553,6 @@ namespace Frosty.ModSupport
                         continue;
 
                     SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
-                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                     actions.Add(action);
                     numTasks++;
                     totalTasks++;
@@ -1562,19 +1561,20 @@ namespace Frosty.ModSupport
                 foreach (string superBundle in addedSuperBundles)
                 {
                     SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
-                    ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
                     actions.Add(action);
                     numTasks++;
                     totalTasks++;
                 }
 
-                while (numTasks != 0)
+                ReportProgress(0, totalTasks);
+                Parallel.ForEach(actions, new ParallelOptions() { MaxDegreeOfParallelism = maxDegreeOfParallelism }, action =>
                 {
+                    // Run action
+                    action.ThreadPoolCallback(null);
                     // show progress
                     cancelToken.ThrowIfCancellationRequested();
                     ReportProgress(totalTasks - numTasks, totalTasks);
-                    Thread.Sleep(1);
-                }
+                });
 
                 foreach (SuperBundleAction completedAction in actions)
                 {
@@ -1621,9 +1621,6 @@ namespace Frosty.ModSupport
             {
                 RunSymbolicLinkProcess(cmdArgs);
             }
-
-            // reset threadpool
-            ThreadPool.SetMaxThreads(workerThreads, completionPortThreads);
 
             Logger.Log("Writing Archive Data");
             App.Logger.Log("Writing Archive Data");
