@@ -1060,7 +1060,10 @@ namespace Frosty.ModSupport
                 // check if the mod data needs recreating
                 // ie. mod change or patch
                 if (IsSamePatch(modDataPath + patchPath) && oldModInfoList.SequenceEqual(currentModInfoList))
+                {
+                    App.Logger.Log("Launching with previously generated data.");
                     goto labal_Launch;
+                }
             }
 
             cancelToken.ThrowIfCancellationRequested();
