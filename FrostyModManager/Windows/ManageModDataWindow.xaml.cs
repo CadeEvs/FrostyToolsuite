@@ -33,11 +33,11 @@ namespace FrostyModManager
             InitializeComponent();
 
             // Draws the window in the center of the screen
-            Window mainWin = Application.Current.MainWindow;
-            if (mainWin != null)
+            Owner = Application.Current.MainWindow;
+            if (Owner != null)
             {
-                double x = mainWin.Left + (mainWin.Width / 2.0);
-                double y = mainWin.Top + (mainWin.Height / 2.0);
+                double x = Owner.Left + (Owner.Width / 2.0);
+                double y = Owner.Top + (Owner.Height / 2.0);
 
                 Left = x - (Width / 2.0);
                 Top = y - (MaxHeight / 2.0);
@@ -180,7 +180,6 @@ namespace FrostyModManager
             {
                 try
                 {
-                    Application.Current.MainWindow.WindowState = WindowState.Minimized;
                     this.Owner.WindowState = WindowState.Minimized;
                     foreach (Window window in this.OwnedWindows)
                     {
