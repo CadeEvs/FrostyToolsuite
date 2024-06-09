@@ -136,10 +136,11 @@ namespace FrostyModManager
             string modDirName = "ModData\\" + selectedPack.Name;
             string modDataPath = getModDataPath() + $"\\{selectedPack.Name}\\";
 
+            int retCode = 0;
             try
             {
                 // run mod applying process
-                FrostyTaskWindow.Show("Launching", "", (task) =>
+                FrostyTaskWindow.Show(this, "Launching", "", (task) =>
                 {
                     App.Logger.Log("Launching");
                     try
@@ -149,16 +150,21 @@ namespace FrostyModManager
 
                         FrostyModExecutor.LaunchGame(Config.Get<string>("GamePath", "", ConfigScope.Game, ProfilesLibrary.ProfileName) + "\\", modDirName, modDataPath, Config.Get<string>("CommandLineArgs", "", ConfigScope.Game));
 
+                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                            executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+
                         App.Logger.Log("Done");
                     }
                     catch (OperationCanceledException)
                     {
                         // process was cancelled
                         App.Logger.Log("Launch Cancelled");
+                        retCode = -1;
                     }
                     catch (Exception ex)
                     {
                         App.Logger.Log("Error Launching Game: " + ex);
+                        retCode = -1;
                     }
 
                 }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
@@ -167,6 +173,22 @@ namespace FrostyModManager
             {
                 // process was cancelled
                 App.Logger.Log("Launch Cancelled");
+                retCode = -1;
+            }
+
+            if (retCode != -1)
+            {
+                try
+                {
+                    Application.Current.MainWindow.WindowState = WindowState.Minimized;
+                    this.Owner.WindowState = WindowState.Minimized;
+                    foreach (Window window in this.OwnedWindows)
+                    {
+                        window.WindowState = WindowState.Minimized;
+                    }
+                }
+                catch { }
+                Close();
             }
 
         }

@@ -1831,6 +1831,7 @@ namespace Frosty.ModSupport
             catch (Exception ex)
             {
                 App.Logger.Log("Error Launching Game: " + ex);
+                return -1;
             }
 
             App.Logger.Log("Done");
