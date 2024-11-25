@@ -6,8 +6,8 @@
         xmlns:local="clr-namespace:FrostyEditor.Windows"
         xmlns:ctrl="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
-        Title="Export Mod" Height="530" Width="600"
-        ResizeMode="NoResize" WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
+        Title="Export Mod" MinHeight="530" Height="530" MinWidth="600" Width="600"
+        WindowStartupLocation="CenterScreen" SnapsToDevicePixels="True">
     
     <Grid Background="{StaticResource WindowBackground}">
         <Grid.RowDefinitions>
@@ -17,28 +17,35 @@
 
         <Grid Background="{StaticResource ListBackground}">
             <DockPanel LastChildFill="True">
-                <Grid Margin="5" DockPanel.Dock="Top">
-                    <Label Content="Please fill out each of the following sections. Only the first section is mandatory." FontFamily="Global User Interface" HorizontalAlignment="Center" VerticalAlignment="Center" FontWeight="Bold" FontSize="14"/>
-                </Grid>
+                <StackPanel Margin="5" DockPanel.Dock="Top">
+                    <Label HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Please fill out each of the following sections. Only the first 4 fields is mandatory."
+                                   FontWeight="Bold" FontSize="14" FontFamily="Global User Interface" TextWrapping="WrapWithOverflow" Foreground="{StaticResource FontColor}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Label>
+                    <Label x:Name="ErrorMessageLabel" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <TextBlock Text="Test" TextWrapping="WrapWithOverflow" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="Red"/>
+                    </Label>
+                </StackPanel>
                 
-                <Border DockPanel.Dock="Top" Background="{StaticResource ControlBackground}" Height="2"/>
+                <Border DockPanel.Dock="Top" Background="{StaticResource ControlBackground}" Height="2" HorizontalAlignment="Stretch"/>
                 
                 <Grid DockPanel.Dock="Top" Margin="5">
                     <StackPanel>
                         <DockPanel LastChildFill="True">
-                            <Label Content="Title " FontFamily="Global User Interface" Width="75"/>
+                            <Label Content="Title" FontFamily="Global User Interface" Width="75"/>
                             <TextBox x:Name="modTitleTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
                         </DockPanel>
                         <DockPanel LastChildFill="True">
-                            <Label Content="Author " FontFamily="Global User Interface" Width="75"/>
+                            <Label Content="Author" FontFamily="Global User Interface" Width="75"/>
                             <TextBox x:Name="modAuthorTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
                         </DockPanel>
                         <DockPanel LastChildFill="True">
-                            <Label Content="Version " FontFamily="Global User Interface" Width="75"/>
+                            <Label Content="Version" FontFamily="Global User Interface" Width="75"/>
                             <TextBox Grid.Column="1" x:Name="modVersionTextBox" VerticalContentAlignment="Center" Text="Testing" Margin="1" BorderThickness="1"/>
                         </DockPanel>
                         <DockPanel LastChildFill="True">
-                            <Label Content="Category " FontFamily="Global User Interface" Width="75"/>
+                            <Label Content="Category" FontFamily="Global User Interface" Width="75"/>
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="0.5*"/>
@@ -57,9 +64,8 @@
                 </Grid>
                 
                 <Grid DockPanel.Dock="Top" Margin="5">
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <ctrl:FrostyImageButton x:Name="iconImageButton" Title="ICON" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
-                        <Grid Height="88" Width="88" Margin="0,0,16,0"/>
+                    <ctrl:FrostyImageButton x:Name="iconImageButton" HorizontalAlignment="Left" Title="ICON" OnValidate="FrostyImageButton_OnValidate" Margin="16,0,0,0"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,16,0">
                         <ctrl:FrostyImageButton x:Name="ssImageButton1" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
                         <ctrl:FrostyImageButton x:Name="ssImageButton2" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>
                         <ctrl:FrostyImageButton x:Name="ssImageButton3" Title="IMAGE" OnValidate="FrostyImageButton_OnValidate" Margin="0,0,4,0"/>

@@ -6,6 +6,7 @@ using Frosty.Core.Mod;
 using System.Collections.Generic;
 using System;
 using System.Linq;
+using System.Windows.Controls;
 
 namespace FrostyEditor.Windows
 {
@@ -38,6 +39,8 @@ namespace FrostyEditor.Windows
 
         private void ModSettingsWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
+            ErrorMessageLabel.Visibility = System.Windows.Visibility.Collapsed;
+
             modCategoryComboBox.ItemsSource = categories;
             
             modTitleTextBox.Text = ModSettings.Title;
@@ -72,19 +75,128 @@ namespace FrostyEditor.Windows
 
         private void saveButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (modTitleTextBox.Text == "" || modAuthorTextBox.Text == "" || modCategoryTextBox.Text == "" || modVersionTextBox.Text == "")
+            List<string> errors = new List<string>();
+
+            // Check Title
+            if (String.IsNullOrEmpty(modTitleTextBox.Text))
             {
-                FrostyMessageBox.Show("Title, Author, Category and Version are mandatory fields", "Frosty Editor");
-                return;
+                errors.Add("Title is a mandatory field");
+                modTitleTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else if (modTitleTextBox.Text.Any(c => c > sbyte.MaxValue))
+            {
+                errors.Add("Title can only contain ASCII characters");
+                modTitleTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                modTitleTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
             }
 
+            // Check Author
+            if (String.IsNullOrEmpty(modAuthorTextBox.Text))
+            {
+                errors.Add("Author is a mandatory field");
+                modAuthorTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else if (modAuthorTextBox.Text.Any(c => c > sbyte.MaxValue))
+            {
+                errors.Add("Author can only contain ASCII characters");
+                modAuthorTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                modAuthorTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
+            }
+
+            // Check Category
+            if (String.IsNullOrEmpty(modCategoryTextBox.Text))
+            {
+                errors.Add("Category is a mandatory field");
+                modCategoryTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else if (modCategoryTextBox.Text.Any(c => c > sbyte.MaxValue))
+            {
+                errors.Add("Category can only contain ASCII characters");
+                modCategoryTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                modCategoryTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
+            }
+
+            // Check Version
+            if (String.IsNullOrEmpty(modVersionTextBox.Text))
+            {
+                errors.Add("Version is a mandatory field");
+                modVersionTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else if (modVersionTextBox.Text.Any(c => c > sbyte.MaxValue))
+            {
+                errors.Add("Version can only contain ASCII characters");
+                modVersionTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                modVersionTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
+            }
+
+            // Check Link
             string[] approvedDomains = { "nexusmods.com", "moddb.com" };
-
-            if (modPageLinkTextBox.Text != "" && (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute) || !approvedDomains.Any(modPageLinkTextBox.Text.Contains)))
+            if (!String.IsNullOrEmpty(modPageLinkTextBox.Text))
             {
-                FrostyMessageBox.Show("Link needs to be valid", "Frosty Editor");
+                if (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute))
+                {
+                    errors.Add("Link needs to be valid");
+                    modPageLinkTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+                }
+                else if (!approvedDomains.Any(modPageLinkTextBox.Text.Contains))
+                {
+                    errors.Add("Link needs to be nexusmods.com or moddb.com");
+                    modPageLinkTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+                }
+                else
+                {
+                    if (Uri.TryCreate(modPageLinkTextBox.Text, UriKind.Absolute, out Uri uriResult))
+                        modPageLinkTextBox.Text = uriResult.AbsoluteUri;
+
+                    if (modPageLinkTextBox.Text.Any(c => c > sbyte.MaxValue))
+                    {
+                        errors.Add("Link can only contain ASCII characters");
+                        modPageLinkTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+                    }
+                    else
+                    {
+                        modPageLinkTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
+                    }
+                }
+            }
+            else
+            {
+                modPageLinkTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
+            }
+
+            // Check Description
+            if (!String.IsNullOrEmpty(modDescriptionTextBox.Text) &&
+                !modDescriptionTextBox.Text.Any(c => c > sbyte.MaxValue))
+            {
+                errors.Add("Description can only contain ASCII characters");
+                modDescriptionTextBox.BorderBrush = System.Windows.Media.Brushes.Red;
+            }
+            else
+            {
+                modDescriptionTextBox.BorderBrush = (System.Windows.Media.Brush)FindResource("ControlBackground");
+            }
+
+            // Check if error exits
+            if (errors.Any())
+            {
+                ErrorMessageLabel.Visibility = System.Windows.Visibility.Visible;
+                (ErrorMessageLabel.Content as TextBlock).Text = String.Join(Environment.NewLine, errors);
                 return;
             }
+
+            ErrorMessageLabel.Visibility = System.Windows.Visibility.Collapsed;
 
             ModSettings.Title = modTitleTextBox.Text;
             ModSettings.Author = modAuthorTextBox.Text;
