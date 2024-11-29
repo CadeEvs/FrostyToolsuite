@@ -745,14 +745,34 @@
                                         </DockPanel>
                                     </Border>
 
-                                    <ctrl:FrostyWatermarkTextBox Grid.Row="1"
-                                                                 x:Name="availableModsFilterTextBox"
-                                                                 WatermarkText="Filter"
-                                                                 BorderThickness="1"
-                                                                 Margin="1,1,1,0"
-                                                                 VerticalContentAlignment="Center"
-                                                                 KeyUp="availableModsFilter_KeyUp"
-                                                                 LostFocus="availableModsFilter_LostFocus" />
+                                    <DockPanel Grid.Row="1"
+                                                VerticalAlignment="Center"
+                                                Width="Auto"
+                                                HorizontalAlignment="Stretch">
+                                        <ToggleButton x:Name="appliedModsFilterButton"
+                                                      Click="appliedModsFilterButton_Click"
+                                                      ToolTip="Filter applied mods">
+                                            <Image Source="/FrostyModManager;component/Images/CircleCheck.png"
+                                                   Height="16"
+                                                   Width="16"
+                                                   Margin="0,0,2,0" />
+                                        </ToggleButton>
+                                        <ToggleButton x:Name="notAppliedModsFilterButton"
+                                                      Click="notAppliedModsFilterButton_Click"
+                                                      ToolTip="Filter not applied mods">
+                                            <Image Source="/FrostyModManager;component/Images/CircleX.png"
+                                                   Height="16"
+                                                   Width="16"
+                                                   Margin="0,0,2,0" />
+                                        </ToggleButton>
+                                        <ctrl:FrostyWatermarkTextBox x:Name="availableModsFilterTextBox"
+                                                                     WatermarkText="Filter"
+                                                                     BorderThickness="1"
+                                                                     Margin="1,1,1,0"
+                                                                     VerticalContentAlignment="Center"
+                                                                     KeyUp="availableModsFilter_KeyUp"
+                                                                     LostFocus="availableModsFilter_LostFocus" />
+                                    </DockPanel>
 
                                     <ListView x:Name="availableModsList"
                                               Grid.Row="2"
@@ -953,6 +973,10 @@
                                                             </DataTemplate>
                                                         </GridViewColumn.CellTemplate>
                                                     </GridViewColumn>
+                                                    <GridViewColumn Header="Applied"
+                                                                    Width="74">
+                                                        <!-- GridViewColumn.CellTemplate created in code -->
+                                                    </GridViewColumn>
                                                 </GridView.Columns>
                                             </GridView>
                                         </ListView.View>
@@ -1088,8 +1112,16 @@
 
                         <ctrl:FrostyDetachedTabControl Grid.Row="2"
                                                        x:Name="availableModsTabContent"
-                                                       Foreground="{StaticResource FontColor}"
-                                                       Grid.ColumnSpan="2" />
+                                                       Foreground="{StaticResource FontColor}" Margin="0,0,0,26" />
+                        <ctrl:FrostyWatermarkTextBox Grid.Row="3"
+                                                     x:Name="availableModsStatusBar"
+                                                     WatermarkText=""
+                                                     IsEnabled="False"
+                                                     BorderThickness="1"
+                                                     Margin="1,1,1,0"
+                                                     VerticalAlignment="Bottom"
+                                                     VerticalContentAlignment="Center"
+                                                     Background="{StaticResource ControlBackground}" />
                     </Grid>
                 </ctrl:FrostyDockablePanel>
 
