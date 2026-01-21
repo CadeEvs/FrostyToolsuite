@@ -1,4 +1,4 @@
-﻿using Frosty.Controls;
+using Frosty.Controls;
 using Frosty.Core;
 using Frosty.Core.Controls;
 using Frosty.Core.Windows;
@@ -7,6 +7,7 @@ using FrostySdk.Interfaces;
 using FrostySdk.IO;
 using FrostySdk.Managers;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -545,70 +546,98 @@ namespace LocalizedStringPlugin
         private void PART_ExportLogButton_Click(object sender, RoutedEventArgs e)
         {
             FrostySaveFileDialog sfd = new FrostySaveFileDialog("Save Localized Strings Usage List", "*.txt (Text File)|*.txt", "LocalizedStringsUsage");
-            if (sfd.ShowDialog())
+
+            if (!sfd.ShowDialog()) return;
+
+            FrostyTaskWindow.Show("Exporting Localized Strings Usage", "", (task) =>
             {
-                FrostyTaskWindow.Show("Exporting Localized Strings Usage", "", (task) =>
+                List<EbxAssetEntry> entries = App.AssetManager.EnumerateEbx().ToList();
+                int count = entries.Count;
+
+                HashSet<string> stringIdSet = new HashSet<string>(stringIds.Select(id => id.ToString("X").ToLower()));
+                Dictionary<string, StringBuilder> stringInfo = new Dictionary<string, StringBuilder>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (uint stringId in stringIds)
                 {
-                    uint totalCount = (uint)App.AssetManager.EnumerateEbx().ToList().Count;
-                    uint idx = 0;
-                    Dictionary<string, string> StringInfo = new Dictionary<string, string>();
-                    foreach (uint stringId in stringIds)
-                    {
-                        StringInfo.Add(stringId.ToString("X").ToLower(), stringId.ToString("X8") + ", \"" + db.GetString(stringId).Replace("\r", "").Replace("\n", " ") + "\"");
-                    }
-                    foreach (EbxAssetEntry refEntry in App.AssetManager.EnumerateEbx())
-                    {
-                        task.Update("Checking: " + refEntry.Name, (idx++ / (double)totalCount) * 100.0d);
-                        EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
-                        List<string> AlreadyDone = new List<string>();
-                        foreach (dynamic obj in refAsset.Objects)
-                        {
-                            if (HasProperty(obj, "StringHash"))
-                            {
-                                string TempString = obj.StringHash.ToString("X").ToLower();
-                                if (StringInfo.ContainsKey(TempString) & !AlreadyDone.Contains(TempString))
-                                {
-                                    AlreadyDone.Add(TempString);
-                                    StringInfo[TempString] = StringInfo[TempString] + "\n           -" + refEntry.Name;
-                                }
-                            }
-                            foreach (PropertyInfo pi in obj.GetType().GetProperties())
-                            {
-                                if (pi.PropertyType == typeof(CString))
-                                {
-                                    string TempString = HashStringId(pi.GetValue(obj)).ToString("X").ToLower();
-                                    if (StringInfo.ContainsKey(TempString) & !AlreadyDone.Contains(TempString))
-                                    {
-                                        AlreadyDone.Add(TempString);
-                                        StringInfo[TempString] = StringInfo[TempString] + "\n          -" + refEntry.Name;
-                                    }
-                                }
-                                else if (pi.PropertyType == typeof(List<CString>))
-                                {
-                                    foreach (CString cst in pi.GetValue(obj))
-                                    {
-                                        string TempString = HashStringId(cst).ToString("X").ToLower();
-                                        if (StringInfo.ContainsKey(TempString) & !AlreadyDone.Contains(TempString))
-                                        {
-                                            AlreadyDone.Add(TempString);
-                                            StringInfo[TempString] = StringInfo[TempString] + "\n          -" + refEntry.Name;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    string key = stringId.ToString("X").ToLower();
+                    string displayText = db.GetString(stringId) ?? string.Empty;
+                    stringInfo[key] = new StringBuilder($"{stringId:X8}, \"{displayText.Replace("\r", "").Replace("\n", " ")}\"");
+                }
 
-                    using (StreamWriter writer = new StreamWriter(sfd.FileName))
-                    {
-                        foreach (string StringData in StringInfo.Values)
-                        {
-                            writer.WriteLine(StringData);
-                        }
-                    }
-                });
+                for (int idx = 0; idx < count; idx++)
+                {
+                    EbxAssetEntry refEntry = entries[idx];
+                    task.Update($"Checking: {refEntry.Name}", (idx / (double)count) * 100.0);
 
-                App.Logger.Log("Localized strings usage saved to {0}", sfd.FileName);
+                    EbxAsset refAsset = App.AssetManager.GetEbx(refEntry);
+                    if (refAsset?.Objects == null) continue;
+
+                    HashSet<string> complete = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (object obj in refAsset.Objects)
+                        if (obj != null)
+                            ProcessObject(obj, refEntry.Name, stringInfo, complete);
+                }
+
+                using (StreamWriter writer = new StreamWriter(sfd.FileName))
+                    foreach (StringBuilder sb in stringInfo.Values)
+                        writer.WriteLine(sb.ToString());
+            });
+
+            App.Logger.Log("Localized strings usage saved to {0}", sfd.FileName);
+        }
+
+        private void ProcessObject(object obj, string assetName,
+            Dictionary<string, StringBuilder> stringInfo,
+            HashSet<string> alreadyDone)
+        {
+            Type type = obj.GetType();
+
+            PropertyInfo stringHashProp = type.GetProperty("StringHash");
+            if (stringHashProp != null)
+            {
+                object hashValue = stringHashProp.GetValue(obj);
+                if (hashValue is uint uintHash)
+                {
+                    string key = uintHash.ToString("X").ToLower();
+                    if (stringInfo.ContainsKey(key) && alreadyDone.Add(key))
+                        stringInfo[key].AppendLine().Append($"           -{assetName}");
+                }
+            }
+
+            foreach (PropertyInfo prop in type.GetProperties())
+            {
+                if (!prop.CanRead) continue;
+
+                if (prop.PropertyType == typeof(CString))
+                {
+                    string stringValue = ((CString)prop.GetValue(obj)).ToString();
+                    if (string.IsNullOrEmpty(stringValue)) continue;
+
+                    string key = HashStringId(stringValue).ToString("X").ToLower();
+                    if (stringInfo.ContainsKey(key) && alreadyDone.Add(key))
+                        stringInfo[key].AppendLine().Append($"          -{assetName}");
+
+                    continue;
+                }
+
+                if (prop.PropertyType != typeof(List<CString>)) continue;
+
+                object value = prop.GetValue(obj);
+                if (value == null) continue;
+
+                List<CString> cStringList = (List<CString>)value;
+                foreach (CString cString in cStringList)
+                {
+                    if (cString == null) continue;
+
+                    string stringValue = cString.ToString();
+                    if (string.IsNullOrEmpty(stringValue)) continue;
+
+                    string key = HashStringId(stringValue).ToString("X").ToLower();
+                    if (stringInfo.ContainsKey(key) && alreadyDone.Add(key))
+                        stringInfo[key].AppendLine().Append($"          -{assetName}");
+                }
             }
         }
     }
