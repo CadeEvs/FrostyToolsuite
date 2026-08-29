@@ -1,68 +1,94 @@
-Part:	Type and what					Byte position after this
+Part:    Type and what                   Byte position after this
 
 MetaData (16 bytes, located in Frosty at Resource.resMeta, not part of the byte count )
-	{
-		uint dataOffset
-		3x  byte value 0x0
-	}
+{
+    uint dataOffset
+    3x 4-byte values 00 00 00 00
+}
 Header
-	{
-		uint magic = 0xd78b40eb			(pos 4)
-		uint ???						(pos 8)			// doesn't seem to affect anything
-		uint dataOffset					(pos 12)		// not actually used, instead the one from the metadata is the base for the game
-		3x uint ???						(pos 24)		// doens't seem to affect anything
+{
+    uint magic = 0xd78b40eb             (pos 4)
+    uint unknown1                       (pos 8)         // doesn't seem to affect anything
+    uint dataOffset                     (pos 12)        // not actually used, instead the one from the metadata is the base for the game
+    
+    uint language & declinations marker (pos 16)
+        // Seems to be an (actually unused?) combination of language and the number of declination together with something else.
+        // 0x {Language Number, e.g., 0 for En, 1 for french --> see TypeExplorer: LanguageFormat, this seems to match}
+        // followed by a 0, three times
+        // Last number is 0x4 ( unclear what this means ) + number of declinations to use in this resource.
+        // Examples DAI basegame:
+        //   En globalmaster:              Language 0 + 1 specified declination  => 0x00005 (0x5)
+        //   French globaltranslated:      Language 1 + 8 specified declinations => 0x1000C
+        //   French globaltesttranslated:  Language 1 + 9 specified declinations => 0x1000D
+        //   Russian globaltranslated:     Language 6 + 6 specified declinations => 0x6000A
+    
+    
+    uint unknown2                       (pos 20)        // doens't seem to affect anything, has a limited number of variations, maybe a priority of sort? Seems consistent over resources per language, i.e., DA3 globalmaster/translated always has 0x44C
+    uint unknown3                       (pos 24)        // doens't seem to affect anything. Small number, can be 0, does not match size of anything ( 0 value exists together with strings and nodes )
 
-		uint nodeCount					(pos 28)
-		// nodeCount is an even integer! The rootNode as would-be last node in the node list is *not* actually part of the list!
-		
-		uint nodeOffset					(pos 32)
-		
-		uint stringsCount				(pos 36)
-		uint stringsOffset				(pos 40)
+    uint nodeCount                      (pos 28)
+        // the number of nodes in the huffman tree, this is an even integer! The rootNode as would-be last node in the node list is *not* actually part of the list!
 
-			// Until the nodeOffset is reached
-			// If there are three or more entries in here,
-			// then the corresponding 8ByteBlockData after the second one contain ids and bit offsets for the declinated adjectives for text parts used for crafted items in DA:I (Note that these ids are not the same accross languages!)
-		N times Unknown8ByteBlockCountAndOffset
-		{
-			uint unknownCounts
-			uint unknownOffset
-		}
-	}
-	
-	// Position = nodeOffset -> pos most likely either 56 or 64
+    uint nodeOffset                     (pos 32)
+
+    uint stringsCount                   (pos 36)
+    uint stringsOffset                  (pos 40)
+
+    // Until the nodeOffset is reached, at least 2 times.
+    // If No crafting adjectives and support is used, then the count is 0 and the offset is the same as dataoffset.
+    N times 8ByteBlockCountAndOffset
+    {
+        uint counts
+        uint offset
+    }
+}
+
+// Position = nodeOffset -> pos most likely either 56 or 64
 HuffmanCoding
-	{
-		nodeCount x uint value == bitFlip char
-	}
-							(size = 4 per node)
-	
-	// Position = stringsOffset
+{
+    nodeCount x uint value == bitFlip char
+}
+    (size = 4 per node)
+    
+// Position = stringsOffset
 StringData
-	{
-		stringsCount x
-		{
-			uint stringId
-			int stringIndex / positionOffset
-		}
-							(size = 8 per string)
-	}
-	
-	// Position = Unknown8ByteBlockCountAndOffset[0].unknownOffset
-	// The next data blocks appears the same N times as their Unknown8ByteBlockCountAndOffset counterpart in the header
-	// Everything past the second of these blocks contains the bit offsets of the text pieces used for crafted item names in DA:I
+{
+    stringsCount x
+    {
+        uint stringId
+        int stringIndex / positionOffset
+    }
+    // size = 8 per string
+    // These seem to generally ordered by ID origianlly. BUT for non english language IDs with offset in the 0x80000000 range exist! These contain text variants for female player characters. These are otherwise the same as the one without offset. and sorted with them.
+    // so: 0123, 80000123, 0124, 80000124, etc.
+}
+    
+// Position = 8ByteBlockCountAndOffset[0].offset
+// The next data blocks appears the same N times as their 8ByteBlockCountAndOffset counterpart in the header
+//
+// - The first block contains the text id of crafted weapons or parts as number, but shifted to the range of 0xA0000000. Example: ID 0x43FAA for "Haft" becomes 0xA0043FAA.
+//   After this ID, the second number links the item to the variation of adjective to use ( e.g., declination or conjugation or whaever ), these take the form of 0 ( for english )
+//   The variant numbers are take the form of 0 (no variations, english), 0x101,0x102,0x201,0x202,0x301,0x302 also with 0x10000 variants like 10101,10202 etc.
+//   This is likely linked to the LanguageDefinition... LocalizedLanguage Assets found under Systems/Localization in DAI and Systems/Bioware/Localization in MEA
+//
+// - The second block maps these variants to the block offset to search the ID in. This block offset is the number of count + offset tubles, including those for nodes and strings.
+//   That means that the lowest number is 4, counting update from there. For english, this means this contains a single tuple: 0 - 4, while for french it goes up to 0x102020 - xB
+//
+// - Everything past the second of these blocks contains the bit offsets of the text pieces used for crafted item names in DA:I.
+//   The first of this adjective id including blocks has the numbering 4 in the previous block. Adjective Ids are an int, 8 bytes long, apart from the highest hex position they are the same accross languages.
+//   I believe the first 4 bits indicate ( among others ) whether the adjective comes before or after the noun. Currently I know of the values 2, 4, C, E. It seems that 2 and 4 always prepend the noun, while C and E come after.
 N times 8ByteBlockData
-	{
-		// Position = Unknown8ByteBlockCountAndOffset[index].unknownOffset
-		byte[].Length = Unknown8ByteBlockCountAndOffset[index].unknownCounts * 8
-	}
-	
-	// Position = dataOffset
+{
+    // Position = 8ByteBlockCountAndOffset[index].offset
+    byte[].Length = 8ByteBlockCountAndOffset[index].counts * 8
+}
+
+// Position = dataOffset
 Strings
-	{
-		stringsCount * HuffmanEncodedChars
-	}
-	// stringIndex / positionOffset = bit offset from dataOffset == textBefore bitOffset + textBefore bitlentgh
-	// last symbol (only symbol of empty string) is huffman node with letter 0x00! I.e., _value_ = 0xFF
-	
-Remaining positions to full byte filled with 0s
+{
+    stringsCount + DAI adjectives as Huffman encoded chars. Might overlapp in game files!
+}
+    // stringIndex / positionOffset = bit offset from dataOffset == textBefore bitOffset + textBefore bitlentgh
+    // last symbol (only symbol of empty string) is huffman node with letter 0x00! I.e., _value_ = 0xFF
+    
+Remaining positions to next 4 byte position filled with 0s ( 4 byte allignment found out by Margolissa )

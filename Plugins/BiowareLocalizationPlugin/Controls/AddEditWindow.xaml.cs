@@ -106,32 +106,33 @@ namespace BiowareLocalizationPlugin.Controls
         {
             uint textId = ReadTextId();
 
-            if (textId != 0)
+            if (textId == 0)
             {
-
-                // TODO move all this text handling into a dedicated handler or something.
-                // This is currently all over the place >_<
-
-                m_stringDb.RemoveText(m_selectedLanguageFormat, m_removedResources, textId);
-
-                List<string> resources = new List<string>();
-                foreach (string resourceName in defaultResourcesListBox.Items)
-                {
-                    resources.Add(resourceName);
-                }
-                foreach (string resourceName in addedResourcesListBox.Items)
-                {
-                    resources.Add(resourceName);
-                }
-
-                string text = localizedTextBox.Text;
-                m_stringDb.SetText(m_selectedLanguageFormat, resources, textId, text);
-
-                SaveValue = Tuple.Create(textId, text);
-
-                DialogResult = true;
-                Close();
+                return;
             }
+
+            // TODO move all this text handling into a dedicated handler or something.
+            // This is currently all over the place >_<
+
+            m_stringDb.RemoveText(m_selectedLanguageFormat, m_removedResources, textId);
+
+            List<string> resources = new List<string>();
+            foreach (string resourceName in defaultResourcesListBox.Items)
+            {
+                resources.Add(resourceName);
+            }
+            foreach (string resourceName in addedResourcesListBox.Items)
+            {
+                resources.Add(resourceName);
+            }
+
+            string text = localizedTextBox.Text;
+            m_stringDb.SetText(m_selectedLanguageFormat, resources, textId, text);
+
+            SaveValue = Tuple.Create(textId, text);
+
+            DialogResult = true;
+            Close();
         }
 
         /// <summary>

@@ -26,7 +26,24 @@ namespace BiowareLocalizationPlugin.Controls
         public void Init(string languageFormat, uint textId, BiowareLocalizedStringDatabase localizedStringsDb)
         {
 
-            Title = "TextInfo: " + textId.ToString("X8") + " -  " + localizedStringsDb.GetString(textId);
+            string fulltext = localizedStringsDb.GetString(textId);
+
+            // there is a crash when trying to display a too long text in the title
+            string displayTextPart = fulltext;
+
+            int defaultStopIndex = 30;
+            int stopIndex = fulltext.IndexOf('\n');
+            if (stopIndex < 0 || stopIndex > defaultStopIndex)
+            {
+                stopIndex = defaultStopIndex;
+            }
+
+            if (stopIndex < fulltext.Length - 1)
+            {
+                displayTextPart = fulltext.Substring(0, stopIndex) + "...";
+            }
+
+            Title = "TextInfo: " + textId.ToString("X8") + " -  " + displayTextPart;
 
             IEnumerable<LocalizedStringResource> localizedResources = localizedStringsDb.GetAllLocalizedStringResourcesForTextId(languageFormat, textId);
 

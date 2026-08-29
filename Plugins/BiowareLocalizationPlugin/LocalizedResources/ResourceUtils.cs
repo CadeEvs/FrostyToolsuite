@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BiowareLocalizationPlugin.LocalizedResources
 {
@@ -27,7 +28,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <returns></returns>
         public static ResourceHeader ReadHeader(NativeReader reader)
         {
-                 
+
             uint magic = reader.ReadUInt();
             if (magic != ResourceHeader.Magic)
                 throw new InvalidDataException();
@@ -36,22 +37,19 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             {
                 Unknown1 = reader.ReadUInt(),
                 DataOffset = reader.ReadUInt(),
+                LanguageAndDeclinationsMarker = reader.ReadUInt(),
                 Unknown2 = reader.ReadUInt(),
                 Unknown3 = reader.ReadUInt(),
-                Unknown4 = reader.ReadUInt(),
 
                 NodeCount = reader.ReadUInt(),
                 NodeOffset = reader.ReadUInt(),
 
                 StringsCount = reader.ReadUInt(),
-                StringsOffset = reader.ReadUInt()
-            };
+                StringsOffset = reader.ReadUInt(),
 
-            // this block's first offset is the position after the stringId and positions are parsed, subsequent offsets (and the dataoffset) are 8 bytes * count further than the last
-            for(int i = 0; i<2 && reader.Position < header.NodeOffset; i++)
-            {
-                header.FirstUnknownDataDefSegments.Add(ReadCountAndOffset(reader));
-            }
+                ItemNameSetupCountsAndOffsets = ReadCountAndOffset(reader),
+                AdjectiveDeclinationsCountsAndOffsets = ReadCountAndOffset(reader),
+            };
 
             // The remainder until the node offset is reached is filled by ids and positions of declinated articles for dragon age crafting.
             while (reader.Position < header.NodeOffset)
@@ -73,9 +71,25 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             return somePointer;
         }
 
-        public static byte[] ReadUnkownSegment(NativeReader reader, DataCountAndOffsets countAndOffset)
+        /// <summary>
+        /// Reads dictionary entries from the given count and offset.
+        /// </summary>
+        /// <param name="reader">the reader</param>
+        /// <param name="countAndOffset">the data holding count and offset</param>
+        /// <returns></returns>
+        public static IDictionary<uint, uint> ReadDictionary(NativeReader reader, DataCountAndOffsets countAndOffset)
         {
-            return reader.ReadBytes(((int)countAndOffset.Count) * 8);
+            IDictionary<uint, uint> dictionary = new Dictionary<uint, uint>();
+
+            for (int i = 0; i < countAndOffset.Count; i++)
+            {
+                uint key = reader.ReadUInt();
+                uint value = reader.ReadUInt();
+
+                dictionary[key] = value;
+            }
+
+            return dictionary;
         }
 
         /// <summary>
@@ -149,8 +163,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     leafCharacters.Add(node.Letter);
                 }
             }
-
             leafCharacters.Sort();
+
             return leafCharacters;
         }
 
@@ -166,7 +180,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             List<HuffmanNode> nodesSansRoot = new List<HuffmanNode>();
 
-            if(rootNode == null)
+            if (rootNode == null)
             {
                 App.Logger.Log("Given Root Node was null!");
                 return nodesSansRoot;
@@ -217,18 +231,18 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             if (rootNode == null)
             {
-                App.Logger.Log("Given root node was null!");
+                App.Logger.LogError("Given root node was null!");
                 return nodesSansRoot;
             }
 
             // get all branches
-            List<HuffmanNode> branches = GetAllBranchNodes( new List<HuffmanNode>() { rootNode });
+            List<HuffmanNode> branches = GetAllBranchNodes(new List<HuffmanNode>() { rootNode });
 
             // sort branches by their value, so that the write out can happen in the correct order
             branches.Sort();
 
             // add all the children in the order of their parent's value
-            foreach(HuffmanNode branch in branches)
+            foreach (HuffmanNode branch in branches)
             {
                 nodesSansRoot.Add(branch.Left);
                 nodesSansRoot.Add(branch.Right);
@@ -240,14 +254,14 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         private static List<HuffmanNode> GetAllBranchNodes(List<HuffmanNode> currentNodes)
         {
             List<HuffmanNode> branchNodes = new List<HuffmanNode>();
-            
-            foreach(HuffmanNode currentNode in currentNodes)
+
+            foreach (HuffmanNode currentNode in currentNodes)
             {
-                if(currentNode.Left != null && currentNode.Right != null)
+                if (currentNode.Left != null && currentNode.Right != null)
                 {
                     branchNodes.Add(currentNode);
                     branchNodes.AddRange(
-                        GetAllBranchNodes( new List<HuffmanNode>() { currentNode.Left, currentNode.Right }));
+                        GetAllBranchNodes(new List<HuffmanNode>() { currentNode.Left, currentNode.Right }));
                 }
             }
 
@@ -282,7 +296,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// </summary>
         /// <param name="node">The node for which to find the encoding.</param>
         /// <returns>the encoding as list of bools.</returns>
-        private static List<bool> GetCharEncoding(HuffmanNode node)
+        public static List<bool> GetCharEncoding(HuffmanNode node)
         {
             HuffmanNode parent = node.Parent;
             if (parent == null)
@@ -290,25 +304,46 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 return new List<bool>();
             }
 
+            if (node.GetType() == typeof(HuffManConstructionNode))
+            {
+                return ((HuffManConstructionNode)node).GetNodeEncoding();
+            }
+
             List<bool> encoding = GetCharEncoding(parent);
 
-            if (node == parent.Left)
+            encoding.Add(GetBoolValueFromParent(node));
+
+            return encoding;
+        }
+
+        /// <summary>
+        /// Returns the bool value for the huffman encoding based on the parents node. Requires that the parent exists!
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
+        public static bool GetBoolValueFromParent(HuffmanNode node)
+        {
+            // if we really messed up, then all of these could be null
+            HuffmanNode parent = node.Parent;
+            HuffmanNode left = parent?.Left;
+            HuffmanNode right = parent?.Right;
+
+            if (node == left)
             {
-                encoding.Add(false);
+                return false;
             }
-            else if (node == parent.Right)
+            else if (node == right)
             {
-                encoding.Add(true);
+                return true;
             }
             else
             {
                 throw new InvalidOperationException(
                     string.Format(
-                        "Trying to find encoding for node <{0}> failed to to incorrect setup tree!",
+                        "Trying to find encoding for node <{0}> failed due to incorrect tree setup!",
                         node.ToString()));
             }
-
-            return encoding;
         }
 
         /// <summary>
@@ -336,12 +371,12 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         }
 
         /// <summary>
-        /// Sets the given texts position to the given start position, returning the posiiton offset for the next textblock.
+        /// Sets the given texts position to the given start position, returning the position offset for the next textblock.
         /// </summary>
         /// <param name="startPosition"></param>
         /// <param name="textBlock"></param>
         /// <returns>the position after the given text has been written.</returns>
-        public static int UpdateTextAndGetNextTextPosition(int startPosition, EncodedTextPosition textBlock)
+        private static int UpdateTextAndGetNextTextPosition(int startPosition, EncodedTextPosition textBlock)
         {
             int nextPosition = startPosition;
             if (textBlock.Position < 0)
@@ -351,6 +386,137 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             }
 
             return nextPosition;
+        }
+
+        // Simple naive attempt at finding bit overlaps for texts.
+        // this is probably now working out well or at all.
+        private static void FindTextPositionWithOverlapp(EncodedTextPosition textBlockToInsert, List<bool> CurrentListOfTextsBits)
+        {
+            List<bool> encodedTextBits = textBlockToInsert.EncodedText.Value;
+
+            // the list must include at least the char sequence for the delimiter, so it is never empty
+            int currentTextBitsCount = CurrentListOfTextsBits.Count;
+            ParallelLoopResult offsetResult = Parallel.For(0, currentTextBitsCount, (int offset, ParallelLoopState state) =>
+            {
+                bool foundworkingOffset = GetBitOffset(CurrentListOfTextsBits, offset, encodedTextBits);
+                if (foundworkingOffset)
+                {
+                    state.Break();
+                }
+            });
+
+            List<bool> bitsToInsert = encodedTextBits;
+            bool foundPosition = offsetResult.LowestBreakIteration.HasValue;
+            int foundOffset = currentTextBitsCount;
+            if (foundPosition)
+            {
+                // this means we  found something int he loop
+                foundOffset = ((int)offsetResult.LowestBreakIteration.Value);
+
+                int numberOfMissingBitsToAppend = foundOffset + encodedTextBits.Count - currentTextBitsCount;
+                if (numberOfMissingBitsToAppend > 0)
+                {
+                    bitsToInsert = encodedTextBits.GetRange(encodedTextBits.Count - numberOfMissingBitsToAppend, numberOfMissingBitsToAppend);
+                }
+                else
+                {
+                    bitsToInsert = new List<bool>();
+                }
+            }
+
+            textBlockToInsert.Position = foundOffset;
+            CurrentListOfTextsBits.AddRange(bitsToInsert);
+        }
+
+        private static bool GetBitOffset(List<bool> currentListOfTextsBits, int offset, List<bool> bitsToInsert)
+        {
+            bool match = false;
+            // i don't like this nested loop inside another loop with break calls nested, but i don't see a better way right now at 3:30 am :(
+            for (int testBitAt = 0; testBitAt < bitsToInsert.Count; testBitAt++)
+            {
+                // offset + testbit beyond current list of bits -> ? abort, update and return depending on previous match
+                // bit does not match -> go to next offset / break
+                // bit matches:
+                //      - before end: go check next bit
+                //      - at end/all bits match -> update and return from method
+                //      - all bits match until end of currentlist.. -> update and return from method
+
+                if (offset + testBitAt >= currentListOfTextsBits.Count)
+                {
+                    // if matched so far -> update partial, use offset and return, else retry from next offset
+                    return match;
+                }
+
+                if (bitsToInsert[testBitAt] != currentListOfTextsBits[offset + testBitAt])
+                {
+                    // start again from next offset.
+                    return false;
+                }
+
+                // else last one did match!
+                match = true;
+                if (testBitAt == bitsToInsert.Count - 1)
+                {
+                    // all the bits match!
+                    return match;
+                }
+
+                // we we have a partial match - we already handled going past the current list size, so just do nothing and check the next testBit!
+            }
+            return match;
+        }
+
+        private static byte[] getTextSizedOrderedByteArrayWithOverlap(Dictionary<string, EncodedText> dictionaryOfEncodedTexts, Dictionary<EncodedText, EncodedTextPosition> uniqueTextPositions)
+        {
+
+            // this is some bullshit variant, just for test
+            // it doesnt even work properly...
+
+            IComparer<string> stringLenghtCompare = Comparer<string>.Create(
+                (a, b) =>
+                {
+                    int lc = b.Length.CompareTo(a.Length); // reverse
+                    if (lc != 0) return lc;
+                    return a.CompareTo(b);
+                }); // wtf is this?
+            SortedDictionary<string, EncodedText> sortedStringDict = new SortedDictionary<string, EncodedText>(dictionaryOfEncodedTexts, stringLenghtCompare);
+
+            List<bool> encodedTextBits = new List<bool>();
+            List<string> alreadyUsedStrings = new List<string>();
+            foreach (var entry in sortedStringDict)
+            {
+                string stringToAdd = entry.Key;
+                EncodedText currentText = entry.Value;
+                EncodedTextPosition currentTextPositionData = uniqueTextPositions[currentText];
+
+                // parallel attempt
+                Parallel.ForEach(alreadyUsedStrings,
+                    (string alreadyUsedString, ParallelLoopState state) =>
+                    {
+                        if (alreadyUsedString.EndsWith(stringToAdd))
+                        {
+                            EncodedText longerEncodedString = dictionaryOfEncodedTexts[alreadyUsedString];
+                            int bitOffset = longerEncodedString.GetLength() - currentText.GetLength(); // this should work, right?!
+
+                            int longerEncodedStringPosition = uniqueTextPositions[longerEncodedString].Position;
+
+                            currentTextPositionData.Position = longerEncodedStringPosition + bitOffset;
+
+                            state.Break();
+                        }
+                    }
+                );
+
+                // not found:
+                if (currentTextPositionData.Position < 0)
+                {
+                    currentTextPositionData.Position = encodedTextBits.Count;
+                    encodedTextBits.AddRange(currentTextPositionData.EncodedText.Value);
+                }
+
+                alreadyUsedStrings.Add(stringToAdd);
+            }
+            return GetByteArrayFromBitList(encodedTextBits);
         }
 
         /// <summary>
@@ -367,24 +533,46 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 allBits.AddRange(textEntry.EncodedText.Value);
             }
 
-            int byteSize = allBits.Count / 8 + 1;
-            BitArray ba = new BitArray(allBits.ToArray());
+            return GetByteArrayFromBitList(allBits);
+        }
+
+        /// <summary>
+        /// Returns a byte array from the bit list
+        /// </summary>
+        /// <param name="bitList"></param>
+        private static byte[] GetByteArrayFromBitList(List<bool> bitList)
+        {
+
+            // Bytesize needs to be multiples of 4 bytes long!
+            int byteSize = (bitList.Count + 7) / 8;
+
+            // next 4 bytesize alingment -> + 3 to get to or over the next 4 byte thershold, then null out the last 2 bits / ( dec 3 ) for the actual size.
+            byteSize = (byteSize + 3) & ~3;
+
+            BitArray ba = new BitArray(bitList.ToArray());
 
             byte[] byteArray = new byte[byteSize];
             ba.CopyTo(byteArray, 0);
+
+
             return byteArray;
         }
 
         /// <summary>
         /// Checks whether the strings to check include only characters that are included in the given supported char list.
+        /// Assumes that the given list of characters is ordered numerically.
         /// </summary>
         /// <param name="stringsToCheck"></param>
-        /// <param name="allSupportedCharacters"></param>
+        /// <param name="allSupportedCharacters">The list of chars supported by the encoding, ordered by their numeric value</param>
+        /// <param name="firstMiss">if this returns false, then this character is the first one found missing in the list of supported characters</param>
         /// <returns>true if all string characters are included in the supported char list</returns>
-        public static bool IncludesOnlySupportedCharacters(IEnumerable<string> stringsToCheck, List<char> allSupportedCharacters)
+        public static bool IncludesOnlySupportedCharacters(IEnumerable<string> stringsToCheck, List<char> allSupportedCharacters, out char firstMiss)
         {
+            firstMiss = (char)0;
+            bool printVerificationTexts = Config.Get(BiowareLocalizationPluginOptions.PRINT_VERIFICATION_TEXTS, false, ConfigScope.Game);
+
             HashSet<char> allCharsToCheck = new HashSet<char>();
-            foreach(string stringToCheck in stringsToCheck)
+            foreach (string stringToCheck in stringsToCheck)
             {
                 allCharsToCheck.UnionWith(stringToCheck.AsEnumerable());
             }
@@ -392,27 +580,51 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             // the list of supported characters must be sorted in ascending order for this to work
             // the getLeaf chars method herein does this now per default
 
-            foreach(char toCheck in allCharsToCheck)
+            foreach (char toCheck in allCharsToCheck)
             {
-                foreach(char supported in allSupportedCharacters)
+                if (!IsCharInOrderedListOfChars(toCheck, allSupportedCharacters, printVerificationTexts))
                 {
-                    if(supported == toCheck)
-                    {
-                        // found it, no need to search further
-                        break;
-                    }
-                    else if(supported > toCheck)
-                    {
-                        // already past the point where it should have been found
-                        return false;
-                    }
+                    firstMiss = toCheck;
+                    return false;
                 }
-                // char not found in supported chars
-                return false;
             }
 
             // all chars found
             return true;
+        }
+
+        private static bool IsCharInOrderedListOfChars(char toCheck, List<char> allSupportedCharacters, bool printVerificationText)
+        {
+            foreach (char supported in allSupportedCharacters)
+            {
+                if (supported == toCheck)
+                {
+                    // found it, no need to search further
+                    return true;
+                }
+                if (supported > toCheck)
+                {
+                    // already past the point where it should have been found
+                    if (printVerificationText)
+                    {
+                        LogMissingCharacterWarning(toCheck, string.Format("before reaching char <{0} / u{1}>", supported, (int)supported), allSupportedCharacters);
+                    }
+                    return false;
+                }
+            }
+            // char not found in supported chars
+            if (printVerificationText)
+            {
+                LogMissingCharacterWarning(toCheck, "in all the supported characters", allSupportedCharacters);
+            }
+            return false;
+        }
+
+        private static void LogMissingCharacterWarning(char missingChar, String intermediateMessage, List<char> supportedChars)
+        {
+            App.Logger.LogWarning("Did not find char <{0} / u{1}> {2}", missingChar, (int)missingChar, intermediateMessage);
+            App.Logger.LogWarning("List of supported chars: [{0}]", String.Join(", ", supportedChars.Select(c => c.ToString()).ToArray()));
+            App.Logger.LogWarning("List of supported chars values: [{0}]", String.Join(", ", supportedChars.Select(c => ((int)c).ToString()).ToArray()));
         }
 
         /// <summary>
@@ -425,11 +637,11 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             // get set of chars and their number of occurences...
             Dictionary<char, int> charNumbers = new Dictionary<char, int>();
-            foreach(string text in texts)
+            foreach (string text in texts)
             {
-                foreach(char c in text)
+                foreach (char c in text)
                 {
-                    if( charNumbers.TryGetValue(c, out int occurences))
+                    if (charNumbers.TryGetValue(c, out int occurences))
                     {
                         charNumbers[c] = ++occurences;
                     }
@@ -445,13 +657,14 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             charNumbers[delimiter] = texts.Count();
 
             List<HuffManConstructionNode> nodeList = new List<HuffManConstructionNode>();
-            foreach(var entry in charNumbers)
+            foreach (var entry in charNumbers)
             {
-                nodeList.Add( new HuffManConstructionNode()
-                    {
-                        Value = ~(uint)entry.Key,
-                        Occurences = entry.Value
-                    });
+                char c = entry.Key;
+                nodeList.Add(new HuffManConstructionNode()
+                {
+                    Value = ~(uint)c,
+                    Occurences = entry.Value
+                });
             }
 
             uint nodeValue = 0;
@@ -465,7 +678,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
                 nodeList.RemoveRange(0, 2);
 
-                HuffManConstructionNode composite = new HuffManConstructionNode() {
+                HuffManConstructionNode composite = new HuffManConstructionNode()
+                {
                     Value = nodeValue++,
                 };
                 composite.SetLeftNode(left);
@@ -504,23 +718,222 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 encodedDeclinatedArticleTexts.Add(encodedTexts);
             }
 
-            // Calculate the actual bit offsets for the texts
-            int currentTextPosition = 0;
-            foreach (EncodedTextPosition textPosition in uniqueTextPositions.Values)
-            {
-                currentTextPosition = ResourceUtils.UpdateTextAndGetNextTextPosition(currentTextPosition, textPosition);
-            }
+            byte[] textBytes = UpdatePositionsAndCreateTextBytes(dictionaryOfEncodedTexts, uniqueTextPositions);
 
-            SortedDictionary<uint, EncodedTextPosition> primaryTextsSortedById = MapEncodedTextPositionById(encodedPrimaryTexts, uniqueTextPositions);
+            ///* enable this for testing and debugging */
+            //ResourceTestUtils.VerifyTextPositions(uniqueTextPositions.Values);
 
-            List<SortedDictionary<uint, EncodedTextPosition>> encodedDeclinatedArticleTextsById = new List<SortedDictionary<uint, EncodedTextPosition>>();
-            foreach(var idMappedText in encodedDeclinatedArticleTexts)
+            SortedDictionary<TextID, EncodedTextPosition> primaryTextsSortedById = MapEncodedTextPositionById(encodedPrimaryTexts, uniqueTextPositions);
+
+            List<SortedDictionary<TextID, EncodedTextPosition>> encodedDeclinatedArticleTextsById = new List<SortedDictionary<TextID, EncodedTextPosition>>();
+            foreach (var idMappedText in encodedDeclinatedArticleTexts)
             {
-                SortedDictionary<uint, EncodedTextPosition> encodedTextsById = MapEncodedTextPositionById(idMappedText, uniqueTextPositions);
+                SortedDictionary<TextID, EncodedTextPosition> encodedTextsById = MapEncodedTextPositionById(idMappedText, uniqueTextPositions);
                 encodedDeclinatedArticleTextsById.Add(encodedTextsById);
             }
 
-            return new EncodedTextPositionGrouping(primaryTextsSortedById, encodedDeclinatedArticleTextsById, new SortedSet<EncodedTextPosition>(uniqueTextPositions.Values));
+            return new EncodedTextPositionGrouping(primaryTextsSortedById, encodedDeclinatedArticleTextsById, textBytes);
+        }
+
+        public static EncodedTextPositionGrouping GetEncodedTextsWhileReusingStringData(
+            List<HuffmanNode> huffmanNodeList,
+            List<LocalizedStringWithId> primaryExistingTexts,
+            DragonAgeDeclinatedAdjectiveTuples dragonAgeDeclinatedAdjectives,
+            ModifiedLocalizationResource alterations,
+            byte[] originalData
+            )
+        {
+
+            Dictionary<char, List<bool>> encoding = ResourceUtils.GetCharEncoding(huffmanNodeList);
+
+            // first get the default entries
+
+            SortedDictionary<TextID, EncodedTextPosition> primaryTextIdsAndPositions = new SortedDictionary<TextID, EncodedTextPosition>();
+            foreach (var entry in primaryExistingTexts)
+            {
+                primaryTextIdsAndPositions[new TextID(entry.Id)] = FromLocalizedTextPosition(entry, encoding);
+            }
+
+            List<SortedDictionary<TextID, EncodedTextPosition>> declinatedAdjectivesIdsAndPositions = new List<SortedDictionary<TextID, EncodedTextPosition>>();
+            for (int i = 0; i < dragonAgeDeclinatedAdjectives.NumberOfDeclinations; i++)
+            {
+                SortedDictionary<TextID, EncodedTextPosition> adjectiveIdsAndPositionsOfDeclination = new SortedDictionary<TextID, EncodedTextPosition>();
+                declinatedAdjectivesIdsAndPositions.Add(adjectiveIdsAndPositionsOfDeclination);
+                foreach (var entry in dragonAgeDeclinatedAdjectives.GetAdjectivesOfDeclination(i))
+                {
+                    adjectiveIdsAndPositionsOfDeclination[new TextID(entry.Id)] = FromLocalizedTextPosition(entry, encoding);
+                }
+            }
+
+            // now add in the modifications...
+            List<SortedDictionary<uint, string>> allEditsGroupedTextsById = new List<SortedDictionary<uint, string>>();
+            allEditsGroupedTextsById.Add(new SortedDictionary<uint, string>(alterations.AlteredTexts));
+
+            if (alterations.AlteredDeclinatedCraftingAdjectives.Count > 0)
+            {
+                // assume that only the specified number of declinations exists...
+                for (int i = 0; i < dragonAgeDeclinatedAdjectives.NumberOfDeclinations; i++)
+                {
+                    allEditsGroupedTextsById.Add(new SortedDictionary<uint, string>());
+                }
+
+                // add the actual entries
+                foreach (var alteredDeclination in alterations.AlteredDeclinatedCraftingAdjectives)
+                {
+                    uint id = alteredDeclination.Key;
+                    List<string> declinations = alteredDeclination.Value;
+
+                    for (int declinationNumber = 0; declinationNumber < declinations.Count; declinationNumber++)
+                    {
+                        string declination = declinations[declinationNumber];
+                        SortedDictionary<uint, string> declinationsTexts = allEditsGroupedTextsById[declinationNumber + 1];
+                        declinationsTexts[id] = declination;
+                    }
+                }
+            }
+
+            EncodedTextPositionGrouping onlyEdits = GetEncodedTextsToWrite(allEditsGroupedTextsById, encoding);
+
+            int offset = originalData.Length * 8;
+
+            foreach (var entry in onlyEdits.PrimaryTextIdsAndPositions)
+            {
+                TextID id = entry.Key;
+                EncodedTextPosition textPosition = entry.Value;
+                textPosition.Position = textPosition.Position + offset;
+
+                primaryTextIdsAndPositions[id] = textPosition;
+            }
+
+            byte[] stringBytesToWrite = new byte[originalData.Length + onlyEdits.TextBytes.Length];
+
+            Array.Copy(originalData, 0, stringBytesToWrite, 0, originalData.Length);
+            Array.Copy(onlyEdits.TextBytes, 0, stringBytesToWrite, originalData.Length, onlyEdits.TextBytes.Length);
+
+            return new EncodedTextPositionGrouping(primaryTextIdsAndPositions, declinatedAdjectivesIdsAndPositions, stringBytesToWrite);
+        }
+
+        /// <summary>
+        /// Creates a new EncodedTextPosition entry for the given LocalizedString entry
+        /// </summary>
+        /// <param name="aLocalizedString"></param>
+        /// <param name="encoding"></param>
+        /// <returns>EncodedTextPosition</returns>
+        private static EncodedTextPosition FromLocalizedTextPosition(LocalizedString aLocalizedString, Dictionary<char, List<bool>> encoding)
+        {
+            EncodedText et = new EncodedText(GetEncodedText(aLocalizedString.Value, encoding));
+            return new EncodedTextPosition(et)
+            {
+                Position = aLocalizedString.DefaultPosition
+            };
+        }
+
+
+        /// <summary>
+        /// Different variants how to generate the bit array for the given data.
+        /// </summary>
+        private enum WriteVariant
+        {
+            /// <summary>
+            /// Default - take the bits as they come and append to the end of the bit list. Fastest, but largest generated resource size.
+            /// </summary>
+            DEFAULT,
+
+            /// <summary>
+            /// Try to find the bit overlap by checking each bit. _Extremely_ slow, very taxing on hardware, but smallest created resource size.
+            /// </summary>
+            BIT_OVERLAP,
+
+            /// <summary>
+            /// Try to find a bit overlap by finding previous texts that end with the current text. Very slow, slightly smaller resource size than default.
+            /// </summary>
+            STRING_OVERLAP,
+
+            /// <summary>
+            /// Same as default, but it first writes smaller encoded texts and the largest last. Slightly slower than default, same largest generated resource size.
+            /// </summary>
+            BIT_LENGHT_ORDERED_DEFAULT
+        };
+
+        // none of the variants make a difference w.r.t. disappearing texts, just use the fastest one.
+        private static readonly WriteVariant writeVariant = WriteVariant.DEFAULT;
+        private static byte[] UpdatePositionsAndCreateTextBytes(Dictionary<string, EncodedText> dictionaryOfEncodedTexts, Dictionary<EncodedText, EncodedTextPosition> uniqueTextPositions)
+        {
+
+            byte[] textBytes;
+            switch (writeVariant)
+            {
+
+                case WriteVariant.DEFAULT:
+                    // Calculate the actual bit offsets for the texts
+                    int currentTextPosition = 0;
+                    IEnumerable<EncodedTextPosition> allEncodedTextPositions = uniqueTextPositions.Values;
+                    foreach (EncodedTextPosition textPosition in allEncodedTextPositions)
+                    {
+                        currentTextPosition = UpdateTextAndGetNextTextPosition(currentTextPosition, textPosition);
+                    }
+                    // this sorted set can only be created after the positions are set!
+                    var uniqueTextsWithPosition = new SortedSet<EncodedTextPosition>(allEncodedTextPositions);
+                    textBytes = GetTextRepresentationToWrite(uniqueTextsWithPosition);
+                    break;
+
+                case WriteVariant.BIT_OVERLAP:
+                    App.Logger.LogWarning("Using experimantal extremely slow bitwise overlap comparison method for writing byte array!");
+
+                    List<EncodedTextPosition> textsSortedByEncodedLength = uniqueTextPositions.Values.ToList();
+
+                    textsSortedByEncodedLength.Sort((a, b) =>
+                    {
+                        int lengthCompare = b.EncodedText.GetLength().CompareTo(a.EncodedText.GetLength());
+                        if (lengthCompare != 0) return lengthCompare;
+                        return a.GetHashCode().CompareTo(b.GetHashCode());
+                    });
+
+                    List<bool> textBits = new List<bool>();
+                    foreach (EncodedTextPosition textPosition in textsSortedByEncodedLength)
+                    {
+                        FindTextPositionWithOverlapp(textPosition, textBits);
+                    }
+                    textBytes = GetByteArrayFromBitList(textBits);
+                    break;
+
+                case WriteVariant.STRING_OVERLAP:
+                    App.Logger.LogWarning("Using experimantal very slow method for String comparison overerlaping byte array!");
+                    textBytes = getTextSizedOrderedByteArrayWithOverlap(dictionaryOfEncodedTexts, uniqueTextPositions);
+                    break;
+
+                case WriteVariant.BIT_LENGHT_ORDERED_DEFAULT:
+                    // Calculate the actual bit offsets for the texts
+                    currentTextPosition = 0;
+
+                    List<EncodedTextPosition> allEncodedTextPositionsSortedByLength = uniqueTextPositions.Values.ToList();
+                    allEncodedTextPositionsSortedByLength.Sort((a, b) =>
+                    {
+                        // this looks the same as in the bit comparison case, but is reverse ordered
+                        int lengthCompare = a.EncodedText.GetLength().CompareTo(b.EncodedText.GetLength());
+                        if (lengthCompare != 0) return lengthCompare;
+                        return a.GetHashCode().CompareTo(b.GetHashCode());
+                    });
+
+                    foreach (EncodedTextPosition textPosition in allEncodedTextPositionsSortedByLength)
+                    {
+                        currentTextPosition = UpdateTextAndGetNextTextPosition(currentTextPosition, textPosition);
+                    }
+                    // this sorted set can only be created after the positions are set!
+                    uniqueTextsWithPosition = new SortedSet<EncodedTextPosition>(allEncodedTextPositionsSortedByLength);
+                    textBytes = GetTextRepresentationToWrite(uniqueTextsWithPosition);
+                    break;
+
+                default:
+                    throw new ArgumentException("Invalid textwrite variant selected!");
+            }
+
+            if (Config.Get(BiowareLocalizationPluginOptions.PRINT_VERIFICATION_TEXTS, false, ConfigScope.Game))
+            {
+                App.Logger.Log("Using Variant <{0}> the encoded text size was <{1}> bytes", writeVariant, textBytes.Length);
+            }
+
+            return textBytes;
         }
 
         /// <summary>
@@ -541,6 +954,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             foreach (KeyValuePair<uint, string> entry in textsById)
             {
                 string text = entry.Value;
+
                 bool encodedTextExists = dictionaryOfEncodedTexts.TryGetValue(text, out EncodedText encodedText);
                 if (!encodedTextExists)
                 {
@@ -548,6 +962,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     // so we reduce the set of encodedTextPositions here a bit while keeping a link to the text id via the encodedText itself
                     // The original resource is compressed even further, with different texts being stored as overlapping sequences of the same bits
                     encodedText = new EncodedText(ResourceUtils.GetEncodedText(text, characterEncoding));
+                    dictionaryOfEncodedTexts[text] = encodedText;
                     uniqueTextPositions[encodedText] = new EncodedTextPosition(encodedText);
                 }
                 encodedTexts[entry.Key] = encodedText;
@@ -562,14 +977,15 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <param name="encodedTexts"></param>
         /// <param name="uniqueTextPositions"></param>
         /// <returns></returns>
-        private static SortedDictionary<uint, EncodedTextPosition> MapEncodedTextPositionById (
+        private static SortedDictionary<TextID, EncodedTextPosition> MapEncodedTextPositionById(
             IDictionary<uint, EncodedText> encodedTexts,
-            IDictionary<EncodedText, EncodedTextPosition> uniqueTextPositions )
+            IDictionary<EncodedText, EncodedTextPosition> uniqueTextPositions)
         {
-            SortedDictionary<uint, EncodedTextPosition> textsSortedById = new SortedDictionary<uint, EncodedTextPosition>();
+            SortedDictionary<TextID, EncodedTextPosition> textsSortedById = new SortedDictionary<TextID, EncodedTextPosition>();
             foreach (KeyValuePair<uint, EncodedText> entry in encodedTexts)
             {
-                textsSortedById.Add(entry.Key, uniqueTextPositions[entry.Value]);
+                TextID id = new TextID(entry.Key);
+                textsSortedById.Add(id, uniqueTextPositions[entry.Value]);
             }
 
             return textsSortedById;
@@ -581,7 +997,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// </summary>
         /// <param name="textEntriesToWrite"></param>
         /// <returns></returns>
-        public static byte[] ConvertTextEntriesToBytes(Dictionary<uint,string> textEntriesToWrite)
+        public static byte[] ConvertTextEntriesToBytes(Dictionary<uint, string> textEntriesToWrite)
         {
 
             using (MemoryStream outputStream = new MemoryStream())
@@ -621,7 +1037,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                         writer.Write(textEntry.Key);
                         writer.Write(declinationsList.Count);
 
-                        foreach(string declination in declinationsList)
+                        foreach (string declination in declinationsList)
                         {
                             writer.Write(declination);
                         }
@@ -639,7 +1055,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <returns>The parsed text</returns>
         private static string ConvertBytesToString(byte[] parseable)
         {
-            using(BinaryReader reader = new BinaryReader( new MemoryStream(parseable), Encoding.UTF8 ))
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(parseable), Encoding.UTF8))
             {
                 return reader.ReadString();
             }
@@ -657,7 +1073,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             int stringLength = reader.Read7BitEncodedInt();
 
-            int offset = (int)( reader.Position - position );
+            int offset = (int)(reader.Position - position);
 
             reader.Position = position;
             byte[] modTextBytes = reader.ReadBytes(stringLength + offset);

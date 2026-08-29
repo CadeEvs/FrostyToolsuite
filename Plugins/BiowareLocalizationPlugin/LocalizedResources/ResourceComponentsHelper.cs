@@ -1,4 +1,5 @@
 ﻿using Frosty.Core;
+using Frosty.Core.Controls.Editors;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -18,31 +19,47 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         public const uint Magic = 0xd78b40eb;
 
         // no idea what this does, doesn't seem to affect anything
-        public uint Unknown1;
+        public uint Unknown1 { get; set; }
 
         // Note: If nodeCount changes due to added Chars, then dataOffset changes!
         // Additional Note: This offset is also part of the metadata, the value in this header is not guaranteed to be correct!
-        public uint DataOffset;
+        public uint DataOffset { get; set; }
 
-        // also no idea, can set these to zero and nothing bad happens
-        public uint Unknown2;
-        public uint Unknown3;
-        public uint Unknown4;
+        // Seems to be an (actually unused?) combination of language and the number of declination together with something else.
+        // 0x {Language Number, e.g., 0 for En, 1 for french --> see TypeExplorer: LanguageFormat, this seems to match}
+        // followed by  000
+        // Last number is 0x4 ( unclear what this means ) + number of declinations to use in this resource.
+        // Examples DAI basegame:
+        //   En globalmaster:              Language 0 + 1 specified declination  =>     0x5
+        //   French globaltranslated:      Language 1 + 8 specified declinations => 0x1000C
+        //   French globaltesttranslated:  Language 1 + 9 specified declinations => 0x1000D
+        //   Russian globaltranslated:     Language 6 + 6 specified declinations => 0x6000A
+        public uint LanguageAndDeclinationsMarker { get; set; }
+
+        // also no idea, can set these to zero and nothing bad happens. This might be a priority of sorts. Seems to be the same for similar resources accross languages.
+        public uint Unknown2 { get; set; }
+
+        // absolutely no clue whtat this is, every resource has a different value that doesnt seem to coincide with anything. Setting them to zero or maxvalue does not seem to change anything.
+        public uint Unknown3 { get; set; }
 
         // // nodeCount is an even integer! The rootNode as would-be last node in the node list is *not* actually part of the list
-        public uint NodeCount;
-        public uint NodeOffset;
-        public uint StringsCount;
-        public uint StringsOffset;
+        public uint NodeCount { get; set; }
+        public uint NodeOffset { get; set; }
+        public uint StringsCount { get; set; }
+        public uint StringsOffset { get; set; }
 
-        // Note: If one of nodeCount or stringsCount changes, then the offsets herein also change! This list has a length of 2
-        public List<DataCountAndOffsets> FirstUnknownDataDefSegments = new List<DataCountAndOffsets>();
+        // If available, this points to the list of item names and the variations to use for them. If not, then the count is zero and the offset is the dataoffset.
+        public DataCountAndOffsets ItemNameSetupCountsAndOffsets { get; set; }
+
+        // If available, this points to the map of adjective variations to their relative list position. If not, then the count is zero and the offset is the dataoffset.
+        public DataCountAndOffsets AdjectiveDeclinationsCountsAndOffsets { get; set; }
 
         // These are only available for very few resources, they contain the count and offset for the strings used when crafting items in DA:I
         // This starts at the 3rd of the DataCountAndOffsets, potentially this contains only zeros.
         public List<DataCountAndOffsets> DragonAgeDeclinatedCraftingNamePartsCountAndOffset { get; private set; } = new List<DataCountAndOffsets>();
 
-        // this is *not* part of the actual header?
+        // This is *not* part of the actual header?
+        // I could set this based on the AdjectiveDeclinationsCountsAndOffsets, but that sometimes includes variations that do not exist at all!
         public int MaxDeclinations { get; private set; } = 0;
 
         public void AddDragonAgeDeclinatedCraftingNamePart(DataCountAndOffsets coundAndOffset)
@@ -53,27 +70,24 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public override string ToString()
         {
-            string uk1AsHex = Unknown1.ToString("X");
-            string uk2AsHex = Unknown2.ToString("X");
-            string uk3AsHex = Unknown3.ToString("X");
-            string uk4AsHex = Unknown4.ToString("X");
 
             StringBuilder sb = new StringBuilder();
-            sb.Append($"unknown1: <{Unknown1} | 0x{uk1AsHex}>\n")
-                .Append($"unknown2: <{Unknown2} | 0x{uk2AsHex}>\n")
-                .Append($"unknown3: <{Unknown3} | 0x{uk3AsHex}>\n")
-                .Append($"unknown4: <{Unknown4} | 0x{uk4AsHex}>\n")
-                .Append($"NodeCount: <{NodeCount}> starting at <{NodeOffset}>\n")
-                .Append($"StringCount: <{StringsCount}> starting at <{StringsOffset}>\n");
+            sb.Append("\n") // newline after resource name
+                .AppendLine($"DataOffset is: <{DataOffset} | 0x{DataOffset:X}>")
+                .AppendLine($"unknown1: <{Unknown1} | 0x{Unknown1:X}>")
+                .AppendLine($"Language & Declinations Marker: <{LanguageAndDeclinationsMarker} | 0x{LanguageAndDeclinationsMarker:X}>")
+                .AppendLine($"unknown2: <{Unknown2} | 0x{Unknown2:X}>")
+                .AppendLine($"unknown3: <{Unknown3} | 0x{Unknown3:X}>")
+                .AppendLine($"NodeCount: <{NodeCount}> starting at <{NodeOffset}>")
+                .AppendLine($"StringCount: <{StringsCount}> starting at <{StringsOffset}>");
 
-            foreach (var ukd in FirstUnknownDataDefSegments)
+            if (ItemNameSetupCountsAndOffsets != null && ItemNameSetupCountsAndOffsets.Count > 0)
             {
-                uint byte8Count = ukd.Count;
-                if (byte8Count > 0)
-                {
-                    uint totalsize = byte8Count * 8;
-                    sb.Append($"  Additional data of {byte8Count} 8Bytes, or {totalsize} bytes starts at <{ukd.Offset}>\n");
-                }
+                sb.AppendLine($"  Additional Item names to variation mapping for {ItemNameSetupCountsAndOffsets.Count} entries starts at {ItemNameSetupCountsAndOffsets.Offset}");
+            }
+            if (AdjectiveDeclinationsCountsAndOffsets != null && AdjectiveDeclinationsCountsAndOffsets.Count > 0)
+            {
+                sb.AppendLine($"  Additional mapping for {AdjectiveDeclinationsCountsAndOffsets.Count} declinations starts at {AdjectiveDeclinationsCountsAndOffsets.Offset}");
             }
 
             foreach (var craftingNamePartCounts in DragonAgeDeclinatedCraftingNamePartsCountAndOffset)
@@ -82,11 +96,9 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                 if (byte8Count > 0)
                 {
                     uint totalsize = byte8Count * 8;
-                    sb.Append($"  Declinated crafting name parts of {byte8Count} 8Bytes, or {totalsize} bytes starts at <{craftingNamePartCounts.Offset}>\n");
+                    sb.AppendLine($"  Declinated crafting name parts of {byte8Count} entries, or {totalsize} bytes starts at <{craftingNamePartCounts.Offset}>");
                 }
             }
-
-            sb.Append($"DataOffset is: <{DataOffset}>\n");
 
             return sb.ToString();
         }
@@ -136,14 +148,23 @@ namespace BiowareLocalizationPlugin.LocalizedResources
                     printLetter = "endDelimeter";
                     break;
                 case 4294967285:
+                    // 0xFFFF FFF5 -> char U+000A, EOL
                     printLetter = "newLine";
+                    break;
+                case 4294967172:
+                    // 0xFFFF FF84 -> char U+007B, {
+                    printLetter = "left curly bracket";
+                    break;
+                case 4294967170:
+                    // 0xFFFF FF82 -> char U+007D, }
+                    printLetter = "right curly bracket";
                     break;
                 default:
                     printLetter = Letter.ToString();
                     break;
             }
 
-            return string.Format("[Value = <{0}> | Letter = <{1}>]", Value.ToString(), printLetter);
+            return string.Format("[Value = <{0} | 0x{1}> | LetterValue = <0x{2}> Letter = <{3}>]", Value.ToString(), Value.ToString("X"), ((uint)Letter).ToString("X"), printLetter);
         }
 
         /// <summary>
@@ -286,6 +307,8 @@ namespace BiowareLocalizationPlugin.LocalizedResources
     {
         public int Occurences { get; set; }
 
+        private List<bool> NodeEncoding = null;
+
         public new HuffManConstructionNode Left { get; private set; }
 
         public new HuffManConstructionNode Right { get; private set; }
@@ -326,6 +349,23 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
             return Math.Max(ld, rd);
         }
+
+        /// <summary>
+        /// Returns the encoding for this node, storing it for later requests.
+        /// Kind of stole the idea from the LEX implementation:
+        /// https://github.com/ME3Tweaks/LegendaryExplorer/blob/Beta/LegendaryExplorer/LegendaryExplorerCore/TLK/ME2ME3/HuffmanCompression.cs
+        /// </summary>
+        /// <returns></returns>
+        public List<bool> GetNodeEncoding()
+        {
+            if (NodeEncoding == null)
+            {
+                NodeEncoding = new List<bool>();
+                NodeEncoding.AddRange(ResourceUtils.GetCharEncoding(Parent));
+                NodeEncoding.Add(ResourceUtils.GetBoolValueFromParent(this));
+            }
+            return NodeEncoding;
+        }
     }
 
     public class LocalizedString
@@ -349,7 +389,7 @@ namespace BiowareLocalizationPlugin.LocalizedResources
             {
                 return Value;
             }
-            return this.GetType().Name + "@" + DefaultPosition;
+            return this.GetType().Name + " @ " + DefaultPosition;
         }
     }
 
@@ -370,7 +410,23 @@ namespace BiowareLocalizationPlugin.LocalizedResources
 
         public override string ToString()
         {
-            return Id.ToString("X8");
+            return Id.ToString("X8") + " @ " + DefaultPosition;
+        }
+    }
+
+    // Only used when verification is enabled.
+    public class DAILocalizedAdjective : LocalizedStringWithId
+    {
+        public readonly int Declination;
+
+        public DAILocalizedAdjective(uint inId, int inDefaultPosition, int inDeclination) : base(inId, inDefaultPosition)
+        {
+            this.Declination = inDeclination;
+        }
+
+        public override string ToString()
+        {
+            return string.Format("adjective <{0}> of declination {1}", base.ToString(), Declination);
         }
     }
 
@@ -386,26 +442,107 @@ namespace BiowareLocalizationPlugin.LocalizedResources
         /// <summary>
         /// The ids and encoded texts with positions of all the primarily used texts.
         /// </summary>
-        public SortedDictionary<uint, EncodedTextPosition> PrimaryTextIdsAndPositions { get; private set; }
+        public SortedDictionary<TextID, EncodedTextPosition> PrimaryTextIdsAndPositions { get; private set; }
 
         /// <summary>
         /// The ids and encoded texts with positions of all the declinated adjectives used in DAI crafting
         /// </summary>
-        public List<SortedDictionary<uint, EncodedTextPosition>> DeclinatedAdjectivesIdsAndPositions { get; private set; }
+        public List<SortedDictionary<TextID, EncodedTextPosition>> DeclinatedAdjectivesIdsAndPositions { get; private set; }
 
         /// <summary>
-        /// Just all of the encoded texts with position again.
+        /// The byte array of the encoded texts
         /// </summary>
-        public SortedSet<EncodedTextPosition> AllEncodedTextPositions { get; private set; }
+        public byte[] TextBytes { get; private set; }
 
         public EncodedTextPositionGrouping(
-            SortedDictionary<uint, EncodedTextPosition> primaryTextIdsAndPositions,
-            List<SortedDictionary<uint, EncodedTextPosition>> declinatedAdjectiveIdsAndPositions,
-            SortedSet<EncodedTextPosition> allEncodedTextPositions)
+            SortedDictionary<TextID, EncodedTextPosition> inPrimaryTextIdsAndPositions,
+            List<SortedDictionary<TextID, EncodedTextPosition>> inDeclinatedAdjectiveIdsAndPositions,
+            byte[] InTextBytes)
         {
-            this.PrimaryTextIdsAndPositions = primaryTextIdsAndPositions;
-            this.DeclinatedAdjectivesIdsAndPositions = declinatedAdjectiveIdsAndPositions;
-            this.AllEncodedTextPositions = allEncodedTextPositions;
+            this.PrimaryTextIdsAndPositions = inPrimaryTextIdsAndPositions;
+            this.DeclinatedAdjectivesIdsAndPositions = inDeclinatedAdjectiveIdsAndPositions;
+            this.TextBytes = InTextBytes;
+        }
+    }
+
+    /// <summary>
+    /// Text id used for sorting when writing the texts.
+    /// </summary>
+    public class TextID : IComparable<TextID>
+    {
+
+        /// <summary>
+        /// Mask to get only the first byte of the ID, which carries some meta information.
+        /// For primary texts, an 8 at this position indicates that the text is a variation used with female protagonists.
+        /// For the crafting item names there are more variants. At least 2,4,C and E. I'm fairly certain that 2 and 4 come before the noun, while C and E after. This is
+        /// </summary>
+        public static readonly uint VARIANT_MASK = 0xF0000000;
+
+        // the inverse of the variant mask
+        public static readonly uint NON_VARIANT_MASK = 0x0FFFFFFF;
+
+        /// <summary>
+        /// The actual id value.
+        /// </summary>
+        public uint Id { get; private set; }
+
+        /// <summary>
+        /// The id of the text without the highest 4 bit variant marker.
+        /// </summary>
+        public readonly uint m_nonVariantId;
+
+        /// <summary>
+        /// The variant of this text id.
+        /// </summary>
+        public readonly uint m_variantValue;
+
+        public TextID(uint id)
+        {
+            Id = id;
+            m_nonVariantId = id & NON_VARIANT_MASK;
+            m_variantValue = id & VARIANT_MASK;
+        }
+
+        /// <summary>
+        /// Indicates that the text this id belongs to is a ( female player character ) variant of another text.
+        /// This id is the same as the id of the ( male character ) original text with added 0x80000000.
+        /// For crafting adjective the variant value might be 0x20000000, 0x40000000, 0xC0000000, or 0xE0000000. Probably indicating wether the adjective comes before or after the noun.
+        /// In the resources, these are ordered immediately after their non variant texts in the text position list.
+        /// </summary>
+        public bool IsVariant()
+        {
+            return m_variantValue > 0;
+        }
+
+        public int CompareTo(TextID other)
+        {
+            if (!IsVariant() && !other.IsVariant())
+            {
+                return Id.CompareTo(other.Id);
+            }
+
+            int nonVariantCompare = m_nonVariantId.CompareTo(other.m_nonVariantId);
+            if (nonVariantCompare != 0)
+            {
+                return nonVariantCompare;
+            }
+            return m_variantValue.CompareTo(other.m_variantValue);
+        }
+
+        public override string ToString()
+        {
+            return Id.ToString("X8");
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            var other = obj as TextID;
+            return Id.Equals(other?.Id);
         }
     }
 
