@@ -77,19 +77,18 @@ namespace FrostyEditor
                 if (project.IsDirty)
                 {
                     string name = project.DisplayName.Replace(".fbproject", "");
-                    DateTime timeStamp = DateTime.Now;
 
-                    project.Filename = "Autosave/" + name + "_" + timeStamp.Day.ToString("D2") + timeStamp.Month.ToString("D2") + timeStamp.Year.ToString("D4") + "_" + timeStamp.Hour.ToString("D2") + timeStamp.Minute.ToString("D2") + timeStamp.Second.ToString("D2") + ".fbproject";
+                    project.Filename = "Autosave/" + name + "_" + DateTime.Now.ToString("ddMMyyyy_HHmmss") + ".fbproject";
                     project.Save();
                 }
             }
 
             Exception exp = e.Exception;
-            using (NativeWriter writer = new NativeWriter(new FileStream("crashlog.txt", FileMode.Create)))
-                writer.WriteLine($"{exp.Message}\r\n\r\n{exp.StackTrace}");
 
-            FrostyExceptionBox.Show(exp, "Frosty Editor");
-            Environment.Exit(0);
+            if (FrostyExceptionBox.Show(exp, "Frosty Editor") == MessageBoxResult.Cancel)
+                App.Logger.LogWarning("Exception ignored, unknown error may occur");
+            else
+                Environment.Exit(-1);
         }
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

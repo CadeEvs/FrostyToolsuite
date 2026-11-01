@@ -76,11 +76,10 @@ namespace FrostyModManager
         {
             Exception exp = e.Exception;
 
-            using (NativeWriter writer = new NativeWriter(new FileStream("crashlog.txt", FileMode.Create)))
-                writer.WriteLine($"{exp.Message}\r\n\r\n{exp.StackTrace}");
-
-            FrostyExceptionBox.Show(exp, "Frosty Mod Manager");
-            Environment.Exit(0);
+            if (FrostyExceptionBox.Show(exp, "Frosty Mod Manager") == MessageBoxResult.Cancel)
+                App.Logger.LogWarning("Exception ignored, unknown error may occur");
+            else
+                Environment.Exit(-1);
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

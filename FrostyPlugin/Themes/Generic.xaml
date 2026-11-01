@@ -1390,25 +1390,53 @@
                 <DataTemplate>
                     <DataTemplate.Resources>
                         <ctrl:WindowCloseCommand x:Key="CloseCommand"/>
+                        <local:ExceptionBoxClickCommand x:Key="exceptionBoxClickCommand" />
                     </DataTemplate.Resources>
 
                     <Grid Background="{StaticResource ListBackground}">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="26"/>
+                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="38"/>
                         </Grid.RowDefinitions>
 
-                        <!-- Exception has occured text -->
-                        <TextBlock Grid.Row="0" Text="An unhandled exception has occurred" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" FontSize="14"/>
+                        <!-- Header -->
+                        <StackPanel Grid.Row="0" Margin="5, 5, 5, 0">
+                            <TextBlock Margin="2" Text="An unhandled exception has occurred" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" FontSize="16"/>
+                            <TextBlock Margin="2, 0, 2, 2" Text="{Binding ExceptionMessageText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}" TextWrapping="WrapWithOverflow" TextTrimming="None" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface"/>
+                        </StackPanel>
 
-                        <!-- Crash text -->
-                        <TextBox Grid.Row="1" Text="{Binding ExceptionText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" FontFamily="Consolas" Margin="8,0,8,0" BorderThickness="1" Padding="4"/>
+                        <TabControl Grid.Row="1" Margin="8,0,8,0">
+                            <TabItem Header="Exception">
+                                <!-- Crash text -->
+                                <TextBox BorderThickness="1" Padding="4" Text="{Binding ExceptionText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" FontFamily="Consolas"/>
+                            </TabItem>
 
-                        <!-- Ok button -->
+                            <TabItem Header="Log">
+                                <!-- Log -->
+                                <Grid>
+                                    <TextBox BorderThickness="1"
+                                        Padding="4"
+                                        FontFamily="Consolas"
+                                        IsReadOnly="True"
+                                        VerticalScrollBarVisibility="Auto"
+                                        HorizontalScrollBarVisibility="Auto"
+                                        Text="{Binding LogText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}"
+                                        />
+                                </Grid>
+                            </TabItem>
+                        </TabControl>
+                        
+                        <Border Grid.Row="2"/>
+                        <!-- Buttons -->
                         <StackPanel Grid.Row="2" Margin="8" FlowDirection="RightToLeft" Orientation="Horizontal">
-                            <Button Content="Ok" Width="75" Command="{StaticResource CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+                            <Button Content="OK" Width="75" Command="{StaticResource CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
+                            <Button x:Name="PART_IgnoreButton" Content="Ignore" ToolTip="Try to ignore exception, unknown error may occurs" Width="75" Margin="5,0,0,0" Command="{StaticResource exceptionBoxClickCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"/>
                             <!--<Button x:Name="PART_ReportCrashButton" Content="Report Crash" Width="100" Margin="5,0,0,0"/>-->
+                        </StackPanel>
+                        <StackPanel Grid.Row="2" Margin="8" FlowDirection="LeftToRight" Orientation="Horizontal">
+                            <Button x:Name="PART_CopyExceptionButton" Content="Copy Exception" Width="100" Margin="0,0,5,0" Command="{StaticResource exceptionBoxClickCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"/>
+                            <Button x:Name="PART_CopyLogButton" Content="Copy Log" Width="70" Margin="0,0,5,0" Command="{StaticResource exceptionBoxClickCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"/>
                         </StackPanel>
                     </Grid>
                 </DataTemplate>
