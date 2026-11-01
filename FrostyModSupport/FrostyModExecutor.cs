@@ -16,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Frosty.ModSupport
 {
@@ -1029,8 +1030,21 @@ namespace Frosty.ModSupport
                 if (Directory.Exists(lcuPath))
                 {
                     DirectoryInfo di = new DirectoryInfo(lcuPath);
-                    FrostyMessageBox.Show("Frosty has detected the presence of a Live Content Update. This must be removed and the game taken offline for mods to take affect.\r\n\r\nThe location of this update is:\r\n\r\n" + di.FullName, "Frosty Editor");
-                    return -1;
+                    if (FrostyMessageBox.Show("Frosty has detected the presence of a Live Content Update. This must be removed and the game taken offline for mods to take affect.\r\nThe location of this update is:\r\n" + di.FullName + "\r\n\r\nDo you want to delete that?", "Frosty Toolsuite",
+                        MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            di.Delete();
+                        }
+                        catch
+                        {
+                            FrostyMessageBox.Show($"Failed to delete");
+                            return -1;
+                        }
+                    }
+                    else
+                        return -1;
                 }
             }
 
@@ -1041,7 +1055,21 @@ namespace Frosty.ModSupport
             {
                 if (process.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
                 {
-                    FrostyMessageBox.Show(string.Format("Unable to launch process as there is already a running process with process Id {0}", process.Id), "Frosty Toolsuite");
+                    if (FrostyMessageBox.Show($"Unable to launch process as there is already a running process with process Id {process.Id}\r\n\r\nDo you want to kill game process?", "Frosty Toolsuite",
+                        MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        try
+                        {
+                            process.Kill();
+                        }
+                        catch
+                        {
+                            FrostyMessageBox.Show($"Failed to kill process");
+                            return -1;
+                        }
+                        break;
+                    }
+                    
                     return -1;
                 }
             }
@@ -1287,14 +1315,14 @@ namespace Frosty.ModSupport
                     if (newInstallation)
                         reason = "New installation detected.";
 
-                    FrostyMessageBox.Show(reason + "\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
+                    FrostyMessageBox.Show(reason + "Next, please press Yes\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
                     if (!RunSymbolicLinkProcess(cmdArgs))
                     {
-                        FrostyMessageBox.Show("Frosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Editor");
+                        FrostyMessageBox.Show("Next, please press Yes\r\n\r\nFrosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Toolsuite");
                         if (!RunSymbolicLinkProcess(cmdArgs))
                         {
                             Directory.Delete(modDataPath, true);
-                            FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
+                            FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Toolsuite");
                             return -1;
                         }
                     }
