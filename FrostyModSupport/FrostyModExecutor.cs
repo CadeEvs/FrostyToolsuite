@@ -741,6 +741,11 @@ namespace Frosty.ModSupport
             // obtain resources to modify
             foreach (DbObject resource in resourceList)
             {
+                // [DAI fix] removal-only entries (from converted .daimod files) carry no data;
+                // they only exist so "remove" bundle actions have a name and type to refer to
+                if (resource.GetValue<bool>("isRemoval", false))
+                    continue;
+
                 string resourceType = resource.GetValue<string>("type");
                 if (resourceType == "superbundle")
                 {

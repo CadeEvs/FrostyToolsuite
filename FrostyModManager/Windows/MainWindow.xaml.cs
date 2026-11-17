@@ -996,6 +996,316 @@ namespace FrostyModManager
             }
         }
 
+        #region -- DAI mod (.daimod) conversion helpers --
+
+        // [DAI fix] helpers used by the .daimod converter in InstallMods
+
+        private static string DaiXmlText(System.Xml.XmlElement parent, string childName)
+        {
+            if (parent == null || parent[childName] == null)
+                return "";
+            return parent[childName].InnerText;
+        }
+
+        private static byte[] DaiHexToBytes(string hex)
+        {
+            if (string.IsNullOrEmpty(hex) || hex.Length % 2 != 0)
+                return null;
+
+            byte[] bytes = new byte[hex.Length / 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (!byte.TryParse(hex.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out bytes[i]))
+                    return null;
+            }
+            return bytes;
+        }
+
+        /// <summary>
+        /// Returns the decompressed length of a CAS-compressed buffer, or -1 if it can't be read.
+        /// </summary>
+        private static long DaiDecompressedLength(byte[] data)
+        {
+            try
+            {
+                using (CasReader reader = new CasReader(new MemoryStream(data)))
+                    return reader.Read().Length;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+
+        /// <summary>
+        /// Reads the firstMip value out of a .daimod chunk meta blob (hex string of a Frostbite
+        /// DbObject fragment). Returns -1 if there is no usable value.
+        /// </summary>
+        private static int DaiParseFirstMip(string metaHex)
+        {
+            if (string.IsNullOrEmpty(metaHex) || metaHex == "00")
+                return -1;
+
+            byte[] meta = DaiHexToBytes(metaHex);
+            if (meta == null)
+                return -1;
+
+            // look for the "firstMip" field name (null terminated) and read the 4 byte value after it
+            byte[] key = Encoding.ASCII.GetBytes("firstMip\0");
+            for (int i = 0; i + key.Length + 4 <= meta.Length; i++)
+            {
+                bool match = true;
+                for (int k = 0; k < key.Length; k++)
+                {
+                    if (meta[i + k] != key[k])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return DaiReadMipValue(meta, i + key.Length);
+            }
+
+            // field name not found: fall back to the fixed position the original code used
+            // (character 20 of the hex string = byte 10), but read it little-endian
+            if (meta.Length >= 14)
+                return DaiReadMipValue(meta, 10);
+
+            return -1;
+        }
+
+        /// <summary>Mip layout read from a DAI texture res header.</summary>
+        private class DaiTextureLayout
+        {
+            public int MipCount;
+            public int FirstMip;
+            public uint[] MipSizes;
+        }
+
+        /// <summary>
+        /// Reads the header of every texture res in the .daimod and returns the mip layout keyed by
+        /// the chunk id the texture points at.
+        /// </summary>
+        private static Dictionary<Guid, DaiTextureLayout> DaiReadTextureLayouts(System.Xml.XmlElement resourcesElem, List<byte[]> resources)
+        {
+            const uint TextureResType = 0x5C4954A6;
+            Dictionary<Guid, DaiTextureLayout> layouts = new Dictionary<Guid, DaiTextureLayout>();
+
+            foreach (System.Xml.XmlNode node in resourcesElem.ChildNodes)
+            {
+                System.Xml.XmlElement elem = node as System.Xml.XmlElement;
+                if (elem == null || elem.GetAttribute("type") != "res" || elem.GetAttribute("action") == "remove")
+                    continue;
+
+                uint resType;
+                int resId;
+                if (!uint.TryParse(elem.GetAttribute("resType"), out resType) || resType != TextureResType)
+                    continue;
+                if (!int.TryParse(elem.GetAttribute("resourceId"), out resId) || resId < 0 || resId >= resources.Count)
+                    continue;
+
+                byte[] header;
+                try
+                {
+                    using (CasReader reader = new CasReader(new MemoryStream(resources[resId])))
+                        header = reader.Read();
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
+                // DAI texture header: mipOffsets[2], type, format, flags(u16), width, height, depth,
+                // sliceCount (u16 each), mipCount (u8), firstMip (u8), chunkId (guid), mipSizes[15]
+                if (header == null || header.Length < 104)
+                    continue;
+
+                DaiTextureLayout layout = new DaiTextureLayout
+                {
+                    MipCount = header[26],
+                    FirstMip = header[27],
+                    MipSizes = new uint[15]
+                };
+                for (int i = 0; i < 15; i++)
+                    layout.MipSizes[i] = BitConverter.ToUInt32(header, 44 + i * 4);
+
+                byte[] guidBytes = new byte[16];
+                Array.Copy(header, 28, guidBytes, 0, 16);
+                layouts[new Guid(guidBytes)] = layout;
+            }
+
+            return layouts;
+        }
+
+        /// <summary>
+        /// Works out the streaming values for a texture chunk from its texture header, the same way
+        /// Frosty's own texture importer lays them out (Utils.CompressTexture): the part of the chunk
+        /// from firstMip onwards is the always-loaded range. Returns false (values untouched) if the
+        /// texture has no mips to split or the chunk isn't split into blocks at that mip.
+        /// </summary>
+        private static bool DaiCalcTextureRange(DaiTextureLayout layout, byte[] chunkData,
+            ref int firstMip, ref uint logicalOffset, ref uint logicalSize, ref uint rangeStart, ref uint rangeEnd)
+        {
+            if (layout.MipCount <= 1 || layout.MipCount > 15 || layout.FirstMip <= 0 || layout.FirstMip >= layout.MipCount)
+                return false;
+
+            long total = 0;
+            for (int i = 0; i < layout.MipCount; i++)
+                total += layout.MipSizes[i];
+            if (total <= 0x10000)
+                return false;
+
+            // same rule as Utils.CompressTexture: the range keeps a minimum size of 0x10000,
+            // the logical offset doesn't
+            long first = 0, second = total, newLogicalOffset = 0;
+            for (int i = 0; i < layout.FirstMip; i++)
+            {
+                if (second > 0x10000)
+                {
+                    first += layout.MipSizes[i];
+                    second -= layout.MipSizes[i];
+                }
+                newLogicalOffset += layout.MipSizes[i];
+            }
+
+            // walk the compressed blocks to find where uncompressed offset "first" starts
+            long compressedPos = 0, uncompressedPos = 0, splitPos = -1;
+            while (compressedPos + 8 <= chunkData.Length)
+            {
+                if (uncompressedPos == first)
+                    splitPos = compressedPos;
+
+                int p = (int)compressedPos;
+                int decompressedSize = (chunkData[p] << 24) | (chunkData[p + 1] << 16) | (chunkData[p + 2] << 8) | chunkData[p + 3];
+                ushort compressCode = (ushort)((chunkData[p + 4] << 8) | chunkData[p + 5]);
+                int blockSize = (chunkData[p + 6] << 8) | chunkData[p + 7];
+
+                // DAI block codes: 0x0270 = zlib (blockSize is the compressed size),
+                // 0x0070 = stored (data is decompressedSize bytes)
+                decompressedSize &= 0x00FFFFFF;
+                if ((compressCode >> 8) == 0x00)
+                    blockSize = decompressedSize;
+
+                compressedPos += 8 + blockSize;
+                uncompressedPos += decompressedSize;
+            }
+
+            if (compressedPos != chunkData.Length || uncompressedPos != total || splitPos < 0)
+                return false;
+
+            firstMip = layout.FirstMip;
+            logicalOffset = (uint)newLogicalOffset;
+            logicalSize = (uint)(total - newLogicalOffset);
+            rangeStart = (uint)splitPos;
+            rangeEnd = (uint)chunkData.Length;
+            return true;
+        }
+
+        private static int DaiReadMipValue(byte[] buf, int pos)
+        {
+            // Frostbite stores ints little-endian; also accept big-endian just in case
+            int le = buf[pos] | (buf[pos + 1] << 8) | (buf[pos + 2] << 16) | (buf[pos + 3] << 24);
+            if (le >= 0 && le < 16)
+                return le;
+
+            int be = (buf[pos] << 24) | (buf[pos + 1] << 16) | (buf[pos + 2] << 8) | buf[pos + 3];
+            if (be >= 0 && be < 16)
+                return be;
+
+            return -1;
+        }
+
+        // [DAI fix] the splash screen throws the asset database away once Frosty has started, so
+        // the converter had nothing to check bundle names against. It is loaded from the cache on
+        // demand (only when a .daimod is imported) and released again when the import finishes.
+        private AssetManager daiAssetManager;
+        private bool daiAssetManagerFailed;
+
+        private AssetManager DaiGetAssetManager()
+        {
+            if (Frosty.Core.App.AssetManager != null)
+                return Frosty.Core.App.AssetManager;
+            if (daiAssetManager != null || daiAssetManagerFailed || fs == null)
+                return daiAssetManager;
+
+            try
+            {
+                App.Logger.Log("[DAI] Loading game data from the cache to check bundle names");
+                ResourceManager rm = new ResourceManager(fs);
+                rm.Initialize();
+                AssetManager am = new AssetManager(fs, rm);
+                am.Initialize(additionalStartup: false);
+                daiAssetManager = am;
+            }
+            catch (Exception e)
+            {
+                daiAssetManagerFailed = true;
+                App.Logger.Log("[DAI] Could not load the game data (" + e.Message + "); using each .daimod's own add/modify flags");
+            }
+            return daiAssetManager;
+        }
+
+        private void DaiReleaseAssetManager()
+        {
+            daiAssetManager = null;
+            daiAssetManagerFailed = false;
+            GC.Collect();
+        }
+
+        /// <summary>
+        /// Builds a case-insensitive bundle name -> bundle id lookup from the loaded game data,
+        /// or returns null if the asset manager isn't available.
+        /// </summary>
+        private static Dictionary<string, int> DaiBuildBundleIdMap(AssetManager am)
+        {
+            if (am == null)
+                return null;
+
+            Dictionary<string, int> map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int bid = 0; ; bid++)
+            {
+                BundleEntry be = am.GetBundleEntry(bid);
+                if (be == null)
+                    break;
+
+                if (be.Name != null && !map.ContainsKey(be.Name))
+                    map.Add(be.Name, bid);
+            }
+            return map;
+        }
+
+        /// <summary>
+        /// Decides whether a .daimod resource should "modify" or "add" itself in a bundle.
+        /// Frosty's bundle writer only modifies entries that already exist in a bundle, and only
+        /// adds entries that are listed as additions, so this has to match the real game data.
+        /// </summary>
+        private static string DaiResolveBundleAction(AssetManager am, Dictionary<string, int> bundleIds, string type, string resName, Guid chunkGuid, string bundleName, string daimodAction, out bool usedFallback)
+        {
+            usedFallback = false;
+
+            int bid;
+            if (am != null && bundleIds != null && bundleIds.TryGetValue(bundleName, out bid))
+            {
+                AssetEntry existing = null;
+                if (type == "ebx")
+                    existing = am.GetEbxEntry(resName);
+                else if (type == "res")
+                    existing = am.GetResEntry(resName);
+                else
+                    existing = am.GetChunkEntry(chunkGuid);
+
+                return (existing != null && existing.IsInBundle(bid)) ? "modify" : "add";
+            }
+
+            // couldn't check against the game data, so trust the .daimod's own flag
+            usedFallback = true;
+            return (daimodAction == "add") ? "add" : "modify";
+        }
+
+        #endregion
+
         private void InstallMods(string[] filenames)
         {
             IFrostyMod lastInstalledMod = null;
@@ -1174,6 +1484,9 @@ namespace FrostyModManager
                         else if (fi.Extension == ".daimod")
                         {
                             // special handling for DAI mod files
+                            //
+                            // [DAI fix] This converter was rewritten to fix several bugs that made
+                            // .daimod imports "hit or miss". See DAI_FIXES.md for the full list.
                             using (NativeReader reader = new NativeReader(new FileStream(fi.FullName, FileMode.Open)))
                             {
                                 string magic = reader.ReadSizedString(8);
@@ -1198,137 +1511,373 @@ namespace FrostyModManager
                                     shouldWrite.Add(true);
                                 }
 
+                                // [DAI fix] remember the original buffers so we can tell which resources
+                                // the configuration script replaced (their sizes must be recalculated)
+                                byte[][] originalResources = resources.ToArray();
+
                                 string configValues = "";
+                                string configError = null;
+                                bool configCancelled = false;
                                 if (code != "")
                                 {
                                     Dispatcher.Invoke(() =>
                                     {
-                                        ConfigWindow win = new ConfigWindow(code, resources, shouldWrite);
-                                        win.ShowDialog();
+                                        // [DAI fix] script compile/run failures used to crash the import,
+                                        // and closing the window with X used to import the mod unconfigured
+                                        try
+                                        {
+                                            ConfigWindow win = new ConfigWindow(code, resources, shouldWrite);
+                                            win.ShowDialog();
 
-                                        configValues = win.GetConfigValues();
+                                            if (win.ScriptError != null)
+                                                configError = win.ScriptError;
+                                            else if (!win.ScriptApplied)
+                                                configCancelled = true;
+                                            else
+                                                configValues = win.GetConfigValues();
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            configError = "The mod's configuration script could not be loaded: " + ex.Message;
+                                        }
                                     });
+                                }
+
+                                if (configError != null)
+                                {
+                                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = configError });
+                                    continue;
+                                }
+                                if (configCancelled)
+                                {
+                                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Import cancelled: the configuration window was closed without pressing Save.", isWarning = true });
+                                    continue;
                                 }
 
                                 System.Xml.XmlDocument xmlDoc = new System.Xml.XmlDocument();
                                 xmlDoc.LoadXml(xml);
 
-                                System.Xml.XmlElement elem = xmlDoc["daimod"]["details"];
-                                string newDesc = "(Converted from .daimod)\r\n\r\n" + elem["description"].InnerText + "\r\n\r\n" + configValues;
+                                System.Xml.XmlElement rootElem = xmlDoc["daimod"];
+                                System.Xml.XmlElement elem = rootElem["details"];
+                                string newDesc = "(Converted from .daimod)\r\n\r\n" + DaiXmlText(elem, "description") + "\r\n\r\n" + configValues;
 
                                 DbObject modObject = new DbObject();
                                 modObject.AddValue("magic", "FBMODV3");
                                 modObject.AddValue("gameProfile", ProfilesLibrary.ProfileName);
                                 modObject.AddValue("gameVersion", 0);
 
-                                modObject.AddValue("title", elem["name"].InnerText);
-                                modObject.AddValue("author", elem["author"].InnerText);
+                                modObject.AddValue("title", DaiXmlText(elem, "name"));
+                                modObject.AddValue("author", DaiXmlText(elem, "author"));
                                 modObject.AddValue("category", "DAI Mods");
-                                modObject.AddValue("version", elem["version"].InnerText);
+                                modObject.AddValue("version", DaiXmlText(elem, "version"));
                                 modObject.AddValue("description", newDesc);
 
                                 DbObject resourcesList = new DbObject(false);
                                 DbObject actionsList = new DbObject(false);
                                 DbObject screenshotList = new DbObject(false);
-                                long offset = 0;
 
-                                int index = -1;
-                                int actualIndex = 0;
-
-                                foreach (System.Xml.XmlElement subElem in xmlDoc["daimod"]["resources"])
+                                // [DAI fix] the archive is written in resource-id order, so the offsets
+                                // must be calculated in that same order (they used to be calculated in
+                                // XML order, which pointed resources at the wrong bytes whenever the two
+                                // orders differed or a resource was referenced more than once)
+                                long[] archiveOffsets = new long[resources.Count];
+                                long runningOffset = 0;
+                                for (int i = 0; i < resources.Count; i++)
                                 {
-                                    index++;
-                                    if (subElem.GetAttribute("action") == "remove")
+                                    archiveOffsets[i] = runningOffset;
+                                    if (shouldWrite[i])
+                                        runningOffset += resources[i].Length;
+                                }
+
+                                // map of XML resource index -> bundles that resource belongs to
+                                Dictionary<int, List<string>> bundleMap = new Dictionary<int, List<string>>();
+                                System.Xml.XmlElement bundlesElem = rootElem["bundles"];
+                                if (bundlesElem != null)
+                                {
+                                    foreach (System.Xml.XmlNode bundleNode in bundlesElem.ChildNodes)
+                                    {
+                                        System.Xml.XmlElement bundleElem = bundleNode as System.Xml.XmlElement;
+                                        if (bundleElem == null || bundleElem["entries"] == null)
+                                            continue;
+
+                                        string bundleName = bundleElem.GetAttribute("name");
+                                        foreach (System.Xml.XmlNode entryNode in bundleElem["entries"].ChildNodes)
+                                        {
+                                            System.Xml.XmlElement entryElem = entryNode as System.Xml.XmlElement;
+                                            if (entryElem == null)
+                                                continue;
+
+                                            int id;
+                                            if (!int.TryParse(entryElem.GetAttribute("id"), out id))
+                                                continue;
+
+                                            List<string> list;
+                                            if (!bundleMap.TryGetValue(id, out list))
+                                            {
+                                                list = new List<string>();
+                                                bundleMap.Add(id, list);
+                                            }
+                                            list.Add(bundleName);
+                                        }
+                                    }
+                                }
+
+                                // [DAI fix] the game's asset database is used to decide, per bundle,
+                                // whether an asset is a modification (already in that bundle) or an
+                                // addition (new asset, or existing asset going into a new bundle).
+                                // Previously everything was imported as "modify", and Frosty's bundle
+                                // writer only modifies entries that already exist, so additions were
+                                // silently dropped.
+                                AssetManager am = DaiGetAssetManager();
+                                Dictionary<string, int> bundleIds = DaiBuildBundleIdMap(am);
+
+                                int numAdded = 0, numModified = 0, numRemoved = 0, numFallback = 0, numTexFixed = 0;
+                                string firstMissingBundle = null;
+                                int index = -1;
+
+                                System.Xml.XmlElement resourcesElem = rootElem["resources"];
+                                if (resourcesElem == null)
+                                {
+                                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "DAI Mod does not contain a resource list." });
+                                    continue;
+                                }
+
+                                // [DAI fix] texture chunks in some .daimod files claim the always-loaded
+                                // range is the whole chunk (firstMip 0) while the texture header says it
+                                // starts at a smaller mip; the game then shows full-size mip data as the
+                                // small mip (black/rainbow textures at a distance). The streaming values
+                                // are recalculated from the texture header instead.
+                                Dictionary<Guid, DaiTextureLayout> textureLayouts = DaiReadTextureLayouts(resourcesElem, resources);
+
+                                foreach (System.Xml.XmlNode resNode in resourcesElem.ChildNodes)
+                                {
+                                    System.Xml.XmlElement subElem = resNode as System.Xml.XmlElement;
+                                    if (subElem == null)
                                         continue;
 
-                                    int resId = int.Parse(subElem.GetAttribute("resourceId"));
+                                    index++;
+
+                                    string type = subElem.GetAttribute("type");
+                                    string resAction = subElem.GetAttribute("action");
+                                    string resName = subElem.GetAttribute("name");
+                                    Guid chunkGuid = Guid.Empty;
+
+                                    if (type != "ebx" && type != "res")
+                                    {
+                                        byte[] chunkidBytes = DaiHexToBytes(resName);
+                                        if (chunkidBytes == null || chunkidBytes.Length != 16)
+                                        {
+                                            errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Skipped a chunk with an invalid id: " + resName, isWarning = true });
+                                            continue;
+                                        }
+                                        chunkGuid = new Guid(chunkidBytes);
+                                        resName = chunkGuid.ToString();
+                                    }
+
+                                    List<string> targetBundles;
+                                    if (!bundleMap.TryGetValue(index, out targetBundles))
+                                        targetBundles = new List<string>();
+
+                                    int thisResourceId = resourcesList.Count;
+
+                                    if (resAction == "remove")
+                                    {
+                                        // [DAI fix] remove actions used to be ignored entirely
+                                        if (targetBundles.Count == 0)
+                                            continue;
+
+                                        DbObject removal = new DbObject();
+                                        removal.AddValue("name", resName);
+                                        removal.AddValue("type", type);
+                                        removal.AddValue("isRemoval", true); // executor skips loading data for these
+
+                                        foreach (string bundleName in targetBundles)
+                                        {
+                                            DbObject action = new DbObject();
+                                            action.AddValue("resourceId", thisResourceId);
+                                            action.AddValue("type", "remove");
+                                            action.AddValue("bundle", bundleName);
+                                            actionsList.Add(action);
+                                            numRemoved++;
+                                        }
+
+                                        resourcesList.Add(removal);
+                                        continue;
+                                    }
+
+                                    int resId;
+                                    if (!int.TryParse(subElem.GetAttribute("resourceId"), out resId) || resId < 0 || resId >= resources.Count)
+                                    {
+                                        errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Skipped " + resName + ": it points at a resource that is not in the file.", isWarning = true });
+                                        continue;
+                                    }
                                     if (shouldWrite[resId] == false)
                                         continue;
 
-                                    int resSize = resources[resId].Length;
-                                    string type = subElem.GetAttribute("type");
+                                    byte[] data = resources[resId];
+                                    bool scriptModified = !ReferenceEquals(data, originalResources[resId]);
 
                                     DbObject resource = new DbObject();
-                                    resource.AddValue("name", subElem.GetAttribute("name"));
+                                    resource.AddValue("name", resName);
                                     resource.AddValue("type", type);
 
-                                    resource.AddValue("sha1", new Sha1(subElem.GetAttribute("sha1")));
+                                    // [DAI fix] hash the bytes actually being imported (the XML hash is
+                                    // stale if the configuration script replaced the data)
+                                    resource.AddValue("sha1", FrostySdk.Utils.GenerateSha1(data));
                                     resource.AddValue("originalSize", 0);
-                                    resource.AddValue("compressedSize", resSize);
+                                    resource.AddValue("compressedSize", data.Length);
                                     resource.AddValue("archiveIndex", 1);
-                                    resource.AddValue("archiveOffset", offset);
+                                    resource.AddValue("archiveOffset", archiveOffsets[resId]);
                                     resource.AddValue("shouldInline", false);
 
-                                    string actionString = subElem.GetAttribute("action");
                                     if (type == "ebx" || type == "res")
                                     {
-                                        resource.AddValue("uncompressedSize", int.Parse(subElem.GetAttribute("originalSize")));
-                                        if (actionString != "add")
+                                        // [DAI fix] recalculate the uncompressed size when the script
+                                        // replaced the data, instead of trusting the stale XML value
+                                        long uncompressedSize;
+                                        if (scriptModified || !long.TryParse(subElem.GetAttribute("originalSize"), out uncompressedSize))
+                                        {
+                                            uncompressedSize = DaiDecompressedLength(data);
+                                            if (uncompressedSize < 0)
+                                            {
+                                                errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Skipped " + resName + ": its data could not be read.", isWarning = true });
+                                                continue;
+                                            }
+                                        }
+                                        resource.AddValue("uncompressedSize", uncompressedSize);
+
+                                        if (resAction != "add" && subElem.HasAttribute("originalSha1"))
                                             resource.AddValue("originalSha1", new Sha1(subElem.GetAttribute("originalSha1")));
-                                        actionString = "modify";
 
                                         if (type == "res")
                                         {
-                                            resource.AddValue("resType", uint.Parse(subElem.GetAttribute("resType")));
-                                            if (resource.GetValue<uint>("resType") == 0x5C4954A6)
+                                            // [DAI fix] DbObject stores uint as int, so reading it back with
+                                            // GetValue<uint> threw an OverflowException (crashing the import)
+                                            // for any res type >= 0x80000000. Compare the parsed value instead.
+                                            uint resType = uint.Parse(subElem.GetAttribute("resType"));
+                                            resource.AddValue("resType", resType);
+                                            if (resType == 0x5C4954A6)
                                                 resource.SetValue("shouldInline", true);
                                             resource.AddValue("resRid", (ulong)long.Parse(subElem.GetAttribute("resRid")));
 
-                                            string resMetaString = subElem.GetAttribute("meta");
-                                            byte[] resMeta = new byte[resMetaString.Length / 2];
-                                            for (int i = 0; i < resMeta.Length; i++)
-                                                resMeta[i] = byte.Parse(resMetaString.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier);
-
-                                            resource.AddValue("resMeta", resMeta);
+                                            byte[] resMeta = DaiHexToBytes(subElem.GetAttribute("meta"));
+                                            resource.AddValue("resMeta", resMeta ?? new byte[0]);
                                         }
                                     }
                                     else
                                     {
-                                        string chunkid = subElem.GetAttribute("name");
-                                        byte[] chunkidBytes = new byte[chunkid.Length / 2];
-                                        for (int i = 0; i < chunkidBytes.Length; i++)
-                                            chunkidBytes[i] = byte.Parse(chunkid.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier);
+                                        uint logicalOffset = uint.Parse(subElem.GetAttribute("logicalOffset"));
+                                        uint logicalSize = uint.Parse(subElem.GetAttribute("logicalSize"));
 
-                                        resource.SetValue("name", (new Guid(chunkidBytes)).ToString());
-                                        resource.AddValue("rangeStart", uint.Parse(subElem.GetAttribute("rangeStart")));
-                                        resource.AddValue("rangeEnd", uint.Parse(subElem.GetAttribute("rangeEnd")));
-                                        resource.AddValue("logicalOffset", uint.Parse(subElem.GetAttribute("logicalOffset")));
-                                        resource.AddValue("logicalSize", uint.Parse(subElem.GetAttribute("logicalSize")));
-                                        resource.AddValue("h32", int.Parse(subElem.GetAttribute("chunkH32")));
-
-                                        string meta = subElem.GetAttribute("meta");
-                                        if (meta != "00")
+                                        // [DAI fix] a script-replaced chunk with no mip streaming offset
+                                        // needs its logical size recalculated
+                                        if (scriptModified)
                                         {
-                                            resource.SetValue("firstMip", int.Parse(meta.Substring(20, 8), NumberStyles.HexNumber));
+                                            if (logicalOffset == 0)
+                                            {
+                                                long newSize = DaiDecompressedLength(data);
+                                                if (newSize >= 0)
+                                                    logicalSize = (uint)newSize;
+                                            }
+                                            else
+                                            {
+                                                errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "The configuration script changed texture chunk " + resName + "; its size information was kept as-is and may be wrong.", isWarning = true });
+                                            }
                                         }
 
+                                        uint rangeStart = uint.Parse(subElem.GetAttribute("rangeStart"));
+                                        uint rangeEnd = uint.Parse(subElem.GetAttribute("rangeEnd"));
+
+                                        // [DAI fix] the first mip value is a little-endian int inside the
+                                        // chunk meta; it used to be parsed as one big-endian hex number,
+                                        // which turned e.g. 3 into 50331648 and corrupted textures
+                                        int firstMip = DaiParseFirstMip(subElem.GetAttribute("meta"));
+
+                                        // [DAI fix] make the streaming values agree with the texture header
+                                        DaiTextureLayout texLayout;
+                                        if (textureLayouts.TryGetValue(chunkGuid, out texLayout) && texLayout.FirstMip != firstMip)
+                                        {
+                                            if (DaiCalcTextureRange(texLayout, data, ref firstMip, ref logicalOffset, ref logicalSize, ref rangeStart, ref rangeEnd))
+                                                numTexFixed++;
+                                        }
+
+                                        resource.AddValue("rangeStart", rangeStart);
+                                        resource.AddValue("rangeEnd", rangeEnd);
+                                        resource.AddValue("logicalOffset", logicalOffset);
+                                        resource.AddValue("logicalSize", logicalSize);
+                                        resource.AddValue("h32", int.Parse(subElem.GetAttribute("chunkH32")));
+
+                                        if (firstMip >= 0)
+                                            resource.SetValue("firstMip", firstMip);
+
                                         // add special chunks bundle
+                                        // [DAI fix] this used to reference resourcesList.Count - 1, i.e. the
+                                        // previous resource (or -1), because this resource had not been
+                                        // added to the list yet
+                                        DbObject chunkAction = new DbObject();
+                                        chunkAction.AddValue("resourceId", thisResourceId);
+                                        chunkAction.AddValue("type", "add");
+                                        chunkAction.AddValue("bundle", "chunks");
+                                        actionsList.Add(chunkAction);
+                                    }
+
+                                    foreach (string bundleName in targetBundles)
+                                    {
+                                        bool usedFallback;
+                                        string bundleAction = DaiResolveBundleAction(am, bundleIds, type, resName, chunkGuid, bundleName, resAction, out usedFallback);
+                                        if (usedFallback)
+                                        {
+                                            numFallback++;
+                                            if (firstMissingBundle == null)
+                                                firstMissingBundle = bundleName;
+                                        }
+                                        if (bundleAction == "add")
+                                            numAdded++;
+                                        else
+                                            numModified++;
+
                                         DbObject action = new DbObject();
-                                        action.AddValue("resourceId", resourcesList.Count - 1);
-                                        action.AddValue("type", "add");
-                                        action.AddValue("bundle", "chunks");
+                                        action.AddValue("resourceId", thisResourceId);
+                                        action.AddValue("type", bundleAction);
+                                        action.AddValue("bundle", bundleName);
                                         actionsList.Add(action);
                                     }
 
-                                    foreach (System.Xml.XmlElement bundleElem in xmlDoc["daimod"]["bundles"])
+                                    resourcesList.Add(resource);
+                                }
+
+                                App.Logger.Log(string.Format("[DAI] {0}: {1} bundle modifications, {2} additions, {3} removals{4}{5}",
+                                    fi.Name, numModified, numAdded, numRemoved,
+                                    numTexFixed > 0 ? string.Format(", {0} texture streaming ranges corrected", numTexFixed) : "",
+                                    numFallback > 0 ? string.Format(" ({0} decided from the .daimod's own add/modify flag because the bundle was not found in the game data)", numFallback) : ""));
+
+                                // [DAI fix] diagnostics: show why bundle names didn't match the game data
+                                if (firstMissingBundle != null)
+                                {
+                                    string leaf = firstMissingBundle.Substring(firstMissingBundle.LastIndexOf('/') + 1);
+                                    string similar = null;
+                                    if (bundleIds != null)
                                     {
-                                        foreach (System.Xml.XmlElement entryElem in bundleElem["entries"])
+                                        foreach (string known in bundleIds.Keys)
                                         {
-                                            int id = int.Parse(entryElem.GetAttribute("id"));
-                                            if (id == index)
+                                            if (known.EndsWith(leaf, StringComparison.OrdinalIgnoreCase))
                                             {
-                                                DbObject action = new DbObject();
-                                                action.AddValue("resourceId", actualIndex);
-                                                action.AddValue("type", actionString);
-                                                action.AddValue("bundle", bundleElem.GetAttribute("name"));
-                                                actionsList.Add(action);
+                                                similar = known;
+                                                break;
                                             }
                                         }
                                     }
-
-                                    resourcesList.Add(resource);
-                                    offset += resSize;
-                                    actualIndex++;
+                                    string sample = null;
+                                    if (bundleIds != null)
+                                    {
+                                        foreach (string known in bundleIds.Keys)
+                                        {
+                                            sample = known;
+                                            break;
+                                        }
+                                    }
+                                    App.Logger.Log(string.Format("[DAI] bundle lookup: game data has {0} bundles; '{1}' not found; similar name: '{2}'; example game bundle name: '{3}'",
+                                        bundleIds == null ? "no asset manager / 0" : bundleIds.Count.ToString(), firstMissingBundle, similar ?? "(none)", sample ?? "(none)"));
                                 }
 
                                 modObject.AddValue("screenshots", screenshotList);
@@ -1467,6 +2016,9 @@ namespace FrostyModManager
                     FileInfo fi = new FileInfo(Path.Combine(modsDir.FullName, collections[i]));
                     lastInstalledMod = AddCollection(fi.FullName, 0);
                 }
+
+                // [DAI fix] free the game data loaded for .daimod bundle checks
+                DaiReleaseAssetManager();
             });
 
             ICollectionView view = CollectionViewSource.GetDefaultView(availableModsList.ItemsSource);
