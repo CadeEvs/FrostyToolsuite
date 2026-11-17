@@ -252,8 +252,7 @@ namespace Frosty.ModSupport
             return hash;
         }
 
-        // [DAI fix] archive reference counts are updated from several threads at once while
-        // loading new-format mods; these keep the check-and-update steps together under a lock
+        // [DAI fix] archive ref counts are updated from several threads
         private readonly object archiveDataLock = new object();
 
         private void AddArchiveRef(Sha1 sha1, byte[] data)
@@ -355,7 +354,7 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
-                                // [DAI fix] thread-safe reference counting (this runs on several threads at once)
+                                // [DAI fix] thread-safe
                                 if (!ReleaseArchiveRef(existingEntry.Sha1))
                                 {
                                     return;
@@ -444,7 +443,7 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
-                                // [DAI fix] thread-safe reference counting (this runs on several threads at once)
+                                // [DAI fix] thread-safe
                                 if (!ReleaseArchiveRef(existingEntry.Sha1))
                                 {
                                     return;
@@ -546,7 +545,7 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
-                                // [DAI fix] thread-safe reference counting (this runs on several threads at once)
+                                // [DAI fix] thread-safe
                                 if (!ReleaseArchiveRef(existingEntry.Sha1))
                                 {
                                     return;
