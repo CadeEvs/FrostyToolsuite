@@ -760,7 +760,7 @@
                                               SelectionChanged="availableModsList_SelectionChanged"
                                               ContextMenuOpening="availableModsList_ContextMenuOpening"
                                               FocusManager.IsFocusScope="True">
-                                        <!-- [DAI fix] right-click > Reconfigure... for converted .daimod files -->
+                                        <!-- [DAI fix] Reconfigure... -->
                                         <ListView.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem Header="Reconfigure..."
@@ -1439,7 +1439,7 @@
                                              ContextMenuOpening="appliedModsList_ContextMenuOpening"
                                              SelectionMode="Extended"
                                              VerticalAlignment="Top">
-                                        <!-- [DAI fix] right-click > Reconfigure... for converted .daimod files -->
+                                        <!-- [DAI fix] Reconfigure... -->
                                         <ListBox.ContextMenu>
                                             <ContextMenu>
                                                 <MenuItem Header="Reconfigure..."

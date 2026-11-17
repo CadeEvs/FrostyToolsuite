@@ -12,9 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-// [DAI fix] This file was changed to fix several problems with configurable .daimod files.
-// See DAI_FIXES.md for the full list.
-
 namespace FrostyModManager
 {
     class ConfigElement
@@ -83,15 +80,13 @@ namespace FrostyModManager
         private ConfigWindow theWindow;
         private Dictionary<string, ConfigElement> elements = new Dictionary<string, ConfigElement>();
 
-        // [DAI fix] actions that copy whatever is typed in the text boxes into the config values,
-        // run before the script so a value that is still being edited isn't lost
+        // [DAI fix] applied before the script runs, so a value still being typed isn't lost
         private List<Action> commitActions = new List<Action>();
 
-        // [DAI fix] settings chosen last time (Reconfigure / re-import), keyed by setting id
+        // [DAI fix] settings chosen last time, by id
         private IDictionary<string, string> savedValues;
 
-        // [DAI fix] for mods converted before settings were saved: the "<name> <value>" lines that the
-        // converter writes at the end of the mod's description, used as a best-effort fallback
+        // fallback for mods converted before settings were saved: the "<name> <value>" lines at the end of the description
         private string[] legacyLines;
 
         public FrostyConfigElementsList(ConfigWindow inWindow, IDictionary<string, string> inSavedValues = null, string inLegacyDescription = null)
@@ -104,9 +99,6 @@ namespace FrostyModManager
 
         public IEnumerable<KeyValuePair<string, ConfigElement>> Elements => elements;
 
-        /// <summary>
-        /// [DAI fix] Finds the value chosen last time for a setting, if there is one.
-        /// </summary>
         private bool TryGetSaved(string id, string name, out string value)
         {
             if (savedValues != null && savedValues.TryGetValue(id, out value) && value != null)
@@ -114,7 +106,7 @@ namespace FrostyModManager
 
             if (legacyLines != null && !string.IsNullOrEmpty(name))
             {
-                // the settings are the last lines of the description, so search from the end
+                // the settings are at the end of the description
                 string prefix = name + " ";
                 for (int i = legacyLines.Length - 1; i >= 0; i--)
                 {
@@ -138,13 +130,13 @@ namespace FrostyModManager
 
         private void AddElement(string id, ConfigElement ce)
         {
-            // [DAI fix] a duplicate id used to throw and abort the import; the later one now wins
+            // [DAI fix] a duplicate id used to throw; last one wins
             elements[id] = ce;
         }
 
         private static bool TryParseFloat(string text, out float value)
         {
-            // [DAI fix] accept both the Windows region format and the plain "1.5" format
+            // [DAI fix] accept the user's locale and plain "1.5"
             return float.TryParse(text, NumberStyles.Float, CultureInfo.CurrentCulture, out value)
                 || float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out value);
         }
@@ -154,7 +146,7 @@ namespace FrostyModManager
             ConfigElement<int> ce = new ConfigElement<int>(id, name, defValue, minValue, maxValue);
             AddElement(id, ce);
 
-            // [DAI fix] start from the saved value, if there is one
+            // [DAI fix] restore saved value
             int initial = defValue;
             if (TryGetSaved(id, name, out string saved) && int.TryParse(saved.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int savedInt))
                 initial = Math.Max(minValue, Math.Min(maxValue, savedInt));
@@ -204,7 +196,7 @@ namespace FrostyModManager
             ConfigElement<float> ce = new ConfigElement<float>(id, name, defValue, minValue, maxValue);
             AddElement(id, ce);
 
-            // [DAI fix] start from the saved value, if there is one
+            // [DAI fix] restore saved value
             float initial = defValue;
             if (TryGetSaved(id, name, out string saved) && TryParseFloat(saved.Trim(), out float savedFloat))
                 initial = Math.Max(minValue, Math.Min(maxValue, savedFloat));
@@ -254,7 +246,7 @@ namespace FrostyModManager
             ConfigElement<bool> ce = new ConfigElement<bool>(id, name, defValue, false, true);
             AddElement(id, ce);
 
-            // [DAI fix] start from the saved value, if there is one
+            // [DAI fix] restore saved value
             bool initial = defValue;
             if (TryGetSaved(id, name, out string saved) && bool.TryParse(saved.Trim(), out bool savedBool))
                 initial = savedBool;
@@ -284,8 +276,7 @@ namespace FrostyModManager
 
             Label lbl = new Label {Content = name};
 
-            // [DAI fix] the dropdown position used to be passed to the script as the value, which is
-            // only correct when the enum's values are 0, 1, 2... in order. Map positions to real values.
+            // [DAI fix] pass the enum value, not the dropdown index (they differ unless the values are 0, 1, 2...)
             string[] names = Enum.GetNames(enumType);
             int[] values = new int[names.Length];
             bool valuesUsable = true;
@@ -305,12 +296,12 @@ namespace FrostyModManager
                     values[i] = i;
             }
 
-            // the default is normally an enum value; fall back to treating it as a position
+            // defValue is normally an enum value, but may be an index
             int selectedIndex = Array.IndexOf(values, defValue);
             if (selectedIndex < 0 && defValue >= 0 && defValue < values.Length)
                 selectedIndex = defValue;
 
-            // [DAI fix] start from the saved value (stored as the enum value), if there is one
+            // saved as the enum value
             if (TryGetSaved(id, name, out string saved) && int.TryParse(saved.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int savedEnum))
             {
                 int savedIndex = Array.IndexOf(values, savedEnum);
@@ -346,7 +337,7 @@ namespace FrostyModManager
             StringConfigElement ce = new StringConfigElement(id, name, defValue ?? "");
             AddElement(id, ce);
 
-            // [DAI fix] start from the saved value, if there is one
+            // [DAI fix] restore saved value
             string initial = defValue ?? "";
             if (TryGetSaved(id, name, out string saved))
                 initial = saved;
@@ -395,8 +386,7 @@ namespace FrostyModManager
 
         public object GetConfigParam(string name)
         {
-            // [DAI fix] an unknown name used to crash the script; return 0 like the original
-            // DAI scripting interface does when nothing is set up
+            // [DAI fix] 0 for an unknown name instead of crashing, like DAI's default script interface
             ConfigElement elem = config.GetElement(name);
             if (elem == null)
             {
@@ -406,7 +396,7 @@ namespace FrostyModManager
             return elem.CurrentValue;
         }
 
-        // [DAI fix] script log output used to be thrown away; it now goes to the Mod Manager log
+        // [DAI fix] used to be discarded
         public void LogLn(string line) => log.Add(line);
 
         public byte[] GetResourceData(int index)
@@ -444,23 +434,15 @@ namespace FrostyModManager
     /// </summary>
     public partial class ConfigWindow : FrostyDockableWindow
     {
-        /// <summary>
-        /// [DAI fix] True only if the user pressed Save and the script ran successfully.
-        /// Closing the window any other way leaves this false so the import can be cancelled
-        /// (it used to import the mod with the script never having run).
-        /// </summary>
+        // [DAI fix] closing without Save used to import the mod with the script never run
         public bool ScriptApplied { get; private set; }
 
-        /// <summary>
-        /// [DAI fix] Set if the script threw an error while running.
-        /// </summary>
         public string ScriptError { get; private set; }
 
         private DAIMod.ModScript modScript;
         private FrostyScripting scripting;
 
-        /// <param name="savedValues">[DAI fix] settings chosen last time, keyed by setting id (Reconfigure)</param>
-        /// <param name="legacyDescription">[DAI fix] description of a mod converted before settings were saved; its settings lines are used as a fallback</param>
+        // [DAI fix] savedValues / legacyDescription pre-fill the settings (Reconfigure)
         public ConfigWindow(string code, List<byte[]> inResources, List<bool> inStates, IDictionary<string, string> savedValues = null, string legacyDescription = null)
         {
             InitializeComponent();
@@ -472,18 +454,17 @@ namespace FrostyModManager
                 GenerateInMemory = true
             };
 
-            // [DAI fix] reference assemblies by their full path so they are always found no matter
-            // what the working directory is, and include the common framework libraries old scripts
-            // may use ("System.Linq.dll" is not a .NET Framework assembly; Linq lives in System.Core)
+            // [DAI fix] full paths so they resolve from any working directory. There is no System.Linq.dll
+            // in .NET Framework (Linq is in System.Core).
             HashSet<string> references = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
-                typeof(Uri).Assembly.Location,                          // System.dll
-                typeof(Enumerable).Assembly.Location,                   // System.Core.dll
-                typeof(System.Xml.XmlDocument).Assembly.Location,       // System.Xml.dll
-                typeof(System.Xml.Linq.XDocument).Assembly.Location,    // System.Xml.Linq.dll
-                typeof(System.Data.DataTable).Assembly.Location,        // System.Data.dll
-                typeof(System.Drawing.Color).Assembly.Location,         // System.Drawing.dll
-                typeof(DAIMod.ModScript).Assembly.Location              // FrostyModSupport.dll
+                typeof(Uri).Assembly.Location,
+                typeof(Enumerable).Assembly.Location,
+                typeof(System.Xml.XmlDocument).Assembly.Location,
+                typeof(System.Xml.Linq.XDocument).Assembly.Location,
+                typeof(System.Data.DataTable).Assembly.Location,
+                typeof(System.Drawing.Color).Assembly.Location,
+                typeof(DAIMod.ModScript).Assembly.Location
             };
             foreach (string reference in references)
             {
@@ -493,7 +474,7 @@ namespace FrostyModManager
 
             CompilerResults results = codeProvider.CompileAssemblyFromSource(parameters, code);
 
-            // [DAI fix] compile errors used to surface as an unhandled exception that killed the import
+            // [DAI fix] compile errors used to crash the import
             if (results.Errors.HasErrors)
             {
                 StringBuilder sb = new StringBuilder();
@@ -560,7 +541,7 @@ namespace FrostyModManager
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            // make sure a value that is still being typed is included
+            // [DAI fix] commit a value still being typed, and catch script errors (they crashed the Mod Manager)
             scripting.config.CommitAll();
 
             try
@@ -570,7 +551,6 @@ namespace FrostyModManager
             }
             catch (Exception ex)
             {
-                // [DAI fix] a script error used to crash the Mod Manager
                 ScriptError = "The mod's configuration script failed while running: " + ex.Message;
             }
 

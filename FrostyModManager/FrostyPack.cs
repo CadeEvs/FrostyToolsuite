@@ -41,10 +41,7 @@ namespace FrostyModManager
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
-        /// <summary>
-        /// [DAI fix] Puts a re-converted copy of a mod (Reconfigure) where the old one was, keeping its
-        /// load order position and enabled state.
-        /// </summary>
+        // [DAI fix] for Reconfigure: keeps the load order position and enabled state
         public bool ReplaceMod(IFrostyMod oldMod, IFrostyMod newMod)
         {
             int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod == oldMod);
