@@ -1429,8 +1429,19 @@ namespace Frosty.ModSupport
                                                         if (curMeta.GetValue<int>("h32") == chunkEntry.H32)
                                                             curMeta.GetValue<DbObject>("meta").SetValue("firstMip", chunkEntry.FirstMip);
                                                     }
-                                                    chunk.SetValue("rangeStart", (int)chunkEntry.RangeStart);
-                                                    chunk.SetValue("rangeEnd", (int)chunkEntry.RangeEnd);
+                                                    // [DAI fix] an empty range (start == end) means "no range": DAI Mod
+                                                    // Manager leaves the fields out, and writing 0..0 makes the game wait
+                                                    // forever for texture data that never arrives (infinite load screen)
+                                                    if (ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition && chunkEntry.RangeStart == chunkEntry.RangeEnd)
+                                                    {
+                                                        chunk.RemoveValue("rangeStart");
+                                                        chunk.RemoveValue("rangeEnd");
+                                                    }
+                                                    else
+                                                    {
+                                                        chunk.SetValue("rangeStart", (int)chunkEntry.RangeStart);
+                                                        chunk.SetValue("rangeEnd", (int)chunkEntry.RangeEnd);
+                                                    }
 
                                                     //chunkMeta.GetValue<DbObject>("meta").RemoveValue("firstMip");
                                                     //chunkMeta.GetValue<DbObject>("meta").RemoveValue("firstMip");
@@ -1500,8 +1511,12 @@ namespace Frosty.ModSupport
 
                                         if (entry.FirstMip != -1)
                                         {
-                                            chunk.SetValue("rangeStart", (int)entry.RangeStart);
-                                            chunk.SetValue("rangeEnd", (int)entry.RangeEnd);
+                                            // [DAI fix] leave an empty range out, as DAI Mod Manager does (see above)
+                                            if (!(ProfilesLibrary.DataVersion == (int)ProfileVersion.DragonAgeInquisition && entry.RangeStart == entry.RangeEnd))
+                                            {
+                                                chunk.SetValue("rangeStart", (int)entry.RangeStart);
+                                                chunk.SetValue("rangeEnd", (int)entry.RangeEnd);
+                                            }
 
                                             chunkMeta.GetValue<DbObject>("meta").SetValue("firstMip", entry.FirstMip);
                                             if (ProfilesLibrary.DataVersion == (int)ProfileVersion.MassEffectAndromeda || ProfilesLibrary.DataVersion == (int)ProfileVersion.Fifa18 || ProfilesLibrary.DataVersion == (int)ProfileVersion.StarWarsBattlefrontII || ProfilesLibrary.DataVersion == (int)ProfileVersion.Madden19)
