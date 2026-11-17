@@ -102,11 +102,11 @@ namespace FrostyModManager.Windows
                 Frosty.Core.App.FileSystem.AddSource(source.Path, source.SubDirs);
             Frosty.Core.App.FileSystem.Initialize(KeyManager.Instance.GetKey("Key1"));
 
+            ILogger logger = new SplashWindowLogger(this);
+
             // check to make sure SDK is up to date
             if (!File.Exists(Frosty.Core.App.FileSystem.CacheName + ".cache"))
             {
-                ILogger logger = new SplashWindowLogger(this);
-
                 // load data from game or cache
                 await LoadData(logger);
 
@@ -123,6 +123,11 @@ namespace FrostyModManager.Windows
             Frosty.Core.App.ResourceManager = null;
             Frosty.Core.App.FileSystem = null;
             GC.Collect();
+
+            foreach (var startupAction in App.PluginManager.StartupActions)
+            {
+                await Task.Run(() => { startupAction.Action(logger); });
+            }
 
             // show the main editor window
             MainWindow win = new MainWindow();

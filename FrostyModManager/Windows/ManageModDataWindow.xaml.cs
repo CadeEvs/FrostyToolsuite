@@ -33,11 +33,11 @@ namespace FrostyModManager
             InitializeComponent();
 
             // Draws the window in the center of the screen
-            Window mainWin = Application.Current.MainWindow;
-            if (mainWin != null)
+            Owner = Application.Current.MainWindow;
+            if (Owner != null)
             {
-                double x = mainWin.Left + (mainWin.Width / 2.0);
-                double y = mainWin.Top + (mainWin.Height / 2.0);
+                double x = Owner.Left + (Owner.Width / 2.0);
+                double y = Owner.Top + (Owner.Height / 2.0);
 
                 Left = x - (Width / 2.0);
                 Top = y - (MaxHeight / 2.0);
@@ -136,10 +136,11 @@ namespace FrostyModManager
             string modDirName = "ModData\\" + selectedPack.Name;
             string modDataPath = getModDataPath() + $"\\{selectedPack.Name}\\";
 
+            int retCode = 0;
             try
             {
                 // run mod applying process
-                FrostyTaskWindow.Show("Launching", "", (task) =>
+                FrostyTaskWindow.Show(this, "Launching", "", (task) =>
                 {
                     App.Logger.Log("Launching");
                     try
@@ -149,16 +150,21 @@ namespace FrostyModManager
 
                         FrostyModExecutor.LaunchGame(Config.Get<string>("GamePath", "", ConfigScope.Game, ProfilesLibrary.ProfileName) + "\\", modDirName, modDataPath, Config.Get<string>("CommandLineArgs", "", ConfigScope.Game));
 
+                        foreach (var executionAction in App.PluginManager.ExecutionActions)
+                            executionAction.PostLaunchAction(task.TaskLogger, PluginManagerType.ModManager, cancelToken.Token);
+
                         App.Logger.Log("Done");
                     }
                     catch (OperationCanceledException)
                     {
                         // process was cancelled
                         App.Logger.Log("Launch Cancelled");
+                        retCode = -1;
                     }
                     catch (Exception ex)
                     {
                         App.Logger.Log("Error Launching Game: " + ex);
+                        retCode = -1;
                     }
 
                 }, showCancelButton: true, cancelCallback: (task) => cancelToken.Cancel());
@@ -167,6 +173,21 @@ namespace FrostyModManager
             {
                 // process was cancelled
                 App.Logger.Log("Launch Cancelled");
+                retCode = -1;
+            }
+
+            if (retCode != -1)
+            {
+                try
+                {
+                    this.Owner.WindowState = WindowState.Minimized;
+                    foreach (Window window in this.OwnedWindows)
+                    {
+                        window.WindowState = WindowState.Minimized;
+                    }
+                }
+                catch { }
+                Close();
             }
 
         }
@@ -203,7 +224,10 @@ namespace FrostyModManager
                         {
                             writer.WriteLine("Prop3=19,0");
                             writer.WriteLine("[InternetShortcut]");
+                            writer.WriteLine("IDList=");
+                            writer.WriteLine("IconIndex=0");
                             writer.WriteLine($"URL=steam://run/{steamAppId}//{url}/");
+                            writer.WriteLine($"IconFile={basePath + ProfilesLibrary.ProfileName}.exe");
 
                             App.Logger.Log($"Steam shortcut write to: {dialog.FileName}");
                         }
