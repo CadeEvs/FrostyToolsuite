@@ -87,9 +87,47 @@ namespace FrostyModManager
         // run before the script so a value that is still being edited isn't lost
         private List<Action> commitActions = new List<Action>();
 
-        public FrostyConfigElementsList(ConfigWindow inWindow)
+        // [DAI fix] settings chosen last time (Reconfigure / re-import), keyed by setting id
+        private IDictionary<string, string> savedValues;
+
+        // [DAI fix] for mods converted before settings were saved: the "<name> <value>" lines that the
+        // converter writes at the end of the mod's description, used as a best-effort fallback
+        private string[] legacyLines;
+
+        public FrostyConfigElementsList(ConfigWindow inWindow, IDictionary<string, string> inSavedValues = null, string inLegacyDescription = null)
         {
             theWindow = inWindow;
+            savedValues = inSavedValues;
+            if (!string.IsNullOrEmpty(inLegacyDescription))
+                legacyLines = inLegacyDescription.Replace("\r\n", "\n").Split('\n');
+        }
+
+        public IEnumerable<KeyValuePair<string, ConfigElement>> Elements => elements;
+
+        /// <summary>
+        /// [DAI fix] Finds the value chosen last time for a setting, if there is one.
+        /// </summary>
+        private bool TryGetSaved(string id, string name, out string value)
+        {
+            if (savedValues != null && savedValues.TryGetValue(id, out value) && value != null)
+                return true;
+
+            if (legacyLines != null && !string.IsNullOrEmpty(name))
+            {
+                // the settings are the last lines of the description, so search from the end
+                string prefix = name + " ";
+                for (int i = legacyLines.Length - 1; i >= 0; i--)
+                {
+                    if (legacyLines[i].StartsWith(prefix, StringComparison.Ordinal))
+                    {
+                        value = legacyLines[i].Substring(prefix.Length);
+                        return true;
+                    }
+                }
+            }
+
+            value = null;
+            return false;
         }
 
         public void CommitAll()
@@ -116,11 +154,17 @@ namespace FrostyModManager
             ConfigElement<int> ce = new ConfigElement<int>(id, name, defValue, minValue, maxValue);
             AddElement(id, ce);
 
+            // [DAI fix] start from the saved value, if there is one
+            int initial = defValue;
+            if (TryGetSaved(id, name, out string saved) && int.TryParse(saved.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int savedInt))
+                initial = Math.Max(minValue, Math.Min(maxValue, savedInt));
+            ce.CurrentValue = initial;
+
             Label lbl = new Label {Content = name};
 
             TextBox tb = new TextBox
             {
-                Text = defValue.ToString(),
+                Text = initial.ToString(),
                 Height = 24,
                 Margin = new Thickness(1),
                 Padding = new Thickness(2, 0, 0, 0),
@@ -160,11 +204,17 @@ namespace FrostyModManager
             ConfigElement<float> ce = new ConfigElement<float>(id, name, defValue, minValue, maxValue);
             AddElement(id, ce);
 
+            // [DAI fix] start from the saved value, if there is one
+            float initial = defValue;
+            if (TryGetSaved(id, name, out string saved) && TryParseFloat(saved.Trim(), out float savedFloat))
+                initial = Math.Max(minValue, Math.Min(maxValue, savedFloat));
+            ce.CurrentValue = initial;
+
             Label lbl = new Label {Content = name};
 
             TextBox tb = new TextBox
             {
-                Text = defValue.ToString("F3"),
+                Text = initial.ToString("F3"),
                 Height = 24,
                 Margin = new Thickness(1),
                 Padding = new Thickness(2, 0, 0, 0),
@@ -204,11 +254,17 @@ namespace FrostyModManager
             ConfigElement<bool> ce = new ConfigElement<bool>(id, name, defValue, false, true);
             AddElement(id, ce);
 
+            // [DAI fix] start from the saved value, if there is one
+            bool initial = defValue;
+            if (TryGetSaved(id, name, out string saved) && bool.TryParse(saved.Trim(), out bool savedBool))
+                initial = savedBool;
+            ce.CurrentValue = initial;
+
             Label lbl = new Label {Content = name};
 
             CheckBox cb = new CheckBox
             {
-                IsChecked = defValue,
+                IsChecked = initial,
                 Height = 24,
                 Margin = new Thickness(1),
                 VerticalContentAlignment = VerticalAlignment.Center
@@ -253,6 +309,15 @@ namespace FrostyModManager
             int selectedIndex = Array.IndexOf(values, defValue);
             if (selectedIndex < 0 && defValue >= 0 && defValue < values.Length)
                 selectedIndex = defValue;
+
+            // [DAI fix] start from the saved value (stored as the enum value), if there is one
+            if (TryGetSaved(id, name, out string saved) && int.TryParse(saved.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out int savedEnum))
+            {
+                int savedIndex = Array.IndexOf(values, savedEnum);
+                if (savedIndex >= 0)
+                    selectedIndex = savedIndex;
+            }
+
             if (selectedIndex >= 0)
                 ce.CurrentValue = values[selectedIndex];
 
@@ -281,11 +346,17 @@ namespace FrostyModManager
             StringConfigElement ce = new StringConfigElement(id, name, defValue ?? "");
             AddElement(id, ce);
 
+            // [DAI fix] start from the saved value, if there is one
+            string initial = defValue ?? "";
+            if (TryGetSaved(id, name, out string saved))
+                initial = saved;
+            ce.CurrentValue = initial;
+
             Label lbl = new Label {Content = name};
 
             TextBox tb = new TextBox
             {
-                Text = defValue ?? "",
+                Text = initial,
                 Height = 24,
                 Margin = new Thickness(1),
                 Padding = new Thickness(2, 0, 0, 0),
@@ -388,7 +459,9 @@ namespace FrostyModManager
         private DAIMod.ModScript modScript;
         private FrostyScripting scripting;
 
-        public ConfigWindow(string code, List<byte[]> inResources, List<bool> inStates)
+        /// <param name="savedValues">[DAI fix] settings chosen last time, keyed by setting id (Reconfigure)</param>
+        /// <param name="legacyDescription">[DAI fix] description of a mod converted before settings were saved; its settings lines are used as a fallback</param>
+        public ConfigWindow(string code, List<byte[]> inResources, List<bool> inStates, IDictionary<string, string> savedValues = null, string legacyDescription = null)
         {
             InitializeComponent();
 
@@ -445,7 +518,7 @@ namespace FrostyModManager
             if (modScript == null)
                 throw new InvalidOperationException("The mod's configuration script does not contain a ModScript class.");
 
-            scripting = new FrostyScripting(new FrostyConfigElementsList(this), inResources, inStates);
+            scripting = new FrostyScripting(new FrostyConfigElementsList(this, savedValues, legacyDescription), inResources, inStates);
             DAIMod.Scripting.SetScriptInterface(scripting);
 
             modScript.ConstructUI(scripting.config);
@@ -461,6 +534,26 @@ namespace FrostyModManager
             }
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// [DAI fix] The chosen settings keyed by setting id, written culture-independently, so they can
+        /// be saved and passed back in next time (Reconfigure).
+        /// </summary>
+        public Dictionary<string, string> GetSettingValues()
+        {
+            Dictionary<string, string> values = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, ConfigElement> pair in scripting.config.Elements)
+            {
+                object value = pair.Value.CurrentValue;
+                if (value is float f)
+                    values[pair.Key] = f.ToString("R", CultureInfo.InvariantCulture);
+                else if (value is IFormattable formattable)
+                    values[pair.Key] = formattable.ToString(null, CultureInfo.InvariantCulture);
+                else
+                    values[pair.Key] = value?.ToString() ?? "";
+            }
+            return values;
         }
 
         public List<bool> GetResourceStates() => scripting.resourceState;
