@@ -1399,7 +1399,7 @@
                                                     <TextBlock Margin="6,0,0,0"
                                                                Text="Load Order:"
                                                                VerticalAlignment="Center" />
-                                                    <!-- [DAI fix] clearer labels; the saved setting is still List/Priority by position -->
+                                                    <!-- [DAI fix] was List/Priority; still saved by index -->
                                                     <ComboBox x:Name="orderComboBox"
                                                               Width="100"
                                                               Height="22"
