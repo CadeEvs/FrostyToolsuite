@@ -1399,16 +1399,17 @@
                                                     <TextBlock Margin="6,0,0,0"
                                                                Text="Load Order:"
                                                                VerticalAlignment="Center" />
+                                                    <!-- [DAI fix] clearer labels; the saved setting is still List/Priority by position -->
                                                     <ComboBox x:Name="orderComboBox"
-                                                              Width="68"
+                                                              Width="100"
                                                               Height="22"
                                                               Margin="4,0,0,0"
                                                               Padding="4,2,4,2"
                                                               SelectionChanged="orderComboBox_SelectionChanged"
                                                               ToolTip="{Binding Path=SelectedItem.ToolTip, RelativeSource={RelativeSource Self}}">
-                                                        <ComboBoxItem Content="List"
+                                                        <ComboBoxItem Content="Bottom wins"
                                                                       ToolTip="Bottom Overrides Top" />
-                                                        <ComboBoxItem Content="Priority"
+                                                        <ComboBoxItem Content="Top wins"
                                                                       ToolTip="Top Overrides Bottom" />
                                                     </ComboBox>
                                                 </StackPanel>
