@@ -816,6 +816,9 @@ namespace FrostyModManager
                 if (idx != -1)
                     selectedPack.AppliedMods.RemoveAt(idx);
 
+                // [DAI fix] also delete the copy kept for Reconfigure
+                DaiDeleteOriginal(mod);
+
                 if (!fi.Exists)
                     continue;
 
@@ -878,6 +881,18 @@ namespace FrostyModManager
 
         private FrostyMod AddMod(string modFilename, int format)
         {
+            FrostyMod mod = LoadMod(modFilename, format);
+            lock (availableMods)
+            {
+                availableMods.Add(mod);
+            }
+
+            return mod;
+        }
+
+        // [DAI fix] split out of AddMod for Reconfigure
+        private FrostyMod LoadMod(string modFilename, int format)
+        {
             FrostyMod mod = null;
             if (format == 1)
             {
@@ -894,10 +909,6 @@ namespace FrostyModManager
 
             if (mod.GameVersion != fs.Head)
                 mod.AddWarning("Mod was designed for a different game version");
-            lock (availableMods)
-            {
-                availableMods.Add(mod);
-            }
 
             return mod;
         }
@@ -995,6 +1006,1048 @@ namespace FrostyModManager
                 FrostyMessageBox.Show("Cannot import mod files that have not been extracted", "Frosty Mod Manager");
             }
         }
+
+        #region -- [DAI fix] .daimod conversion helpers --
+
+        private static string DaiXmlText(System.Xml.XmlElement parent, string childName)
+        {
+            if (parent == null || parent[childName] == null)
+                return "";
+            return parent[childName].InnerText;
+        }
+
+        private static byte[] DaiHexToBytes(string hex)
+        {
+            if (string.IsNullOrEmpty(hex) || hex.Length % 2 != 0)
+                return null;
+
+            byte[] bytes = new byte[hex.Length / 2];
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                if (!byte.TryParse(hex.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out bytes[i]))
+                    return null;
+            }
+            return bytes;
+        }
+
+        private static long DaiDecompressedLength(byte[] data)
+        {
+            try
+            {
+                using (CasReader reader = new CasReader(new MemoryStream(data)))
+                    return reader.Read().Length;
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+
+        // chunk meta is a hex string of a DbObject fragment
+        private static int DaiParseFirstMip(string metaHex)
+        {
+            if (string.IsNullOrEmpty(metaHex) || metaHex == "00")
+                return -1;
+
+            byte[] meta = DaiHexToBytes(metaHex);
+            if (meta == null)
+                return -1;
+
+            byte[] key = Encoding.ASCII.GetBytes("firstMip\0");
+            for (int i = 0; i + key.Length + 4 <= meta.Length; i++)
+            {
+                bool match = true;
+                for (int k = 0; k < key.Length; k++)
+                {
+                    if (meta[i + k] != key[k])
+                    {
+                        match = false;
+                        break;
+                    }
+                }
+
+                if (match)
+                    return DaiReadMipValue(meta, i + key.Length);
+            }
+
+            // not found: the old fixed position (hex char 20 = byte 10), read little-endian
+            if (meta.Length >= 14)
+                return DaiReadMipValue(meta, 10);
+
+            return -1;
+        }
+
+        private class DaiTextureLayout
+        {
+            public int MipCount;
+            public int FirstMip;
+            public uint[] MipSizes;
+        }
+
+        // keyed by the chunk id each texture points at
+        private static Dictionary<Guid, DaiTextureLayout> DaiReadTextureLayouts(System.Xml.XmlElement resourcesElem, List<byte[]> resources)
+        {
+            const uint TextureResType = 0x5C4954A6;
+            Dictionary<Guid, DaiTextureLayout> layouts = new Dictionary<Guid, DaiTextureLayout>();
+
+            foreach (System.Xml.XmlNode node in resourcesElem.ChildNodes)
+            {
+                System.Xml.XmlElement elem = node as System.Xml.XmlElement;
+                if (elem == null || elem.GetAttribute("type") != "res" || elem.GetAttribute("action") == "remove")
+                    continue;
+
+                uint resType;
+                int resId;
+                if (!uint.TryParse(elem.GetAttribute("resType"), out resType) || resType != TextureResType)
+                    continue;
+                if (!int.TryParse(elem.GetAttribute("resourceId"), out resId) || resId < 0 || resId >= resources.Count)
+                    continue;
+
+                byte[] header;
+                try
+                {
+                    using (CasReader reader = new CasReader(new MemoryStream(resources[resId])))
+                        header = reader.Read();
+                }
+                catch (Exception)
+                {
+                    continue;
+                }
+
+                // DAI texture header: mipOffsets[2], type, format, flags(u16), width, height, depth,
+                // sliceCount (u16 each), mipCount (u8), firstMip (u8), chunkId (guid), mipSizes[15]
+                if (header == null || header.Length < 104)
+                    continue;
+
+                DaiTextureLayout layout = new DaiTextureLayout
+                {
+                    MipCount = header[26],
+                    FirstMip = header[27],
+                    MipSizes = new uint[15]
+                };
+                for (int i = 0; i < 15; i++)
+                    layout.MipSizes[i] = BitConverter.ToUInt32(header, 44 + i * 4);
+
+                byte[] guidBytes = new byte[16];
+                Array.Copy(header, 28, guidBytes, 0, 16);
+                layouts[new Guid(guidBytes)] = layout;
+            }
+
+            return layouts;
+        }
+
+        // Same layout as Utils.CompressTexture: from firstMip on is the always-loaded range.
+        // False (values untouched) if there is nothing to split or no block boundary at that mip.
+        private static bool DaiCalcTextureRange(DaiTextureLayout layout, byte[] chunkData,
+            ref int firstMip, ref uint logicalOffset, ref uint logicalSize, ref uint rangeStart, ref uint rangeEnd)
+        {
+            if (layout.MipCount <= 1 || layout.MipCount > 15 || layout.FirstMip <= 0 || layout.FirstMip >= layout.MipCount)
+                return false;
+
+            long total = 0;
+            for (int i = 0; i < layout.MipCount; i++)
+                total += layout.MipSizes[i];
+            if (total <= 0x10000)
+                return false;
+
+            // same rule as Utils.CompressTexture: the range keeps a minimum size of 0x10000,
+            // the logical offset doesn't
+            long first = 0, second = total, newLogicalOffset = 0;
+            for (int i = 0; i < layout.FirstMip; i++)
+            {
+                if (second > 0x10000)
+                {
+                    first += layout.MipSizes[i];
+                    second -= layout.MipSizes[i];
+                }
+                newLogicalOffset += layout.MipSizes[i];
+            }
+
+            // find the block that starts at uncompressed offset "first"
+            long compressedPos = 0, uncompressedPos = 0, splitPos = -1;
+            while (compressedPos + 8 <= chunkData.Length)
+            {
+                if (uncompressedPos == first)
+                    splitPos = compressedPos;
+
+                int p = (int)compressedPos;
+                int decompressedSize = (chunkData[p] << 24) | (chunkData[p + 1] << 16) | (chunkData[p + 2] << 8) | chunkData[p + 3];
+                ushort compressCode = (ushort)((chunkData[p + 4] << 8) | chunkData[p + 5]);
+                int blockSize = (chunkData[p + 6] << 8) | chunkData[p + 7];
+
+                // DAI block codes: 0x0270 = zlib (blockSize is the compressed size),
+                // 0x0070 = stored (data is decompressedSize bytes)
+                decompressedSize &= 0x00FFFFFF;
+                if ((compressCode >> 8) == 0x00)
+                    blockSize = decompressedSize;
+
+                compressedPos += 8 + blockSize;
+                uncompressedPos += decompressedSize;
+            }
+
+            if (compressedPos != chunkData.Length || uncompressedPos != total || splitPos < 0)
+                return false;
+
+            firstMip = layout.FirstMip;
+            logicalOffset = (uint)newLogicalOffset;
+            logicalSize = (uint)(total - newLogicalOffset);
+            rangeStart = (uint)splitPos;
+            rangeEnd = (uint)chunkData.Length;
+            return true;
+        }
+
+        private static int DaiReadMipValue(byte[] buf, int pos)
+        {
+            // little-endian, but accept big-endian too
+            int le = buf[pos] | (buf[pos + 1] << 8) | (buf[pos + 2] << 16) | (buf[pos + 3] << 24);
+            if (le >= 0 && le < 16)
+                return le;
+
+            int be = (buf[pos] << 24) | (buf[pos + 1] << 16) | (buf[pos + 2] << 8) | buf[pos + 3];
+            if (be >= 0 && be < 16)
+                return be;
+
+            return -1;
+        }
+
+        // The splash screen drops the asset manager after startup, so one is loaded from the cache
+        // for .daimod imports and released afterwards.
+        private AssetManager daiAssetManager;
+        private bool daiAssetManagerFailed;
+
+        private AssetManager DaiGetAssetManager()
+        {
+            if (Frosty.Core.App.AssetManager != null)
+                return Frosty.Core.App.AssetManager;
+            if (daiAssetManager != null || daiAssetManagerFailed || fs == null)
+                return daiAssetManager;
+
+            try
+            {
+                App.Logger.Log("[DAI] Loading game data from the cache to check bundle names");
+                ResourceManager rm = new ResourceManager(fs);
+                rm.Initialize();
+                AssetManager am = new AssetManager(fs, rm);
+                am.Initialize(additionalStartup: false);
+                daiAssetManager = am;
+            }
+            catch (Exception e)
+            {
+                daiAssetManagerFailed = true;
+                App.Logger.Log("[DAI] Could not load the game data (" + e.Message + "); using each .daimod's own add/modify flags");
+            }
+            return daiAssetManager;
+        }
+
+        private void DaiReleaseAssetManager()
+        {
+            daiAssetManager = null;
+            daiAssetManagerFailed = false;
+            GC.Collect();
+        }
+
+        private static Dictionary<string, int> DaiBuildBundleIdMap(AssetManager am)
+        {
+            if (am == null)
+                return null;
+
+            Dictionary<string, int> map = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int bid = 0; ; bid++)
+            {
+                BundleEntry be = am.GetBundleEntry(bid);
+                if (be == null)
+                    break;
+
+                if (be.Name != null && !map.ContainsKey(be.Name))
+                    map.Add(be.Name, bid);
+            }
+            return map;
+        }
+
+        // Frosty only modifies entries already in the bundle and only adds listed additions,
+        // so add vs modify has to match the game data.
+        private static string DaiResolveBundleAction(AssetManager am, Dictionary<string, int> bundleIds, string type, string resName, Guid chunkGuid, string bundleName, string daimodAction, out bool usedFallback)
+        {
+            usedFallback = false;
+
+            int bid;
+            if (am != null && bundleIds != null && bundleIds.TryGetValue(bundleName, out bid))
+            {
+                AssetEntry existing = null;
+                if (type == "ebx")
+                    existing = am.GetEbxEntry(resName);
+                else if (type == "res")
+                    existing = am.GetResEntry(resName);
+                else
+                    existing = am.GetChunkEntry(chunkGuid);
+
+                return (existing != null && existing.IsInBundle(bid)) ? "modify" : "add";
+            }
+
+            // bundle not in the game data: use the .daimod's flag
+            usedFallback = true;
+            return (daimodAction == "add") ? "add" : "modify";
+        }
+
+        #endregion
+
+        #region -- [DAI fix] .daimod import and Reconfigure --
+
+        // The original .daimod and its chosen settings are kept in "<mods folder>\DAI originals" for
+        // Reconfigure. Only .fbmod files directly in the mods folder are loaded, so the subfolder is ignored.
+
+        private const string DaiOriginalsFolderName = "DAI originals";
+        private const string DaiConvertedPrefix = "(Converted from .daimod)";
+
+        internal sealed class DaiSavedSettings
+        {
+            public int Format { get; set; } = 1;
+            public string SourceFile { get; set; }
+            public Dictionary<string, string> Values { get; set; } = new Dictionary<string, string>();
+        }
+
+        private string DaiOriginalsDir => Path.Combine(modsDir.FullName, DaiOriginalsFolderName);
+        private string DaiOriginalPath(string baseName) => Path.Combine(DaiOriginalsDir, baseName + ".daimod");
+        private string DaiSettingsPath(string baseName) => Path.Combine(DaiOriginalsDir, baseName + ".settings.json");
+
+        private bool DaiCanReconfigure(IFrostyMod mod)
+        {
+            FrostyMod fm = mod as FrostyMod;
+            if (fm == null || fm.NewFormat)
+                return false;
+
+            return File.Exists(DaiOriginalPath(Path.GetFileNameWithoutExtension(fm.Filename)))
+                || (fm.ModDetails.Description ?? "").StartsWith(DaiConvertedPrefix, StringComparison.Ordinal);
+        }
+
+        private Dictionary<string, string> DaiLoadSettings(string baseName)
+        {
+            string path = DaiSettingsPath(baseName);
+            if (!File.Exists(path))
+                return null;
+
+            try
+            {
+                DaiSavedSettings saved = JsonConvert.DeserializeObject<DaiSavedSettings>(File.ReadAllText(path));
+                return saved?.Values;
+            }
+            catch (Exception e)
+            {
+                App.Logger.Log("[DAI] Could not read the saved settings for " + baseName + " (" + e.Message + "); using the mod's defaults");
+                return null;
+            }
+        }
+
+        private void DaiSaveOriginal(string sourcePath, string baseName, Dictionary<string, string> values)
+        {
+            Directory.CreateDirectory(DaiOriginalsDir);
+
+            string target = DaiOriginalPath(baseName);
+            if (!string.Equals(Path.GetFullPath(sourcePath), Path.GetFullPath(target), StringComparison.OrdinalIgnoreCase))
+                File.Copy(sourcePath, target, true);
+
+            DaiSavedSettings saved = new DaiSavedSettings
+            {
+                SourceFile = Path.GetFileName(sourcePath),
+                Values = values ?? new Dictionary<string, string>()
+            };
+            File.WriteAllText(DaiSettingsPath(baseName), JsonConvert.SerializeObject(saved, Newtonsoft.Json.Formatting.Indented));
+        }
+
+        private void DaiDeleteOriginal(IFrostyMod mod)
+        {
+            if (!(mod is FrostyMod))
+                return;
+
+            string baseName = Path.GetFileNameWithoutExtension(mod.Filename);
+            try
+            {
+                if (File.Exists(DaiOriginalPath(baseName)))
+                    File.Delete(DaiOriginalPath(baseName));
+                if (File.Exists(DaiSettingsPath(baseName)))
+                    File.Delete(DaiSettingsPath(baseName));
+            }
+            catch (Exception e)
+            {
+                App.Logger.Log("[DAI] Could not remove the kept copy of " + baseName + ".daimod (" + e.Message + ")");
+            }
+        }
+
+        private static bool DaiReadHeader(string path, out string title, out bool hasScript)
+        {
+            title = null;
+            hasScript = false;
+
+            using (NativeReader reader = new NativeReader(new FileStream(path, FileMode.Open, FileAccess.Read)))
+            {
+                if (reader.ReadSizedString(8) != "DAIMODV2")
+                    return false;
+
+                reader.ReadInt();
+                reader.ReadNullTerminatedString();
+                string xml = reader.ReadNullTerminatedString();
+                string code = reader.ReadNullTerminatedString();
+                hasScript = code != "";
+
+                try
+                {
+                    System.Xml.XmlDocument xmlDoc = new System.Xml.XmlDocument();
+                    xmlDoc.LoadXml(xml);
+                    title = DaiXmlText(xmlDoc["daimod"]?["details"], "name");
+                }
+                catch (Exception)
+                {
+                    // the title is only used for a sanity check
+                }
+                return true;
+            }
+        }
+
+        // UI thread only
+        private FrostyMod DaiReplaceMod(FrostyMod oldMod, string fbmodPath)
+        {
+            FrostyMod newMod = LoadMod(fbmodPath, 0);
+
+            lock (availableMods)
+            {
+                int index = availableMods.IndexOf(oldMod);
+                if (index != -1)
+                    availableMods[index] = newMod;
+                else
+                    availableMods.Add(newMod);
+            }
+
+            foreach (FrostyPack pack in packs)
+                pack.ReplaceMod(oldMod, newMod);
+
+            appliedModsList.Items.Refresh();
+            return newMod;
+        }
+
+        // Re-importing an installed mod starts from its saved settings and replaces it in place
+        // (it used to show up twice until restart).
+        private FrostyMod DaiImportMod(FileInfo fi, List<ImportErrorInfo> errors)
+        {
+            string baseName = Path.GetFileNameWithoutExtension(fi.Name);
+
+            FrostyMod existingMod;
+            lock (availableMods)
+                existingMod = availableMods.Find((IFrostyMod a) => string.Equals(a.Filename, baseName + ".fbmod", StringComparison.OrdinalIgnoreCase)) as FrostyMod;
+            if (existingMod != null)
+                baseName = Path.GetFileNameWithoutExtension(existingMod.Filename);
+
+            Dictionary<string, string> savedSettings = existingMod != null ? DaiLoadSettings(baseName) : null;
+
+            if (!DaiConvertMod(fi, modsDir.FullName, baseName, savedSettings, null, false, errors, out Dictionary<string, string> chosenValues))
+                return null;
+
+            if (chosenValues == null)
+            {
+                // no longer configurable: drop any stale copy
+                if (existingMod != null)
+                    DaiDeleteOriginal(existingMod);
+            }
+            else
+            {
+                try
+                {
+                    DaiSaveOriginal(fi.FullName, baseName, chosenValues);
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "The mod was imported, but a copy could not be kept for Reconfigure: " + e.Message, isWarning = true });
+                }
+            }
+
+            // caught here: InstallMods' handler would delete fi, which is the user's .daimod
+            string fbmodPath = Path.Combine(modsDir.FullName, baseName + ".fbmod");
+            try
+            {
+                if (existingMod == null)
+                    return AddMod(fbmodPath, 0);
+
+                FrostyMod newMod = null;
+                Dispatcher.Invoke(() => newMod = DaiReplaceMod(existingMod, fbmodPath));
+                return newMod;
+            }
+            catch (FrostyModLoadException e)
+            {
+                errors.Add(new ImportErrorInfo() { filename = fi.Name, error = e.Message });
+                return null;
+            }
+        }
+
+        private void DaiReconfigureMod(FrostyMod mod)
+        {
+            string title = mod.ModDetails.Title;
+            string baseName = Path.GetFileNameWithoutExtension(mod.Filename);
+            string sourcePath = DaiOriginalPath(baseName);
+            string legacyDescription = null;
+            Dictionary<string, string> savedSettings = null;
+
+            if (File.Exists(sourcePath))
+            {
+                savedSettings = DaiLoadSettings(baseName);
+            }
+            else
+            {
+                // imported before Reconfigure existed: ask for the original, pre-fill from the description
+                if (FrostyMessageBox.Show("Frosty doesn't have a copy of the original .daimod for \"" + title + "\", because it was imported before Reconfigure was added.\r\n\r\n" +
+                    "Choose the original .daimod file now? Frosty keeps a copy, so you only need to do this once.", "Frosty Mod Manager", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                    return;
+
+                OpenFileDialog ofd = new OpenFileDialog
+                {
+                    Filter = "*.daimod (DragonAge Mod)|*.daimod",
+                    Title = "Choose the original .daimod for " + title
+                };
+                if (ofd.ShowDialog() != true)
+                    return;
+
+                sourcePath = ofd.FileName;
+                legacyDescription = mod.ModDetails.Description;
+            }
+
+            string daimodTitle;
+            bool hasScript;
+            try
+            {
+                if (!DaiReadHeader(sourcePath, out daimodTitle, out hasScript))
+                {
+                    FrostyMessageBox.Show(Path.GetFileName(sourcePath) + " is not a valid DAI mod.", "Frosty Mod Manager");
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                FrostyMessageBox.Show("Could not read " + Path.GetFileName(sourcePath) + ": " + e.Message, "Frosty Mod Manager");
+                return;
+            }
+
+            if (!hasScript)
+            {
+                FrostyMessageBox.Show("\"" + title + "\" has no settings to configure.", "Frosty Mod Manager");
+                return;
+            }
+
+            if (legacyDescription != null && !string.IsNullOrEmpty(daimodTitle) && daimodTitle != title)
+            {
+                if (FrostyMessageBox.Show("The file you chose is \"" + daimodTitle + "\", not \"" + title + "\". Use it anyway?", "Frosty Mod Manager", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
+                    return;
+            }
+
+            // convert into a temp folder so the installed mod is untouched on cancel or failure
+            string tempDir = Path.Combine(DaiOriginalsDir, "_reconfigure");
+            FileInfo sourceFi = new FileInfo(sourcePath);
+            List<ImportErrorInfo> errors = new List<ImportErrorInfo>();
+            Dictionary<string, string> chosenValues = null;
+            bool converted = false;
+
+            FrostyTaskWindow.Show("Reconfiguring Mod", title, (task) =>
+            {
+                try
+                {
+                    Directory.CreateDirectory(tempDir);
+                    converted = DaiConvertMod(sourceFi, tempDir, baseName, savedSettings, legacyDescription, true, errors, out chosenValues);
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = mod.Filename, error = "Reconfigure failed, the mod was left as it was: " + e.Message });
+                }
+                finally
+                {
+                    DaiReleaseAssetManager();
+                }
+            });
+
+            FrostyMod newMod = null;
+            if (converted)
+            {
+                try
+                {
+                    File.Copy(Path.Combine(tempDir, baseName + "_01.archive"), mod.Path.Replace(".fbmod", "_01.archive"), true);
+                    File.Copy(Path.Combine(tempDir, baseName + ".fbmod"), mod.Path, true);
+                    newMod = DaiReplaceMod(mod, mod.Path);
+                    App.Logger.Log("[DAI] " + title + ": reconfigured");
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = mod.Filename, error = "Reconfigure failed while replacing the mod's files: " + e.Message });
+                }
+
+                try
+                {
+                    DaiSaveOriginal(sourcePath, baseName, chosenValues);
+                }
+                catch (Exception e)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = mod.Filename, error = "The new settings could not be saved for next time: " + e.Message, isWarning = true });
+                }
+            }
+
+            try
+            {
+                if (Directory.Exists(tempDir))
+                    Directory.Delete(tempDir, true);
+            }
+            catch (Exception)
+            {
+                // left for the next Reconfigure to overwrite
+            }
+
+            if (newMod != null)
+            {
+                ICollectionView view = CollectionViewSource.GetDefaultView(availableModsList.ItemsSource);
+                view.Refresh();
+                availableModsList.SelectedItem = newMod;
+            }
+
+            if (errors.Count > 0)
+            {
+                InstallErrorsWindow win = new InstallErrorsWindow(errors);
+                win.ShowDialog();
+            }
+            else if (newMod != null)
+            {
+                FrostyMessageBox.Show("\"" + title + "\" has been reconfigured. Its load order and enabled state are unchanged.", "Frosty Mod Manager");
+            }
+        }
+
+        private void availableModsList_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            // the menu only has Reconfigure..., so only open it for converted .daimods
+            IFrostyMod mod = availableModsList.SelectedItems.Count == 1 ? availableModsList.SelectedItem as IFrostyMod : null;
+            if (mod == null || !DaiCanReconfigure(mod))
+                e.Handled = true;
+        }
+
+        private void appliedModsList_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            IFrostyMod mod = appliedModsList.SelectedItems.Count == 1 ? (appliedModsList.SelectedItem as FrostyAppliedMod)?.Mod : null;
+            if (mod == null || !DaiCanReconfigure(mod))
+                e.Handled = true;
+        }
+
+        private void availableModsReconfigureMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if (availableModsList.SelectedItem is FrostyMod mod)
+                DaiReconfigureMod(mod);
+        }
+
+        private void appliedModsReconfigureMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            if ((appliedModsList.SelectedItem as FrostyAppliedMod)?.Mod is FrostyMod mod)
+                DaiReconfigureMod(mod);
+        }
+
+        // Moved out of InstallMods. chosenValues is null if the mod has no script. On failure or
+        // cancel nothing is written and the reason goes into errors.
+        private bool DaiConvertMod(FileInfo fi, string outputDir, string outputBaseName, Dictionary<string, string> savedSettings, string legacyDescription, bool reconfiguring, List<ImportErrorInfo> errors, out Dictionary<string, string> chosenValues)
+        {
+            chosenValues = null;
+
+            // [DAI fix] read-only (was read/write)
+            using (NativeReader reader = new NativeReader(new FileStream(fi.FullName, FileMode.Open, FileAccess.Read)))
+            {
+                string magic = reader.ReadSizedString(8);
+                if (magic != "DAIMODV2")
+                {
+                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "File is not a valid DAI Mod." });
+                    return false;
+                }
+
+                int unk = reader.ReadInt();
+                string name = reader.ReadNullTerminatedString();
+                string xml = reader.ReadNullTerminatedString();
+                string code = reader.ReadNullTerminatedString();
+
+                int resCount = reader.ReadInt();
+                List<byte[]> resources = new List<byte[]>();
+                List<bool> shouldWrite = new List<bool>();
+
+                for (int i = 0; i < resCount; i++)
+                {
+                    resources.Add(reader.ReadBytes(reader.ReadInt()));
+                    shouldWrite.Add(true);
+                }
+
+                // [DAI fix] to spot resources the script replaced
+                byte[][] originalResources = resources.ToArray();
+
+                string configValues = "";
+                Dictionary<string, string> chosenSettings = null;
+                string configError = null;
+                bool configCancelled = false;
+                if (code != "")
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        // [DAI fix] script errors used to crash the import, and closing with X imported it unconfigured
+                        try
+                        {
+                            ConfigWindow win = new ConfigWindow(code, resources, shouldWrite, savedSettings, legacyDescription);
+                            if (!string.IsNullOrEmpty(name))
+                                win.Title = "Mod Configuration - " + name;
+                            win.ShowDialog();
+
+                            if (win.ScriptError != null)
+                                configError = win.ScriptError;
+                            else if (!win.ScriptApplied)
+                                configCancelled = true;
+                            else
+                            {
+                                configValues = win.GetConfigValues();
+                                chosenSettings = win.GetSettingValues();
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            configError = "The mod's configuration script could not be loaded: " + ex.Message;
+                        }
+                    });
+                }
+
+                if (configError != null)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = configError });
+                    return false;
+                }
+                if (configCancelled)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = (reconfiguring ? "Reconfigure cancelled, the mod was left as it was" : "Import cancelled") + ": the configuration window was closed without pressing Save.", isWarning = true });
+                    return false;
+                }
+
+                System.Xml.XmlDocument xmlDoc = new System.Xml.XmlDocument();
+                xmlDoc.LoadXml(xml);
+
+                System.Xml.XmlElement rootElem = xmlDoc["daimod"];
+                System.Xml.XmlElement elem = rootElem["details"];
+                string newDesc = "(Converted from .daimod)\r\n\r\n" + DaiXmlText(elem, "description") + "\r\n\r\n" + configValues;
+
+                DbObject modObject = new DbObject();
+                modObject.AddValue("magic", "FBMODV3");
+                modObject.AddValue("gameProfile", ProfilesLibrary.ProfileName);
+                modObject.AddValue("gameVersion", 0);
+
+                modObject.AddValue("title", DaiXmlText(elem, "name"));
+                modObject.AddValue("author", DaiXmlText(elem, "author"));
+                modObject.AddValue("category", "DAI Mods");
+                modObject.AddValue("version", DaiXmlText(elem, "version"));
+                modObject.AddValue("description", newDesc);
+
+                DbObject resourcesList = new DbObject(false);
+                DbObject actionsList = new DbObject(false);
+                DbObject screenshotList = new DbObject(false);
+
+                // [DAI fix] offsets in resource-id order, which is how the archive is written (was XML order)
+                long[] archiveOffsets = new long[resources.Count];
+                long runningOffset = 0;
+                for (int i = 0; i < resources.Count; i++)
+                {
+                    archiveOffsets[i] = runningOffset;
+                    if (shouldWrite[i])
+                        runningOffset += resources[i].Length;
+                }
+
+                // XML resource index -> bundle names
+                Dictionary<int, List<string>> bundleMap = new Dictionary<int, List<string>>();
+                System.Xml.XmlElement bundlesElem = rootElem["bundles"];
+                if (bundlesElem != null)
+                {
+                    foreach (System.Xml.XmlNode bundleNode in bundlesElem.ChildNodes)
+                    {
+                        System.Xml.XmlElement bundleElem = bundleNode as System.Xml.XmlElement;
+                        if (bundleElem == null || bundleElem["entries"] == null)
+                            continue;
+
+                        string bundleName = bundleElem.GetAttribute("name");
+                        foreach (System.Xml.XmlNode entryNode in bundleElem["entries"].ChildNodes)
+                        {
+                            System.Xml.XmlElement entryElem = entryNode as System.Xml.XmlElement;
+                            if (entryElem == null)
+                                continue;
+
+                            int id;
+                            if (!int.TryParse(entryElem.GetAttribute("id"), out id))
+                                continue;
+
+                            List<string> list;
+                            if (!bundleMap.TryGetValue(id, out list))
+                            {
+                                list = new List<string>();
+                                bundleMap.Add(id, list);
+                            }
+                            list.Add(bundleName);
+                        }
+                    }
+                }
+
+                // [DAI fix] add vs modify per bundle from the game data. Everything used to be "modify",
+                // so additions were silently dropped.
+                AssetManager am = DaiGetAssetManager();
+                Dictionary<string, int> bundleIds = DaiBuildBundleIdMap(am);
+
+                int numAdded = 0, numModified = 0, numRemoved = 0, numFallback = 0, numTexFixed = 0;
+                string firstMissingBundle = null;
+                int index = -1;
+
+                System.Xml.XmlElement resourcesElem = rootElem["resources"];
+                if (resourcesElem == null)
+                {
+                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "DAI Mod does not contain a resource list." });
+                    return false;
+                }
+
+                // [DAI fix] some .daimods say firstMip 0 when the texture header doesn't, which gives
+                // black/rainbow textures at a distance. The header wins.
+                Dictionary<Guid, DaiTextureLayout> textureLayouts = DaiReadTextureLayouts(resourcesElem, resources);
+
+                foreach (System.Xml.XmlNode resNode in resourcesElem.ChildNodes)
+                {
+                    System.Xml.XmlElement subElem = resNode as System.Xml.XmlElement;
+                    if (subElem == null)
+                        continue;
+
+                    index++;
+
+                    string type = subElem.GetAttribute("type");
+                    string resAction = subElem.GetAttribute("action");
+                    string resName = subElem.GetAttribute("name");
+                    Guid chunkGuid = Guid.Empty;
+
+                    if (type != "ebx" && type != "res")
+                    {
+                        byte[] chunkidBytes = DaiHexToBytes(resName);
+                        if (chunkidBytes == null || chunkidBytes.Length != 16)
+                        {
+                            errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Skipped a chunk with an invalid id: " + resName, isWarning = true });
+                            continue;
+                        }
+                        chunkGuid = new Guid(chunkidBytes);
+                        resName = chunkGuid.ToString();
+                    }
+
+                    List<string> targetBundles;
+                    if (!bundleMap.TryGetValue(index, out targetBundles))
+                        targetBundles = new List<string>();
+
+                    int thisResourceId = resourcesList.Count;
+
+                    if (resAction == "remove")
+                    {
+                        // [DAI fix] removals used to be ignored
+                        if (targetBundles.Count == 0)
+                            continue;
+
+                        DbObject removal = new DbObject();
+                        removal.AddValue("name", resName);
+                        removal.AddValue("type", type);
+                        removal.AddValue("isRemoval", true); // executor skips loading data for these
+
+                        foreach (string bundleName in targetBundles)
+                        {
+                            DbObject action = new DbObject();
+                            action.AddValue("resourceId", thisResourceId);
+                            action.AddValue("type", "remove");
+                            action.AddValue("bundle", bundleName);
+                            actionsList.Add(action);
+                            numRemoved++;
+                        }
+
+                        resourcesList.Add(removal);
+                        continue;
+                    }
+
+                    int resId;
+                    if (!int.TryParse(subElem.GetAttribute("resourceId"), out resId) || resId < 0 || resId >= resources.Count)
+                    {
+                        errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Skipped " + resName + ": it points at a resource that is not in the file.", isWarning = true });
+                        continue;
+                    }
+                    if (shouldWrite[resId] == false)
+                        continue;
+
+                    byte[] data = resources[resId];
+                    bool scriptModified = !ReferenceEquals(data, originalResources[resId]);
+
+                    DbObject resource = new DbObject();
+                    resource.AddValue("name", resName);
+                    resource.AddValue("type", type);
+
+                    // [DAI fix] the XML hash is stale if the script replaced the data
+                    resource.AddValue("sha1", FrostySdk.Utils.GenerateSha1(data));
+                    resource.AddValue("originalSize", 0);
+                    resource.AddValue("compressedSize", data.Length);
+                    resource.AddValue("archiveIndex", 1);
+                    resource.AddValue("archiveOffset", archiveOffsets[resId]);
+                    resource.AddValue("shouldInline", false);
+
+                    if (type == "ebx" || type == "res")
+                    {
+                        // [DAI fix] recalculate if the script replaced the data
+                        long uncompressedSize;
+                        if (scriptModified || !long.TryParse(subElem.GetAttribute("originalSize"), out uncompressedSize))
+                        {
+                            uncompressedSize = DaiDecompressedLength(data);
+                            if (uncompressedSize < 0)
+                            {
+                                errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "Skipped " + resName + ": its data could not be read.", isWarning = true });
+                                continue;
+                            }
+                        }
+                        resource.AddValue("uncompressedSize", uncompressedSize);
+
+                        if (resAction != "add" && subElem.HasAttribute("originalSha1"))
+                            resource.AddValue("originalSha1", new Sha1(subElem.GetAttribute("originalSha1")));
+
+                        if (type == "res")
+                        {
+                            // [DAI fix] GetValue<uint> overflowed for res types >= 0x80000000 (stored as int)
+                            uint resType = uint.Parse(subElem.GetAttribute("resType"));
+                            resource.AddValue("resType", resType);
+                            if (resType == 0x5C4954A6)
+                                resource.SetValue("shouldInline", true);
+                            resource.AddValue("resRid", (ulong)long.Parse(subElem.GetAttribute("resRid")));
+
+                            byte[] resMeta = DaiHexToBytes(subElem.GetAttribute("meta"));
+                            resource.AddValue("resMeta", resMeta ?? new byte[0]);
+                        }
+                    }
+                    else
+                    {
+                        uint logicalOffset = uint.Parse(subElem.GetAttribute("logicalOffset"));
+                        uint logicalSize = uint.Parse(subElem.GetAttribute("logicalSize"));
+
+                        // [DAI fix] recalculate if the script replaced it (only safe without a mip offset)
+                        if (scriptModified)
+                        {
+                            if (logicalOffset == 0)
+                            {
+                                long newSize = DaiDecompressedLength(data);
+                                if (newSize >= 0)
+                                    logicalSize = (uint)newSize;
+                            }
+                            else
+                            {
+                                errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "The configuration script changed texture chunk " + resName + "; its size information was kept as-is and may be wrong.", isWarning = true });
+                            }
+                        }
+
+                        uint rangeStart = uint.Parse(subElem.GetAttribute("rangeStart"));
+                        uint rangeEnd = uint.Parse(subElem.GetAttribute("rangeEnd"));
+
+                        // [DAI fix] little-endian int in the meta; was read as big-endian hex (3 became 50331648)
+                        int firstMip = DaiParseFirstMip(subElem.GetAttribute("meta"));
+
+                        // [DAI fix] match the texture header
+                        DaiTextureLayout texLayout;
+                        if (textureLayouts.TryGetValue(chunkGuid, out texLayout) && texLayout.FirstMip != firstMip)
+                        {
+                            if (DaiCalcTextureRange(texLayout, data, ref firstMip, ref logicalOffset, ref logicalSize, ref rangeStart, ref rangeEnd))
+                                numTexFixed++;
+                        }
+
+                        resource.AddValue("rangeStart", rangeStart);
+                        resource.AddValue("rangeEnd", rangeEnd);
+                        resource.AddValue("logicalOffset", logicalOffset);
+                        resource.AddValue("logicalSize", logicalSize);
+                        resource.AddValue("h32", int.Parse(subElem.GetAttribute("chunkH32")));
+
+                        if (firstMip >= 0)
+                            resource.SetValue("firstMip", firstMip);
+
+                        // add special chunks bundle
+                        // [DAI fix] was resourcesList.Count - 1, the previous resource
+                        DbObject chunkAction = new DbObject();
+                        chunkAction.AddValue("resourceId", thisResourceId);
+                        chunkAction.AddValue("type", "add");
+                        chunkAction.AddValue("bundle", "chunks");
+                        actionsList.Add(chunkAction);
+                    }
+
+                    foreach (string bundleName in targetBundles)
+                    {
+                        bool usedFallback;
+                        string bundleAction = DaiResolveBundleAction(am, bundleIds, type, resName, chunkGuid, bundleName, resAction, out usedFallback);
+                        if (usedFallback)
+                        {
+                            numFallback++;
+                            if (firstMissingBundle == null)
+                                firstMissingBundle = bundleName;
+                        }
+                        if (bundleAction == "add")
+                            numAdded++;
+                        else
+                            numModified++;
+
+                        DbObject action = new DbObject();
+                        action.AddValue("resourceId", thisResourceId);
+                        action.AddValue("type", bundleAction);
+                        action.AddValue("bundle", bundleName);
+                        actionsList.Add(action);
+                    }
+
+                    resourcesList.Add(resource);
+                }
+
+                App.Logger.Log(string.Format("[DAI] {0}: {1} bundle modifications, {2} additions, {3} removals{4}{5}",
+                    fi.Name, numModified, numAdded, numRemoved,
+                    numTexFixed > 0 ? string.Format(", {0} texture streaming ranges corrected", numTexFixed) : "",
+                    numFallback > 0 ? string.Format(" ({0} decided from the .daimod's own add/modify flag because the bundle was not found in the game data)", numFallback) : ""));
+
+                // [DAI fix] log why bundle names didn't match
+                if (firstMissingBundle != null)
+                {
+                    string leaf = firstMissingBundle.Substring(firstMissingBundle.LastIndexOf('/') + 1);
+                    string similar = null;
+                    if (bundleIds != null)
+                    {
+                        foreach (string known in bundleIds.Keys)
+                        {
+                            if (known.EndsWith(leaf, StringComparison.OrdinalIgnoreCase))
+                            {
+                                similar = known;
+                                break;
+                            }
+                        }
+                    }
+                    string sample = null;
+                    if (bundleIds != null)
+                    {
+                        foreach (string known in bundleIds.Keys)
+                        {
+                            sample = known;
+                            break;
+                        }
+                    }
+                    App.Logger.Log(string.Format("[DAI] bundle lookup: game data has {0} bundles; '{1}' not found; similar name: '{2}'; example game bundle name: '{3}'",
+                        bundleIds == null ? "no asset manager / 0" : bundleIds.Count.ToString(), firstMissingBundle, similar ?? "(none)", sample ?? "(none)"));
+                }
+
+                modObject.AddValue("screenshots", screenshotList);
+                modObject.AddValue("resources", resourcesList);
+                modObject.AddValue("actions", actionsList);
+
+                using (DbWriter writer = new DbWriter(new FileStream(Path.Combine(outputDir, outputBaseName + ".fbmod"), FileMode.Create)))
+                {
+                    writer.Write(modObject);
+                }
+                using (NativeWriter writer = new NativeWriter(new FileStream(Path.Combine(outputDir, outputBaseName + "_01.archive"), FileMode.Create)))
+                {
+                    for (int i = 0; i < resources.Count; i++)
+                    {
+                        if (shouldWrite[i])
+                            writer.Write(resources[i]);
+                    }
+                }
+
+                chosenValues = chosenSettings;
+                return true;
+            }
+        }
+
+        #endregion
 
         private void InstallMods(string[] filenames)
         {
@@ -1174,183 +2227,8 @@ namespace FrostyModManager
                         else if (fi.Extension == ".daimod")
                         {
                             // special handling for DAI mod files
-                            using (NativeReader reader = new NativeReader(new FileStream(fi.FullName, FileMode.Open)))
-                            {
-                                string magic = reader.ReadSizedString(8);
-                                if (magic != "DAIMODV2")
-                                {
-                                    errors.Add(new ImportErrorInfo() { filename = fi.Name, error = "File is not a valid DAI Mod." });
-                                    continue;
-                                }
-
-                                int unk = reader.ReadInt();
-                                string name = reader.ReadNullTerminatedString();
-                                string xml = reader.ReadNullTerminatedString();
-                                string code = reader.ReadNullTerminatedString();
-
-                                int resCount = reader.ReadInt();
-                                List<byte[]> resources = new List<byte[]>();
-                                List<bool> shouldWrite = new List<bool>();
-
-                                for (int i = 0; i < resCount; i++)
-                                {
-                                    resources.Add(reader.ReadBytes(reader.ReadInt()));
-                                    shouldWrite.Add(true);
-                                }
-
-                                string configValues = "";
-                                if (code != "")
-                                {
-                                    Dispatcher.Invoke(() =>
-                                    {
-                                        ConfigWindow win = new ConfigWindow(code, resources, shouldWrite);
-                                        win.ShowDialog();
-
-                                        configValues = win.GetConfigValues();
-                                    });
-                                }
-
-                                System.Xml.XmlDocument xmlDoc = new System.Xml.XmlDocument();
-                                xmlDoc.LoadXml(xml);
-
-                                System.Xml.XmlElement elem = xmlDoc["daimod"]["details"];
-                                string newDesc = "(Converted from .daimod)\r\n\r\n" + elem["description"].InnerText + "\r\n\r\n" + configValues;
-
-                                DbObject modObject = new DbObject();
-                                modObject.AddValue("magic", "FBMODV3");
-                                modObject.AddValue("gameProfile", ProfilesLibrary.ProfileName);
-                                modObject.AddValue("gameVersion", 0);
-
-                                modObject.AddValue("title", elem["name"].InnerText);
-                                modObject.AddValue("author", elem["author"].InnerText);
-                                modObject.AddValue("category", "DAI Mods");
-                                modObject.AddValue("version", elem["version"].InnerText);
-                                modObject.AddValue("description", newDesc);
-
-                                DbObject resourcesList = new DbObject(false);
-                                DbObject actionsList = new DbObject(false);
-                                DbObject screenshotList = new DbObject(false);
-                                long offset = 0;
-
-                                int index = -1;
-                                int actualIndex = 0;
-
-                                foreach (System.Xml.XmlElement subElem in xmlDoc["daimod"]["resources"])
-                                {
-                                    index++;
-                                    if (subElem.GetAttribute("action") == "remove")
-                                        continue;
-
-                                    int resId = int.Parse(subElem.GetAttribute("resourceId"));
-                                    if (shouldWrite[resId] == false)
-                                        continue;
-
-                                    int resSize = resources[resId].Length;
-                                    string type = subElem.GetAttribute("type");
-
-                                    DbObject resource = new DbObject();
-                                    resource.AddValue("name", subElem.GetAttribute("name"));
-                                    resource.AddValue("type", type);
-
-                                    resource.AddValue("sha1", new Sha1(subElem.GetAttribute("sha1")));
-                                    resource.AddValue("originalSize", 0);
-                                    resource.AddValue("compressedSize", resSize);
-                                    resource.AddValue("archiveIndex", 1);
-                                    resource.AddValue("archiveOffset", offset);
-                                    resource.AddValue("shouldInline", false);
-
-                                    string actionString = subElem.GetAttribute("action");
-                                    if (type == "ebx" || type == "res")
-                                    {
-                                        resource.AddValue("uncompressedSize", int.Parse(subElem.GetAttribute("originalSize")));
-                                        if (actionString != "add")
-                                            resource.AddValue("originalSha1", new Sha1(subElem.GetAttribute("originalSha1")));
-                                        actionString = "modify";
-
-                                        if (type == "res")
-                                        {
-                                            resource.AddValue("resType", uint.Parse(subElem.GetAttribute("resType")));
-                                            if (resource.GetValue<uint>("resType") == 0x5C4954A6)
-                                                resource.SetValue("shouldInline", true);
-                                            resource.AddValue("resRid", (ulong)long.Parse(subElem.GetAttribute("resRid")));
-
-                                            string resMetaString = subElem.GetAttribute("meta");
-                                            byte[] resMeta = new byte[resMetaString.Length / 2];
-                                            for (int i = 0; i < resMeta.Length; i++)
-                                                resMeta[i] = byte.Parse(resMetaString.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier);
-
-                                            resource.AddValue("resMeta", resMeta);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        string chunkid = subElem.GetAttribute("name");
-                                        byte[] chunkidBytes = new byte[chunkid.Length / 2];
-                                        for (int i = 0; i < chunkidBytes.Length; i++)
-                                            chunkidBytes[i] = byte.Parse(chunkid.Substring(i * 2, 2), NumberStyles.AllowHexSpecifier);
-
-                                        resource.SetValue("name", (new Guid(chunkidBytes)).ToString());
-                                        resource.AddValue("rangeStart", uint.Parse(subElem.GetAttribute("rangeStart")));
-                                        resource.AddValue("rangeEnd", uint.Parse(subElem.GetAttribute("rangeEnd")));
-                                        resource.AddValue("logicalOffset", uint.Parse(subElem.GetAttribute("logicalOffset")));
-                                        resource.AddValue("logicalSize", uint.Parse(subElem.GetAttribute("logicalSize")));
-                                        resource.AddValue("h32", int.Parse(subElem.GetAttribute("chunkH32")));
-
-                                        string meta = subElem.GetAttribute("meta");
-                                        if (meta != "00")
-                                        {
-                                            resource.SetValue("firstMip", int.Parse(meta.Substring(20, 8), NumberStyles.HexNumber));
-                                        }
-
-                                        // add special chunks bundle
-                                        DbObject action = new DbObject();
-                                        action.AddValue("resourceId", resourcesList.Count - 1);
-                                        action.AddValue("type", "add");
-                                        action.AddValue("bundle", "chunks");
-                                        actionsList.Add(action);
-                                    }
-
-                                    foreach (System.Xml.XmlElement bundleElem in xmlDoc["daimod"]["bundles"])
-                                    {
-                                        foreach (System.Xml.XmlElement entryElem in bundleElem["entries"])
-                                        {
-                                            int id = int.Parse(entryElem.GetAttribute("id"));
-                                            if (id == index)
-                                            {
-                                                DbObject action = new DbObject();
-                                                action.AddValue("resourceId", actualIndex);
-                                                action.AddValue("type", actionString);
-                                                action.AddValue("bundle", bundleElem.GetAttribute("name"));
-                                                actionsList.Add(action);
-                                            }
-                                        }
-                                    }
-
-                                    resourcesList.Add(resource);
-                                    offset += resSize;
-                                    actualIndex++;
-                                }
-
-                                modObject.AddValue("screenshots", screenshotList);
-                                modObject.AddValue("resources", resourcesList);
-                                modObject.AddValue("actions", actionsList);
-
-                                using (DbWriter writer = new DbWriter(new FileStream(Path.Combine(modsDir.FullName, fi.Name.Replace(".daimod", ".fbmod")), FileMode.Create)))
-                                {
-                                    writer.Write(modObject);
-                                }
-                                using (NativeWriter writer = new NativeWriter(new FileStream(Path.Combine(modsDir.FullName, fi.Name.Replace(".daimod", "_01.archive")), FileMode.Create)))
-                                {
-                                    for (int i = 0; i < resources.Count; i++)
-                                    {
-                                        if (shouldWrite[i])
-                                            writer.Write(resources[i]);
-                                    }
-                                }
-
-                                fi = new FileInfo(Path.Combine(modsDir.FullName, fi.Name.Replace(".daimod", ".fbmod")));
-                                lastInstalledMod = AddMod(fi.FullName, 0);
-                            }
+                            // [DAI fix] moved to DaiImportMod / DaiConvertMod
+                            lastInstalledMod = DaiImportMod(fi, errors) ?? lastInstalledMod;
                         }
                         else if (fi.Extension == ".fbcollection")
                         {
@@ -1467,6 +2345,9 @@ namespace FrostyModManager
                     FileInfo fi = new FileInfo(Path.Combine(modsDir.FullName, collections[i]));
                     lastInstalledMod = AddCollection(fi.FullName, 0);
                 }
+
+                // [DAI fix] free the game data loaded for .daimod imports
+                DaiReleaseAssetManager();
             });
 
             ICollectionView view = CollectionViewSource.GetDefaultView(availableModsList.ItemsSource);

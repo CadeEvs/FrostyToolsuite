@@ -41,6 +41,20 @@ namespace FrostyModManager
             AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
         }
 
+        // [DAI fix] for Reconfigure: keeps the load order position and enabled state
+        public bool ReplaceMod(IFrostyMod oldMod, IFrostyMod newMod)
+        {
+            int index = AppliedMods.FindIndex((FrostyAppliedMod a) => a.Mod == oldMod);
+            if (index == -1)
+                return false;
+
+            AppliedMods[index] = new FrostyAppliedMod(newMod, AppliedMods[index].IsEnabled);
+
+            Config.Add(Name, ToConfigString(), ConfigScope.Pack);
+            AppliedModsUpdated?.Invoke(this, new RoutedEventArgs());
+            return true;
+        }
+
         public void RemoveMod(FrostyAppliedMod mod)
         {
             AppliedMods.Remove(mod);
