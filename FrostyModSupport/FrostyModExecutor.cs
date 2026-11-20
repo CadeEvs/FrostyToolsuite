@@ -252,6 +252,32 @@ namespace Frosty.ModSupport
             return hash;
         }
 
+        // [DAI fix] archive ref counts are updated from several threads
+        private readonly object archiveDataLock = new object();
+
+        private void AddArchiveRef(Sha1 sha1, byte[] data)
+        {
+            lock (archiveDataLock)
+            {
+                if (!archiveData.TryAdd(sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
+                    archiveData[sha1].RefCount++;
+            }
+        }
+
+        private bool ReleaseArchiveRef(Sha1 sha1)
+        {
+            lock (archiveDataLock)
+            {
+                if (!archiveData.TryGetValue(sha1, out ArchiveInfo info))
+                    return false;
+
+                info.RefCount--;
+                if (info.RefCount <= 0)
+                    archiveData.TryRemove(sha1, out _);
+                return true;
+            }
+        }
+
         private void ProcessModResources(IResourceContainer fmod)
         {
             // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
@@ -328,14 +354,11 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
-                                if (!archiveData.ContainsKey(existingEntry.Sha1))
+                                // [DAI fix] thread-safe
+                                if (!ReleaseArchiveRef(existingEntry.Sha1))
                                 {
                                     return;
                                 }
-
-                                archiveData[existingEntry.Sha1].RefCount--;
-                                if (archiveData[existingEntry.Sha1].RefCount == 0)
-                                    archiveData.TryRemove(existingEntry.Sha1, out _);
 
                                 modifiedEbx.TryRemove(resource.Name, out _);
                                 numArchiveEntries--;
@@ -366,8 +389,7 @@ namespace Frosty.ModSupport
                             entry.Size = data.Length;
 
                             modifiedEbx.TryAdd(entry.Name, entry);
-                            if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
-                                archiveData[entry.Sha1].RefCount++;
+                            AddArchiveRef(entry.Sha1, data); // [DAI fix] thread-safe
                             numArchiveEntries++;
                         }
                     }
@@ -421,14 +443,11 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
-                                if (!archiveData.ContainsKey(existingEntry.Sha1))
+                                // [DAI fix] thread-safe
+                                if (!ReleaseArchiveRef(existingEntry.Sha1))
                                 {
                                     return;
                                 }
-
-                                archiveData[existingEntry.Sha1].RefCount--;
-                                if (archiveData[existingEntry.Sha1].RefCount == 0)
-                                    archiveData.TryRemove(existingEntry.Sha1, out _);
 
                                 modifiedRes.TryRemove(resource.Name, out _);
                                 numArchiveEntries--;
@@ -462,8 +481,7 @@ namespace Frosty.ModSupport
                             entry.Size = data.Length;
 
                             modifiedRes.TryAdd(entry.Name, entry);
-                            if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
-                                archiveData[entry.Sha1].RefCount++;
+                            AddArchiveRef(entry.Sha1, data); // [DAI fix] thread-safe
                             numArchiveEntries++;
                         }
                     }
@@ -527,14 +545,11 @@ namespace Frosty.ModSupport
                                 if (existingEntry.Sha1 == resource.Sha1)
                                     goto label_add_bundles;
 
-                                if (!archiveData.ContainsKey(existingEntry.Sha1))
+                                // [DAI fix] thread-safe
+                                if (!ReleaseArchiveRef(existingEntry.Sha1))
                                 {
                                     return;
                                 }
-
-                                archiveData[existingEntry.Sha1].RefCount--;
-                                if (archiveData[existingEntry.Sha1].RefCount == 0)
-                                    archiveData.TryRemove(existingEntry.Sha1, out _);
 
                                 modifiedChunks.TryRemove(guid, out _);
                                 numArchiveEntries--;
@@ -623,8 +638,7 @@ namespace Frosty.ModSupport
                             entry.Size = data.Length;
 
                             modifiedChunks.TryAdd(guid, entry);
-                            if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
-                                archiveData[entry.Sha1].RefCount++;
+                            AddArchiveRef(entry.Sha1, data); // [DAI fix] thread-safe
                             numArchiveEntries++;
                         }
                     }
