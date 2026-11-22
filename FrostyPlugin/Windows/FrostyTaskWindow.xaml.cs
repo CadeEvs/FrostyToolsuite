@@ -177,16 +177,17 @@ namespace Frosty.Core.Windows
 
         private void minimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            try
+            // Find the root owner, because v1's modality is a chaos
+            Window root = this;
+            while (root.Owner != null)
             {
-                this.WindowState = WindowState.Minimized;
-                this.Owner.WindowState = WindowState.Minimized;
-                foreach (Window window in this.OwnedWindows)
-                {
-                    window.WindowState = WindowState.Minimized;
-                }
+                root = root.Owner;
             }
-            catch { }
+
+            if (root != this || root.ShowInTaskbar)
+            {
+                root.WindowState = WindowState.Minimized;
+            }
         }
     }
 }

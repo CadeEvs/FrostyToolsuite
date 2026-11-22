@@ -179,21 +179,13 @@ namespace FrostyModManager.Windows
 
         private void Grid_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            this.DragMove();
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+                this.DragMove();
         }
 
         private void minimizeButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                this.WindowState = WindowState.Minimized;
-                this.Owner.WindowState = WindowState.Minimized;
-                foreach (Window window in this.OwnedWindows)
-                {
-                    window.WindowState = WindowState.Minimized;
-                }
-            }
-            catch { }
+            this.WindowState = WindowState.Minimized;
         }
     }
 }
