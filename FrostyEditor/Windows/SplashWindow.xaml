@@ -7,7 +7,7 @@
         xmlns:ctrl2="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
         Title="Frosty Editor" Height="200" Width="600" WindowStyle="None" AllowsTransparency="True"
-        WindowStartupLocation="CenterScreen" ResizeMode="NoResize" Background="Transparent"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Background="Transparent"
         Loaded="Window_Loaded" Icon="/FrostyEditor;component/AppIcon.ico">
     <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown">
 
@@ -69,27 +69,28 @@
                     <TextBlock x:Name="logTextBox" Grid.Column="1" Background="Transparent" Text="" Padding="4,5,4,0" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" TextTrimming="CharacterEllipsis"/>
                 </Grid>
 
-                <Button x:Name="minimizeButton" 
-                Width="46" 
-                Height="32" 
-                ToolTip="Minimize"
-                HorizontalAlignment="Right"
-                VerticalAlignment="Top"
-                Click="minimizeButton_Click">
+                <Button x:Name="minimizeButton"
+                        Grid.Row="0"
+                        Width="46"
+                        Height="32"
+                        ToolTip="Minimize"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Click="minimizeButton_Click">
                     <Button.Content>
-                        <TextBlock Text="&#xE949;" 
-                        FontFamily="Segoe MDL2 Assets" FontSize="10px"
-                        RenderOptions.ClearTypeHint="Auto" 
-                        Foreground="White"
-                        TextOptions.TextRenderingMode="Aliased" 
-                        TextOptions.TextFormattingMode="Display"
-                        Opacity="1"/>
+                        <TextBlock Text="&#xE949;"
+                                   FontFamily="Segoe MDL2 Assets" FontSize="10px"
+                                   RenderOptions.ClearTypeHint="Auto"
+                                   Foreground="White"
+                                   TextOptions.TextRenderingMode="Aliased"
+                                   TextOptions.TextFormattingMode="Display"
+                                   Opacity="1"/>
                     </Button.Content>
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                             <Setter Property="Background">
                                 <Setter.Value>
-                                    <SolidColorBrush Color="#323232" Opacity="0.25"/>
+                                    <SolidColorBrush Color="#323232" Opacity="0.5"/>
                                 </Setter.Value>
                             </Setter>
                             <Setter Property="Template">
@@ -102,13 +103,6 @@
                                 </Setter.Value>
                             </Setter>
                             <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="False">
-                                    <Setter Property="Background">
-                                        <Setter.Value>
-                                            <SolidColorBrush Color="#323232" Opacity="0.5"/>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="Background">
                                         <Setter.Value>
