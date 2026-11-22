@@ -11,4 +11,4 @@ The most advanced modding platform for games running on DICE's Frostbite game en
 6. Only build the projects themselves, never the solution.
 
 ## License
-The Content, Name, Code, and all assets are licensed under the GPL v3 license.
+All content, name, code, and assets, except third-party libraries under `ThirdParty\`, are licensed under the [GPL v3.0](./LICENSE.txt).
