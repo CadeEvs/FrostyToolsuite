@@ -6,9 +6,17 @@
         xmlns:local="clr-namespace:FrostyModManager.Windows"
         xmlns:ctrl2="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
-        Title="Frosty Mod Manager" Height="200" Width="600" WindowStyle="None" AllowsTransparency="True"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Background="Transparent"
+        Title="Frosty Mod Manager" Height="200" Width="600"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Background="{StaticResource WindowBackground}"
         Loaded="Window_Loaded" Icon="/FrostyModManager;component/AppIcon.ico">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="0"
+                      CornerRadius="0"
+                      GlassFrameThickness="1"
+                      UseAeroCaptionButtons="False"
+                      NonClientFrameEdges="None" />
+    </WindowChrome.WindowChrome>
     <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown">
 
         <Border Background="{StaticResource WindowBackground}" BorderThickness="1" BorderBrush="{StaticResource ListBackground}">

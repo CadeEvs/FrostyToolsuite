@@ -8,30 +8,28 @@
         xmlns:ctrl2="clr-namespace:Frosty.Controls;assembly=FrostyControls"
         mc:Ignorable="d"
         Title=""
-        Height="150"
-        Width="400"
-        AllowsTransparency="True"
-        WindowStyle="None"
-        Background="Transparent"
+        Height="125"
+        Width="350"
+        ResizeMode="NoResize"
+        Background="{StaticResource ControlBackground}"
         UseLayoutRounding="True"
         SnapsToDevicePixels="True"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False">
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="0"
+                      ResizeBorderThickness="0"
+                      CornerRadius="0"
+                      GlassFrameThickness="1"
+                      UseAeroCaptionButtons="False"
+                      NonClientFrameEdges="None" />
+    </WindowChrome.WindowChrome>
     <Grid x:Name="taskWindow"
           Visibility="Visible"
           SnapsToDevicePixels="True">
-        <Border Background="Transparent" />
         <Border Background="{StaticResource ControlBackground}"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Center"
-                Width="350"
-                Height="125"
                 BorderBrush="{StaticResource ListBackground}"
                 BorderThickness="1">
-            <Border.Effect>
-                <DropShadowEffect BlurRadius="20"
-                                  ShadowDepth="1" />
-            </Border.Effect>
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition />
