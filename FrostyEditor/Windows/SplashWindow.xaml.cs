@@ -209,7 +209,13 @@ namespace FrostyEditor.Windows
 
         private void Grid_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            this.DragMove();
+            if (e.LeftButton == System.Windows.Input.MouseButtonState.Pressed)
+                this.DragMove();
+        }
+
+        private void minimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
         }
     }
 }

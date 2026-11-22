@@ -174,5 +174,20 @@ namespace Frosty.Core.Windows
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        private void minimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Find the root owner, because v1's modality is a chaos
+            Window root = this;
+            while (root.Owner != null)
+            {
+                root = root.Owner;
+            }
+
+            if (root != this || root.ShowInTaskbar)
+            {
+                root.WindowState = WindowState.Minimized;
+            }
+        }
     }
 }
