@@ -1426,7 +1426,7 @@ namespace Frosty.ModSupport
                             if (fs.ResolvePath(superBundle + ".toc") == "")
                                 continue;
 
-                            HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this);
+                            HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this, cancelToken);
                             actions.Add(action);
                             numTasks++;
                             totalTasks++;

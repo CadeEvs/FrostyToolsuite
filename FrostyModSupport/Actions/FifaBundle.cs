@@ -52,9 +52,9 @@ namespace Frosty.ModSupport
 
             private void Run()
             {
+                NativeWriter casWriter = null;
                 try
                 {
-                    NativeWriter casWriter = null;
                     int casFileIndex = 0;
 
                     byte[] key = KeyManager.Instance.GetKey("Key2");
@@ -823,10 +823,15 @@ namespace Frosty.ModSupport
                     }
 
                     casWriter?.Close();
+                    casWriter = null;
                 }
                 catch (Exception e)
                 {
                     Exception = e;
+                }
+                finally
+                {
+                    casWriter?.Close();
                 }
             }
 

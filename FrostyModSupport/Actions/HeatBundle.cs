@@ -283,24 +283,27 @@ namespace Frosty.ModSupport
             private ManualResetEvent doneEvent;
             private FrostyModExecutor parent;
             private string catalog;
+            private CancellationToken cancelToken;
 
-            public HeatBundleAction(string inSuperBundle, ManualResetEvent inDoneEvent, FrostyModExecutor inParent)
+            public HeatBundleAction(string inSuperBundle, ManualResetEvent inDoneEvent, FrostyModExecutor inParent, CancellationToken inCancelToken)
             {
                 SuperBundle = inSuperBundle;
                 parent = inParent;
                 doneEvent = inDoneEvent;
                 catalog = parent.fs.GetCatalogFromSuperBundle(SuperBundle);
+                cancelToken = inCancelToken;
             }
 
             private void Run()
             {
+                NativeWriter casWriter = null;
                 try
                 {
+                    cancelToken.ThrowIfCancellationRequested();
                     string tocPath = parent.fs.ResolvePath(SuperBundle + ".toc");
                     string newTocPath = tocPath.Replace("patch\\win32", parent.modDirName.ToLower() + "\\patch\\win32");
 
                     TocFile toc = new TocFile(parent.fs.ResolvePath(SuperBundle + ".toc"), parent);
-                    NativeWriter casWriter = null;
                     int casFileIndex = 0;
 
                     string sbPath = parent.fs.ResolvePath(SuperBundle + ".sb");
@@ -321,6 +324,7 @@ namespace Frosty.ModSupport
                             {
                                 foreach (var bundle in toc.Bundles)
                                 {
+                                    cancelToken.ThrowIfCancellationRequested();
                                     if (parent.modifiedBundles.ContainsKey(bundle.NameHash))
                                     {
                                         ModBundleInfo modBundle = parent.modifiedBundles[bundle.NameHash];
@@ -431,6 +435,7 @@ namespace Frosty.ModSupport
                         {
                             foreach (var chunk in toc.Chunks)
                             {
+                                cancelToken.ThrowIfCancellationRequested();
                                 ModBundleInfo modBundle = parent.modifiedBundles[chunksBundleHash];
 
                                 if (modBundle.Modify.Chunks.Contains(chunk.Guid))
@@ -456,13 +461,21 @@ namespace Frosty.ModSupport
                     }
 
                     casWriter?.Close();
+                    casWriter = null;
 
                     if (TocModified)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
                         toc.Write(newTocPath);
+                    }
                 }
                 catch (Exception e)
                 {
                     Exception = e;
+                }
+                finally
+                {
+                    casWriter?.Close();
                 }
             }
 
