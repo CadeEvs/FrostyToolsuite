@@ -42,6 +42,10 @@ namespace Frosty.Core.Windows
     {
     }
 
+    public class FrostyIntComboDataEditor : FrostyCustomComboDataEditor<int, string>
+    {
+    }
+
     [DisplayName("Editor Options")]
     public class EditorOptionsData : OptionsExtension
     {
@@ -128,18 +132,19 @@ namespace Frosty.Core.Windows
         public bool UpdateCheckPrerelease { get; set; } = false;
 #endif
 
-        [Category("General")]
-        [DisplayName("CAS Max File Size")]
-        [Description("Change the maximum size of written cas files when applying mods.\r\n\r\nHigher Values decrease system stability but ensure mod compatibility.")]
+        [Category("Mod Applying")]
+        [DisplayName("Max CAS File Size")]
+        [Description("The maximum size of written cas files when applying mods.\r\nHigher Values decrease system stability but ensure mod compatibility.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
 
-        [Category("General")]
-        [DisplayName("Max Degree Of Parallelism")]
-        [Description("Change the maximum parallelism of written super bundles when applying mods.\r\n\r\nToo high or too low will both reduce performance, default 2.")]
-        [EbxFieldMeta(EbxFieldType.Int32)]
-        public int MaxDegreeOfParallelism { get; set; } = 2;
+        [Category("Mod Applying")]
+        [DisplayName("Max Threads")]
+        [Description("Maximum number of parallel threads used when applying mods.\r\nSetting the value too high can cause lagging and reduce speed, while too low will also result in lower speeds.\r\nManually edit the config file to set custom value.")]
+        [EbxFieldMeta(EbxFieldType.Struct)]
+        [Editor(typeof(FrostyIntComboDataEditor))]
+        public CustomComboData<int, string> MaxModApplyThreads { get; set; }
 
         [Category("General")]
         [DisplayName("Command Line Arguments")]
@@ -172,7 +177,7 @@ namespace Frosty.Core.Windows
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
-            MaxDegreeOfParallelism = Config.Get<int>("MaxDegreeOfParallelism", 2);
+            MaxModApplyThreads = OptionsWindow.CreateModApplyThreadsComboData(Config.Get<int>("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount)));
 
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
@@ -213,7 +218,7 @@ namespace Frosty.Core.Windows
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
 
-            Config.Add("MaxDegreeOfParallelism", MaxDegreeOfParallelism);
+            Config.Add("MaxModApplyThreads", MaxModApplyThreads.SelectedValue);
 
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
 
@@ -389,18 +394,19 @@ namespace Frosty.Core.Windows
         public bool UpdateCheckPrerelease { get; set; } = false;
 #endif
 
-        [Category("General")]
-        [DisplayName("CAS Max File Size")]
-        [Description("Change the maximum size of written cas files when applying mods.\r\n\r\nHigher Values decrease system stability but ensure mod compatibility.")]
+        [Category("Mod Applying")]
+        [DisplayName("Max CAS File Size")]
+        [Description("The maximum size of written cas files when applying mods.\r\nHigher Values decrease system stability but ensure mod compatibility.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
 
-        [Category("General")]
-        [DisplayName("Max Degree Of Parallelism")]
-        [Description("Change the maximum parallelism of written super bundles when applying mods.\r\n\r\nToo high or too low will both reduce performance, default 2.")]
-        [EbxFieldMeta(EbxFieldType.Int32)]
-        public int MaxDegreeOfParallelism { get; set; } = 2;
+        [Category("Mod Applying")]
+        [DisplayName("Max Threads")]
+        [Description("Maximum number of parallel threads used when applying mods.\r\nSetting the value too high can cause lagging and reduce speed, while too low will also result in lower speeds.\r\nManually edit the config file to set custom value.")]
+        [EbxFieldMeta(EbxFieldType.Struct)]
+        [Editor(typeof(FrostyIntComboDataEditor))]
+        public CustomComboData<int, string> MaxModApplyThreads { get; set; }
 
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
@@ -430,7 +436,7 @@ namespace Frosty.Core.Windows
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
-            MaxDegreeOfParallelism = Config.Get<int>("MaxDegreeOfParallelism", 2);
+            MaxModApplyThreads = OptionsWindow.CreateModApplyThreadsComboData(Config.Get<int>("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount)));
 
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
@@ -452,7 +458,7 @@ namespace Frosty.Core.Windows
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
 
-            Config.Add("MaxDegreeOfParallelism", MaxDegreeOfParallelism);
+            Config.Add("MaxModApplyThreads", MaxModApplyThreads.SelectedValue);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
@@ -481,6 +487,53 @@ namespace Frosty.Core.Windows
         public OptionsWindow()
         {
             InitializeComponent();
+        }
+
+        internal static CustomComboData<int, string> CreateModApplyThreadsComboData(int savedValue)
+        {
+            int cpuCount = Math.Max(1, Environment.ProcessorCount);
+            int defaultValue = Math.Min(2, cpuCount);
+
+            List<int> values = new List<int> { 1 };
+            List<string> names = new List<string> { cpuCount == 1 ? "1 (Max CPU Core)" : "1 - HDD / Low Memory" };
+
+            if (cpuCount >= 2)
+            {
+                values.Add(2);
+                names.Add(cpuCount == 2 ? "2 - SSD (Max CPU Cores)" : "2 - SSD (Recommended)");
+            }
+            if (cpuCount >= 4)
+            {
+                values.Add(4);
+                names.Add(cpuCount == 4 ? "4 - Fast SSD (Max CPU Cores)" : "4 - Fast SSD");
+            }
+            if (cpuCount >= 8)
+            {
+                values.Add(8);
+                names.Add(cpuCount == 8 ? "8 - High SSD (Max CPU Cores)" : "8 - High NVMe");
+            }
+            if (!values.Contains(cpuCount))
+            {
+                values.Add(cpuCount);
+                names.Add($"{cpuCount} (Max CPU Cores)");
+            }
+
+            if (savedValue < 1 || savedValue > cpuCount)
+                savedValue = defaultValue;
+
+            if (!values.Contains(savedValue))
+            {
+                int insertIndex = values.FindIndex(v => v > savedValue);
+                if (insertIndex == -1)
+                    insertIndex = values.Count;
+                values.Insert(insertIndex, savedValue);
+                names.Insert(insertIndex, $"{savedValue} (Custom)");
+            }
+
+            return new CustomComboData<int, string>(values, names)
+            {
+                SelectedIndex = values.IndexOf(savedValue)
+            };
         }
 
         private void OptionsWindow_Loaded(object sender, RoutedEventArgs e)
