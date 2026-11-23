@@ -141,10 +141,16 @@ namespace Frosty.Core.Windows
 
         [Category("Mod Applying")]
         [DisplayName("Max Threads")]
-        [Description("Maximum number of parallel threads used when applying mods.\r\nSetting the value too high can cause lagging and reduce speed, while too low will also result in lower speeds.\r\nManually edit the config file to set custom value.")]
+        [Description("Maximum number of threads used when applying mods.\r\nToo high may cause system lag and slower apply speed, and too low will also reduce apply speed.\r\nManually edit the config file to set a custom value.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyIntComboDataEditor))]
         public CustomComboData<int, string> MaxModApplyThreads { get; set; }
+
+        [Category("Mod Applying")]
+        [DisplayName("Lower Thread Priority")]
+        [Description("Run mod applying threads at a lower priority so other apps stay responsive while Frosty runs in the background.\r\nDisable this only if you want extreme speed and not doing anything else when applying.\r\nDefault: On")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool LowerModApplyThreadPriority { get; set; } = true;
 
         [Category("General")]
         [DisplayName("Command Line Arguments")]
@@ -178,6 +184,7 @@ namespace Frosty.Core.Windows
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
             MaxModApplyThreads = OptionsWindow.CreateModApplyThreadsComboData(Config.Get<int>("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount)));
+            LowerModApplyThreadPriority = Config.Get<bool>("LowerModApplyThreadPriority", true);
 
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
@@ -219,6 +226,7 @@ namespace Frosty.Core.Windows
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
 
             Config.Add("MaxModApplyThreads", MaxModApplyThreads.SelectedValue);
+            Config.Add("LowerModApplyThreadPriority", LowerModApplyThreadPriority);
 
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
 
@@ -403,10 +411,16 @@ namespace Frosty.Core.Windows
 
         [Category("Mod Applying")]
         [DisplayName("Max Threads")]
-        [Description("Maximum number of parallel threads used when applying mods.\r\nSetting the value too high can cause lagging and reduce speed, while too low will also result in lower speeds.\r\nManually edit the config file to set custom value.")]
+        [Description("Maximum number of threads used when applying mods.\r\nToo high may cause system lag and slower apply speed, and too low will also reduce apply speed.\r\nManually edit the config file to set a custom value.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyIntComboDataEditor))]
         public CustomComboData<int, string> MaxModApplyThreads { get; set; }
+
+        [Category("Mod Applying")]
+        [DisplayName("Lower Thread Priority")]
+        [Description("Run mod applying threads at a lower priority so other apps stay responsive while Frosty runs in the background.\r\nDisable this only if you want extreme speed and not doing anything else when applying.\r\nDefault: On")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool LowerModApplyThreadPriority { get; set; } = true;
 
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
@@ -437,6 +451,7 @@ namespace Frosty.Core.Windows
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
             MaxModApplyThreads = OptionsWindow.CreateModApplyThreadsComboData(Config.Get<int>("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount)));
+            LowerModApplyThreadPriority = Config.Get<bool>("LowerModApplyThreadPriority", true);
 
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
@@ -459,6 +474,7 @@ namespace Frosty.Core.Windows
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
 
             Config.Add("MaxModApplyThreads", MaxModApplyThreads.SelectedValue);
+            Config.Add("LowerModApplyThreadPriority", LowerModApplyThreadPriority);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
@@ -500,7 +516,7 @@ namespace Frosty.Core.Windows
             if (cpuCount >= 2)
             {
                 values.Add(2);
-                names.Add(cpuCount == 2 ? "2 - SSD (Max CPU Cores)" : "2 - SSD (Recommended)");
+                names.Add(cpuCount == 2 ? "2 - SSD (Max CPU Cores)" : "2 - SSD (Default)");
             }
             if (cpuCount >= 4)
             {
@@ -510,7 +526,7 @@ namespace Frosty.Core.Windows
             if (cpuCount >= 8)
             {
                 values.Add(8);
-                names.Add(cpuCount == 8 ? "8 - High SSD (Max CPU Cores)" : "8 - High NVMe");
+                names.Add(cpuCount == 8 ? "8 - Very Fast SSD (Max CPU Cores)" : "8 - Very Fast SSD");
             }
             if (!values.Contains(cpuCount))
             {
@@ -518,10 +534,10 @@ namespace Frosty.Core.Windows
                 names.Add($"{cpuCount} (Max CPU Cores)");
             }
 
-            if (savedValue < 1 || savedValue > cpuCount)
+            if (savedValue != -1 && (savedValue < 1 || savedValue > cpuCount))
                 savedValue = defaultValue;
 
-            if (!values.Contains(savedValue))
+            if (savedValue > 0 && !values.Contains(savedValue))
             {
                 int insertIndex = values.FindIndex(v => v > savedValue);
                 if (insertIndex == -1)
@@ -529,6 +545,9 @@ namespace Frosty.Core.Windows
                 values.Insert(insertIndex, savedValue);
                 names.Insert(insertIndex, $"{savedValue} (Custom)");
             }
+
+            values.Add(-1);
+            names.Add("-1 - Unlimited (Not Recommended)");
 
             return new CustomComboData<int, string>(values, names)
             {

@@ -213,9 +213,31 @@ namespace Frosty.ModSupport
         public ILogger Logger { get => logger; set => logger = value; }
 
         private int maxModApplyThreads = Config.Get("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount));
+        private bool lowerModApplyThreadPriority = Config.Get("LowerModApplyThreadPriority", true);
 
-        private static void ForEachParallel<T>(IEnumerable<T> source, int maxModApplyThreads, CancellationToken cancelToken, Action<T> body, bool noBuffering = false)
+        private void ForEachParallel<T>(IEnumerable<T> source, CancellationToken cancelToken, Action<T> body, bool noBuffering = false)
         {
+            if (maxModApplyThreads == 1)
+            {
+                ThreadPriority prevPriority = Thread.CurrentThread.Priority;
+                if (lowerModApplyThreadPriority)
+                    Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
+                try
+                {
+                    foreach (T item in source)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
+                        body(item);
+                    }
+                }
+                finally
+                {
+                    if (lowerModApplyThreadPriority)
+                        Thread.CurrentThread.Priority = prevPriority;
+                }
+                return;
+            }
+
             ParallelOptions options = new ParallelOptions
             {
                 MaxDegreeOfParallelism = maxModApplyThreads,
@@ -224,20 +246,23 @@ namespace Frosty.ModSupport
 
             try
             {
-                Action<T> wrappedBody = item =>
-                {
-                    // Prevent freezing the whole PC in case user set to max threads
-                    ThreadPriority prevPriority = Thread.CurrentThread.Priority;
-                    Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
-                    try
+                Action<T> wrappedBody = lowerModApplyThreadPriority
+                    ? item =>
                     {
-                        body(item);
+                        // Prevent freezing the whole PC in case user set to max threads
+                        // This will make applying slightly slower (to reduce lag) when window lost focus, for example user switched to browser and watching video
+                        ThreadPriority prevPriority = Thread.CurrentThread.Priority;
+                        Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
+                        try
+                        {
+                            body(item);
+                        }
+                        finally
+                        {
+                            Thread.CurrentThread.Priority = prevPriority;
+                        }
                     }
-                    finally
-                    {
-                        Thread.CurrentThread.Priority = prevPriority;
-                    }
-                };
+                    : body;
 
                 if (noBuffering)
                     Parallel.ForEach(Partitioner.Create(source, EnumerablePartitionerOptions.NoBuffering), options,
@@ -320,7 +345,7 @@ namespace Frosty.ModSupport
             }
 
 
-            ForEachParallel(fmod.Resources, maxModApplyThreads, cancelToken, resource =>
+            ForEachParallel(fmod.Resources, cancelToken, resource =>
             {
                 // pull existing bundles from asset manager
                 HashSet<int> bundles = new HashSet<int>();
@@ -1204,7 +1229,7 @@ namespace Frosty.ModSupport
                 assetEntries.AddRange(modifiedChunks.Values);
 
                 int currentResource = 0;
-                ForEachParallel(assetEntries, maxModApplyThreads, cancelToken, entry =>
+                ForEachParallel(assetEntries, cancelToken, entry =>
                 {
                     if (entry.ExtraData is HandlerExtraData handlerExtaData)
                     {
@@ -1408,7 +1433,7 @@ namespace Frosty.ModSupport
                         actions = actions.OrderByDescending(a => GetSuperBundleFileSize(a.SuperBundle)).ToList();
 
                         ReportProgress(0, totalTasks);
-                        ForEachParallel(actions, maxModApplyThreads, cancelToken, action =>
+                        ForEachParallel(actions, cancelToken, action =>
                         {
                             action.ThreadPoolCallback(null);
                             ReportProgress(totalTasks - Volatile.Read(ref numTasks), totalTasks);
@@ -1471,7 +1496,7 @@ namespace Frosty.ModSupport
                         actions = actions.OrderByDescending(a => a.CatalogInfo.SuperBundles.Count).ToList();
 
                         ReportProgress(0, totalTasks);
-                        ForEachParallel(actions, maxModApplyThreads, cancelToken, action =>
+                        ForEachParallel(actions, cancelToken, action =>
                         {
                             action.ThreadPoolCallback(null);
                             ReportProgress(totalTasks - Volatile.Read(ref numTasks), totalTasks);
@@ -1546,7 +1571,7 @@ namespace Frosty.ModSupport
                     }
 
                     ReportProgress(0, tasks.Count);
-                    ForEachParallel(tasks.Values.OrderByDescending(t => t.Count), maxModApplyThreads, cancelToken, task =>
+                    ForEachParallel(tasks.Values.OrderByDescending(t => t.Count), cancelToken, task =>
                     {
                         actions.Add(new ManifestBundleAction(task, this, cancelToken));
                         ReportProgress(actions.Count, tasks.Count);
@@ -1632,7 +1657,7 @@ namespace Frosty.ModSupport
                         actions = actions.OrderByDescending(a => GetSuperBundleFileSize(a.SuperBundle)).ToList();
 
                         ReportProgress(0, totalTasks);
-                        ForEachParallel(actions, maxModApplyThreads, cancelToken, action =>
+                        ForEachParallel(actions, cancelToken, action =>
                         {
                             action.ThreadPoolCallback(null);
                             ReportProgress(totalTasks - Volatile.Read(ref numTasks), totalTasks);
