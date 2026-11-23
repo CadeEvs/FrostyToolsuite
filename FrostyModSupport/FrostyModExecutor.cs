@@ -1153,6 +1153,8 @@ namespace Frosty.ModSupport
             cancelToken.ThrowIfCancellationRequested();
             if (needsModding)
             {
+                App.Logger.Log($"Using {(maxModApplyThreads == -1 ? "unlimited" : maxModApplyThreads.ToString())} {(maxModApplyThreads == 1 ? "thread" : "threads")} and {(lowerModApplyThreadPriority ? "BelowNormal" : Thread.CurrentThread.Priority.ToString())} priority");
+                
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Initializing Resources");
 
