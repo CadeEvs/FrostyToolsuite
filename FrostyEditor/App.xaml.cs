@@ -71,24 +71,24 @@ namespace FrostyEditor
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            if (MainWindow is MainWindow win)
+            string extraMessage = null;
+            if (MainWindow is MainWindow win && win.Project != null && win.Project.IsDirty)
             {
-                FrostyProject project = win.Project;
-                if (project.IsDirty)
+                string name = win.Project.DisplayName.Replace(".fbproject", "");
+                string autosavePath = $"Autosave/{name}_crash_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.fbproject";
+                try
                 {
-                    string name = project.DisplayName.Replace(".fbproject", "");
-
-                    project.Filename = "Autosave/" + name + "_" + DateTime.Now.ToString("ddMMyyyy_HHmmss") + ".fbproject";
-                    project.Save();
+                    win.Project.Save(autosavePath, updateDirtyState: false);
+                    extraMessage = $"Your project has been saved to: {autosavePath}";
+                }
+                catch
+                {
+                    extraMessage = "Failed to autosave your project.";
                 }
             }
 
-            Exception exp = e.Exception;
-
-            if (FrostyExceptionBox.Show(exp, "Frosty Editor") == MessageBoxResult.Cancel)
-                App.Logger.LogWarning("Exception ignored, unknown error may occur");
-            else
-                Environment.Exit(-1);
+            FrostyExceptionBox.Show(e.Exception, "Frosty Editor", extraMessage);
+            Environment.Exit(-1);
         }
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)

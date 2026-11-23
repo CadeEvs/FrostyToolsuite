@@ -1388,12 +1388,8 @@
         <Setter Property="ContentTemplate">
             <Setter.Value>
                 <DataTemplate>
-                    <DataTemplate.Resources>
-                        <ctrl:WindowCloseCommand x:Key="CloseCommand"/>
-                        <local:ExceptionBoxClickCommand x:Key="exceptionBoxClickCommand" />
-                    </DataTemplate.Resources>
-
-                    <Grid Background="{StaticResource ListBackground}">
+                    <Grid Background="{StaticResource ListBackground}"
+                          DataContext="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
@@ -1401,43 +1397,49 @@
                         </Grid.RowDefinitions>
 
                         <!-- Header -->
-                        <StackPanel Grid.Row="0" Margin="5, 5, 5, 0">
-                            <TextBlock Margin="2" Text="An unhandled exception has occurred" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface" FontSize="16"/>
-                            <TextBlock Margin="2, 0, 2, 2" Text="{Binding ExceptionMessageText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}" TextWrapping="WrapWithOverflow" TextTrimming="None" TextAlignment="Center" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{StaticResource FontColor}" FontFamily="Global User Interface"/>
+                        <StackPanel Grid.Row="0" Margin="8,6,8,4">
+                            <TextBlock Margin="2" Text="An unhandled exception has occurred" HorizontalAlignment="Center" Foreground="{StaticResource FontColor}" FontSize="16"/>
+                            <TextBlock Margin="2,0,2,0" MaxHeight="60" Text="{Binding ExtraMessageText}" TextWrapping="WrapWithOverflow" TextAlignment="Center" Foreground="{StaticResource FontColor}">
+                                <TextBlock.Style>
+                                    <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </StackPanel>
 
                         <TabControl Grid.Row="1" Margin="8,0,8,0">
                             <TabItem Header="Exception">
                                 <!-- Crash text -->
-                                <TextBox BorderThickness="1" Padding="4" Text="{Binding ExceptionText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" FontFamily="Consolas"/>
+                                <TextBox BorderThickness="1" Padding="4" Text="{Binding ExceptionText}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" FontFamily="Consolas"/>
                             </TabItem>
 
                             <TabItem Header="Log">
                                 <!-- Log -->
-                                <Grid>
-                                    <TextBox BorderThickness="1"
-                                        Padding="4"
-                                        FontFamily="Consolas"
-                                        IsReadOnly="True"
-                                        VerticalScrollBarVisibility="Auto"
-                                        HorizontalScrollBarVisibility="Auto"
-                                        Text="{Binding LogText, RelativeSource={RelativeSource AncestorType={x:Type local:FrostyExceptionBox}}}"
-                                        />
-                                </Grid>
+                                <TextBox BorderThickness="1" Padding="4" Text="{Binding LogText}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" FontFamily="Consolas"/>
                             </TabItem>
                         </TabControl>
-                        
-                        <Border Grid.Row="2"/>
+
                         <!-- Buttons -->
-                        <StackPanel Grid.Row="2" Margin="8" FlowDirection="RightToLeft" Orientation="Horizontal">
-                            <Button Content="OK" Width="75" Command="{StaticResource CloseCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type Window}}}"/>
-                            <Button x:Name="PART_IgnoreButton" Content="Ignore" ToolTip="Try to ignore exception, unknown error may occurs" Width="75" Margin="5,0,0,0" Command="{StaticResource exceptionBoxClickCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"/>
+                        <Grid Grid.Row="2" Margin="8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button x:Name="PART_CopyExceptionButton" Content="Copy Exception" Width="100" Margin="0,0,5,0"/>
+                                <Button x:Name="PART_CopyLogButton" Content="Copy Log" Width="70"/>
+                            </StackPanel>
+                            
                             <!--<Button x:Name="PART_ReportCrashButton" Content="Report Crash" Width="100" Margin="5,0,0,0"/>-->
-                        </StackPanel>
-                        <StackPanel Grid.Row="2" Margin="8" FlowDirection="LeftToRight" Orientation="Horizontal">
-                            <Button x:Name="PART_CopyExceptionButton" Content="Copy Exception" Width="100" Margin="0,0,5,0" Command="{StaticResource exceptionBoxClickCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"/>
-                            <Button x:Name="PART_CopyLogButton" Content="Copy Log" Width="70" Margin="0,0,5,0" Command="{StaticResource exceptionBoxClickCommand}" CommandParameter="{Binding RelativeSource={RelativeSource Self}}"/>
-                        </StackPanel>
+
+                            <Button x:Name="PART_OkButton" Grid.Column="1" Content="OK" Width="75"/>
+                        </Grid>
                     </Grid>
                 </DataTemplate>
             </Setter.Value>

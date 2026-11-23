@@ -2,78 +2,30 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Resources;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace Frosty.Core.Controls
 {
-    /// <summary>
-    /// Handle button click
-    /// </summary>
-    public class ExceptionBoxClickCommand : System.Windows.Input.ICommand
-    {
-        public event EventHandler CanExecuteChanged {
-            add => System.Windows.Input.CommandManager.RequerySuggested += value;
-            remove => System.Windows.Input.CommandManager.RequerySuggested -= value;
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return true;
-        }
-
-        public void Execute(object parameter)
-        {
-            System.Windows.Controls.Button btn = parameter as System.Windows.Controls.Button;
-            FrostyExceptionBox parentWin = Window.GetWindow(btn) as FrostyExceptionBox;
-
-            string buttonName = btn.Name;
-
-            if (buttonName == "PART_CopyExceptionButton")
-            {
-                Clipboard.SetText(parentWin.ExceptionText);
-                Clipboard.Flush();
-            }
-            else if (buttonName == "PART_CopyLogButton")
-            {
-                Clipboard.SetText(parentWin.LogText);
-                Clipboard.Flush();
-            }
-            else if (buttonName == "PART_IgnoreButton")
-            {
-                parentWin.isIgnored = true;
-                parentWin.Close();
-            }
-        }
-    }
-
     public class FrostyExceptionBox : FrostyDockableWindow
     {
         #region -- Properties --
 
-        public bool isIgnored { get; internal set; } = false;
-
-        #region -- Text --
-        public static readonly DependencyProperty ExceptionTextProperty = DependencyProperty.Register("ExceptionText", typeof(string), typeof(FrostyExceptionBox), new PropertyMetadata(""));
+        // Dependency property kept for backward compatibility
+        public static readonly DependencyProperty ExceptionTextProperty = DependencyProperty.Register(nameof(ExceptionText), typeof(string), typeof(FrostyExceptionBox), new PropertyMetadata(""));
         public string ExceptionText
         {
             get => (string)GetValue(ExceptionTextProperty);
             set => SetValue(ExceptionTextProperty, value);
         }
-
-        public static readonly DependencyProperty ExceptionMessageTextProperty = DependencyProperty.Register("ExceptionMessageText", typeof(string), typeof(FrostyExceptionBox), new PropertyMetadata(""));
-        public string ExceptionMessageText {
-            get => (string)GetValue(ExceptionMessageTextProperty);
-            set => SetValue(ExceptionMessageTextProperty, value);
-        }
-
-        public static readonly DependencyProperty LogTextProperty = DependencyProperty.Register("LogText", typeof(string), typeof(FrostyExceptionBox), new PropertyMetadata(""));
-        public string LogText {
-            get => (string)GetValue(LogTextProperty);
-            set => SetValue(LogTextProperty, value);
-        }
-        #endregion
+        public string ExtraMessageText { get; set; } = string.Empty;
+        public string LogText { get; set; } = string.Empty;
+        public MessageBoxResult MessageBoxResult { get; private set; } = MessageBoxResult.Cancel;
 
         #endregion
 
@@ -86,7 +38,7 @@ namespace Frosty.Core.Controls
             Width = 900;
 
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            Window mainWin = Application.Current.MainWindow;
+            Window mainWin = Application.Current?.MainWindow;
 
             if (mainWin != null)
             {
@@ -98,150 +50,155 @@ namespace Frosty.Core.Controls
                 Left = x - (Width / 2.0);
                 Top = y - (Height / 2.0);
             }
+
+            AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnButtonClick));
         }
 
-        public override void OnApplyTemplate()
+        private void OnButtonClick(object sender, RoutedEventArgs e)
         {
-            base.OnApplyTemplate();
+            if (!(e.OriginalSource is Button btn))
+                return;
+
+            switch (btn.Name)
+            {
+                case "PART_CopyExceptionButton":
+                    CopyToClipboard(ExceptionText);
+                    break;
+                case "PART_CopyLogButton":
+                    CopyToClipboard(LogText);
+                    break;
+                case "PART_OkButton":
+                    MessageBoxResult = MessageBoxResult.OK;
+                    Close();
+                    break;
+            }
         }
 
-        public static MessageBoxResult Show(Exception e, string title = "Frosty Toolsuite")
+        private static void CopyToClipboard(string text)
         {
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            try
+            {
+                Clipboard.SetText(text);
+                Clipboard.Flush();
+            }
+            catch { } // Clipboard may be locked by another process
+        }
+
+        public static MessageBoxResult Show(Exception e)
+            => Show(e, "Frosty Toolsuite", null);
+
+        public static MessageBoxResult Show(Exception e, string title)
+            => Show(e, title, null);
+
+        public static MessageBoxResult Show(Exception e, string title, string extraMessage)
+        {
+            if (e == null)
+                throw new ArgumentNullException(nameof(e));
+
+            string exceptionText = FormatException(e);
+            string logText = (App.Logger as FrostyCore.FrostyLogger)?.LogText ?? "Logger unavailable";
+
+            if (!WriteCrashLog(exceptionText, logText, extraMessage))
+            {
+                App.Logger?.LogError("Failed to write crash log file");
+                logText += "\r\nFailed to write crash log file";
+            }
+
             FrostyExceptionBox window = new FrostyExceptionBox
             {
                 Title = title,
-                ExceptionText = UnlocalizeException(e),
-                LogText = (App.Logger as FrostyCore.FrostyLogger).LogText,
-                ExceptionMessageText = e.Message
+                ExceptionText = exceptionText,
+                ExtraMessageText = extraMessage ?? string.Empty,
+                LogText = logText
             };
 
-            // Write crash log
+            window.ShowDialog();
+            return window.MessageBoxResult;
+        }
+
+        private static string FormatException(Exception e)
+        {
+            StringBuilder sb = new StringBuilder();
+
+            AssemblyName entryAsm = Assembly.GetEntryAssembly()?.GetName();
+            if (entryAsm != null)
+                sb.AppendLine($"App: {entryAsm.Name} v{entryAsm.Version}");
+
+            sb.AppendLine($"OS: {RuntimeInformation.OSDescription}");
+            sb.AppendLine($"Culture: {CultureInfo.CurrentCulture.Name}");
+            
+            sb.AppendLine($"HResult: 0x{e.HResult:X8}");
+
+            Exception baseEx = e.GetBaseException();
+            if (baseEx != e && baseEx.HResult != e.HResult)
+                sb.AppendLine($"Inner HResult: 0x{baseEx.HResult:X8}");
+
+            sb.AppendLine();
+
+            // Minimal unlocalize, the e.Message won't be translated, but HResult and Type is enough to debug.
             try
             {
-                Directory.CreateDirectory($"{Environment.CurrentDirectory}\\CrashLogs");
-                using (StreamWriter writer = new StreamWriter(new FileStream($"{Environment.CurrentDirectory}\\CrashLogs\\{DateTime.Now.ToString("ddMMyyyy_HHmmss")}_{e.Source}.txt", FileMode.Create)))
-                {
-                    writer.WriteLine(window.ExceptionText);
-                    writer.WriteLine("Log:");
-                    writer.Write(window.LogText);
-                }
-            }
-            catch (IOException) // Directory maybe in use
-            {
-                using (StreamWriter writer = new StreamWriter(new FileStream($"crashlog_{DateTime.Now.ToString("ddMMyyyy_HHmmss")}.txt", FileMode.Create)))
-                {
-                    writer.WriteLine(window.ExceptionText);
-                    writer.WriteLine("Log:");
-                    writer.Write(window.LogText);
-                }
+                CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+                Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+                Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+            
+                sb.Append(e);
             }
             catch
             {
-                App.Logger.LogError("Failed to write crash log");
+                sb.Append(e);
             }
             
-
-            window.ShowDialog();
-
-            // Return MessageBoxResult.Cancel if user click Ignore
-            if (window.isIgnored) return MessageBoxResult.Cancel;
-            return (window.DialogResult == true) ? MessageBoxResult.OK : MessageBoxResult.No;
+            return sb.ToString();
         }
 
-        /// <summary>
-        /// Generate exception message in English (if possible)
-        /// </summary>
-        private static string UnlocalizeException(Exception ex)
+        private static bool WriteCrashLog(string exceptionText, string logText, string extraMessage)
         {
-            try
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt";
+
+            string[] candidatePaths =
             {
-                // Call UnlocalizedExceptionGenerator to get exception message in English
-                UnlocalizedExceptionGenerator ueg = new UnlocalizedExceptionGenerator(ex, System.Threading.Thread.CurrentThread.CurrentUICulture);
-                System.Threading.Thread thread = new System.Threading.Thread(ueg.Run)
-                {
-                    CurrentCulture = CultureInfo.InvariantCulture,
-                    CurrentUICulture = CultureInfo.InvariantCulture
-                };
-                thread.Start();
-                thread.Join();
+                Path.Combine(baseDir, "CrashLogs", fileName),
+                Path.Combine(baseDir, fileName) // In case cannot create folder
+            };
 
-                return ueg.ExceptionDetails;
-            }
-            catch
+            foreach (string path in candidatePaths)
             {
-                App.Logger.LogError("Failed to translate exception");
-
-                StringBuilder sb = new StringBuilder();
-                sb.Append("Type=");
-                sb.AppendLine(ex.GetType().ToString());
-                sb.Append("HResult=");
-                sb.AppendLine("0x" + ex.HResult.ToString("X"));
-                sb.Append("Message=");
-                sb.AppendLine(ex.Message);
-                sb.Append("Source=");
-                sb.AppendLine(ex.Source);
-                sb.AppendLine("StackTrace:");
-                sb.AppendLine(ex.StackTrace);
-                return sb.ToString();
-            }
-        }
-
-        /// <summary>
-        /// Use for generate exception message in English
-        /// https://stackoverflow.com/questions/209133/exception-messages-in-english
-        /// </summary>
-        private class UnlocalizedExceptionGenerator
-        {
-            private Exception _ex;
-            private CultureInfo _origCultureInfo;
-
-            public string ExceptionDetails;
-
-            /// <summary>
-            /// </summary>
-            /// <param name="cultureInfo">Current(user’s) CultureInfo</param>
-            public UnlocalizedExceptionGenerator(Exception ex, CultureInfo origCultureInfo)
-            {
-                _ex = ex;
-                _origCultureInfo = origCultureInfo;
-            }
-
-            public void Run()
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append("Type=");
-                sb.AppendLine(_ex.GetType().ToString());
-                sb.Append("HResult=");
-                sb.AppendLine("0x" + _ex.HResult.ToString("X"));
-                sb.Append("Message=");
-
-                // Find message in .net localize resources
-                string message = _ex.Message;
                 try
                 {
-                    System.Reflection.Assembly assembly = _ex.GetType().Assembly;
-                    ResourceManager rm = new ResourceManager(assembly.GetName().Name, assembly);
-                    ResourceSet originalResources = rm.GetResourceSet(_origCultureInfo, true, true);
-                    ResourceSet targetResources = rm.GetResourceSet(CultureInfo.InvariantCulture, true, true);
-                    foreach (System.Collections.DictionaryEntry originalResource in originalResources)
+                    string dir = Path.GetDirectoryName(path);
+                    if (!string.IsNullOrEmpty(dir))
+                        Directory.CreateDirectory(dir);
+
+                    using (StreamWriter writer = new StreamWriter(path, false, Encoding.UTF8))
                     {
-                        if (originalResource.Value.ToString().Equals(_ex.Message.ToString(), StringComparison.Ordinal))
+                        if (!string.IsNullOrEmpty(extraMessage))
                         {
-                            message = targetResources.GetString(originalResource.Key.ToString(), false);
-                            break;
+                            writer.WriteLine(extraMessage);
+                            writer.WriteLine();
                         }
+
+                        writer.WriteLine("[Exception]");
+                        writer.WriteLine(exceptionText);
+                        writer.WriteLine();
+                        writer.WriteLine("[Log]");
+                        writer.Write(logText);
                     }
+
+                    return true;
                 }
-                catch { }
-                sb.AppendLine(message);
-
-                sb.Append("Source=");
-                sb.AppendLine(_ex.Source);
-                sb.AppendLine("StackTrace:");
-                sb.AppendLine(_ex.StackTrace);
-
-                ExceptionDetails = sb.ToString();
+                catch
+                {
+                    // Fall to next candidate path
+                }
             }
+
+            return false;
         }
     }
 }

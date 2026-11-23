@@ -74,12 +74,8 @@ namespace FrostyModManager
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            Exception exp = e.Exception;
-
-            if (FrostyExceptionBox.Show(exp, "Frosty Mod Manager") == MessageBoxResult.Cancel)
-                App.Logger.LogWarning("Exception ignored, unknown error may occur");
-            else
-                Environment.Exit(-1);
+            FrostyExceptionBox.Show(e.Exception, "Frosty Mod Manager");
+            Environment.Exit(-1);
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
