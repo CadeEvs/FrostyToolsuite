@@ -71,25 +71,24 @@ namespace FrostyEditor
 
         private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
         {
-            if (MainWindow is MainWindow win)
+            string extraMessage = null;
+            if (MainWindow is MainWindow win && win.Project != null && win.Project.IsDirty)
             {
-                FrostyProject project = win.Project;
-                if (project.IsDirty)
+                string name = win.Project.DisplayName.Replace(".fbproject", "");
+                string autosavePath = $"Autosave/{name}_crash_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.fbproject";
+                try
                 {
-                    string name = project.DisplayName.Replace(".fbproject", "");
-                    DateTime timeStamp = DateTime.Now;
-
-                    project.Filename = "Autosave/" + name + "_" + timeStamp.Day.ToString("D2") + timeStamp.Month.ToString("D2") + timeStamp.Year.ToString("D4") + "_" + timeStamp.Hour.ToString("D2") + timeStamp.Minute.ToString("D2") + timeStamp.Second.ToString("D2") + ".fbproject";
-                    project.Save();
+                    win.Project.Save(autosavePath, updateDirtyState: false);
+                    extraMessage = $"Your project has been saved to: {autosavePath}";
+                }
+                catch
+                {
+                    extraMessage = "Failed to autosave your project.";
                 }
             }
 
-            Exception exp = e.Exception;
-            using (NativeWriter writer = new NativeWriter(new FileStream("crashlog.txt", FileMode.Create)))
-                writer.WriteLine($"{exp.Message}\r\n\r\n{exp.StackTrace}");
-
-            FrostyExceptionBox.Show(exp, "Frosty Editor");
-            Environment.Exit(0);
+            FrostyExceptionBox.Show(e.Exception, "Frosty Editor", extraMessage);
+            Environment.Exit(-1);
         }
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
