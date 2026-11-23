@@ -1433,7 +1433,8 @@
 
                             <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left">
                                 <Button x:Name="PART_CopyExceptionButton" Content="Copy Exception" Width="100" Margin="0,0,5,0"/>
-                                <Button x:Name="PART_CopyLogButton" Content="Copy Log" Width="70"/>
+                                <Button x:Name="PART_CopyLogButton" Content="Copy Log" Width="70" Margin="0,0,5,0"/>
+                                <Button x:Name="PART_LocateCrashLogButton" Content="Locate Crash Log File" Width="130" IsEnabled="{Binding HasCrashLog}"/>
                             </StackPanel>
                             
                             <!--<Button x:Name="PART_ReportCrashButton" Content="Report Crash" Width="100" Margin="5,0,0,0"/>-->

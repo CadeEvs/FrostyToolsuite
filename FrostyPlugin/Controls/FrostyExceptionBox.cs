@@ -1,5 +1,6 @@
 ﻿using Frosty.Controls;
 using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -25,6 +26,8 @@ namespace Frosty.Core.Controls
         }
         public string ExtraMessageText { get; set; } = string.Empty;
         public string LogText { get; set; } = string.Empty;
+        public string CrashLogPath { get; private set; }
+        public bool HasCrashLog => !string.IsNullOrEmpty(CrashLogPath);
         public MessageBoxResult MessageBoxResult { get; private set; } = MessageBoxResult.Cancel;
 
         #endregion
@@ -67,10 +70,36 @@ namespace Frosty.Core.Controls
                 case "PART_CopyLogButton":
                     CopyToClipboard(LogText);
                     break;
+                case "PART_LocateCrashLogButton":
+                    LocateCrashLog();
+                    break;
                 case "PART_OkButton":
                     MessageBoxResult = MessageBoxResult.OK;
                     Close();
                     break;
+            }
+        }
+
+        private void LocateCrashLog()
+        {
+            if (string.IsNullOrEmpty(CrashLogPath))
+                return;
+
+            try
+            {
+                string fullPath = Path.GetFullPath(CrashLogPath);
+                if (!File.Exists(fullPath))
+                    return;
+
+                string explorerPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "explorer.exe");
+                using (Process.Start(new ProcessStartInfo(explorerPath, $"/select,\"{fullPath}\"")
+                {
+                    UseShellExecute = false
+                })) { }
+            }
+            catch
+            {
+                // Ignore
             }
         }
 
@@ -84,7 +113,10 @@ namespace Frosty.Core.Controls
                 Clipboard.SetText(text);
                 Clipboard.Flush();
             }
-            catch { } // Clipboard may be locked by another process
+            catch
+            {
+                // Clipboard may be locked by another process
+            }
         }
 
         public static MessageBoxResult Show(Exception e)
@@ -101,7 +133,8 @@ namespace Frosty.Core.Controls
             string exceptionText = FormatException(e);
             string logText = (App.Logger as FrostyCore.FrostyLogger)?.LogText ?? "Logger unavailable";
 
-            if (!WriteCrashLog(exceptionText, logText, extraMessage))
+            string crashLogPath = WriteCrashLog(exceptionText, logText, extraMessage);
+            if (crashLogPath == null)
             {
                 App.Logger?.LogError("Failed to write crash log file");
                 logText += "\r\nFailed to write crash log file";
@@ -112,7 +145,8 @@ namespace Frosty.Core.Controls
                 Title = title,
                 ExceptionText = exceptionText,
                 ExtraMessageText = extraMessage ?? string.Empty,
-                LogText = logText
+                LogText = logText,
+                CrashLogPath = crashLogPath
             };
 
             window.ShowDialog();
@@ -125,9 +159,15 @@ namespace Frosty.Core.Controls
 
             AssemblyName entryAsm = Assembly.GetEntryAssembly()?.GetName();
             if (entryAsm != null)
-                sb.AppendLine($"App: {entryAsm.Name} v{App.Version}");
+            {
+                string appVersion = Application.Current?.GetType().GetField("Version", BindingFlags.Public | BindingFlags.Static)?.GetValue(null) as string;
+                if (string.IsNullOrEmpty(appVersion))
+                    appVersion = entryAsm.Version.ToString();
 
-            sb.AppendLine($"OS: {RuntimeInformation.OSDescription}");
+                sb.AppendLine($"App: {entryAsm.Name} v{appVersion}");
+            }
+
+            sb.AppendLine($"OS: {RuntimeInformation.OSDescription.Trim()}");
             sb.AppendLine($"Culture: {CultureInfo.CurrentCulture.Name}");
             
             sb.AppendLine($"HResult: 0x{e.HResult:X8}");
@@ -139,24 +179,25 @@ namespace Frosty.Core.Controls
             sb.AppendLine();
 
             // Minimal unlocalize, the e.Message won't be translated, but HResult and Type is enough to debug.
+            CultureInfo origCulture = Thread.CurrentThread.CurrentCulture;
+            CultureInfo origUiCulture = Thread.CurrentThread.CurrentUICulture;
             try
             {
-                CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
-                CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
                 Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
                 Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-            
+
                 sb.Append(e);
             }
-            catch
+            finally
             {
-                sb.Append(e);
+                Thread.CurrentThread.CurrentCulture = origCulture;
+                Thread.CurrentThread.CurrentUICulture = origUiCulture;
             }
             
             return sb.ToString();
         }
 
-        private static bool WriteCrashLog(string exceptionText, string logText, string extraMessage)
+        private static string WriteCrashLog(string exceptionText, string logText, string extraMessage)
         {
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             string fileName = $"crashlog_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.txt";
@@ -190,7 +231,7 @@ namespace Frosty.Core.Controls
                         writer.Write(logText);
                     }
 
-                    return true;
+                    return Path.GetFullPath(path);
                 }
                 catch
                 {
@@ -198,7 +239,7 @@ namespace Frosty.Core.Controls
                 }
             }
 
-            return false;
+            return null;
         }
     }
 }
