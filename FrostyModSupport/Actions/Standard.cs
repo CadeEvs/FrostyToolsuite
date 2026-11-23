@@ -65,9 +65,12 @@ namespace Frosty.ModSupport
             public void Run()
             {
                 string path = parent.fs.ResolvePath(superBundle + ".toc");
+                NativeReader baseSb = null;
+                NativeReader patchSb = null;
 
                 try
                 {
+                    cancelToken.ThrowIfCancellationRequested();
                     List<Sha1> localCasRefs = new List<Sha1>();
                     DbObject toc = null;
 
@@ -136,6 +139,7 @@ namespace Frosty.ModSupport
                                 }
                                 else
                                 {
+                                    cancelToken.ThrowIfCancellationRequested();
                                     // read in existing sb data to be appended to
                                     using (NativeReader reader = new NativeReader(new FileStream(path.Replace(".toc", ".sb"), FileMode.Open, FileAccess.Read)))
                                         chunkBuffer = reader.ReadToEnd();
@@ -146,6 +150,7 @@ namespace Frosty.ModSupport
                                 DbObject chunkList = new DbObject(false);
                                 if (!string.IsNullOrEmpty(basePath))
                                 {
+                                    cancelToken.ThrowIfCancellationRequested();
                                     DbObject baseToc = null;
                                     using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
                                         baseToc = reader.ReadDbObject();
@@ -158,6 +163,7 @@ namespace Frosty.ModSupport
                                 // update chunk list with patch chunks
                                 foreach (DbObject chunk in toc.GetValue<DbObject>("chunks"))
                                 {
+                                    cancelToken.ThrowIfCancellationRequested();
                                     Guid chunkId = chunk.GetValue<Guid>("id");
                                     int index = chunkList.FindIndex((object o) => { return ((DbObject)o).GetValue<Guid>("id") == chunkId; });
                                     if (index != -1)
@@ -190,6 +196,7 @@ namespace Frosty.ModSupport
 
                                 if (isModified)
                                 {
+                                    cancelToken.ThrowIfCancellationRequested();
                                     // modify superbundle/toc
                                     if (!Directory.Exists(sbFi.DirectoryName))
                                         Directory.CreateDirectory(sbFi.DirectoryName);
@@ -202,6 +209,7 @@ namespace Frosty.ModSupport
                                         toc.SetValue("chunks", new DbObject(false));
                                         foreach (DbObject chunk in chunkList)
                                         {
+                                            cancelToken.ThrowIfCancellationRequested();
                                             Guid id = chunk.GetValue<Guid>("id");
                                             if (chunkBundle.Modify.Chunks.Contains(id))
                                             {
@@ -229,6 +237,7 @@ namespace Frosty.ModSupport
                                         {
                                             foreach (Guid id in chunkBundle.Add.Chunks)
                                             {
+                                                cancelToken.ThrowIfCancellationRequested();
                                                 isModified = true;
                                                 ChunkAssetEntry entry = parent.modifiedChunks[id];
 
@@ -439,8 +448,7 @@ namespace Frosty.ModSupport
                         if (isBinary)
                         {
                             Dictionary<int, BaseBundleInfo> baseBundles = new Dictionary<int, BaseBundleInfo>();
-                            NativeReader baseSb = new NativeReader(new FileStream(parent.fs.ResolvePath("native_data/" + superBundle + ".sb"), FileMode.Open, FileAccess.Read));
-                            NativeReader patchSb = null;
+                            baseSb = new NativeReader(new FileStream(parent.fs.ResolvePath("native_data/" + superBundle + ".sb"), FileMode.Open, FileAccess.Read));
 
                             DbObject baseToc = null;
                             using (DbReader reader = new DbReader(new FileStream(basePath, FileMode.Open, FileAccess.Read), parent.fs.CreateDeobfuscator()))
@@ -544,6 +552,7 @@ namespace Frosty.ModSupport
                                             // iterate base bundle first
                                             foreach (DbObject ebx in baseSbBundle.GetValue<DbObject>("ebx"))
                                             {
+                                                cancelToken.ThrowIfCancellationRequested();
                                                 bool bFound = false;
                                                 bool bModified = false;
                                                 DbObject foundObject = null;
@@ -572,6 +581,7 @@ namespace Frosty.ModSupport
                                         // add in all delta bundle items
                                         foreach (DbObject ebx in sbBundle.GetValue<DbObject>("ebx"))
                                         {
+                                            cancelToken.ThrowIfCancellationRequested();
                                             int hash = Fnv1.HashString(ebx.GetValue<string>("name"));
                                             if (ebxAssetInfo.FindIndex((AssetInfo a) => a.NameHash == hash) == -1)
                                             {
@@ -593,6 +603,7 @@ namespace Frosty.ModSupport
                                             // iterate base bundle first
                                             foreach (DbObject res in baseSbBundle.GetValue<DbObject>("res"))
                                             {
+                                                cancelToken.ThrowIfCancellationRequested();
                                                 bool bFound = false;
                                                 bool bModified = false;
                                                 DbObject foundObject = null;
@@ -626,6 +637,7 @@ namespace Frosty.ModSupport
                                         // add in all delta bundle items
                                         foreach (DbObject res in sbBundle.GetValue<DbObject>("res"))
                                         {
+                                            cancelToken.ThrowIfCancellationRequested();
                                             int hash = Fnv1.HashString(res.GetValue<string>("name"));
                                             if (resAssetInfo.FindIndex((AssetInfo a) => a.NameHash == hash) == -1)
                                             {
@@ -647,6 +659,7 @@ namespace Frosty.ModSupport
                                             // iterate base bundle first
                                             foreach (DbObject chunk in baseSbBundle.GetValue<DbObject>("chunks"))
                                             {
+                                                cancelToken.ThrowIfCancellationRequested();
                                                 bool bFound = false;
                                                 bool bModified = false;
                                                 DbObject foundObject = null;
@@ -683,6 +696,7 @@ namespace Frosty.ModSupport
                                         // add in all delta bundle items
                                         foreach (DbObject chunk in sbBundle.GetValue<DbObject>("chunks"))
                                         {
+                                            cancelToken.ThrowIfCancellationRequested();
                                             if (chunkAssetInfo.FindIndex((AssetInfo a) => a.Id == chunk.GetValue<Guid>("id")) == -1)
                                             {
                                                 AssetInfo info = new AssetInfo
@@ -707,6 +721,7 @@ namespace Frosty.ModSupport
 
                                             while (size > 0)
                                             {
+                                                cancelToken.ThrowIfCancellationRequested();
                                                 int bufSize = (size > 1024 * 1024) ? 1024 * 1024 : (int)size;
 
                                                 patchSb.Read(buf, 0, bufSize);
@@ -1085,6 +1100,7 @@ namespace Frosty.ModSupport
                                     // write data
                                     for (int y = 0; y < totalAssetInfo.Count; y++)
                                     {
+                                        cancelToken.ThrowIfCancellationRequested();
                                         AssetInfo info = totalAssetInfo[y];
 
                                         long size = info.Asset.GetValue<long>("originalSize");
@@ -1576,6 +1592,7 @@ namespace Frosty.ModSupport
 
                             if (sbChanged)
                             {
+                                cancelToken.ThrowIfCancellationRequested();
                                 // write out actual SuperBundle
                                 FileInfo fi = new FileInfo(parent.fs.BasePath + modPath + "/" + superBundle + ".sb");
                                 Directory.CreateDirectory(fi.DirectoryName);
@@ -1597,7 +1614,7 @@ namespace Frosty.ModSupport
 
                                     offset = writer.Position;
 
-                                    writer.Write(outSbStream.ToArray());
+                                    outSbStream.WriteTo(writer.BaseStream);
                                     writer.Write((ushort)0x00);
                                 }
                                 outSbStream.Dispose();
@@ -1615,6 +1632,7 @@ namespace Frosty.ModSupport
 
                     if (tocChanged)
                     {
+                        cancelToken.ThrowIfCancellationRequested();
                         FileInfo fi = new FileInfo(parent.fs.BasePath + modPath + "/" + superBundle + ".toc");
                         Directory.CreateDirectory(fi.DirectoryName);
 
@@ -1630,6 +1648,11 @@ namespace Frosty.ModSupport
                 {
                     // thread exception caught
                     errorException = e;
+                }
+                finally
+                {
+                    baseSb?.Dispose();
+                    patchSb?.Dispose();
                 }
             }
 

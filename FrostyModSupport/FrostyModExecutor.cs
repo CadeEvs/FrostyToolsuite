@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -211,6 +212,89 @@ namespace Frosty.ModSupport
 
         public ILogger Logger { get => logger; set => logger = value; }
 
+        private int maxModApplyThreads = Config.Get("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount));
+        private bool lowerModApplyThreadPriority = Config.Get("LowerModApplyThreadPriority", true);
+
+        private void ForEachParallel<T>(IEnumerable<T> source, CancellationToken cancelToken, Action<T> body, bool noBuffering = false)
+        {
+            if (maxModApplyThreads == 1)
+            {
+                ThreadPriority prevPriority = Thread.CurrentThread.Priority;
+                if (lowerModApplyThreadPriority)
+                    Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
+                try
+                {
+                    foreach (T item in source)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
+                        body(item);
+                    }
+                }
+                finally
+                {
+                    if (lowerModApplyThreadPriority)
+                        Thread.CurrentThread.Priority = prevPriority;
+                }
+                return;
+            }
+
+            ParallelOptions options = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = maxModApplyThreads,
+                CancellationToken = cancelToken // Cancel token is passed inside ParallelOptions
+            };
+
+            try
+            {
+                Action<T> wrappedBody = lowerModApplyThreadPriority
+                    ? item =>
+                    {
+                        // Prevent freezing the whole PC in case user set to max threads
+                        // This will make applying slightly slower (to reduce lag) when window lost focus, for example user switched to browser and watching video
+                        ThreadPriority prevPriority = Thread.CurrentThread.Priority;
+                        Thread.CurrentThread.Priority = ThreadPriority.BelowNormal;
+                        try
+                        {
+                            body(item);
+                        }
+                        finally
+                        {
+                            Thread.CurrentThread.Priority = prevPriority;
+                        }
+                    }
+                    : body;
+
+                if (noBuffering)
+                    Parallel.ForEach(Partitioner.Create(source, EnumerablePartitionerOptions.NoBuffering), options,
+                        wrappedBody);
+                else
+                    Parallel.ForEach(source, options, wrappedBody);
+            }
+            catch (AggregateException ex)
+            {
+                // Capture real exception instead of saying one or more errors occurred.
+                AggregateException flattened = ex.Flatten();
+                Exception inner = flattened.InnerExceptions
+                                      .FirstOrDefault(e => !(e is OperationCanceledException)) ??
+                                  flattened.InnerException;
+                if (inner != null)
+                    ExceptionDispatchInfo.Capture(inner).Throw();
+                throw;
+            }
+        }
+
+        private long GetSuperBundleFileSize(string superBundle)
+        {
+            try
+            {
+                return new FileInfo(fs.ResolvePath(superBundle + ".sb")).Length;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
         private Dictionary<int, Dictionary<uint, CatResourceEntry>> LoadCatalog(string filename, out int catFileHash)
         {
             catFileHash = 0;
@@ -252,7 +336,7 @@ namespace Frosty.ModSupport
             return hash;
         }
 
-        private void ProcessModResources(IResourceContainer fmod)
+        private void ProcessModResources(IResourceContainer fmod, CancellationToken cancelToken)
         {
             // Bundle whitelist may not contain the chunk bundle. This adds it to prevent issues
             if (App.WhitelistedBundles.Count != 0)
@@ -261,7 +345,7 @@ namespace Frosty.ModSupport
             }
 
 
-            Parallel.ForEach(fmod.Resources, resource =>
+            ForEachParallel(fmod.Resources, cancelToken, resource =>
             {
                 // pull existing bundles from asset manager
                 HashSet<int> bundles = new HashSet<int>();
@@ -1069,6 +1153,8 @@ namespace Frosty.ModSupport
             cancelToken.ThrowIfCancellationRequested();
             if (needsModding)
             {
+                App.Logger.Log($"Using {(maxModApplyThreads == -1 ? "unlimited" : maxModApplyThreads.ToString())} {(maxModApplyThreads == 1 ? "thread" : "threads")} and {(lowerModApplyThreadPriority ? "BelowNormal" : Thread.CurrentThread.Priority.ToString())} priority");
+                
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Initializing Resources");
 
@@ -1124,7 +1210,7 @@ namespace Frosty.ModSupport
                     Logger.Log($"Loading Mods ({mod.ModDetails?.Title ?? mod.Filename.Replace(".fbmod", "")})");
                     if (mod.NewFormat)
                     {
-                        ProcessModResources(mod);
+                        ProcessModResources(mod, cancelToken);
                     }
                     else
                     {
@@ -1145,7 +1231,7 @@ namespace Frosty.ModSupport
                 assetEntries.AddRange(modifiedChunks.Values);
 
                 int currentResource = 0;
-                Parallel.ForEach(assetEntries, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, entry =>
+                ForEachParallel(assetEntries, cancelToken, entry =>
                 {
                     if (entry.ExtraData is HandlerExtraData handlerExtaData)
                     {
@@ -1154,11 +1240,11 @@ namespace Frosty.ModSupport
                         if (!archiveData.TryAdd(entry.Sha1, new ArchiveInfo() { Data = data, RefCount = 1 }))
                             archiveData[entry.Sha1].RefCount++;
                     }
-                    ReportProgress(currentResource++, assetEntries.Count);
+                    ReportProgress(Interlocked.Increment(ref currentResource), assetEntries.Count);
                 });
 
                 // process any new resources added during custom handler modification
-                ProcessModResources(runtimeResources);
+                ProcessModResources(runtimeResources, cancelToken);
 
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Cleaning Up ModData");
@@ -1300,10 +1386,6 @@ namespace Frosty.ModSupport
                     }
                 }
 
-                // set max threads to processor amount (stop hitching)
-                ThreadPool.GetMaxThreads(out int workerThreads, out int completionPortThreads);
-                ThreadPool.SetMaxThreads(Environment.ProcessorCount, completionPortThreads);
-
                 // modify tocs and sbs
                 cancelToken.ThrowIfCancellationRequested();
                 Logger.Log("Applying Mods");
@@ -1333,29 +1415,31 @@ namespace Frosty.ModSupport
                     }
 
                     List<HeatBundleAction> actions = new List<HeatBundleAction>();
-                    ManualResetEvent doneEvent = new ManualResetEvent(false);
 
                     // @todo: Added bundles
 
-                    int totalTasks = 0;
-                    foreach (string superBundle in fs.SuperBundles)
+                    using (ManualResetEvent doneEvent = new ManualResetEvent(false))
                     {
-                        if (fs.ResolvePath(superBundle + ".toc") == "")
-                            continue;
+                        int totalTasks = 0;
+                        foreach (string superBundle in fs.SuperBundles)
+                        {
+                            if (fs.ResolvePath(superBundle + ".toc") == "")
+                                continue;
 
-                        HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
-                    }
+                            HeatBundleAction action = new HeatBundleAction(superBundle, doneEvent, this, cancelToken);
+                            actions.Add(action);
+                            numTasks++;
+                            totalTasks++;
+                        }
 
-                    while (numTasks != 0)
-                    {
-                        // show progress
-                        cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
-                        Thread.Sleep(1);
+                        actions = actions.OrderByDescending(a => GetSuperBundleFileSize(a.SuperBundle)).ToList();
+
+                        ReportProgress(0, totalTasks);
+                        ForEachParallel(actions, cancelToken, action =>
+                        {
+                            action.ThreadPoolCallback(null);
+                            ReportProgress(totalTasks - Volatile.Read(ref numTasks), totalTasks);
+                        }, noBuffering: true);
                     }
 
                     foreach (HeatBundleAction completedAction in actions)
@@ -1397,26 +1481,28 @@ namespace Frosty.ModSupport
 
                     FifaBundleAction.CasFileCount = fs.CasFileCount;
                     List<FifaBundleAction> actions = new List<FifaBundleAction>();
-                    ManualResetEvent doneEvent = new ManualResetEvent(false);
 
                     // @todo: Added bundles
 
-                    int totalTasks = 0;
-                    foreach (CatalogInfo ci in fs.EnumerateCatalogInfos())
+                    using (ManualResetEvent doneEvent = new ManualResetEvent(false))
                     {
-                        FifaBundleAction action = new FifaBundleAction(ci, doneEvent, this, cancelToken);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
-                    }
+                        int totalTasks = 0;
+                        foreach (CatalogInfo ci in fs.EnumerateCatalogInfos())
+                        {
+                            FifaBundleAction action = new FifaBundleAction(ci, doneEvent, this, cancelToken);
+                            actions.Add(action);
+                            numTasks++;
+                            totalTasks++;
+                        }
 
-                    while (numTasks != 0)
-                    {
-                        // show progress
-                        cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
-                        Thread.Sleep(1);
+                        actions = actions.OrderByDescending(a => a.CatalogInfo.SuperBundles.Count).ToList();
+
+                        ReportProgress(0, totalTasks);
+                        ForEachParallel(actions, cancelToken, action =>
+                        {
+                            action.ThreadPoolCallback(null);
+                            ReportProgress(totalTasks - Volatile.Read(ref numTasks), totalTasks);
+                        }, noBuffering: true);
                     }
 
                     foreach (FifaBundleAction completedAction in actions)
@@ -1487,11 +1573,11 @@ namespace Frosty.ModSupport
                     }
 
                     ReportProgress(0, tasks.Count);
-                    Parallel.ForEach(tasks.Values, new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, task =>
+                    ForEachParallel(tasks.Values.OrderByDescending(t => t.Count), cancelToken, task =>
                     {
                         actions.Add(new ManifestBundleAction(task, this, cancelToken));
                         ReportProgress(actions.Count, tasks.Count);
-                    });
+                    }, noBuffering: true);
 
                     foreach (ManifestBundleAction action in actions)
                     {
@@ -1547,36 +1633,37 @@ namespace Frosty.ModSupport
                 else
                 {
                     List<SuperBundleAction> actions = new List<SuperBundleAction>();
-                    ManualResetEvent doneEvent = new ManualResetEvent(false);
 
-                    int totalTasks = 0;
-                    foreach (string superBundle in fs.SuperBundles)
+                    using (ManualResetEvent doneEvent = new ManualResetEvent(false))
                     {
-                        if (fs.ResolvePath(superBundle + ".toc") == "")
-                            continue;
+                        int totalTasks = 0;
+                        foreach (string superBundle in fs.SuperBundles)
+                        {
+                            if (fs.ResolvePath(superBundle + ".toc") == "")
+                                continue;
 
-                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
-                    }
+                            SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
+                            actions.Add(action);
+                            numTasks++;
+                            totalTasks++;
+                        }
 
-                    foreach (string superBundle in addedSuperBundles)
-                    {
-                        SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
-                        ThreadPool.QueueUserWorkItem(action.ThreadPoolCallback, null);
-                        actions.Add(action);
-                        numTasks++;
-                        totalTasks++;
-                    }
+                        foreach (string superBundle in addedSuperBundles)
+                        {
+                            SuperBundleAction action = new SuperBundleAction(superBundle, doneEvent, this, modDirName + "/" + patchPath, cancelToken);
+                            actions.Add(action);
+                            numTasks++;
+                            totalTasks++;
+                        }
 
-                    while (numTasks != 0)
-                    {
-                        // show progress
-                        cancelToken.ThrowIfCancellationRequested();
-                        ReportProgress(totalTasks - numTasks, totalTasks);
-                        Thread.Sleep(1);
+                        actions = actions.OrderByDescending(a => GetSuperBundleFileSize(a.SuperBundle)).ToList();
+
+                        ReportProgress(0, totalTasks);
+                        ForEachParallel(actions, cancelToken, action =>
+                        {
+                            action.ThreadPoolCallback(null);
+                            ReportProgress(totalTasks - Volatile.Read(ref numTasks), totalTasks);
+                        }, noBuffering: true);
                     }
 
                     foreach (SuperBundleAction completedAction in actions)
@@ -1624,9 +1711,6 @@ namespace Frosty.ModSupport
                 {
                     RunSymbolicLinkProcess(cmdArgs);
                 }
-
-                // reset threadpool
-                ThreadPool.SetMaxThreads(workerThreads, completionPortThreads);
 
                 Logger.Log("Writing Archive Data");
                 App.Logger.Log("Writing Archive Data");
@@ -2117,7 +2201,8 @@ namespace Frosty.ModSupport
                             writer.Write(-1);
                         }
                     }
-                    writer.Write(ms.ToArray());
+                    tmpWriter.Flush();
+                    ms.WriteTo(writer.BaseStream);
                 }
             }
         }

@@ -657,9 +657,6 @@ namespace LegacyBigFilePlugin
                 }
             }
 
-            byte[] data = ms.ToArray();
-            ms.Dispose();
-
             using (NativeReader reader = new NativeReader(App.AssetManager.GetCustomAsset("legacy", assetEntry)))
             {
                 using (NativeWriter writer = new NativeWriter(new MemoryStream()))
@@ -674,7 +671,7 @@ namespace LegacyBigFilePlugin
                         totalDataSize++;
 
                     uint startDataPos = totalDataSize + 16;
-                    totalDataSize += (uint)data.Length;
+                    totalDataSize += (uint)ms.Length;
 
                     writer.Write(magic);
                     writer.Write(totalDataSize);
@@ -707,11 +704,13 @@ namespace LegacyBigFilePlugin
                     while (writer.Position % 0x40 != 0)
                         writer.Write((byte)0x00);
                     
-                    writer.Write(ms.ToArray());
+                    ms.WriteTo(writer.BaseStream);
                     
                     App.AssetManager.ModifyCustomAsset("legacy", assetEntry.Name, writer.ToByteArray());
                 }
             }
+
+            ms.Dispose();
         }
 
         private void ReconstructAST(AssetEntry assetEntry)
@@ -802,7 +801,7 @@ namespace LegacyBigFilePlugin
                     while (writer.Position < actualOffset)
                         writer.Write((byte)0x00);
 
-                    writer.Write(ms.ToArray());
+                    ms.WriteTo(writer.BaseStream);
                     App.AssetManager.ModifyCustomAsset("legacy", assetEntry.Name, writer.ToByteArray());
                 }
             }

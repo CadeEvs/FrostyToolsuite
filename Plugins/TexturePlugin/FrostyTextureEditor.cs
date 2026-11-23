@@ -932,7 +932,7 @@ namespace TexturePlugin
                 else
                 {
                     // 2d/3d/1d/etc.
-                    writer.Write(srcStream.ToArray());
+                    srcStream.WriteTo(writer.BaseStream);
                 }
 
                 buf = ((MemoryStream)writer.BaseStream).GetBuffer();

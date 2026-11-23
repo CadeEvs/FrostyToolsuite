@@ -42,6 +42,10 @@ namespace Frosty.Core.Windows
     {
     }
 
+    public class FrostyIntComboDataEditor : FrostyCustomComboDataEditor<int, string>
+    {
+    }
+
     [DisplayName("Editor Options")]
     public class EditorOptionsData : OptionsExtension
     {
@@ -128,12 +132,25 @@ namespace Frosty.Core.Windows
         public bool UpdateCheckPrerelease { get; set; } = false;
 #endif
 
-        [Category("General")]
-        [DisplayName("CAS Max File Size")]
-        [Description("Change the maximum size of written cas files when applying mods.\r\n\r\nHigher Values decrease system stability but ensure mod compatibility.")]
+        [Category("Mod Applying")]
+        [DisplayName("Max CAS File Size")]
+        [Description("The maximum size of written cas files when applying mods.\r\nHigher Values decrease system stability but ensure mod compatibility.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
+
+        [Category("Mod Applying")]
+        [DisplayName("Max Threads")]
+        [Description("Maximum number of threads used when applying mods.\r\nToo high may cause system lag and slower apply speed, and too low will also reduce apply speed.\r\nManually edit the config file to set a custom value.")]
+        [EbxFieldMeta(EbxFieldType.Struct)]
+        [Editor(typeof(FrostyIntComboDataEditor))]
+        public CustomComboData<int, string> MaxModApplyThreads { get; set; }
+
+        [Category("Mod Applying")]
+        [DisplayName("Lower Thread Priority")]
+        [Description("Run mod applying threads at a lower priority so other apps stay responsive while Frosty runs in the background.\r\nDisable this only if you want extreme speed and not doing anything else when applying.\r\nDefault: On")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool LowerModApplyThreadPriority { get; set; } = true;
 
         [Category("General")]
         [DisplayName("Command Line Arguments")]
@@ -165,6 +182,9 @@ namespace Frosty.Core.Windows
             List<string> sizes = new List<string>() { "1GB", "512MB", "256MB" };
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
+
+            MaxModApplyThreads = OptionsWindow.CreateModApplyThreadsComboData(Config.Get<int>("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount)));
+            LowerModApplyThreadPriority = Config.Get<bool>("LowerModApplyThreadPriority", true);
 
             CommandLineArgs = Config.Get<string>("CommandLineArgs", "", ConfigScope.Game);
 
@@ -204,6 +224,9 @@ namespace Frosty.Core.Windows
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
+
+            Config.Add("MaxModApplyThreads", MaxModApplyThreads.SelectedValue);
+            Config.Add("LowerModApplyThreadPriority", LowerModApplyThreadPriority);
 
             Config.Add("CommandLineArgs", CommandLineArgs, ConfigScope.Game);
 
@@ -379,12 +402,25 @@ namespace Frosty.Core.Windows
         public bool UpdateCheckPrerelease { get; set; } = false;
 #endif
 
-        [Category("General")]
-        [DisplayName("CAS Max File Size")]
-        [Description("Change the maximum size of written cas files when applying mods.\r\n\r\nHigher Values decrease system stability but ensure mod compatibility.")]
+        [Category("Mod Applying")]
+        [DisplayName("Max CAS File Size")]
+        [Description("The maximum size of written cas files when applying mods.\r\nHigher Values decrease system stability but ensure mod compatibility.")]
         [EbxFieldMeta(EbxFieldType.Struct)]
         [Editor(typeof(FrostyLocalizationLanguageDataEditor))]
         public CustomComboData<string, string> MaxCasFileSize { get; set; }
+
+        [Category("Mod Applying")]
+        [DisplayName("Max Threads")]
+        [Description("Maximum number of threads used when applying mods.\r\nToo high may cause system lag and slower apply speed, and too low will also reduce apply speed.\r\nManually edit the config file to set a custom value.")]
+        [EbxFieldMeta(EbxFieldType.Struct)]
+        [Editor(typeof(FrostyIntComboDataEditor))]
+        public CustomComboData<int, string> MaxModApplyThreads { get; set; }
+
+        [Category("Mod Applying")]
+        [DisplayName("Lower Thread Priority")]
+        [Description("Run mod applying threads at a lower priority so other apps stay responsive while Frosty runs in the background.\r\nDisable this only if you want extreme speed and not doing anything else when applying.\r\nDefault: On")]
+        [EbxFieldMeta(EbxFieldType.Boolean)]
+        public bool LowerModApplyThreadPriority { get; set; } = true;
 
         //[Category("Mod View")]
         //[DisplayName("Collapse categories by default")]
@@ -414,6 +450,9 @@ namespace Frosty.Core.Windows
             MaxCasFileSize = new CustomComboData<string, string>(sizes, sizes);
             MaxCasFileSize.SelectedIndex = sizes.IndexOf(Config.Get<string>("MaxCasFileSize", "1GB"));
 
+            MaxModApplyThreads = OptionsWindow.CreateModApplyThreadsComboData(Config.Get<int>("MaxModApplyThreads", Math.Min(2, Environment.ProcessorCount)));
+            LowerModApplyThreadPriority = Config.Get<bool>("LowerModApplyThreadPriority", true);
+
             //CollapseCategories = Config.Get("CollapseCategories", false);
             //AppliedModIcons = Config.Get("AppliedModIcons", true);
         }
@@ -433,6 +472,9 @@ namespace Frosty.Core.Windows
             Config.Add("UpdateCheckPrerelease", UpdateCheckPrerelease);
 
             Config.Add("MaxCasFileSize", MaxCasFileSize.SelectedName);
+
+            Config.Add("MaxModApplyThreads", MaxModApplyThreads.SelectedValue);
+            Config.Add("LowerModApplyThreadPriority", LowerModApplyThreadPriority);
 
             //Config.Add("CollapseCategories", CollapseCategories);
             //Config.Add("AppliedModIcons", AppliedModIcons);
@@ -461,6 +503,56 @@ namespace Frosty.Core.Windows
         public OptionsWindow()
         {
             InitializeComponent();
+        }
+
+        internal static CustomComboData<int, string> CreateModApplyThreadsComboData(int savedValue)
+        {
+            int cpuCount = Math.Max(1, Environment.ProcessorCount);
+            int defaultValue = Math.Min(2, cpuCount);
+
+            List<int> values = new List<int> { 1 };
+            List<string> names = new List<string> { cpuCount == 1 ? "1 (Max CPU Core)" : "1 - HDD / Low Memory" };
+
+            if (cpuCount >= 2)
+            {
+                values.Add(2);
+                names.Add(cpuCount == 2 ? "2 - SSD (Max CPU Cores)" : "2 - SSD (Default)");
+            }
+            if (cpuCount >= 4)
+            {
+                values.Add(4);
+                names.Add(cpuCount == 4 ? "4 - Fast SSD (Max CPU Cores)" : "4 - Fast SSD");
+            }
+            if (cpuCount >= 8)
+            {
+                values.Add(8);
+                names.Add(cpuCount == 8 ? "8 - Very Fast SSD (Max CPU Cores)" : "8 - Very Fast SSD");
+            }
+            if (!values.Contains(cpuCount))
+            {
+                values.Add(cpuCount);
+                names.Add($"{cpuCount} (Max CPU Cores)");
+            }
+
+            if (savedValue != -1 && (savedValue < 1 || savedValue > cpuCount))
+                savedValue = defaultValue;
+
+            if (savedValue > 0 && !values.Contains(savedValue))
+            {
+                int insertIndex = values.FindIndex(v => v > savedValue);
+                if (insertIndex == -1)
+                    insertIndex = values.Count;
+                values.Insert(insertIndex, savedValue);
+                names.Insert(insertIndex, $"{savedValue} (Custom)");
+            }
+
+            values.Add(-1);
+            names.Add("-1 - Unlimited (Not Recommended)");
+
+            return new CustomComboData<int, string>(values, names)
+            {
+                SelectedIndex = values.IndexOf(savedValue)
+            };
         }
 
         private void OptionsWindow_Loaded(object sender, RoutedEventArgs e)

@@ -206,7 +206,7 @@ namespace Frosty.Core
                 {
                     writer.WriteAsset(App.AssetManager.GetEbx(entry));
                     using (NativeWriter fileWriter = new NativeWriter(new FileStream(path, FileMode.Create, FileAccess.Write)))
-                        fileWriter.Write(writer.ToByteArray());
+                        ((MemoryStream)writer.BaseStream).WriteTo(fileWriter.BaseStream);
                 }
             }
             else
