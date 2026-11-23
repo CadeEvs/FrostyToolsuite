@@ -125,7 +125,7 @@ namespace Frosty.Core.Controls
 
             AssemblyName entryAsm = Assembly.GetEntryAssembly()?.GetName();
             if (entryAsm != null)
-                sb.AppendLine($"App: {entryAsm.Name} v{entryAsm.Version}");
+                sb.AppendLine($"App: {entryAsm.Name} v{App.Version}");
 
             sb.AppendLine($"OS: {RuntimeInformation.OSDescription}");
             sb.AppendLine($"Culture: {CultureInfo.CurrentCulture.Name}");
