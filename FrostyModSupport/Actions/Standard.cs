@@ -1597,7 +1597,7 @@ namespace Frosty.ModSupport
 
                                     offset = writer.Position;
 
-                                    writer.Write(outSbStream.ToArray());
+                                    outSbStream.WriteTo(writer.BaseStream);
                                     writer.Write((ushort)0x00);
                                 }
                                 outSbStream.Dispose();

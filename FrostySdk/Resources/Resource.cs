@@ -49,7 +49,7 @@ namespace FrostySdk.Resources
                 using (NativeWriter subWriter = new NativeWriter(new MemoryStream()))
                 {
                     SaveInternal(subWriter);
-                    writer.Write(subWriter.ToByteArray());
+                    ((MemoryStream)subWriter.BaseStream).WriteTo(writer.BaseStream);
                 }
 
                 return writer.ToByteArray();;

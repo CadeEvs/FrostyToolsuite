@@ -156,16 +156,16 @@ namespace Frosty.Core.Mod
 
                 uint iconOffset = (uint)writer.Position;
                 if (ModDetails.Icon != null)
-                    writer.Write(((MemoryStream)(((BitmapImage)ModDetails.Icon).StreamSource)).ToArray());
+                    ((MemoryStream)(((BitmapImage)ModDetails.Icon).StreamSource)).WriteTo(writer.BaseStream);
                 int iconSize = (int)(writer.Position - iconOffset);
 
                 uint screenShotsOffset = (uint)writer.Position;
                 writer.Write(ModDetails.Screenshots.Count);
                 for (int i = 0; i < ModDetails.Screenshots.Count; i++)
                 {
-                    byte[] buffer = ((MemoryStream)(((BitmapImage)ModDetails.Screenshots[i]).StreamSource)).ToArray();
-                    writer.Write(buffer.Length);
-                    writer.Write(buffer);
+                    MemoryStream screenshotStream = (MemoryStream)((BitmapImage)ModDetails.Screenshots[i]).StreamSource;
+                    writer.Write((int)screenshotStream.Length);
+                    screenshotStream.WriteTo(writer.BaseStream);
                 }
 
                 writer.Position = 0x08;

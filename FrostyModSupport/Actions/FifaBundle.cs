@@ -520,7 +520,7 @@ namespace Frosty.ModSupport
                                                         bundleFile.Offset = (int)casWriter.Position;
                                                         bundleFile.Size = (int)(dataOffset + 4);
 
-                                                        casWriter.Write(((MemoryStream)(writer.BaseStream)).ToArray());
+                                                        ((MemoryStream)writer.BaseStream).WriteTo(casWriter.BaseStream);
                                                     }
                                                 }
 

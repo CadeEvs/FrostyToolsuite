@@ -699,7 +699,7 @@ namespace FrostySdk
 
                         writer.Write(fileGuid);
                         writer.Write(++createCount);
-                        writer.Write(ms.ToArray());
+                        ms.WriteTo(writer.BaseStream);
                     }
 
                     using (MD5 md5 = new MD5CryptoServiceProvider())

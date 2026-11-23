@@ -338,7 +338,7 @@ namespace FrostySdk.IO
             boxedValueOffset = (uint)(Position - stringsLength - stringsOffset);
             if (boxedValueWriter.Position > 0)
             {
-                Write(boxedValueWriter.ToByteArray());
+                ((MemoryStream)boxedValueWriter.BaseStream).WriteTo(BaseStream);
                 WritePadding(16);
                 boxedValueWriter.Close();
             }
