@@ -1864,11 +1864,11 @@ namespace Frosty.ModSupport
                 watch.Stop();
                 if (watch.Elapsed.Minutes > 0)
                 {
-                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s with {maxModApplyThreads} thread(s)");
+                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Minutes}m {watch.Elapsed.Seconds}s");
                 }
                 else
                 {
-                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds}s with {maxModApplyThreads} thread(s)");
+                    App.Logger.Log($"Applied Mods in {watch.Elapsed.Seconds}s");
                 }
             }
             else
