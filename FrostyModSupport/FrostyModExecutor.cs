@@ -17,7 +17,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using Frosty.Core.Controls;
 
 namespace Frosty.ModSupport
 {
