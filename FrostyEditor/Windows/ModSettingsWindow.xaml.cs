@@ -44,74 +44,21 @@ namespace FrostyEditor.Windows
             "User Interface"
         };
 
-        private string modTitle = string.Empty;
-        private string modAuthor = string.Empty;
-        private string modVersion = string.Empty;
-        private string modCategory = string.Empty;
-        private int selectedCategoryIndex;
-        private string modLink = string.Empty;
-        private string modDescription = string.Empty;
-
         public IReadOnlyList<string> Categories => categories;
 
-        public string ModTitle
-        {
-            get => modTitle;
-            set
-            {
-                if (SetField(ref modTitle, value ?? string.Empty))
-                    ValidateTextField(nameof(ModTitle), modTitle, "Title", isMandatory: true);
-            }
-        }
+        private string modTitle = string.Empty;
+        public string ModTitle { get => modTitle; set => SetTextField(ref modTitle, value, "Title", true); }
 
-        public string ModAuthor
-        {
-            get => modAuthor;
-            set
-            {
-                if (SetField(ref modAuthor, value ?? string.Empty))
-                    ValidateTextField(nameof(ModAuthor), modAuthor, "Author", isMandatory: true);
-            }
-        }
+        private string modAuthor = string.Empty;
+        public string ModAuthor { get => modAuthor; set => SetTextField(ref modAuthor, value, "Author", true); }
 
-        public string ModVersion
-        {
-            get => modVersion;
-            set
-            {
-                if (SetField(ref modVersion, value ?? string.Empty))
-                    ValidateTextField(nameof(ModVersion), modVersion, "Version", isMandatory: true);
-            }
-        }
+        private string modVersion = string.Empty;
+        public string ModVersion { get => modVersion; set => SetTextField(ref modVersion, value, "Version", true); }
 
-        public string ModCategory
-        {
-            get => modCategory;
-            set
-            {
-                if (SetField(ref modCategory, value ?? string.Empty))
-                    ValidateTextField(nameof(ModCategory), modCategory, "Category", isMandatory: true);
-            }
-        }
+        private string modCategory = string.Empty;
+        public string ModCategory { get => modCategory; set => SetTextField(ref modCategory, value, "Category", true); }
 
-        public int SelectedCategoryIndex
-        {
-            get => selectedCategoryIndex;
-            set
-            {
-                if (value < 0 || value >= categories.Count)
-                    return;
-
-                if (SetField(ref selectedCategoryIndex, value))
-                {
-                    OnPropertyChanged(nameof(IsCustomCategory));
-                    ModCategory = IsCustomCategory ? string.Empty : categories[selectedCategoryIndex];
-                }
-            }
-        }
-
-        public bool IsCustomCategory => selectedCategoryIndex == 0;
-
+        private string modLink = string.Empty;
         public string ModLink
         {
             get => modLink;
@@ -122,15 +69,24 @@ namespace FrostyEditor.Windows
             }
         }
 
-        public string ModDescription
+        private string modDescription = string.Empty;
+        public string ModDescription { get => modDescription; set => SetTextField(ref modDescription, value, "Description", false); }
+
+        private int selectedCategoryIndex;
+        public int SelectedCategoryIndex
         {
-            get => modDescription;
+            get => selectedCategoryIndex;
             set
             {
-                if (SetField(ref modDescription, value ?? string.Empty))
-                    ValidateTextField(nameof(ModDescription), modDescription, "Description", isMandatory: false);
+                if (value < 0 || value >= categories.Count || !SetField(ref selectedCategoryIndex, value))
+                    return;
+
+                OnPropertyChanged(nameof(IsCustomCategory));
+                ModCategory = IsCustomCategory ? string.Empty : categories[selectedCategoryIndex];
             }
         }
+
+        public bool IsCustomCategory => selectedCategoryIndex == 0;
 
         public bool HasErrors => errors.Count > 0;
 
@@ -343,6 +299,12 @@ namespace FrostyEditor.Windows
                 OnPropertyChanged(nameof(PrimaryError));
                 OnPropertyChanged(nameof(ErrorSummary));
             }
+        }
+
+        private void SetTextField(ref string field, string value, string displayName, bool isMandatory, [CallerMemberName] string propertyName = null)
+        {
+            if (SetField(ref field, value ?? string.Empty, propertyName))
+                ValidateTextField(propertyName, field, displayName, isMandatory);
         }
 
         private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
