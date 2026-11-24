@@ -3,21 +3,37 @@ using System.Windows.Media.Imaging;
 using System.IO;
 using Frosty.Core;
 using Frosty.Core.Mod;
+using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace FrostyEditor.Windows
 {
     /// <summary>
     /// Interaction logic for ModSettingsWindow.xaml
     /// </summary>
-    public partial class ModSettingsWindow : FrostyDockableWindow
+    public partial class ModSettingsWindow : FrostyDockableWindow, INotifyPropertyChanged, INotifyDataErrorInfo
     {
+        private static readonly string[] ApprovedDomains = { "nexusmods.com", "moddb.com" };
+        private static readonly string[] FieldOrder =
+        {
+            nameof(ModTitle),
+            nameof(ModAuthor),
+            nameof(ModVersion),
+            nameof(ModCategory),
+            nameof(ModLink),
+            nameof(ModDescription)
+        };
+
         private ModSettings ModSettings => project.GetModSettings();
         private FrostyProject project;
+        private bool hasValidated;
+        private readonly Dictionary<string, string> errors = new Dictionary<string, string>();
 
-        private List<string> categories = new List<string>()
+        private readonly List<string> categories = new List<string>()
         {
             "Custom",
             "Audio",
@@ -28,34 +44,105 @@ namespace FrostyEditor.Windows
             "User Interface"
         };
 
+        public IReadOnlyList<string> Categories => categories;
+
+        private string modTitle = string.Empty;
+        public string ModTitle { get => modTitle; set => SetTextField(ref modTitle, value, "Title", true); }
+
+        private string modAuthor = string.Empty;
+        public string ModAuthor { get => modAuthor; set => SetTextField(ref modAuthor, value, "Author", true); }
+
+        private string modVersion = string.Empty;
+        public string ModVersion { get => modVersion; set => SetTextField(ref modVersion, value, "Version", true); }
+
+        private string modCategory = string.Empty;
+        public string ModCategory { get => modCategory; set => SetTextField(ref modCategory, value, "Category", true); }
+
+        private string modLink = string.Empty;
+        public string ModLink
+        {
+            get => modLink;
+            set
+            {
+                if (SetField(ref modLink, value ?? string.Empty))
+                    ValidateLinkField(force: false);
+            }
+        }
+
+        private string modDescription = string.Empty;
+        public string ModDescription { get => modDescription; set => SetTextField(ref modDescription, value, "Description", false); }
+
+        private int selectedCategoryIndex;
+        public int SelectedCategoryIndex
+        {
+            get => selectedCategoryIndex;
+            set
+            {
+                if (value < 0 || value >= categories.Count || !SetField(ref selectedCategoryIndex, value))
+                    return;
+
+                OnPropertyChanged(nameof(IsCustomCategory));
+                ModCategory = IsCustomCategory ? string.Empty : categories[selectedCategoryIndex];
+            }
+        }
+
+        public bool IsCustomCategory => selectedCategoryIndex == 0;
+
+        public bool HasErrors => errors.Count > 0;
+
+        public string PrimaryError
+        {
+            get
+            {
+                List<string> orderedErrors = GetOrderedErrors();
+                if (orderedErrors.Count == 0)
+                    return string.Empty;
+
+                return orderedErrors.Count == 1
+                    ? orderedErrors[0]
+                    : $"{orderedErrors[0]} (+{orderedErrors.Count - 1} more)";
+            }
+        }
+
+        public string ErrorSummary => string.Join(Environment.NewLine, GetOrderedErrors());
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
+
         public ModSettingsWindow(FrostyProject inProject = null)
         {
+            DataContext = this;
             InitializeComponent();
 
             project = inProject;
             Loaded += ModSettingsWindow_Loaded;
         }
 
+        public IEnumerable GetErrors(string propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName))
+                return GetOrderedErrors();
+
+            return errors.TryGetValue(propertyName, out string error)
+                ? new[] { error }
+                : null;
+        }
+
         private void ModSettingsWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
-            modCategoryComboBox.ItemsSource = categories;
-            
-            modTitleTextBox.Text = ModSettings.Title;
-            modAuthorTextBox.Text = ModSettings.Author;
-            modCategoryComboBox.SelectedIndex = ModSettings.SelectedCategory;
-            modVersionTextBox.Text = ModSettings.Version;
-            modDescriptionTextBox.Text = ModSettings.Description;
+            modTitle = ModSettings.Title ?? string.Empty;
+            modAuthor = ModSettings.Author ?? string.Empty;
+            selectedCategoryIndex =
+                ModSettings.SelectedCategory >= 0
+                && ModSettings.SelectedCategory < categories.Count
+                ? ModSettings.SelectedCategory
+                : 0;
+            modCategory = IsCustomCategory ? (ModSettings.Category ?? string.Empty) : categories[selectedCategoryIndex];
+            modVersion = ModSettings.Version ?? string.Empty;
+            modDescription = ModSettings.Description ?? string.Empty;
+            modLink = ModSettings.Link ?? string.Empty;
 
-            if (modCategoryComboBox.SelectedItem.ToString() == "Custom")
-            {
-                modCategoryTextBox.Text = ModSettings.Category;
-                modCategoryTextBox.IsEnabled = true;
-            }
-            else
-            {
-                modCategoryTextBox.Text = categories[ModSettings.SelectedCategory];
-                modCategoryTextBox.IsEnabled = false;
-            }
+            OnPropertyChanged(string.Empty);
 
             iconImageButton.SetImage(ModSettings.Icon);
             ssImageButton1.SetImage(ModSettings.GetScreenshot(0));
@@ -72,27 +159,22 @@ namespace FrostyEditor.Windows
 
         private void saveButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if (modTitleTextBox.Text == "" || modAuthorTextBox.Text == "" || modCategoryTextBox.Text == "" || modVersionTextBox.Text == "")
-            {
-                FrostyMessageBox.Show("Title, Author, Category and Version are mandatory fields", "Frosty Editor");
+            hasValidated = true;
+            ValidateAll();
+
+            if (HasErrors)
                 return;
-            }
 
-            string[] approvedDomains = { "nexusmods.com", "moddb.com" };
+            ValidateLink(modLink, out string normalizedLink);
+            ModLink = normalizedLink;
 
-            if (modPageLinkTextBox.Text != "" && (!Uri.IsWellFormedUriString(modPageLinkTextBox.Text, UriKind.RelativeOrAbsolute) || !approvedDomains.Any(modPageLinkTextBox.Text.Contains)))
-            {
-                FrostyMessageBox.Show("Link needs to be valid", "Frosty Editor");
-                return;
-            }
-
-            ModSettings.Title = modTitleTextBox.Text;
-            ModSettings.Author = modAuthorTextBox.Text;
-            ModSettings.Category = modCategoryTextBox.Text;
-            ModSettings.SelectedCategory = modCategoryComboBox.SelectedIndex;
-            ModSettings.Version = modVersionTextBox.Text;
-            ModSettings.Description = modDescriptionTextBox.Text;
-            ModSettings.Link = modPageLinkTextBox.Text;
+            ModSettings.Title = ModTitle;
+            ModSettings.Author = ModAuthor;
+            ModSettings.Category = ModCategory;
+            ModSettings.SelectedCategory = SelectedCategoryIndex;
+            ModSettings.Version = ModVersion;
+            ModSettings.Description = ModDescription;
+            ModSettings.Link = ModLink;
             ModSettings.Icon = iconImageButton.GetImage();
             ModSettings.SetScreenshot(0, ssImageButton1.GetImage());
             ModSettings.SetScreenshot(1, ssImageButton2.GetImage());
@@ -126,18 +208,118 @@ namespace FrostyEditor.Windows
             return true;
         }
 
-        private void modCategoryComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ValidateAll()
         {
-            if (modCategoryComboBox.SelectedItem.ToString() == "Custom")
+            ValidateTextField(nameof(ModTitle), modTitle, "Title", isMandatory: true);
+            ValidateTextField(nameof(ModAuthor), modAuthor, "Author", isMandatory: true);
+            ValidateTextField(nameof(ModVersion), modVersion, "Version", isMandatory: true);
+            ValidateTextField(nameof(ModCategory), modCategory, "Category", isMandatory: true);
+            ValidateLinkField(force: true);
+            ValidateTextField(nameof(ModDescription), modDescription, "Description", isMandatory: false);
+        }
+
+        private void ValidateTextField(string propertyName, string value, string displayName, bool isMandatory)
+        {
+            if (isMandatory && hasValidated && string.IsNullOrWhiteSpace(value))
+                SetError(propertyName, $"{displayName} is a mandatory field");
+            else if (ContainsInvalidAscii(value))
+                SetError(propertyName, $"{displayName} can only contain ASCII characters");
+            else
+                SetError(propertyName, null);
+        }
+
+        private void ValidateLinkField(bool force)
+        {
+            if (!force && !hasValidated && !errors.ContainsKey(nameof(ModLink)))
+                return;
+
+            string error = ValidateLink(modLink, out _);
+            SetError(nameof(ModLink), error);
+        }
+
+        private static string ValidateLink(string link, out string normalizedLink)
+        {
+            normalizedLink = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(link))
+                return null;
+
+            string trimmed = link.Trim();
+            if (!Uri.TryCreate(trimmed, UriKind.Absolute, out Uri uriResult) ||
+                (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
             {
-                modCategoryTextBox.Text = "";
-                modCategoryTextBox.IsEnabled = true;
+                return "Link needs to be a valid HTTP/HTTPS URL";
+            }
+
+            bool isApprovedDomain = ApprovedDomains.Any(domain =>
+                uriResult.Host.Equals(domain, StringComparison.OrdinalIgnoreCase) ||
+                uriResult.Host.EndsWith("." + domain, StringComparison.OrdinalIgnoreCase));
+
+            if (!isApprovedDomain)
+                return "Link needs to be nexusmods.com or moddb.com";
+
+            if (ContainsInvalidAscii(uriResult.AbsoluteUri))
+                return "Link can only contain ASCII characters";
+
+            normalizedLink = uriResult.AbsoluteUri;
+            return null;
+        }
+
+        private static bool ContainsInvalidAscii(string value)
+        {
+            return !string.IsNullOrEmpty(value) && value.Any(c => c == '\0' || c > 0x7F);
+        }
+
+        private List<string> GetOrderedErrors()
+        {
+            return FieldOrder.Where(errors.ContainsKey).Select(key => errors[key]).ToList();
+        }
+
+        private void SetError(string propertyName, string error)
+        {
+            bool changed;
+            if (string.IsNullOrEmpty(error))
+            {
+                changed = errors.Remove(propertyName);
+            }
+            else if (errors.TryGetValue(propertyName, out string existing) && existing == error)
+            {
+                changed = false;
             }
             else
             {
-                modCategoryTextBox.Text = modCategoryComboBox.SelectedItem.ToString();
-                modCategoryTextBox.IsEnabled = false;
+                errors[propertyName] = error;
+                changed = true;
             }
+
+            if (changed)
+            {
+                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+                OnPropertyChanged(nameof(HasErrors));
+                OnPropertyChanged(nameof(PrimaryError));
+                OnPropertyChanged(nameof(ErrorSummary));
+            }
+        }
+
+        private void SetTextField(ref string field, string value, string displayName, bool isMandatory, [CallerMemberName] string propertyName = null)
+        {
+            if (SetField(ref field, value ?? string.Empty, propertyName))
+                ValidateTextField(propertyName, field, displayName, isMandatory);
+        }
+
+        private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+                return false;
+
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }
