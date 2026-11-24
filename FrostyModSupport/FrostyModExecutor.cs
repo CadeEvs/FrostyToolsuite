@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using Frosty.Core.Controls;
 
 namespace Frosty.ModSupport
 {
@@ -1030,48 +1031,71 @@ namespace Frosty.ModSupport
                 if (Directory.Exists(lcuPath))
                 {
                     DirectoryInfo di = new DirectoryInfo(lcuPath);
-                    if (FrostyMessageBox.Show("Frosty has detected the presence of a Live Content Update. This must be removed and the game taken offline for mods to take affect.\r\nThe location of this update is:\r\n" + di.FullName + "\r\n\r\nDo you want to delete that?", "Frosty Toolsuite",
-                        MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        try
-                        {
-                            di.Delete();
-                        }
-                        catch
-                        {
-                            FrostyMessageBox.Show($"Failed to delete");
-                            return -1;
-                        }
-                    }
-                    else
-                        return -1;
+                    FrostyMessageBox.Show("Frosty has detected the presence of a Live Content Update. This must be removed and the game taken offline for mods to take affect.\r\n\r\nThe location of this update is:\r\n\r\n" + di.FullName, "Frosty Editor");
+                    return -1;
                 }
             }
 
             // check for already running process
-            Process[] processes = Process.GetProcesses();
             string processName = ProfilesLibrary.ProfileName;
-            foreach (Process process in processes)
+            Process[] processes = Process.GetProcessesByName(processName);
+            try
             {
-                if (process.ProcessName.Equals(processName, StringComparison.OrdinalIgnoreCase))
+                if (processes.Length > 0)
                 {
-                    if (FrostyMessageBox.Show($"Unable to launch process as there is already a running process with process Id {process.Id}\r\n\r\nDo you want to kill game process?", "Frosty Toolsuite",
-                        MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    string message = processes.Length == 1
+                        ? $"Unable to launch process as there is already a running process with process Id {processes[0].Id}.\r\n\r\nDo you want to force close it?"
+                        : $"Unable to launch process as there are already running processes with process Ids {string.Join(", ", processes.Select(p => p.Id))}.\r\n\r\nDo you want to force close them?";
+
+                    if (FrostyMessageBox.Show(message, "Frosty Toolsuite", MessageBoxButton.YesNo) != MessageBoxResult.Yes)
                     {
+                        return -1;
+                    }
+
+                    Logger.Log("Waiting for game process to exit");
+                    foreach (Process process in processes)
+                    {
+                        cancelToken.ThrowIfCancellationRequested();
                         try
                         {
-                            process.Kill();
+                            if (!process.HasExited)
+                                process.Kill();
+
+                            Stopwatch killWatch = Stopwatch.StartNew();
+                            while (!process.WaitForExit(100))
+                            {
+                                cancelToken.ThrowIfCancellationRequested();
+                                if (killWatch.ElapsedMilliseconds >= 30000)
+                                {
+                                    App.Logger.Log($"Timed out waiting for process {process.Id} to exit");
+                                    FrostyMessageBox.Show($"Timed out waiting for process {process.Id} to exit.\r\n\r\nPlease close the game manually.", "Frosty Toolsuite");
+                                    return -1;
+                                }
+                            }
                         }
-                        catch
+                        catch (OperationCanceledException)
                         {
-                            FrostyMessageBox.Show($"Failed to kill process");
-                            return -1;
+                            throw;
                         }
-                        break;
+                        catch (Exception ex)
+                        {
+                            // Try one last time
+                            bool alreadyExited = false;
+                            try { alreadyExited = process.WaitForExit(500); } catch { }
+                            if (!alreadyExited)
+                            {
+                                App.Logger.Log($"Failed to kill process {process.Id}: {ex.Message}");
+                                FrostyMessageBox.Show($"Failed to kill process {process.Id}: {ex.Message}\r\n\r\nTry running Frosty as Administrator or close the game manually.", "Frosty Toolsuite");
+                                return -1;
+                            }
+                        }
                     }
-                    
-                    return -1;
                 }
+            }
+            finally
+            {
+                foreach (Process process in processes)
+                    process.Dispose();
             }
 
             Stopwatch watch = new Stopwatch();
@@ -1315,14 +1339,14 @@ namespace Frosty.ModSupport
                     if (newInstallation)
                         reason = "New installation detected.";
 
-                    FrostyMessageBox.Show(reason + "Next, please press Yes\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
+                    FrostyMessageBox.Show(reason + "\r\n\r\nShortly you will be prompted for elevated privileges, this is required to create symbolic links between the original data and the new modified data. Please ensure that you accept this to avoid any issues.", "Frosty Toolsuite");
                     if (!RunSymbolicLinkProcess(cmdArgs))
                     {
-                        FrostyMessageBox.Show("Next, please press Yes\r\n\r\nFrosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Toolsuite");
+                        FrostyMessageBox.Show("Frosty needs to generate symbolic links, please ensure that you accept this so you don't have to regenerate ModData.", "Frosty Editor");
                         if (!RunSymbolicLinkProcess(cmdArgs))
                         {
                             Directory.Delete(modDataPath, true);
-                            FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Toolsuite");
+                            FrostyMessageBox.Show("One ore more symbolic links could not be created, please restart tool as Administrator and ensure your storage drive is formatted to NTFS (not exFAT).", "Frosty Editor");
                             return -1;
                         }
                     }
