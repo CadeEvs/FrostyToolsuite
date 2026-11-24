@@ -107,7 +107,7 @@
                                Foreground="Red"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Center"
-                               Margin="8,0"
+                               Margin="2,0"
                                TextTrimming="CharacterEllipsis">
                         <TextBlock.Style>
                             <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
